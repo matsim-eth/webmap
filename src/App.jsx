@@ -82,6 +82,7 @@ function App() {
  return (
   <>
     <CantonSearch
+      map={mapRef.current}
       cantonList={cantonList} // from app
       onSearch={setClickedCanton} // to map
     />

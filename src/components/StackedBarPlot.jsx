@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
+import cantonAlias from "../utils/canton_alias.json";
 
 // Define mode colors
 const MODE_COLORS = {
@@ -21,24 +22,20 @@ const StackedBarPlots = ({ canton }) => {
   const [networkData, setNetworkData] = useState(null);
 
   useEffect(() => {
-    fetch(`/data/euclidean_distance_mode_share_data.json`)
+    fetch(`/data/stacked_bar_euclidean_distance.json`)
       .then((response) => response.json())
       .then((jsonData) => {
-        const cantonData =
-          !canton || canton === "All"
-            ? jsonData.all
-            : jsonData.cantons[canton];
+        const cantonKey = canton || "All";
+        const cantonData = jsonData[cantonKey];
         setEuclideanData(cantonData);
       })
       .catch((error) => console.error("Error loading Euclidean Data:", error));
 
-    fetch(`/data/network_distance_mode_share_data.json`)
+    fetch(`/data/stacked_bar_network_distance.json`)
       .then((response) => response.json())
       .then((jsonData) => {
-        const cantonData =
-          !canton || canton === "All"
-            ? jsonData.all
-            : jsonData.cantons[canton];
+        const cantonKey = canton || "All";
+        const cantonData = jsonData[cantonKey];
         setNetworkData(cantonData);
       })
       .catch((error) => console.error("Error loading Network Data:", error));
@@ -125,7 +122,7 @@ const StackedBarPlots = ({ canton }) => {
 
   return (
     <div className="overlay-panel">
-      <h3>{canton || "All"} - Mode Share by Distance Category</h3>
+      <h3>{cantonAlias[canton] || "All"} - Mode Share by Distance Category</h3>
 
       <Plot
         data={allTraces}

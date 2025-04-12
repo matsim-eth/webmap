@@ -1,83 +1,85 @@
 import { useState } from 'react';
+import cantonAlias from '../utils/canton_alias.json'; // adjust path as needed
 import './CantonSearch.css';
 
-const CantonSearch = ({ cantonList, onSearch }) => {
-    const [searchTerm, setSearchTerm] = useState(''); // search term
-    const [filteredCantons, setFilteredCantons] = useState([]); // cantons which match term
-    const [selectedIndex, setSelectedIndex] = useState(-1); // selected item in list
+const CantonSearch = ({ onSearch }) => {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filteredCantons, setFilteredCantons] = useState([]);
+    const [selectedIndex, setSelectedIndex] = useState(-1);
+
+    // Convert alias JSON to an array of [cleanName, displayName]
+    const cantonEntries = Object.entries(cantonAlias);
+    const displayNames = cantonEntries.map(([_, displayName]) => displayName);
 
     const normalizeString = (str) => {
         return str
-            .normalize("NFD") // Decomposes accents
-            .replace(/[\u0300-\u036f]/g, "") // Removes accents
-            .toLowerCase(); // Converts to lowercase
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase();
     };
 
-    const handleSearch = (cantonName = null) => {
-        const normalizedSearch = normalizeString(cantonName || searchTerm);
+    const handleSearch = (displayName = null) => {
+        const normalizedSearch = normalizeString(displayName || searchTerm);
 
-        let matchedCanton = cantonList.find(
-            (canton) => normalizeString(canton) === normalizedSearch
+        let matched = cantonEntries.find(
+            ([_, alias]) => normalizeString(alias) === normalizedSearch
         );
 
-        // If no exact match, use the first suggestion
-        if (!matchedCanton && filteredCantons.length > 0) {
-            matchedCanton = filteredCantons[0];
+        // Fallback to first suggestion
+        if (!matched && filteredCantons.length > 0) {
+            const fallback = filteredCantons[0];
+            matched = cantonEntries.find(([_, alias]) => alias === fallback);
         }
 
-        if (matchedCanton) {
-            setSearchTerm(''); // Clear input after selection
-            onSearch(matchedCanton);
-            setFilteredCantons([]); // Clear suggestions
-            setSelectedIndex(-1); // Reset selection
+        if (matched) {
+            setSearchTerm('');
+            onSearch(matched[0]); // return clean name
+            setFilteredCantons([]);
+            setSelectedIndex(-1);
         }
     };
 
     const handleInputChange = (e) => {
         const input = e.target.value;
         setSearchTerm(input);
-        setSelectedIndex(-1); // Reset selection when typing
-    
+        setSelectedIndex(-1);
+
         if (input.trim() === '') {
             setFilteredCantons([]);
             return;
         }
-    
+
         const normalizedInput = normalizeString(input);
-    
         const startsWithMatches = [];
         const containsMatches = [];
-    
-        // Separate cantons into "starts with" and "contains"
-        cantonList.forEach(canton => {
-            const normalizedCanton = normalizeString(canton);
-            if (normalizedCanton.startsWith(normalizedInput)) {
-                startsWithMatches.push(canton);
-            } else if (normalizedCanton.includes(normalizedInput)) {
-                containsMatches.push(canton);
+
+        displayNames.forEach(displayName => {
+            const normalized = normalizeString(displayName);
+            if (normalized.startsWith(normalizedInput)) {
+                startsWithMatches.push(displayName);
+            } else if (normalized.includes(normalizedInput)) {
+                containsMatches.push(displayName);
             }
         });
-    
-        // Sort both groups alphabetically and merge them
+
         const suggestions = [
             ...startsWithMatches.sort((a, b) => a.localeCompare(b)),
             ...containsMatches.sort((a, b) => a.localeCompare(b))
-        ].slice(0, 5); // Limit suggestions to 5
-    
+        ].slice(0, 5);
+
         setFilteredCantons(suggestions);
     };
-    
 
     const handleKeyDown = (e) => {
         if (e.key === 'ArrowDown') {
-            setSelectedIndex((prevIndex) => Math.min(prevIndex + 1, filteredCantons.length - 1));
+            setSelectedIndex((prev) => Math.min(prev + 1, filteredCantons.length - 1));
         } else if (e.key === 'ArrowUp') {
-            setSelectedIndex((prevIndex) => Math.max(prevIndex - 1, 0));
+            setSelectedIndex((prev) => Math.max(prev - 1, 0));
         } else if (e.key === 'Enter') {
             if (selectedIndex >= 0 && filteredCantons.length > 0) {
                 handleSearch(filteredCantons[selectedIndex]);
             } else if (filteredCantons.length > 0) {
-                handleSearch(filteredCantons[0]); // Select the first suggestion if no selection
+                handleSearch(filteredCantons[0]);
             }
         }
     };
@@ -96,13 +98,13 @@ const CantonSearch = ({ cantonList, onSearch }) => {
 
             {filteredCantons.length > 0 && (
                 <ul className="suggestions">
-                    {filteredCantons.map((canton, index) => (
+                    {filteredCantons.map((name, index) => (
                         <li
                             key={index}
-                            onClick={() => handleSearch(canton)}
+                            onClick={() => handleSearch(name)}
                             className={index === selectedIndex ? "selected" : ""}
                         >
-                            {canton}
+                            {name}
                         </li>
                     ))}
                 </ul>
