@@ -15,7 +15,7 @@ const ChoroplethControls = ({ selectedMode, setSelectedMode, selectedDataset, se
 
   // Fetch max shares per mode for legend scaling
   useEffect(() => {
-    fetch("/data/canton_mode_share.json")
+    fetch("/data/mode_share.json")
       .then((response) => response.json())
       .then((data) => setMaxSharePerMode(data.max_share_per_mode))
       .catch((error) => console.error("Error loading max share per mode:", error));
@@ -47,28 +47,44 @@ const ChoroplethControls = ({ selectedMode, setSelectedMode, selectedDataset, se
         <option value="walk">Walking</option>
       </select>
 
-      <div className="dataset-toggle">
-        <span>Microcensus</span>
-        <label className="switch">
-          <input type="checkbox" checked={selectedDataset === "Synthetic"} onChange={handleDatasetChange} />
-          <span className="slider round"></span>
-        </label>
-        <span>Synthetic</span>
-      </div>
+      <div className="dataset-selector">
+  {["Microcensus", "Synthetic", "Difference"].map((option) => (
+    <button
+      key={option}
+      className={`dataset-option ${selectedDataset === option ? "active" : ""}`}
+      onClick={() => {
+        setSelectedDataset(option);
+        updateMapSymbology(selectedMode, option);
+      }}
+    >
+      {option}
+    </button>
+  ))}
+</div>
 
       {/* Legend */}
-      {selectedMode !== "None" && maxSharePerMode && (
-        <div className="legend">
-          <h4>Legend</h4>
-          <div className="legend-container">
-            <span className="legend-label">0%</span>
-            <div className="legend-gradient" style={{
-              background: `linear-gradient(to left, ${MODE_COLORS[selectedMode]} 0%, #FFFFFF 100%)`
-            }}></div>
-            <span className="legend-label">{Math.round(maxSharePerMode[selectedMode] * 100)}%</span>
-          </div>
-        </div>
-      )}
+      {selectedMode !== "None" && (
+  <div className="legend">
+    <h4>Legend</h4>
+    <div className="legend-container">
+      <span className="legend-label">0%</span>
+      <div
+        className="legend-gradient"
+        style={{
+          background:
+            selectedDataset === "Difference"
+              ? "linear-gradient(to left, red 0%, white 100%)"
+              : `linear-gradient(to left, ${MODE_COLORS[selectedMode]} 0%, #FFFFFF 100%)`
+        }}
+      ></div>
+      <span className="legend-label">
+        {selectedDataset === "Difference"
+          ? "10%"
+          : `${Math.round(maxSharePerMode[selectedMode] * 100)}%`}
+      </span>
+    </div>
+  </div>
+)}
     </div>
   );
 };

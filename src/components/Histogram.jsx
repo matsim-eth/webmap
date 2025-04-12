@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
+import cantonAlias from "../utils/canton_alias.json";
 
 const DATASET_COLORS = {
   Microcensus: "#4A90E2",
@@ -13,7 +14,7 @@ const Histogram = ({ canton, onClose }) => {
 
   useEffect(() => {
     const selectedCanton = canton || "All";
-    fetch(`/data/euclidean_distance_histogram_by_mode.json`)
+    fetch(`/data/histogram_euclidean_distance.json`)
     .then((response) => response.json())
     .then((jsonData) => {
       if (jsonData[selectedCanton]) {
@@ -23,7 +24,7 @@ const Histogram = ({ canton, onClose }) => {
     })
     .catch((error) => console.error("Error loading Euclidean JSON:", error));
 
-  fetch(`/data/network_distance_histogram_by_mode.json`)
+  fetch(`/data/histogram_network_distance.json`)
     .then((response) => response.json())
     .then((jsonData) => {
       if (jsonData[selectedCanton]) {
@@ -155,7 +156,7 @@ if (!euclideanData || !networkData) return <p>Loading...</p>;
 
   return (
 <div className="overlay-panel">
-      <h3>{canton || "All"} - Distance Histograms</h3>
+      <h3>{cantonAlias[canton] || "All"} - Distance Histograms</h3>
       <div>
         {Object.keys(euclideanData).map((mode) => (
           <label key={mode}>

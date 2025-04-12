@@ -28,58 +28,32 @@
     cursor: pointer;
   }
   
-  .dataset-toggle {
+  .dataset-selector {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    font-size: 14px;
-    font-weight: 500;
-    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+    width: 100;
+    margin-top: 1rem;
   }
   
-  .switch {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 24px;
+  .dataset-option {
+    padding: 0.5rem 0.7rem;
+    border: none;
+    background: white;
+    cursor: pointer;
+    flex: 1;
+    transition: background 0.2s;
   }
   
-  .switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
+  .dataset-option:not(:last-child) {
+    border-right: 1px solid #ccc;
   }
   
-  .slider {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    border-radius: 24px;
-    transition: 0.3s;
-  }
-  
-  .slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    border-radius: 50%;
-    transition: 0.3s;
-  }
-  
-  input:checked + .slider {
-    background-color: #636efa; /* Matches sidebar theme */
-  }
-  
-  input:checked + .slider:before {
-    transform: translateX(26px);
+  .dataset-option.active {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
   }
   
   

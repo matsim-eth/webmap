@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
+import cantonAlias from "../utils/canton_alias.json";
 
 const MODE_COLORS = {
   car: "#636efa",
@@ -74,7 +75,7 @@ const ModeShareLinePlot = ({ canton }) => {
 
   return (
     <div className="overlay-panel">
-      <h3>{canton || "All"} - Mode Share Line Plot</h3>
+      <h3>{cantonAlias[canton] || "All"} - Mode Share Line Plot</h3>
 
       {/* Radio buttons to select variable */}
       <div style={{ display: "flex", gap: "15px", marginBottom: "10px" }}>

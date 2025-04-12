@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
+import cantonAlias from "../utils/canton_alias.json";
 
 const DATASET_COLORS = {
   Microcensus: "#4A90E2",
@@ -37,7 +38,7 @@ const AverageDist = ({ canton, onClose }) => {
 
   return (
     <div className="overlay-panel">
-      <h3>{canton || "All"} - Average Distance by Mode</h3> 
+      <h3>{cantonAlias[canton] || "All"} - Average Distance by Mode</h3> 
 
       <p><b>Sample Sizes:</b> Microcensus: {total_sample_microcensus}, Synthetic: {total_sample_synthetic}</p>
 

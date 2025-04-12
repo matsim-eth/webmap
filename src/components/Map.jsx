@@ -616,7 +616,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
   // ======================= CHOROPLETH MODULE =======================
   
   useEffect(() => {
-    fetch("/data/canton_mode_share.json")
+    fetch("/data/mode_share.json")
     .then((response) => response.json())
     .then((data) => {
       setModeShareData(data);
@@ -647,16 +647,32 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
       return;
     }
     
-    const maxShare = maxSharePerMode[selectedMode] || 1;
-    
-    const colorStops = modeShareData[selectedDataset]
-    .filter(entry => entry.mode === selectedMode)
-    .reduce((acc, entry) => {
-      const normalizedShare = entry.share / maxShare;
-      acc[entry.canton_name] = `rgb(${interpolateColor("#FFFFFF", MODE_COLORS[selectedMode], normalizedShare)})`; // White → Full Color
-      return acc;
-    }, {});
-    
+    let colorStops = {};
+
+    if (selectedDataset === "Difference") {
+      const micro = modeShareData["Microcensus"].filter(entry => entry.mode === selectedMode);
+      const synthetic = modeShareData["Synthetic"].filter(entry => entry.mode === selectedMode);
+  
+      const microMap = Object.fromEntries(micro.map(e => [e.canton_name, e.share]));
+      const syntheticMap = Object.fromEntries(synthetic.map(e => [e.canton_name, e.share]));
+  
+      colorStops = Object.keys(microMap).reduce((acc, canton) => {
+        const diff = Math.abs((syntheticMap[canton] || 0) - (microMap[canton] || 0));
+        const clampedDiff = Math.min(diff, 0.1); // max out at 10%
+        const normalized = clampedDiff / 0.1;
+        acc[canton] = `rgb(${interpolateColor("#FFFFFF", "#ff0000", normalized)})`; // White to Red
+        return acc;
+      }, {});
+    } else {
+      const maxShare = maxSharePerMode[selectedMode] || 1;
+      colorStops = modeShareData[selectedDataset]
+        .filter(entry => entry.mode === selectedMode)
+        .reduce((acc, entry) => {
+          const normalizedShare = entry.share / maxShare;
+          acc[entry.canton_name] = `rgb(${interpolateColor("#FFFFFF", MODE_COLORS[selectedMode], normalizedShare)})`;
+          return acc;
+        }, {});
+    }
     map.setPaintProperty("canton-fill", "fill-color", [
       "case",
       ...Object.entries(colorStops).flatMap(([canton, color]) => [["==", ["get", "NAME"], canton], color]),

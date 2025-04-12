@@ -55,7 +55,7 @@
             }
         }
     },
-    "Appenzell Ausserrhoden": {
+    "AppenzellAusserrhoden": {
         "Microcensus": {
             "bike": {
                 "euclidean_distance": 1749.599949617337,
@@ -111,7 +111,7 @@
             }
         }
     },
-    "Appenzell Innerrhoden": {
+    "AppenzellInnerrhoden": {
         "Microcensus": {
             "bike": {
                 "euclidean_distance": 1439.527270319645,

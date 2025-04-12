@@ -4565,7 +4565,7 @@
         ],
         "max_value": 30.0
     },
-    "Appenzell Ausserrhoden": {
+    "AppenzellAusserrhoden": {
         "microcensus": [
             {
                 "variable_bin": "0.0-0.9",
@@ -6848,7 +6848,7 @@
         ],
         "max_value": 30.0
     },
-    "Appenzell Innerrhoden": {
+    "AppenzellInnerrhoden": {
         "microcensus": [
             {
                 "variable_bin": "0.0-0.9",

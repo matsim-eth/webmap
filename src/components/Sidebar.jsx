@@ -54,6 +54,7 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
     // Handle reset button click
     const handleReset = () => {
       setCanton(null);
+      setSelectedDataset("Microcensus");
       setSelectedMode("None");
       setSelectedNetworkModes(["all"]);
       updateMapSymbology("None", selectedDataset);
