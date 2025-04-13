@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
 import cantonAlias from "../utils/canton_alias.json";
 
-// Define mode colors
 const MODE_COLORS = {
   car: "#636efa",
   car_passenger: "#ef553b",
@@ -11,39 +10,44 @@ const MODE_COLORS = {
   walk: "#ffa15a",
 };
 
-// Define distance bins (order matters)
-const DISTANCE_CATEGORIES = ["0-1000", "1000-5000", "5000-25000", "25000+"];
+const PURPOSE_COLORS = {
+  education: "#636efa",
+  home: "#ef553b",
+  leisure: "#00cc96",
+  other: "#ab63fa",
+  shop: "#ffa15a",
+  work: "#FFEE8C",
+};
 
-// Define datasets
+const DISTANCE_CATEGORIES = ["0-1000", "1000-5000", "5000-25000", "25000+"];
 const DATASETS = ["Microcensus", "Synthetic"];
 
-const StackedBarPlots = ({ canton }) => {
+const StackedBarPlots = ({ canton, aggCol = "mode" }) => {
   const [euclideanData, setEuclideanData] = useState(null);
   const [networkData, setNetworkData] = useState(null);
 
   useEffect(() => {
-    fetch(`/data/stacked_bar_euclidean_distance.json`)
+    const cantonKey = canton || "All";
+
+    fetch(`/data/stacked_bar_euclidean_distance_${aggCol}.json`)
       .then((response) => response.json())
-      .then((jsonData) => {
-        const cantonKey = canton || "All";
-        const cantonData = jsonData[cantonKey];
-        setEuclideanData(cantonData);
-      })
+      .then((jsonData) => setEuclideanData(jsonData[cantonKey]))
       .catch((error) => console.error("Error loading Euclidean Data:", error));
 
-    fetch(`/data/stacked_bar_network_distance.json`)
+    fetch(`/data/stacked_bar_network_distance_${aggCol}.json`)
       .then((response) => response.json())
-      .then((jsonData) => {
-        const cantonKey = canton || "All";
-        const cantonData = jsonData[cantonKey];
-        setNetworkData(cantonData);
-      })
+      .then((jsonData) => setNetworkData(jsonData[cantonKey]))
       .catch((error) => console.error("Error loading Network Data:", error));
-  }, [canton]);
+  }, [canton, aggCol]);
 
   if (!euclideanData || !networkData) return <p>Loading...</p>;
 
-  // Function to generate traces with axis index offset
+  const getColor = (val) => {
+    if (aggCol === "mode") return MODE_COLORS[val] || "#999999";
+    if (aggCol === "purpose") return PURPOSE_COLORS[val] || "#999999";
+    return "#999999";
+  };
+
   const generateTraces = (data, datasetName, rowOffset = 1) => {
     let traces = [];
 
@@ -56,16 +60,18 @@ const StackedBarPlots = ({ canton }) => {
 
         datasetData.forEach((entry) => {
           const axisIndex = i + 1 + (rowOffset - 1) * 4;
+          const key = entry[aggCol];
+
           traces.push({
             type: "bar",
             x: [dataset],
             y: [entry.percentage],
-            name: entry.mode,
+            name: key,
             text: [entry.percentage >= 5 ? `${entry.percentage}%` : ""],
-            hovertemplate: `Dataset: ${datasetName}<br>Mode: ${entry.mode}<br>Percentage: %{y:.1f}%`,
-            marker: { color: MODE_COLORS[entry.mode] },
+            hovertemplate: `Dataset: ${datasetName}<br>${aggCol}: ${key}<br>Percentage: %{y:.1f}%`,
+            marker: { color: getColor(key) },
             opacity: 0.7,
-            legendgroup: entry.mode,
+            legendgroup: key,
             showlegend: dataset === "Microcensus" && rowOffset === 1 && i === 0,
             xaxis: `x${axisIndex}`,
             yaxis: `y${axisIndex}`,
@@ -74,7 +80,7 @@ const StackedBarPlots = ({ canton }) => {
         });
       });
 
-      // Add category label as scatter
+      // Add category label
       const labelAxis = i + 1 + (rowOffset - 1) * 4;
       traces.push({
         type: "scatter",
@@ -122,7 +128,7 @@ const StackedBarPlots = ({ canton }) => {
 
   return (
     <div className="overlay-panel">
-      <h3>{cantonAlias[canton] || "All"} - Mode Share by Distance Category</h3>
+      <h3>{cantonAlias[canton] || "All"} - {aggCol.charAt(0).toUpperCase() + aggCol.slice(1)} Share by Distance</h3>
 
       <Plot
         data={allTraces}
@@ -137,7 +143,7 @@ const StackedBarPlots = ({ canton }) => {
           plot_bgcolor: "rgba(255,255,255,0)",
           showlegend: true,
           legend: {
-            title: { text: "Modes" },
+            title: { text: `${aggCol.charAt(0).toUpperCase() + aggCol.slice(1)}s` },
             orientation: "h",
             y: -0.05,
             x: 0.5,

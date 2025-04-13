@@ -112,9 +112,11 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
             let rightPadding = 50; // Default for collapsed sidebar
             
             
-            if (graphExpandedRef.current === "Graph 3" || graphExpandedRef.current === "Graph 4") {
+            if (graphExpandedRef.current === "Graph 3" || graphExpandedRef.current === "Graph 4"
+              || isGraphExpanded.current === "Graph 7" || isGraphExpanded.current === "Graph 8") {
               rightPadding = 950; // Adjust for 900px width
-            } else if (graphExpandedRef.current === "Graph 1" || graphExpandedRef.current === "Graph 2" || graphExpandedRef.current === "Volumes") {
+            } else if (graphExpandedRef.current === "Graph 1" || graphExpandedRef.current === "Graph 2" || graphExpandedRef.current === "Volumes"
+              || graphExpandedRef.current === "Graph 5" || graphExpandedRef.current === "Graph 6" ) {
               rightPadding = 650; // Adjust for 600px width
             } else {
               rightPadding = 350; // Default open sidebar
@@ -711,10 +713,13 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
       
       if (isSidebarOpen) {
         // Widest width
-        if (isGraphExpanded === "Graph 3" || isGraphExpanded === "Graph 4") {
+        if (isGraphExpanded === "Graph 3" || isGraphExpanded === "Graph 4" 
+          || isGraphExpanded === "Graph 7" || isGraphExpanded === "Graph 8") {
           rightPadding = 950; // Adjust for 900px width
         // Middle width
-        } else if (isGraphExpanded === "Graph 1" || isGraphExpanded === "Graph 2" || isGraphExpanded === "Volumes") {
+        } else if (isGraphExpanded === "Graph 1" || isGraphExpanded === "Graph 2" || isGraphExpanded === "Volumes"
+          || graphExpandedRef === "Graph 5" || graphExpandedRef === "Graph 6" 
+        ) {
           rightPadding = 650; // Adjust for 600px width
         } else {
         // Smallest width
@@ -739,9 +744,12 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
       // Determine the correct right padding
       let rightPadding = 50; // Default for collapsed sidebar
       if (isSidebarOpen) {
-        if (isGraphExpanded === "Graph 3" || isGraphExpanded === "Graph 4") {
+        if (isGraphExpanded === "Graph 3" || isGraphExpanded === "Graph 4" 
+          || isGraphExpanded === "Graph 7" || isGraphExpanded === "Graph 8" ) {
           rightPadding = 950; // Adjust for 900px width
-        } else if (isGraphExpanded === "Graph 1" || isGraphExpanded === "Graph 2" || isGraphExpanded === "Volumes") {
+        } else if (isGraphExpanded === "Graph 1" || isGraphExpanded === "Graph 2" || isGraphExpanded === "Volumes"
+          || graphExpandedRef === "Graph 5" || graphExpandedRef === "Graph 6" 
+        ) {
           rightPadding = 650; // Adjust for 600px width
         } else {
           rightPadding = 350; // Default open sidebar
