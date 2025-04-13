@@ -7,81 +7,100 @@ const DATASET_COLORS = {
   Synthetic: "#E07A5F",
 };
 
-const AverageDist = ({ canton, onClose }) => {
+const AverageDist = ({ canton, aggCol, onClose }) => {
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    const selectedCanton = canton || "All"; // Default to "All" if no canton is selected
-
-    fetch("/data/avg_dist_data.json")
+    // Use a default aggregation if none is supplied
+    const aggregation = aggCol || "mode";
+    const selectedCanton = canton || "All";
+    // Build the URL using the aggregation choice
+    const url = `/data/avg_dist_data_${aggregation}.json`;
+    
+    fetch(url)
       .then((response) => response.json())
       .then((jsonData) => {
         if (jsonData[selectedCanton]) {
-          setData(jsonData[selectedCanton]); // Load data for selected canton or "All"
+          setData(jsonData[selectedCanton]);
+        } else {
+          console.error(`No data found for canton: ${selectedCanton} in ${url}`);
         }
       })
       .catch((error) => console.error("Error loading JSON:", error));
-  }, [canton]);
+  }, [canton, aggCol]);
 
   if (!data) return <p>Loading...</p>;
 
-  const modes = Object.keys(data["Microcensus"]); // Get modes
+  // Instead of "modes", we now refer to the aggregation keys.
+  const aggKeys = Object.keys(data["Microcensus"]);
 
   const total_sample_microcensus = Math.round(
-    Object.values(data["Microcensus"]).reduce((sum, mode) => sum + mode.sample_size, 0)
+    Object.values(data["Microcensus"]).reduce((sum, entry) => sum + entry.sample_size, 0)
   ).toLocaleString();
-  
+
   const total_sample_synthetic = Math.round(
-    Object.values(data["Synthetic"]).reduce((sum, mode) => sum + mode.sample_size, 0)
+    Object.values(data["Synthetic"]).reduce((sum, entry) => sum + entry.sample_size, 0)
   ).toLocaleString();
-  
 
   return (
     <div className="overlay-panel">
-      <h3>{cantonAlias[canton] || "All"} - Average Distance by Mode</h3> 
+      {/* Use alias mapping for display; the aggregation column is shown in a title-friendly way */}
+      <h3>
+        {cantonAlias[canton] || "All"} - Average Distance by {aggCol ? aggCol : "Aggregation Key"}
+      </h3>
 
-      <p><b>Sample Sizes:</b> Microcensus: {total_sample_microcensus}, Synthetic: {total_sample_synthetic}</p>
+      <p>
+        <b>Sample Sizes:</b> Microcensus: {total_sample_microcensus}, Synthetic: {total_sample_synthetic}
+      </p>
 
       {/* Euclidean Distance Plot */}
       <Plot
         data={[
           {
             type: "bar",
-            x: modes,
-            y: modes.map((mode) => (data["Microcensus"][mode].euclidean_distance / 1000).toFixed(1)),
+            x: aggKeys,
+            y: aggKeys.map((key) =>
+              (data["Microcensus"][key].euclidean_distance / 1000).toFixed(1)
+            ),
             name: "Microcensus",
             marker: { color: DATASET_COLORS.Microcensus },
-            text: modes.map((mode) => (data["Microcensus"][mode].euclidean_distance / 1000).toFixed(1)),
+            text: aggKeys.map((key) =>
+              (data["Microcensus"][key].euclidean_distance / 1000).toFixed(1)
+            ),
             textposition: "auto",
           },
           {
             type: "bar",
-            x: modes,
-            y: modes.map((mode) => (data["Synthetic"][mode].euclidean_distance / 1000).toFixed(1)),
+            x: aggKeys,
+            y: aggKeys.map((key) =>
+              (data["Synthetic"][key].euclidean_distance / 1000).toFixed(1)
+            ),
             name: "Synthetic",
             marker: { color: DATASET_COLORS.Synthetic },
-            text: modes.map((mode) => (data["Synthetic"][mode].euclidean_distance / 1000).toFixed(1)),
+            text: aggKeys.map((key) =>
+              (data["Synthetic"][key].euclidean_distance / 1000).toFixed(1)
+            ),
             textposition: "auto",
           },
         ]}
         layout={{
-            title: { text: "Euclidean Distance", font: { size: 14 } },
-            xaxis: { 
-                title: { text: "Mode", font: { size: 12 } }, 
-                tickangle: -45, 
-                tickfont: { size: 10 } 
-            },
-            yaxis: { 
-                title: { text: "Average Distance [km]", font: { size: 12 } }, 
-                tickfont: { size: 10 } 
-            },
-            margin: { l: 50, r: 20, t: 120, b: 80 },
-            height: 350,
-            width: 550,
-            showlegend: true, 
-            barmode: "group",
-            paper_bgcolor: "rgba(255,255,255,0)",
-            plot_bgcolor: "rgba(255,255,255,0)",
+          title: { text: "Euclidean Distance", font: { size: 14 } },
+          xaxis: {
+            title: { text: aggCol ? aggCol : "Aggregation Key", font: { size: 12 } },
+            tickangle: -45,
+            tickfont: { size: 10 },
+          },
+          yaxis: {
+            title: { text: "Average Distance [km]", font: { size: 12 } },
+            tickfont: { size: 10 },
+          },
+          margin: { l: 50, r: 20, t: 120, b: 80 },
+          height: 350,
+          width: 550,
+          showlegend: true,
+          barmode: "group",
+          paper_bgcolor: "rgba(255,255,255,0)",
+          plot_bgcolor: "rgba(255,255,255,0)",
         }}
       />
 
@@ -90,41 +109,49 @@ const AverageDist = ({ canton, onClose }) => {
         data={[
           {
             type: "bar",
-            x: modes,
-            y: modes.map((mode) => (data["Microcensus"][mode].network_distance / 1000).toFixed(1)),
+            x: aggKeys,
+            y: aggKeys.map((key) =>
+              (data["Microcensus"][key].network_distance / 1000).toFixed(1)
+            ),
             name: "Microcensus",
             marker: { color: DATASET_COLORS.Microcensus },
-            text: modes.map((mode) => (data["Microcensus"][mode].network_distance / 1000).toFixed(1)),
+            text: aggKeys.map((key) =>
+              (data["Microcensus"][key].network_distance / 1000).toFixed(1)
+            ),
             textposition: "auto",
           },
           {
             type: "bar",
-            x: modes,
-            y: modes.map((mode) => (data["Synthetic"][mode].network_distance / 1000).toFixed(1)),
+            x: aggKeys,
+            y: aggKeys.map((key) =>
+              (data["Synthetic"][key].network_distance / 1000).toFixed(1)
+            ),
             name: "Synthetic",
             marker: { color: DATASET_COLORS.Synthetic },
-            text: modes.map((mode) => (data["Synthetic"][mode].network_distance / 1000).toFixed(1)),
+            text: aggKeys.map((key) =>
+              (data["Synthetic"][key].network_distance / 1000).toFixed(1)
+            ),
             textposition: "auto",
           },
         ]}
         layout={{
-            title: { text: "Network Distance", font: { size: 14 } },
-            xaxis: { 
-                title: { text: "Mode", font: { size: 12 } }, 
-                tickangle: -45, 
-                tickfont: { size: 10 } 
-            },
-            yaxis: { 
-                title: { text: "Average Distance [km]", font: { size: 12 } }, 
-                tickfont: { size: 10 } 
-            },
-            margin: { l: 50, r: 20, t: 120, b: 80 },
-            height: 350,
-            width: 550,
-            showlegend: true,
-            barmode: "group",
-            paper_bgcolor: "rgba(255,255,255,0)",
-            plot_bgcolor: "rgba(255,255,255,0)",
+          title: { text: "Network Distance", font: { size: 14 } },
+          xaxis: {
+            title: { text: aggCol ? aggCol : "Aggregation Key", font: { size: 12 } },
+            tickangle: -45,
+            tickfont: { size: 10 },
+          },
+          yaxis: {
+            title: { text: "Average Distance [km]", font: { size: 12 } },
+            tickfont: { size: 10 },
+          },
+          margin: { l: 50, r: 20, t: 120, b: 80 },
+          height: 350,
+          width: 550,
+          showlegend: true,
+          barmode: "group",
+          paper_bgcolor: "rgba(255,255,255,0)",
+          plot_bgcolor: "rgba(255,255,255,0)",
         }}
       />
     </div>

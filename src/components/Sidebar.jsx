@@ -90,7 +90,8 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
     
     return (
       <div className={`floating-panel ${isOpen ?  // Sets the css for sidebar width
-        (selectedGraph === "Graph 3" || selectedGraph === "Graph 4" ? "expanded-graph3" : 
+        (selectedGraph === "Graph 3" || selectedGraph === "Graph 4"
+          || selectedGraph === "Graph 7" || selectedGraph === "Graph 8" ? "expanded-graph3" : 
           selectedGraph === "Choropleth"  || selectedGraph === "Network" ? "open" : 
           selectedGraph ? "expanded" : "open") 
           : "collapsed"}`}>
@@ -118,6 +119,10 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
             <option value="Graph 2">Histogram</option>
             <option value="Graph 3">Stacked Bar Plot</option>
             <option value="Graph 4">Line Plot</option>
+            <option value="Graph 5">Average Distance 2</option>
+            <option value="Graph 6">Histogram 2</option>
+            <option value="Graph 7">Stacked Bar Plot 2</option>
+            <option value="Graph 8">Line Plot 2</option>
             </select>
             </div>
             </div>
@@ -130,10 +135,14 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
             )}
             
             {/* Rendering for graphs */}
-            {selectedGraph === "Graph 1" && <div className="plot-container"><AverageDist canton={canton || "All"} /></div>}
-            {selectedGraph === "Graph 2" && <div className="plot-container"><Histogram canton={canton || "All"} /></div>}
-            {selectedGraph === "Graph 3" && <div className="plot-container"><StackedBarPlot canton={canton || "All"} /></div>}
-            {selectedGraph === "Graph 4" && <div className="plot-container"><ModeShareLinePlot canton={canton || "All"} /></div>}
+            {selectedGraph === "Graph 1" && <div className="plot-container"><AverageDist canton={canton || "All"} aggCol="mode" /></div>}
+            {selectedGraph === "Graph 2" && <div className="plot-container"><Histogram canton={canton || "All"} aggCol="mode" /></div>}
+            {selectedGraph === "Graph 3" && <div className="plot-container"><StackedBarPlot canton={canton || "All"} aggCol="mode"/></div>}
+            {selectedGraph === "Graph 4" && <div className="plot-container"><ModeShareLinePlot canton={canton || "All"} aggCol="mode" /></div>}
+            {selectedGraph === "Graph 5" && <div className="plot-container"><AverageDist canton={canton || "All"} aggCol="purpose" /></div>}
+            {selectedGraph === "Graph 6" && <div className="plot-container"><Histogram canton={canton || "All"} aggCol="purpose" /></div>}
+            {selectedGraph === "Graph 7" && <div className="plot-container"><StackedBarPlot canton={canton || "All"} aggCol="purpose"/></div>}
+            {selectedGraph === "Graph 8" && <div className="plot-container"><ModeShareLinePlot canton={canton || "All"} aggCol="purpose" /></div>}
             
             {/* Mode Share Choropleth Selection */}
             {selectedGraph === "Choropleth" && (

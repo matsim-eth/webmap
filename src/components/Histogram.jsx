@@ -7,167 +7,184 @@ const DATASET_COLORS = {
   Synthetic: "#E07A5F",
 };
 
-const Histogram = ({ canton, onClose }) => {
+const Histogram = ({ canton, aggCol }) => {
   const [euclideanData, setEuclideanData] = useState(null);
   const [networkData, setNetworkData] = useState(null);
-  const [selectedMode, setSelectedMode] = useState(null);
+  const [selectedKey, setSelectedKey] = useState(null);
 
   useEffect(() => {
     const selectedCanton = canton || "All";
-    fetch(`/data/histogram_euclidean_distance.json`)
-    .then((response) => response.json())
-    .then((jsonData) => {
-      if (jsonData[selectedCanton]) {
-        setEuclideanData(jsonData[selectedCanton]);
-        setSelectedMode(Object.keys(jsonData[selectedCanton])[0]); // Default to first mode
-      }
-    })
-    .catch((error) => console.error("Error loading Euclidean JSON:", error));
+    const aggregation = aggCol || "mode";
 
-  fetch(`/data/histogram_network_distance.json`)
-    .then((response) => response.json())
-    .then((jsonData) => {
-      if (jsonData[selectedCanton]) {
-        setNetworkData(jsonData[selectedCanton]);
-      }
-    })
-    .catch((error) => console.error("Error loading Network JSON:", error));
-}, [canton]);
+    // Fetch Euclidean histogram data based on aggregation
+    fetch(`/data/histogram_euclidean_distance_${aggregation}.json`)
+      .then((response) => response.json())
+      .then((jsonData) => {
+        if (jsonData[selectedCanton]) {
+          setEuclideanData(jsonData[selectedCanton]);
+          // Default to the first aggregation key
+          setSelectedKey(Object.keys(jsonData[selectedCanton])[0]);
+        }
+      })
+      .catch((error) => console.error("Error loading Euclidean JSON:", error));
 
-if (!euclideanData || !networkData) return <p>Loading...</p>;
+    // Fetch Network histogram data
+    fetch(`/data/histogram_network_distance_${aggregation}.json`)
+      .then((response) => response.json())
+      .then((jsonData) => {
+        if (jsonData[selectedCanton]) {
+          setNetworkData(jsonData[selectedCanton]);
+        }
+      })
+      .catch((error) => console.error("Error loading Network JSON:", error));
+  }, [canton, aggCol]);
 
-  const handleModeChange = (event) => {
-    setSelectedMode(event.target.value);
+  if (!euclideanData || !networkData || !selectedKey) return <p>Loading...</p>;
+
+  const handleKeyChange = (event) => {
+    setSelectedKey(event.target.value);
   };
 
+  // Calculate maximum Y from both datasets for the selected aggregation key
   const maxY = Math.max(
-    ...euclideanData[selectedMode].microcensus_histogram,
-    ...euclideanData[selectedMode].synthetic_histogram,
-    ...networkData[selectedMode].microcensus_histogram,
-    ...networkData[selectedMode].synthetic_histogram
+    ...euclideanData[selectedKey].microcensus_histogram,
+    ...euclideanData[selectedKey].synthetic_histogram,
+    ...networkData[selectedKey].microcensus_histogram,
+    ...networkData[selectedKey].synthetic_histogram
   );
 
-  const renderPlot = (data, title) => (
-    <Plot
-      key={title}
-      data={[
-        {
-          type: "bar",
-          x: data[selectedMode].bins,
-          y: data[selectedMode].microcensus_histogram,
-          name: "Microcensus",
-          marker: { color: DATASET_COLORS.Microcensus },
-          opacity: 0.6,
-          hoverinfo: "x+y",
-          hovertemplate: "Range: [%{x:.1f} - %{customdata})<br>Percentage: %{y:.2f}%",
-          customdata: data[selectedMode].bins.map(bin => (bin + data[selectedMode].bin_width).toFixed(1)) // Compute bin upper bound
-        },
-        {
-          type: "bar",
-          x: data[selectedMode].bins,
-          y: data[selectedMode].synthetic_histogram,
-          name: "Synthetic",
-          marker: { color: DATASET_COLORS.Synthetic },
-          opacity: 0.6,
-          hoverinfo: "x+y",
-          hovertemplate: "Range: [%{x:.1f} - %{customdata})<br>Percentage: %{y:.2f}%",
-          customdata: data[selectedMode].bins.map(bin => (bin + data[selectedMode].bin_width).toFixed(1)) // Compute bin upper bound
-        },
-        {
-          type: "scatter",
-          x: [data[selectedMode].microcensus_mean, data[selectedMode].microcensus_mean],
-          y: [0, Math.max(...data[selectedMode].microcensus_histogram) * 0.8],
-          mode: "lines",
-          line: { color: DATASET_COLORS.Microcensus, dash: "dot" },
-          name: "Microcensus Mean",
-          hoverinfo: "x",
-          hovertemplate: "Mean: %{x:.1f}",
-          legendgroup: "microcensus-mean",
-        },
-        {
-          type: "scatter",
-          x: [data[selectedMode].microcensus_mean],
-          y: [Math.max(...data[selectedMode].microcensus_histogram) * 0.8],
-          mode: "text",
-          text: [`${data[selectedMode].microcensus_mean.toFixed(1)}`],
-          textposition: "top center",
-          showlegend: false,
-          hoverinfo: "skip",
-          legendgroup: "microcensus-mean",
-        },
-        {
-          type: "scatter",
-          x: [data[selectedMode].synthetic_mean, data[selectedMode].synthetic_mean],
-          y: [0, Math.max(...data[selectedMode].microcensus_histogram) * 0.65],
-          mode: "lines",
-          line: { color: DATASET_COLORS.Synthetic, dash: "dot" },
-          name: "Synthetic Mean",
-          hoverinfo: "x",
-          hovertemplate: "Mean: %{x:.1f}",
-          legendgroup: "synthetic-mean",
-        },
-        {
-          type: "scatter",
-          x: [data[selectedMode].synthetic_mean],
-          y: [Math.max(...data[selectedMode].microcensus_histogram) * 0.65],
-          mode: "text",
-          text: [`${data[selectedMode].synthetic_mean.toFixed(1)}`],
-          textposition: "top center",
-          showlegend: false,
-          hoverinfo: "skip",
-          legendgroup: "synthetic-mean",
-        },
-      ]}
-      layout={{
-        title: { text: `${title}: Mode ${selectedMode}`, font: { size: 14 } },
-        xaxis: {
-          title: { text: "Distance [m]", font: { size: 12 } },
-          tickfont: { size: 10 },
-          range: [-data[selectedMode].bin_width, data[selectedMode].bin_width * 25], // Set view extent to first 25 bins
-        },
-        yaxis: {
-          title: { text: "Percentage [%]", font: { size: 12 } },
-          tickfont: { size: 10 },
-          range: [0, 1.1*maxY],
-        },
-        margin: { l: 60, r: 20, t: 80, b: 50 },
-        height: 300,
-        width: 550,
-        showlegend: true,
-        barmode: "overlay",
-        bargap: 0,
-        paper_bgcolor: "rgba(255,255,255,0)",
-        plot_bgcolor: "rgba(255,255,255,0)",
-        annotations: [
+  // In our JSON, each aggregation key record is expected to contain:
+  // bins, bin_width, microcensus_histogram, synthetic_histogram, microcensus_mean, synthetic_mean, etc.
+  const renderPlot = (data, title) => {
+    const binWidth = data[selectedKey].bin_width;
+    const bins = data[selectedKey].bins;
+    const microMean = data[selectedKey].microcensus_mean;
+    const synthMean = data[selectedKey].synthetic_mean;
+
+    return (
+      <Plot
+        key={title}
+        data={[
           {
-            x: 1.45,
-            y: 0.1,
-            xref: "paper",
-            yref: "paper",
-            text: `Microcensus: n=${data[selectedMode].microcensus_sample_size}<br>Synthetic: n=${data[selectedMode].synthetic_sample_size}`,
-            showarrow: false,
-            font: { size: 12 },
-            align: "center"
-          }
-        ],
-      }}
-    />
-  );
+            type: "bar",
+            x: bins,
+            y: data[selectedKey].microcensus_histogram,
+            name: "Microcensus",
+            marker: { color: DATASET_COLORS.Microcensus },
+            opacity: 0.6,
+            hoverinfo: "x+y",
+            hovertemplate: "Range: [%{x:.1f} - %{customdata})<br>Percentage: %{y:.2f}%",
+            customdata: bins.map((b) => (b + binWidth).toFixed(1)),
+          },
+          {
+            type: "bar",
+            x: bins,
+            y: data[selectedKey].synthetic_histogram,
+            name: "Synthetic",
+            marker: { color: DATASET_COLORS.Synthetic },
+            opacity: 0.6,
+            hoverinfo: "x+y",
+            hovertemplate: "Range: [%{x:.1f} - %{customdata})<br>Percentage: %{y:.2f}%",
+            customdata: bins.map((b) => (b + binWidth).toFixed(1)),
+          },
+          // Microcensus mean line (draw line with two points)
+          {
+            type: "scatter",
+            mode: "lines",
+            x: [microMean, microMean],
+            y: [0, maxY * 0.8],
+            name: "Microcensus Mean",
+            line: { color: DATASET_COLORS.Microcensus, dash: "dot" },
+            hoverinfo: "x",
+            legendgroup: "microcensus-mean",
+          },
+          // Microcensus mean text label
+          {
+            type: "scatter",
+            mode: "text",
+            x: [microMean],
+            y: [maxY * 0.8],
+            text: [`${microMean.toFixed(1)}`],
+            textposition: "top center",
+            showlegend: false,
+            hoverinfo: "skip",
+            legendgroup: "microcensus-mean",
+          },
+          // Synthetic mean line
+          {
+            type: "scatter",
+            mode: "lines",
+            x: [synthMean, synthMean],
+            y: [0, maxY * 0.65],
+            name: "Synthetic Mean",
+            line: { color: DATASET_COLORS.Synthetic, dash: "dot" },
+            hoverinfo: "x",
+            legendgroup: "synthetic-mean",
+          },
+          // Synthetic mean text label
+          {
+            type: "scatter",
+            mode: "text",
+            x: [synthMean],
+            y: [maxY * 0.65],
+            text: [`${synthMean.toFixed(1)}`],
+            textposition: "top center",
+            showlegend: false,
+            hoverinfo: "skip",
+            legendgroup: "synthetic-mean",
+          },
+        ]}
+        layout={{
+          title: { text: `${title}: ${aggCol} = ${selectedKey}`, font: { size: 14 } },
+          xaxis: {
+            title: { text: "Distance [m]", font: { size: 12 } },
+            tickfont: { size: 10 },
+            range: [-binWidth, binWidth * 25],
+          },
+          yaxis: {
+            title: { text: "Percentage [%]", font: { size: 12 } },
+            tickfont: { size: 10 },
+            range: [0, 1.1 * maxY],
+          },
+          margin: { l: 60, r: 20, t: 80, b: 50 },
+          height: 300,
+          width: 550,
+          showlegend: true,
+          barmode: "overlay",
+          bargap: 0,
+          paper_bgcolor: "rgba(255,255,255,0)",
+          plot_bgcolor: "rgba(255,255,255,0)",
+          annotations: [
+            {
+              x: 1.45,
+              y: 0.1,
+              xref: "paper",
+              yref: "paper",
+              text: `Microcensus: n=${data[selectedKey].microcensus_sample_size}<br>Synthetic: n=${data[selectedKey].synthetic_sample_size}`,
+              showarrow: false,
+              font: { size: 12 },
+              align: "center",
+            },
+          ],
+        }}
+      />
+    );
+  };
 
   return (
-<div className="overlay-panel">
-      <h3>{cantonAlias[canton] || "All"} - Distance Histograms</h3>
+    <div className="overlay-panel">
+      <h3>{cantonAlias[canton] || "All"} - Distance Histograms by {aggCol}</h3>
       <div>
-        {Object.keys(euclideanData).map((mode) => (
-          <label key={mode}>
+        {Object.keys(euclideanData).map((key) => (
+          <label key={key}>
             <input
               type="radio"
-              name="mode"
-              value={mode}
-              checked={selectedMode === mode}
-              onChange={handleModeChange}
+              name="aggregation-key"
+              value={key}
+              checked={selectedKey === key}
+              onChange={handleKeyChange}
             />
-            {mode}
+            {key}
           </label>
         ))}
       </div>

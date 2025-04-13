@@ -10,64 +10,75 @@ const MODE_COLORS = {
   walk: "#ffa15a",
 };
 
+const PURPOSE_COLORS = {
+  education: "#636efa",
+  home: "#ef553b",
+  leisure: "#00cc96",
+  other: "#ab63fa",
+  shop: "#ffa15a",
+  work: "#FFEE8C",
+};
+
 const VARIABLES = {
   "Departure Time": "departure_time",
   "Euclidean Distance": "euclidean_distance",
   "Network Distance": "network_distance",
 };
 
-const ModeShareLinePlot = ({ canton }) => {
+const ModeShareLinePlot = ({ canton, aggCol = "mode" }) => {
   const [selectedVariable, setSelectedVariable] = useState("departure_time");
   const [plotData, setPlotData] = useState(null);
 
   useEffect(() => {
-    fetch(`/data/lineplot_${selectedVariable}_data.json`)
+    const filename = `/data/lineplot_${selectedVariable}_data_${aggCol}.json`;
+
+    fetch(filename)
       .then((response) => response.json())
       .then((jsonData) => {
-        // Select data for the given canton or use "All" as default
-        const cantonData = !canton || canton === "All" ? jsonData["All"] : jsonData[canton];
-
-        // Ensure valid data before updating state
+        const selectedCanton = canton || "All";
+        const cantonData = jsonData[selectedCanton];
         if (cantonData && cantonData.microcensus && cantonData.synthetic) {
           setPlotData(cantonData);
         } else {
-          console.error(`No data found for canton: ${canton}`);
+          console.error(`No data found for canton: ${selectedCanton}`);
           setPlotData(null);
         }
       })
       .catch((error) => console.error(`Error loading ${selectedVariable} data:`, error));
-  }, [selectedVariable, canton]);
+  }, [selectedVariable, canton, aggCol]);
 
   if (!plotData) return <p>Loading...</p>;
 
-  const generateTraces = (data, datasetName, lineStyle) => {
-    let traces = [];
-
-    // Group data by mode and create traces for each mode
-    const uniqueModes = [...new Set(data.map((entry) => entry.mode))];
-
-    uniqueModes.forEach((mode) => {
-      const modeData = data.filter((entry) => entry.mode === mode);
-      if (modeData.length > 0) {
-        traces.push({
-          type: "scatter",
-          mode: "lines+markers",
-          x: modeData.map((entry) => entry.variable_midpoint),
-          y: modeData.map((entry) => entry.percentage),
-          name: `${mode} (${datasetName})`,
-          line: { color: MODE_COLORS[mode] || "#7f7f7f", dash: lineStyle },
-        });
-      }
-    });
-
-    return traces;
+  const getColor = (val) => {
+    if (aggCol === "mode") return MODE_COLORS[val] || "#7f7f7f";
+    if (aggCol === "purpose") return PURPOSE_COLORS[val] || "#7f7f7f";
+    return "#7f7f7f"; // fallback color
   };
 
-  // Ensure tick values and labels are available
+  const generateTraces = (data, datasetName, lineStyle) => {
+    const uniqueValues = [...new Set(data.map((entry) => entry[aggCol]))];
+
+    return uniqueValues.map((val) => {
+      const filtered = data.filter((entry) => entry[aggCol] === val);
+      if (filtered.length === 0) return null;
+
+      return {
+        type: "scatter",
+        mode: "lines+markers",
+        x: filtered.map((entry) => entry.variable_midpoint),
+        y: filtered.map((entry) => entry.percentage),
+        name: `${val} (${datasetName})`,
+        line: {
+          color: getColor(val),
+          dash: lineStyle,
+        },
+      };
+    }).filter(Boolean); // Remove any nulls
+  };
+
   const tickVals = plotData.tick_vals || [];
   const tickLabels = plotData.tick_labels || [];
 
-  // Generate traces for both datasets
   const traces = [
     ...generateTraces(plotData.microcensus, "Microcensus", "solid"),
     ...generateTraces(plotData.synthetic, "Synthetic", "dash"),
@@ -75,9 +86,10 @@ const ModeShareLinePlot = ({ canton }) => {
 
   return (
     <div className="overlay-panel">
-      <h3>{cantonAlias[canton] || "All"} - Mode Share Line Plot</h3>
+      <h3>
+        {cantonAlias[canton] || "All"} - {aggCol.charAt(0).toUpperCase() + aggCol.slice(1)} Share Line Plot
+      </h3>
 
-      {/* Radio buttons to select variable */}
       <div style={{ display: "flex", gap: "15px", marginBottom: "10px" }}>
         {Object.entries(VARIABLES).map(([label, value]) => (
           <label key={value} style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
@@ -93,23 +105,25 @@ const ModeShareLinePlot = ({ canton }) => {
         ))}
       </div>
 
-      {/* Plotly Chart */}
       <Plot
         data={traces}
         layout={{
-          title: `Mode Share Percentage vs ${selectedVariable.replace("_", " ").toUpperCase()} - ${canton || "All"}`,
+          title: `${aggCol.charAt(0).toUpperCase() + aggCol.slice(1)} Share vs ${selectedVariable.replace("_", " ")}`,
           xaxis: {
             title: {
-                text: `${selectedVariable.replace("_", " ").replace(/\b\w/g, (char) => char.toUpperCase())}`,
-                font: { size: 14 },
-                standoff: 20},
+              text: selectedVariable.replace("_", " ").replace(/\b\w/g, (char) => char.toUpperCase()),
+              font: { size: 14 },
+              standoff: 20,
+            },
             tickmode: "array",
             tickvals: tickVals,
             ticktext: tickLabels,
             tickangle: 45,
           },
-          yaxis: { title: { text: "Mode Share [%]", font: { size: 14 } }, },
-          legend: { title: { text: "Modes" } },
+          yaxis: {
+            title: { text: `${aggCol.charAt(0).toUpperCase() + aggCol.slice(1)} Share [%]`, font: { size: 14 } },
+          },
+          legend: { title: { text: `${aggCol.charAt(0).toUpperCase() + aggCol.slice(1)}s` } },
           width: 880,
           height: 450,
           paper_bgcolor: "rgba(255,255,255,0)",
