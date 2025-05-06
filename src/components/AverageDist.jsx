@@ -7,7 +7,7 @@ const DATASET_COLORS = {
   Synthetic: "#E07A5F",
 };
 
-const AverageDist = ({ canton, aggCol, onClose }) => {
+const AverageDist = ({ canton, aggCol, dataURL }) => {
   const [data, setData] = useState(null);
 
   useEffect(() => {
@@ -15,7 +15,7 @@ const AverageDist = ({ canton, aggCol, onClose }) => {
     const aggregation = aggCol || "mode";
     const selectedCanton = canton || "All";
     // Build the URL using the aggregation choice
-    const url = `/data/avg_dist_data_${aggregation}.json`;
+    const url = `${dataURL}avg_dist_data_${aggregation}.json`;
     
     fetch(url)
       .then((response) => response.json())

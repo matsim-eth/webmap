@@ -238,3 +238,12 @@
   font-size: 12px;
   padding: 2px 8px;
 }
+
+.mode-filter-select.url-input {
+  height: 38px;
+  line-height: 1.2;
+  padding: 6px 10px;
+  font-size: 14px;
+  width: 70%;
+  cursor: text
+}

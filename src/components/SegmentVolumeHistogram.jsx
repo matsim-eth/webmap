@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
 
-const SegmentVolumeHistogram = ({ linkId, setVisualizeLinkId, canton}) => {
+const SegmentVolumeHistogram = ({ linkId, setVisualizeLinkId, canton, dataURL}) => {
   const [volumeData, setVolumeData] = useState(null);
 
   // Normalize to always handle as array
@@ -10,7 +10,7 @@ const SegmentVolumeHistogram = ({ linkId, setVisualizeLinkId, canton}) => {
   useEffect(() => {
     if (!linkIds || linkIds.length === 0) return;
 
-    fetch(`/data/matsim/${canton}_link_traffic_volumes.json`)
+    fetch(`${dataURL}matsim/${canton}_link_traffic_volumes.json`)
       .then((res) => res.json())
       .then((data) => {
         const filtered = data.filter((entry) =>

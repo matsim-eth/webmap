@@ -10,12 +10,12 @@ const MODE_COLORS = {
   walk: "#ffa15a",
 };
 
-const ChoroplethControls = ({ selectedMode, setSelectedMode, selectedDataset, setSelectedDataset, updateMapSymbology }) => {
+const ChoroplethControls = ({ selectedMode, setSelectedMode, selectedDataset, setSelectedDataset, updateMapSymbology, dataURL }) => {
   const [maxSharePerMode, setMaxSharePerMode] = useState(null);
 
   // Fetch max shares per mode for legend scaling
   useEffect(() => {
-    fetch("/data/mode_share.json")
+    fetch(`${dataURL}mode_share.json`)
       .then((response) => response.json())
       .then((data) => setMaxSharePerMode(data.max_share_per_mode))
       .catch((error) => console.error("Error loading max share per mode:", error));
