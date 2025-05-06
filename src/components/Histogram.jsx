@@ -7,7 +7,7 @@ const DATASET_COLORS = {
   Synthetic: "#E07A5F",
 };
 
-const Histogram = ({ canton, aggCol }) => {
+const Histogram = ({ canton, aggCol, dataURL }) => {
   const [euclideanData, setEuclideanData] = useState(null);
   const [networkData, setNetworkData] = useState(null);
   const [selectedKey, setSelectedKey] = useState(null);
@@ -17,7 +17,7 @@ const Histogram = ({ canton, aggCol }) => {
     const aggregation = aggCol || "mode";
 
     // Fetch Euclidean histogram data based on aggregation
-    fetch(`/data/histogram_euclidean_distance_${aggregation}.json`)
+    fetch(`${dataURL}histogram_euclidean_distance_${aggregation}.json`)
       .then((response) => response.json())
       .then((jsonData) => {
         if (jsonData[selectedCanton]) {
@@ -29,7 +29,7 @@ const Histogram = ({ canton, aggCol }) => {
       .catch((error) => console.error("Error loading Euclidean JSON:", error));
 
     // Fetch Network histogram data
-    fetch(`/data/histogram_network_distance_${aggregation}.json`)
+    fetch(`${dataURL}histogram_network_distance_${aggregation}.json`)
       .then((response) => response.json())
       .then((jsonData) => {
         if (jsonData[selectedCanton]) {

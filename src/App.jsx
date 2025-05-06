@@ -6,6 +6,9 @@ import "./App.css";
 import NetworkLegend from "./components/NetworkLegend";
 
 function App() {
+
+  const [dataURL, setDataURL] = useState("https://matsim-eth.github.io/webmap/data/");
+  
   const [clickedCanton, setClickedCanton] = useState(null); // Store clicked canton
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Tracks if the sidebar is open or collapsed (hidden)
@@ -99,6 +102,7 @@ function App() {
       setSelectedNetworkFeature={setSelectedNetworkFeature} // to sidebar
       visualizeLinkId={visualizeLinkId} // from segment vol histogram via sidebar
       setVisualizeLinkId={setVisualizeLinkId} // from sidebar
+      dataURL={dataURL} // from Sidebar
     />
 
     <Sidebar
@@ -114,6 +118,8 @@ function App() {
       setSelectedNetworkModes={setSelectedNetworkModes} // to change value
       selectedNetworkFeature={selectedNetworkFeature} // from map
       setVisualizeLinkId={setVisualizeLinkId} // to map
+      dataURL={dataURL}
+      setDataURL={setDataURL}
     />
 
     <NetworkLegend

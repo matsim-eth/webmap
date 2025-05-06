@@ -12,7 +12,7 @@ import SegmentAttributesTable from "./SegmentAttributesTable";
 import SegmentVolumeHistogram from "./SegmentVolumeHistogram";
 
 const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, resetMapView, updateMapSymbology,
-  selectedNetworkModes, setSelectedNetworkModes, selectedNetworkFeature, setVisualizeLinkId}) => {
+  selectedNetworkModes, setSelectedNetworkModes, selectedNetworkFeature, setVisualizeLinkId, dataURL, setDataURL}) => {
     
     // ======================= INITIALIZE VARIABLES =======================
     
@@ -22,17 +22,32 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
     const [availableModes, setAvailableModes] = useState([]); // Available modes for network filter
     const [selectedAggCol, setSelectedAggCol] = useState("mode"); // For graphs
     const [modesByCanton, setModesByCanton] = useState({}); // For mode filter (only show modes available in each canton)
+    const [inputURL, setInputURL] = useState("");
+    
+    // GET DATA SOURCE
+    useEffect(() => {
+      const fullPath = `${dataURL}modes_by_canton.json`;
+      fetch(fullPath)
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then(data => setModesByCanton(data))
+      .catch(err => console.error("Failed to load modes_by_canton.json", err));
+    }, [dataURL]);
+    
     
     // ======================= GENERAL FEATURES (BUTTONS / DROPDOWN) =======================
-
+    
     // Get modes per canton from JSON file
     useEffect(() => {
-      fetch("/data/modes_by_canton.json")
-        .then(res => res.json())
-        .then(data => setModesByCanton(data))
-        .catch(err => console.error("Failed to load modes_by_canton.json", err));
+      const dataPath = `${dataURL}modes_by_canton.json`;
+      fetch(dataPath)
+      .then(res => res.json())
+      .then(data => setModesByCanton(data))
+      .catch(err => console.error("Failed to load modes_by_canton.json", err));
     }, []);
-
+    
     // Push current module to Map
     const handleGraphSelection = (event) => {
       const graph = event.target.value;
@@ -136,6 +151,28 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
               <p>Select a canton and a visualization to get started!</p>
               
               <div className="mode-filter-container">
+              <label className="mode-filter-label">Data Source URL:</label>
+              <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "10px" }}>
+              <input
+              type="text"
+              value={inputURL} 
+              onChange={(e) => setInputURL(e.target.value)}
+              placeholder="https://matsim-eth.github.io/webmap/data/"
+              className="mode-filter-select url-input"
+              style={{ height: "28px" }}
+              />
+              <button
+              className="graph-button"
+              style={{width: "fit-content" }}
+              onClick={() => {
+                const trimmed = inputURL.trim();
+                setDataURL(trimmed || "https://matsim-eth.github.io/webmap/data/");
+              }}
+              >Set</button>
+              </div>
+              </div>
+              
+              <div className="mode-filter-container">
               <label className="mode-filter-label">Group Graphs By:</label>
               <select
               multiple
@@ -155,10 +192,10 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
               </div>
             )}
             {/* Rendering for graphs */}
-            {selectedGraph === "Graph 1" && <div className="plot-container"><AverageDist canton={canton || "All"} aggCol={selectedAggCol} /></div>}
-            {selectedGraph === "Graph 2" && <div className="plot-container"><Histogram canton={canton || "All"} aggCol={selectedAggCol} /></div>}
-            {selectedGraph === "Graph 3" && <div className="plot-container"><StackedBarPlot canton={canton || "All"} aggCol={selectedAggCol}/></div>}
-            {selectedGraph === "Graph 4" && <div className="plot-container"><ModeShareLinePlot canton={canton || "All"} aggCol={selectedAggCol} /></div>}
+            {selectedGraph === "Graph 1" && <div className="plot-container"><AverageDist canton={canton || "All"} aggCol={selectedAggCol} dataURL={dataURL}/></div>}
+            {selectedGraph === "Graph 2" && <div className="plot-container"><Histogram canton={canton || "All"} aggCol={selectedAggCol} dataURL={dataURL}/></div>}
+            {selectedGraph === "Graph 3" && <div className="plot-container"><StackedBarPlot canton={canton || "All"} aggCol={selectedAggCol} dataURL={dataURL}/></div>}
+            {selectedGraph === "Graph 4" && <div className="plot-container"><ModeShareLinePlot canton={canton || "All"} aggCol={selectedAggCol} dataURL={dataURL}/></div>}
             
             {/* Mode Share Choropleth Selection */}
             {selectedGraph === "Choropleth" && (
@@ -169,8 +206,9 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
               selectedDataset={selectedDataset}
               setSelectedDataset={setSelectedDataset}
               updateMapSymbology={updateMapSymbology}
+              dataURL={dataURL}
               />
-              <CantonModeShareTable canton={canton} selectedDataset={selectedDataset} selectedMode={selectedMode} />
+              <CantonModeShareTable canton={canton} selectedDataset={selectedDataset} selectedMode={selectedMode} dataURL={dataURL} />
               </div>
             )}
             
@@ -203,7 +241,7 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
             {selectedGraph === "Volumes" && (
               <div className="plot-container">
               {selectedNetworkFeature && (
-                <SegmentAttributesTable properties={selectedNetworkFeature[0]} selectedGraph={selectedGraph} />
+                <SegmentAttributesTable properties={selectedNetworkFeature[0]} selectedGraph={selectedGraph}/>
               )}
               
               {selectedNetworkFeature ? (
@@ -211,6 +249,7 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
                 linkId={selectedNetworkFeature.map(f => f.id)}
                 setVisualizeLinkId={setVisualizeLinkId}
                 canton={canton}
+                dataURL={dataURL}
                 />
               ) : (
                 <p style={{ padding: "1rem", fontStyle: "italic", color: "#555" }}>

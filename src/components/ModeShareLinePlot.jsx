@@ -25,12 +25,12 @@ const VARIABLES = {
   "Network Distance": "network_distance",
 };
 
-const ModeShareLinePlot = ({ canton, aggCol = "mode" }) => {
+const ModeShareLinePlot = ({ canton, aggCol = "mode", dataURL }) => {
   const [selectedVariable, setSelectedVariable] = useState("departure_time");
   const [plotData, setPlotData] = useState(null);
 
   useEffect(() => {
-    const filename = `/data/lineplot_${selectedVariable}_data_${aggCol}.json`;
+    const filename = `${dataURL}lineplot_${selectedVariable}_data_${aggCol}.json`;
 
     fetch(filename)
       .then((response) => response.json())

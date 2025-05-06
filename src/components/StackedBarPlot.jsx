@@ -22,19 +22,19 @@ const PURPOSE_COLORS = {
 const DISTANCE_CATEGORIES = ["0-1000", "1000-5000", "5000-25000", "25000+"];
 const DATASETS = ["Microcensus", "Synthetic"];
 
-const StackedBarPlots = ({ canton, aggCol = "mode" }) => {
+const StackedBarPlots = ({ canton, aggCol = "mode", dataURL }) => {
   const [euclideanData, setEuclideanData] = useState(null);
   const [networkData, setNetworkData] = useState(null);
 
   useEffect(() => {
     const cantonKey = canton || "All";
 
-    fetch(`/data/stacked_bar_euclidean_distance_${aggCol}.json`)
+    fetch(`${dataURL}stacked_bar_euclidean_distance_${aggCol}.json`)
       .then((response) => response.json())
       .then((jsonData) => setEuclideanData(jsonData[cantonKey]))
       .catch((error) => console.error("Error loading Euclidean Data:", error));
 
-    fetch(`/data/stacked_bar_network_distance_${aggCol}.json`)
+    fetch(`${dataURL}stacked_bar_network_distance_${aggCol}.json`)
       .then((response) => response.json())
       .then((jsonData) => setNetworkData(jsonData[cantonKey]))
       .catch((error) => console.error("Error loading Network Data:", error));

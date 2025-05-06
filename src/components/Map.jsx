@@ -5,7 +5,7 @@ import bboxCache from '../utils/bboxCanton.json';
 import "./Loading.css" // loading screen for network
 
 const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchCanton, selectedMode,
-  selectedDataset, selectedNetworkModes, setSelectedNetworkFeature, visualizeLinkId }) => {
+  selectedDataset, selectedNetworkModes, setSelectedNetworkFeature, visualizeLinkId, dataURL }) => {
     
     // ======================= INITIALIZE VARIABLES =======================
     
@@ -44,7 +44,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
       mapRef.current = map;
       
       // Fetch Swiss cantons from geojson
-      fetch('/data/TLM_KANTONSGEBIET.geojson')
+      fetch(`${dataURL}TLM_KANTONSGEBIET.geojson`)
       .then(response => response.json())
       .then(cantonGeoJSON => {
         
@@ -201,7 +201,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
     
     const loadNetworkForCanton = (cantonName) => {
       
-      const networkGeojsonPath = `/data/matsim/matsim_network_${cantonName}.geojson`;
+      const networkGeojsonPath = `${dataURL}matsim/matsim_network_${cantonName}.geojson`;
       
       // Ensure the map is initialized
       if (!mapRef.current) return;
@@ -616,7 +616,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
   // ======================= CHOROPLETH MODULE =======================
   
   useEffect(() => {
-    fetch("/data/mode_share.json")
+    fetch(`${dataURL}mode_share.json`)
     .then((response) => response.json())
     .then((data) => {
       setModeShareData(data);

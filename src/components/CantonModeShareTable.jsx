@@ -19,11 +19,11 @@ const MODE_LABELS = {
   walk: "Walking",
 };
 
-const CantonModeShareTable = ({ canton, selectedDataset, selectedMode }) => {
+const CantonModeShareTable = ({ canton, selectedDataset, selectedMode, dataURL }) => {
   const [modeShareData, setModeShareData] = useState(null);
 
   useEffect(() => {
-    fetch("/data/mode_share.json")
+    fetch(`${dataURL}mode_share.json`)
       .then((response) => response.json())
       .then((data) => setModeShareData(data))
       .catch((error) => console.error("Error loading mode share data:", error));
