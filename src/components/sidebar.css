@@ -195,6 +195,7 @@
   font-size: 14px;
   font-weight: bold;
   color: #333;
+  margin-left: 5px;
 }
 
 .mode-filter-select {
@@ -217,6 +218,20 @@
   padding: 6px;
   font-size: 14px;
 }
+
+.mode-filter-select::-webkit-scrollbar {
+  width: 8px;
+}
+
+.mode-filter-select::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 8px;
+}
+
+.mode-filter-select::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
 
 .graph-button.small {
   height: 20px;
