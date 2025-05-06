@@ -1,6 +1,6 @@
 {
 "type": "FeatureCollection",
-"name": "matsim_network_Uri_with_avg",
+"name": "matsim_network_Uri",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
 { "type": "Feature", "properties": { "id": "501084", "length": 43.910041211567162, "freespeed": 8.3333333333333339, "capacity": 300.0, "permlanes": 1.0, "modes": "car,car_passenger,truck", "daily_avg_volume": 3.6 }, "geometry": { "type": "LineString", "coordinates": [ [ 8.645010465583802, 46.881123331762844 ], [ 8.645365565573941, 46.880813131757257 ] ] } },

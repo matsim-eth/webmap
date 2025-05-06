@@ -1,6 +1,6 @@
 {
 "type": "FeatureCollection",
-"name": "matsim_network_Zug_with_avg",
+"name": "matsim_network_Zug",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
 { "type": "Feature", "properties": { "id": "976705", "length": 17.196655568167223, "freespeed": 2.7777777777777777, "capacity": 300.0, "permlanes": 1.0, "modes": "car,car_passenger,truck", "daily_avg_volume": 2.0 }, "geometry": { "type": "LineString", "coordinates": [ [ 8.4306812740413, 47.144373435151806 ], [ 8.43079727404573, 47.144506335149977 ] ] } },

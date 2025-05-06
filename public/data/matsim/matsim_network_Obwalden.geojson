@@ -1,6 +1,6 @@
 {
 "type": "FeatureCollection",
-"name": "matsim_network_Obwalden_with_avg",
+"name": "matsim_network_Obwalden",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
 { "type": "Feature", "properties": { "id": "594500", "length": 83.592819391742282, "freespeed": 2.7777777777777777, "capacity": 300.0, "permlanes": 1.0, "modes": "car,car_passenger,truck", "daily_avg_volume": 0.0 }, "geometry": { "type": "LineString", "coordinates": [ [ 8.275792366044668, 46.9032788375631 ], [ 8.276465166063767, 46.903849837552642 ] ] } },

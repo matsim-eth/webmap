@@ -1,6 +1,6 @@
 {
 "type": "FeatureCollection",
-"name": "matsim_network_Glarus_with_avg",
+"name": "matsim_network_Glarus",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
 { "type": "Feature", "properties": { "id": "91021", "length": 64.91420740302479, "freespeed": 13.888888888888889, "capacity": 300.0, "permlanes": 1.0, "modes": "car,car_passenger,truck", "daily_avg_volume": 0.0 }, "geometry": { "type": "LineString", "coordinates": [ [ 9.131115073720315, 47.12231852414395 ], [ 9.130582573712102, 47.122075224152304 ] ] } },

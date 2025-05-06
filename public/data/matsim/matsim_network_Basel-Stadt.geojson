@@ -1,6 +1,6 @@
 {
 "type": "FeatureCollection",
-"name": "matsim_network_Basel-Stadt_with_avg",
+"name": "matsim_network_Basel-Stadt",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
 { "type": "Feature", "properties": { "id": "54166", "length": 144.03498048186049, "freespeed": 8.3333333333333339, "capacity": 300.0, "permlanes": 1.0, "modes": "car,car_passenger,truck", "daily_avg_volume": 0.0 }, "geometry": { "type": "LineString", "coordinates": [ [ 7.582110386569596, 47.544582348464523 ], [ 7.583757786549667, 47.543936048438759 ] ] } },
