@@ -1,9 +1,6 @@
 import React, { useState, useEffect  } from "react";
 import "./Sidebar.css";
 
-// For mode filter (only show modes available in each canton)
-import modesByCanton from "../utils/modes_by_canton.json";
-
 // Sidebar Modules / Graphs
 import AverageDist from "./AverageDist";
 import Histogram from "./Histogram";
@@ -23,8 +20,19 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
     const [selectedMode, setSelectedMode] = useState("None"); // Choropleth mode
     const [selectedDataset, setSelectedDataset] = useState("Microcensus"); // Choropleth dataset
     const [availableModes, setAvailableModes] = useState([]); // Available modes for network filter
+    const [selectedAggCol, setSelectedAggCol] = useState("mode"); // For graphs
+    const [modesByCanton, setModesByCanton] = useState({}); // For mode filter (only show modes available in each canton)
     
     // ======================= GENERAL FEATURES (BUTTONS / DROPDOWN) =======================
+
+    // Get modes per canton from JSON file
+    useEffect(() => {
+      fetch("/data/modes_by_canton.json")
+        .then(res => res.json())
+        .then(data => setModesByCanton(data))
+        .catch(err => console.error("Failed to load modes_by_canton.json", err));
+    }, []);
+
     // Push current module to Map
     const handleGraphSelection = (event) => {
       const graph = event.target.value;
@@ -60,8 +68,8 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
       updateMapSymbology("None", selectedDataset);
       resetMapView();
     };
-
-
+    
+    
     // ======================= MATSIM NETWORK MODULE =======================
     
     // Get available modes per canton
@@ -90,8 +98,7 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
     
     return (
       <div className={`floating-panel ${isOpen ?  // Sets the css for sidebar width
-        (selectedGraph === "Graph 3" || selectedGraph === "Graph 4"
-          || selectedGraph === "Graph 7" || selectedGraph === "Graph 8" ? "expanded-graph3" : 
+        (selectedGraph === "Graph 3" || selectedGraph === "Graph 4" ? "expanded-graph3" : 
           selectedGraph === "Choropleth"  || selectedGraph === "Network" ? "open" : 
           selectedGraph ? "expanded" : "open") 
           : "collapsed"}`}>
@@ -119,10 +126,6 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
             <option value="Graph 2">Histogram</option>
             <option value="Graph 3">Stacked Bar Plot</option>
             <option value="Graph 4">Line Plot</option>
-            <option value="Graph 5">Average Distance 2</option>
-            <option value="Graph 6">Histogram 2</option>
-            <option value="Graph 7">Stacked Bar Plot 2</option>
-            <option value="Graph 8">Line Plot 2</option>
             </select>
             </div>
             </div>
@@ -131,18 +134,31 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
             {!selectedGraph && (
               <div className="home-message">
               <p>Select a canton and a visualization to get started!</p>
+              
+              <div className="mode-filter-container">
+              <label className="mode-filter-label">Group Graphs By:</label>
+              <select
+              multiple
+              value={[selectedAggCol]} // Wrap as array so it works with multiple
+              onChange={(e) => {
+                const selected = Array.from(e.target.selectedOptions).map(opt => opt.value);
+                if (selected.length > 0) {
+                  setSelectedAggCol(selected[selected.length - 1]); // always use the last clicked one
+                }
+              }}
+              className="mode-filter-select"
+              >
+              <option value="mode">Mode</option>
+              <option value="purpose">Purpose</option>
+              </select>
+              </div>
               </div>
             )}
-            
             {/* Rendering for graphs */}
-            {selectedGraph === "Graph 1" && <div className="plot-container"><AverageDist canton={canton || "All"} aggCol="mode" /></div>}
-            {selectedGraph === "Graph 2" && <div className="plot-container"><Histogram canton={canton || "All"} aggCol="mode" /></div>}
-            {selectedGraph === "Graph 3" && <div className="plot-container"><StackedBarPlot canton={canton || "All"} aggCol="mode"/></div>}
-            {selectedGraph === "Graph 4" && <div className="plot-container"><ModeShareLinePlot canton={canton || "All"} aggCol="mode" /></div>}
-            {selectedGraph === "Graph 5" && <div className="plot-container"><AverageDist canton={canton || "All"} aggCol="purpose" /></div>}
-            {selectedGraph === "Graph 6" && <div className="plot-container"><Histogram canton={canton || "All"} aggCol="purpose" /></div>}
-            {selectedGraph === "Graph 7" && <div className="plot-container"><StackedBarPlot canton={canton || "All"} aggCol="purpose"/></div>}
-            {selectedGraph === "Graph 8" && <div className="plot-container"><ModeShareLinePlot canton={canton || "All"} aggCol="purpose" /></div>}
+            {selectedGraph === "Graph 1" && <div className="plot-container"><AverageDist canton={canton || "All"} aggCol={selectedAggCol} /></div>}
+            {selectedGraph === "Graph 2" && <div className="plot-container"><Histogram canton={canton || "All"} aggCol={selectedAggCol} /></div>}
+            {selectedGraph === "Graph 3" && <div className="plot-container"><StackedBarPlot canton={canton || "All"} aggCol={selectedAggCol}/></div>}
+            {selectedGraph === "Graph 4" && <div className="plot-container"><ModeShareLinePlot canton={canton || "All"} aggCol={selectedAggCol} /></div>}
             
             {/* Mode Share Choropleth Selection */}
             {selectedGraph === "Choropleth" && (
