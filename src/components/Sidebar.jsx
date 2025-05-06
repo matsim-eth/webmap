@@ -163,12 +163,31 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
               />
               <button
               className="graph-button"
-              style={{width: "fit-content" }}
-              onClick={() => {
-                const trimmed = inputURL.trim();
-                setDataURL(trimmed || "https://matsim-eth.github.io/webmap/data/");
+              style={{ width: "fit-content" }}
+              onClick={async () => {
+                let trimmed = inputURL.trim() || "https://matsim-eth.github.io/webmap/data/";
+
+                if (!trimmed.endsWith("/")) {
+                  trimmed += "/";
+                }
+
+                try {
+                  const response = await fetch(`${trimmed}modes_by_canton.json`);
+                  if (!response.ok) {
+                    throw new Error(`HTTP error ${response.status}`);
+                  }
+                  // Try to read data from URL
+                  await response.json();
+                  setDataURL(trimmed);
+                } catch (error) {
+                  alert("Failed to load data from the provided URL.\nPlease ensure the URL is correct and accessible.");
+                  setDataURL("https://matsim-eth.github.io/webmap/data/"); // fallback
+                  console.error("Data source error:", error);
+                }
               }}
-              >Set</button>
+              >
+              Set
+              </button>
               </div>
               </div>
               
