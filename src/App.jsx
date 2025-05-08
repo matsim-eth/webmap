@@ -33,6 +33,10 @@ function App() {
   // Pass selected link id to map (for ant-path visualization)
   const [visualizeLinkId, setVisualizeLinkId] = useState(null);
 
+  // Pass selected transit mode / stop to map
+  const [selectedTransitModes, setSelectedTransitModes] = useState(["all"]);
+  const [selectedTransitStop, setSelectedTransitStop] = useState(null);
+
   // Read cantons
   useEffect(() => {
     fetch('/data/TLM_KANTONSGEBIET.geojson')
@@ -103,6 +107,8 @@ function App() {
       visualizeLinkId={visualizeLinkId} // from segment vol histogram via sidebar
       setVisualizeLinkId={setVisualizeLinkId} // from sidebar
       dataURL={dataURL} // from Sidebar
+      selectedTransitModes={selectedTransitModes} // from sidebar
+      setSelectedTransitStop={setSelectedTransitStop} // from sidebar
     />
 
     <Sidebar
@@ -120,6 +126,9 @@ function App() {
       setVisualizeLinkId={setVisualizeLinkId} // to map
       dataURL={dataURL}
       setDataURL={setDataURL}
+      selectedTransitModes={selectedTransitModes}
+      setSelectedTransitModes={setSelectedTransitModes} 
+      selectedTransitStop={selectedTransitStop}
     />
 
     <NetworkLegend
