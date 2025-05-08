@@ -44,7 +44,7 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
     
     // Get transit modes per stops
     useEffect(() => {
-      fetch("data/transit_stop_modes_by_canton.json")
+      fetch(`${dataURL}transit_stop_modes_by_canton.json`)
       .then((res) => res.json())
       .then((data) => setTransitModesByCanton(data))
       .catch((err) => console.error("Failed to load transit modes:", err));
