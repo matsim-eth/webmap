@@ -5,7 +5,8 @@ import bboxCache from '../utils/bboxCanton.json';
 import "./Loading.css" // loading screen for network
 
 const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchCanton, selectedMode,
-  selectedDataset, selectedNetworkModes, setSelectedNetworkFeature, visualizeLinkId, dataURL }) => {
+  selectedDataset, selectedNetworkModes, selectedTransitModes, selectedTransitStop, setSelectedNetworkFeature,
+  visualizeLinkId, dataURL }) => {
     
     // ======================= INITIALIZE VARIABLES =======================
     
@@ -23,7 +24,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
     
     // Add map loading when loading network
     const [isLoadingNetwork, setIsLoadingNetwork] = useState(false);
-
+    
     // Keep track of select network modes
     const selectedNetworkModesRef = useRef(selectedNetworkModes);
     
@@ -288,7 +289,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
         
         // Maintain current modes if changing cantons
         updateNetworkFilter(selectedNetworkModesRef.current);
-
+        
         // only show 'car' roads for volumes
         if(graphExpandedRef.current === "Volumes"){
           map.setFilter("click-network-layer", ["match", ["index-of", "car", ["get", "modes"]], -1, false, true])
@@ -407,7 +408,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
   // Update network mode filter (MatSIM Network) on change
   useEffect(() => {
     if (!mapRef.current) return;
-
+    
     selectedNetworkModesRef.current = selectedNetworkModes;
     updateNetworkFilter(selectedNetworkModes); // Apply mode filter when it changes
   }, [selectedNetworkModes]);
@@ -613,6 +614,75 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
     
   }, [isGraphExpanded]);
   
+  // ======================= TRANSIT STOPS MODULE =======================
+  
+  useEffect(() => {
+    const sourceId = "transit-stops";
+    const layerId = "transit-stops-layer";
+  
+    console.log("Selected Transit Modes:", searchCanton);
+  
+    const removeTransitStops = () => {
+      if (!mapRef.current) return;
+      const map = mapRef.current;
+  
+      if (map.getLayer(layerId)) map.removeLayer(layerId);
+      if (map.getSource(sourceId)) map.removeSource(sourceId);
+    };
+  
+    if (isGraphExpanded === "Transit" && searchCanton) {
+      const path = `data/matsim/transit/${searchCanton}_stops.geojson`;
+  
+      fetch(path)
+        .then((res) => res.json())
+        .then((geojson) => {
+          const map = mapRef.current;
+          if (!map) return;
+  
+          removeTransitStops();
+  
+          map.addSource(sourceId, {
+            type: "geojson",
+            data: geojson,
+          });
+  
+          map.addLayer({
+            id: layerId,
+            type: "circle",
+            source: sourceId,
+            paint: {
+              "circle-radius": 5,
+              "circle-color": "#ff8800",
+              "circle-stroke-color": "#333",
+              "circle-stroke-width": 1,
+            },
+          });
+  
+          // Apply mode filtering
+          const modeFilter = selectedTransitModes.includes("all")
+            ? null
+            : [
+                "any",
+                ...selectedTransitModes.map((mode) => [
+                  "match",
+                  ["index-of", mode, ["get", "modes_list"]],
+                  -1,
+                  false,
+                  true,
+                ]),
+              ];
+  
+          map.setFilter(layerId, modeFilter);
+        })
+        .catch((err) => {
+          console.error("Error loading transit stops:", err);
+        });
+    } else {
+      removeTransitStops();
+    }
+  }, [isGraphExpanded, selectedTransitModes, searchCanton]);
+  
+  
   // ======================= CHOROPLETH MODULE =======================
   
   useEffect(() => {
@@ -624,7 +694,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
     })
     .catch((error) => console.error("Error loading mode share data:", error));
   }, []);
-
+  
   // Set colours for choropleth by mode (matches with plots)
   const MODE_COLORS = {
     car: "#636efa",
@@ -648,14 +718,14 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
     }
     
     let colorStops = {};
-
+    
     if (selectedDataset === "Difference") {
       const micro = modeShareData["Microcensus"].filter(entry => entry.mode === selectedMode);
       const synthetic = modeShareData["Synthetic"].filter(entry => entry.mode === selectedMode);
-  
+      
       const microMap = Object.fromEntries(micro.map(e => [e.canton_name, e.share]));
       const syntheticMap = Object.fromEntries(synthetic.map(e => [e.canton_name, e.share]));
-  
+      
       colorStops = Object.keys(microMap).reduce((acc, canton) => {
         const diff = Math.abs((syntheticMap[canton] || 0) - (microMap[canton] || 0));
         const clampedDiff = Math.min(diff, 0.1); // max out at 10%
@@ -666,12 +736,12 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
     } else {
       const maxShare = maxSharePerMode[selectedMode] || 1;
       colorStops = modeShareData[selectedDataset]
-        .filter(entry => entry.mode === selectedMode)
-        .reduce((acc, entry) => {
-          const normalizedShare = entry.share / maxShare;
-          acc[entry.canton_name] = `rgb(${interpolateColor("#FFFFFF", MODE_COLORS[selectedMode], normalizedShare)})`;
-          return acc;
-        }, {});
+      .filter(entry => entry.mode === selectedMode)
+      .reduce((acc, entry) => {
+        const normalizedShare = entry.share / maxShare;
+        acc[entry.canton_name] = `rgb(${interpolateColor("#FFFFFF", MODE_COLORS[selectedMode], normalizedShare)})`;
+        return acc;
+      }, {});
     }
     map.setPaintProperty("canton-fill", "fill-color", [
       "case",
@@ -701,7 +771,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
   // this ensures that the map stays focused on the same feature even
   // as the width of the sidebar changes (otherwise as the sidebar)
   // gets wider, it could hide what we are originally looking at
-
+  
   useEffect(() => {
     if (mapRef.current) {
       const map = mapRef.current;
@@ -713,12 +783,12 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
         // Widest width
         if (isGraphExpanded === "Graph 3" || isGraphExpanded === "Graph 4") {
           rightPadding = 950; // Adjust for 900px width
-        // Middle width
+          // Middle width
         } else if (isGraphExpanded === "Graph 1" || isGraphExpanded === "Graph 2" || isGraphExpanded === "Volumes"
         ) {
           rightPadding = 650; // Adjust for 600px width
         } else {
-        // Smallest width
+          // Smallest width
           rightPadding = 350;
         }
       }

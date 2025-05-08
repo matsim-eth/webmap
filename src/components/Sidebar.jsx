@@ -10,9 +10,11 @@ import CantonModeShareTable from "./CantonModeShareTable";
 import ModeShareLinePlot from "./ModeShareLinePlot";
 import SegmentAttributesTable from "./SegmentAttributesTable";
 import SegmentVolumeHistogram from "./SegmentVolumeHistogram";
+import TransitStopAttributesTable from "./TransitStopAttributesTable";
 
 const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, resetMapView, updateMapSymbology,
-  selectedNetworkModes, setSelectedNetworkModes, selectedNetworkFeature, setVisualizeLinkId, dataURL, setDataURL}) => {
+  selectedNetworkModes, setSelectedNetworkModes, selectedNetworkFeature, setVisualizeLinkId, dataURL, setDataURL,
+  selectedTransitModes, setSelectedTransitModes }) => {
     
     // ======================= INITIALIZE VARIABLES =======================
     
@@ -24,18 +26,10 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
     const [modesByCanton, setModesByCanton] = useState({}); // For mode filter (only show modes available in each canton)
     const [inputURL, setInputURL] = useState("");
     
-    // GET DATA SOURCE
-    useEffect(() => {
-      const fullPath = `${dataURL}modes_by_canton.json`;
-      fetch(fullPath)
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then(data => setModesByCanton(data))
-      .catch(err => console.error("Failed to load modes_by_canton.json", err));
-    }, [dataURL]);
-    
+    // Transit module
+    const [availableTransitModes, setAvailableTransitModes] = useState([]);
+    const [transitModesByCanton, setTransitModesByCanton] = useState({});
+    const [selectedTransitStop, setSelectedTransitStop] = useState(null);
     
     // ======================= GENERAL FEATURES (BUTTONS / DROPDOWN) =======================
     
@@ -46,6 +40,14 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
       .then(res => res.json())
       .then(data => setModesByCanton(data))
       .catch(err => console.error("Failed to load modes_by_canton.json", err));
+    }, []);
+    
+    // Get transit modes per stops
+    useEffect(() => {
+      fetch("data/transit_stop_modes_by_canton.json")
+      .then((res) => res.json())
+      .then((data) => setTransitModesByCanton(data))
+      .catch((err) => console.error("Failed to load transit modes:", err));
     }, []);
     
     // Push current module to Map
@@ -80,6 +82,7 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
       setSelectedDataset("Microcensus");
       setSelectedMode("None");
       setSelectedNetworkModes(["all"]);
+      setSelectedTransitModes(["all"]);
       updateMapSymbology("None", selectedDataset);
       resetMapView();
     };
@@ -111,6 +114,27 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
       }
     };  
     
+    // ======================== TRANSIT MODULE =======================
+    
+    // Get available transit modes per canton
+    useEffect(() => {
+      if (canton && transitModesByCanton[canton]) {
+        setAvailableTransitModes(transitModesByCanton[canton]);
+      } else {
+        setAvailableTransitModes([]);
+      }
+    }, [canton]);
+    
+    // Push to Map the selected transit stop mode filter
+    const handleTransitModeChange = (event) => {
+      const selectedOptions = Array.from(event.target.selectedOptions).map((option) => option.value);
+      if (selectedOptions.includes("all") || selectedOptions.length === 0) {
+        setSelectedTransitModes(["all"]);
+      } else {
+        setSelectedTransitModes(selectedOptions);
+      }
+    };
+    
     return (
       <div className={`floating-panel ${isOpen ?  // Sets the css for sidebar width
         (selectedGraph === "Graph 3" || selectedGraph === "Graph 4" ? "expanded-graph3" : 
@@ -137,6 +161,7 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
             <option value="Choropleth">Choropleth</option>
             <option value="Network">MATSim Network</option>
             <option value="Volumes">Simulation Volumes</option>
+            <option value="Transit">Transit Volumes</option>
             <option value="Graph 1">Average Distance</option>
             <option value="Graph 2">Histogram</option>
             <option value="Graph 3">Stacked Bar Plot</option>
@@ -166,11 +191,11 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
               style={{ width: "fit-content" }}
               onClick={async () => {
                 let trimmed = inputURL.trim() || "https://matsim-eth.github.io/webmap/data/";
-
+                
                 if (!trimmed.endsWith("/")) {
                   trimmed += "/";
                 }
-
+                
                 try {
                   const response = await fetch(`${trimmed}modes_by_canton.json`);
                   if (!response.ok) {
@@ -274,6 +299,31 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
                 <p style={{ padding: "1rem", fontStyle: "italic", color: "#555" }}>
                 Click a canton and/or segment to see hourly volumes.
                 </p>
+              )}
+              </div>
+            )}
+            
+            {selectedGraph === "Transit" && (
+              <div>
+              <div className="mode-filter-container">
+              <label className="mode-filter-label">Filter by Mode:</label>
+              <select
+              multiple
+              value={selectedTransitModes}
+              onChange={handleTransitModeChange}
+              className="mode-filter-select"
+              >
+              <option value="all">All</option>
+              {availableTransitModes.map((mode) => (
+                <option key={mode} value={mode}>
+                {mode.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
+                </option>
+              ))}
+              </select>
+              </div>
+              
+              {selectedTransitStop && (
+                <TransitStopAttributesTable properties={selectedTransitStop} />
               )}
               </div>
             )}
