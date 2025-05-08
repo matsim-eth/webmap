@@ -631,7 +631,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
     };
   
     if (isGraphExpanded === "Transit" && searchCanton) {
-      const path = `data/matsim/transit/${searchCanton}_stops.geojson`;
+      const path = `${dataURL}matsim/transit/${searchCanton}_stops.geojson`;
   
       fetch(path)
         .then((res) => res.json())
