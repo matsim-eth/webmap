@@ -1,0 +1,5316 @@
+{
+  "type": "FeatureCollection",
+  "name": "AppenzellInnerrhoden_stops",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506257.link:pt_8506257",
+        "name": "Wasserauen (Ebenalpbahn)",
+        "lon": 9.428616579235092,
+        "lat": 47.28664901946837,
+        "lines": [
+          {
+            "line_id": "LWE",
+            "mode": "gondola"
+          },
+          {
+            "line_id": "LWE",
+            "mode": "gondola"
+          }
+        ],
+        "predominant_mode": "gondola",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "gondola"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.42861658848815,
+          47.286649029333205
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506259.link:pt_8506259",
+        "name": "Ebenalp",
+        "lon": 9.411578579164434,
+        "lat": 47.284675019736405,
+        "lines": [
+          {
+            "line_id": "LWE",
+            "mode": "gondola"
+          },
+          {
+            "line_id": "LWE",
+            "mode": "gondola"
+          }
+        ],
+        "predominant_mode": "gondola",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "gondola"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.41157858840276,
+          47.28467502960606
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506260.link:1029625",
+        "name": "Weissbad, Bahnhof",
+        "lon": 9.435511580022302,
+        "lat": 47.310463019359744,
+        "lines": [
+          {
+            "line_id": "PAG_line192",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.435511589273426,
+          47.31046302923003
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506260.link:1029626",
+        "name": "Weissbad, Bahnhof",
+        "lon": 9.435511580022302,
+        "lat": 47.310463019359744,
+        "lines": [
+          {
+            "line_id": "PAG_line192",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.435511589273426,
+          47.31046302923003
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506261.link:pt_8506261",
+        "name": "Brülisau (Kastenbahn)",
+        "lon": 9.456784579568646,
+        "lat": 47.29649801902512,
+        "lines": [
+          {
+            "line_id": "HKD",
+            "mode": "gondola"
+          },
+          {
+            "line_id": "HKD",
+            "mode": "gondola"
+          }
+        ],
+        "predominant_mode": "gondola",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "gondola"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.456784588843748,
+          47.2964980288841
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506262.link:pt_8506262",
+        "name": "Hoher Kasten",
+        "lon": 9.484942579157496,
+        "lat": 47.283756018582054,
+        "lines": [
+          {
+            "line_id": "HKD",
+            "mode": "gondola"
+          },
+          {
+            "line_id": "HKD",
+            "mode": "gondola"
+          }
+        ],
+        "predominant_mode": "gondola",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "gondola"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.484942588462319,
+          47.28375602842793
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506265.link:pt_8506265",
+        "name": "Kronberg",
+        "lon": 9.32792657936094,
+        "lat": 47.29152002105247,
+        "lines": [
+          {
+            "line_id": "LJK",
+            "mode": "gondola"
+          },
+          {
+            "line_id": "LJK",
+            "mode": "gondola"
+          }
+        ],
+        "predominant_mode": "gondola",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "gondola"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.32792658852093,
+          47.291520030950934
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506266.link:pt_8506266",
+        "name": "Jakobsbad (Kronbergbahn)",
+        "lon": 9.32833658029759,
+        "lat": 47.31991702104579,
+        "lines": [
+          {
+            "line_id": "LJK",
+            "mode": "gondola"
+          },
+          {
+            "line_id": "LJK",
+            "mode": "gondola"
+          }
+        ],
+        "predominant_mode": "gondola",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "gondola"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.32833658944833,
+          47.319917030953235
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506271.link:539524",
+        "name": "Gontenbad",
+        "lon": 9.372729580703743,
+        "lat": 47.331750020347236,
+        "lines": [
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "4",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.37272958989079,
+          47.33175003024442
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506271.link:539525",
+        "name": "Gontenbad",
+        "lon": 9.372729580703743,
+        "lat": 47.331750020347236,
+        "lines": [
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "4",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.37272958989079,
+          47.33175003024442
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506275.link:63388",
+        "name": "Steinegg",
+        "lon": 9.430399580353692,
+        "lat": 47.32056001944006,
+        "lines": [
+          {
+            "line_id": "AB-_line854",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "4",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.430399589596734,
+          47.32056002931521
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506275.link:63389",
+        "name": "Steinegg",
+        "lon": 9.430399580353692,
+        "lat": 47.32056001944006,
+        "lines": [
+          {
+            "line_id": "AB-_line854",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "4",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.430399589596734,
+          47.32056002931521
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506275.link:640389",
+        "name": "Steinegg",
+        "lon": 9.430399580353692,
+        "lat": 47.32056001944006,
+        "lines": [
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "4",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.430399589596734,
+          47.32056002931521
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506275.link:640390",
+        "name": "Steinegg",
+        "lon": 9.430399580353692,
+        "lat": 47.32056001944006,
+        "lines": [
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "4",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.430399589596734,
+          47.32056002931521
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506277.link:107725",
+        "name": "Schwende",
+        "lon": 9.435619579678008,
+        "lat": 47.30002001935811,
+        "lines": [
+          {
+            "line_id": "AB-_line854",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "4",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.43561958893281,
+          47.30002002922503
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506277.link:107726",
+        "name": "Schwende",
+        "lon": 9.435619579678008,
+        "lat": 47.30002001935811,
+        "lines": [
+          {
+            "line_id": "AB-_line854",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "4",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.43561958893281,
+          47.30002002922503
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506277.link:954529",
+        "name": "Schwende",
+        "lon": 9.435619579678008,
+        "lat": 47.30002001935811,
+        "lines": [
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "4",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.43561958893281,
+          47.30002002922503
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506277.link:954530",
+        "name": "Schwende",
+        "lon": 9.435619579678008,
+        "lat": 47.30002001935811,
+        "lines": [
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "4",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.43561958893281,
+          47.30002002922503
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506284.link:321327",
+        "name": "Jakobsbad",
+        "lon": 9.328319580302649,
+        "lat": 47.32007002104605,
+        "lines": [
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "4",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.328319589453322,
+          47.32007003095357
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506284.link:321328",
+        "name": "Jakobsbad",
+        "lon": 9.328319580302649,
+        "lat": 47.32007002104605,
+        "lines": [
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "4",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.328319589453322,
+          47.32007003095357
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506285.link:539570",
+        "name": "Gonten",
+        "lon": 9.347729580583815,
+        "lat": 47.328380020740624,
+        "lines": [
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "4",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.347729589749322,
+          47.32838003064468
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506285.link:539571",
+        "name": "Gonten",
+        "lon": 9.347729580583815,
+        "lat": 47.328380020740624,
+        "lines": [
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "4",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.347729589749322,
+          47.32838003064468
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506286.link:169930",
+        "name": "Appenzell",
+        "lon": 9.408829580601703,
+        "lat": 47.32829001977936,
+        "lines": [
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "2",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.408829589822606,
+          47.3282900296639
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506286.link:169931",
+        "name": "Appenzell",
+        "lon": 9.408829580601703,
+        "lat": 47.32829001977936,
+        "lines": [
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "2",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.408829589822606,
+          47.3282900296639
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506286.link:169961",
+        "name": "Appenzell",
+        "lon": 9.408829580601703,
+        "lat": 47.32829001977936,
+        "lines": [
+          {
+            "line_id": "AB-_line22",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "2",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.408829589822606,
+          47.3282900296639
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506286.link:169962",
+        "name": "Appenzell",
+        "lon": 9.408829580601703,
+        "lat": 47.32829001977936,
+        "lines": [
+          {
+            "line_id": "AB-",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "2",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.408829589822606,
+          47.3282900296639
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506286.link:169963",
+        "name": "Appenzell",
+        "lon": 9.408829580601703,
+        "lat": 47.32829001977936,
+        "lines": [
+          {
+            "line_id": "AB-_line22",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line22",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "2",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.408829589822606,
+          47.3282900296639
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506286.link:169964",
+        "name": "Appenzell",
+        "lon": 9.408829580601703,
+        "lat": 47.32829001977936,
+        "lines": [
+          {
+            "line_id": "AB-",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line22",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "2",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.408829589822606,
+          47.3282900296639
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506286.link:761415",
+        "name": "Appenzell",
+        "lon": 9.408829580601703,
+        "lat": 47.32829001977936,
+        "lines": [
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "2",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.408829589822606,
+          47.3282900296639
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506286.link:761416",
+        "name": "Appenzell",
+        "lon": 9.408829580601703,
+        "lat": 47.32829001977936,
+        "lines": [
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "2",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.408829589822606,
+          47.3282900296639
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506288.link:107755",
+        "name": "Weissbad",
+        "lon": 9.43597958003586,
+        "lat": 47.31087001935235,
+        "lines": [
+          {
+            "line_id": "AB-_line854",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "4",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.435979589287264,
+          47.31087002922261
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506288.link:107756",
+        "name": "Weissbad",
+        "lon": 9.43597958003586,
+        "lat": 47.31087001935235,
+        "lines": [
+          {
+            "line_id": "AB-_line854",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "4",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.435979589287264,
+          47.31087002922261
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506288.link:640383",
+        "name": "Weissbad",
+        "lon": 9.43597958003586,
+        "lat": 47.31087001935235,
+        "lines": [
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "4",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.435979589287264,
+          47.31087002922261
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506288.link:640384",
+        "name": "Weissbad",
+        "lon": 9.43597958003586,
+        "lat": 47.31087001935235,
+        "lines": [
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "4",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.435979589287264,
+          47.31087002922261
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506289.link:107611",
+        "name": "Wasserauen",
+        "lon": 9.428839579205212,
+        "lat": 47.28574001946487,
+        "lines": [
+          {
+            "line_id": "AB-_line854",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "4",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.428839588458784,
+          47.28574002932934
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506289.link:107612",
+        "name": "Wasserauen",
+        "lon": 9.428839579205212,
+        "lat": 47.28574001946487,
+        "lines": [
+          {
+            "line_id": "AB-_line854",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "4",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.428839588458784,
+          47.28574002932934
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506289.link:954468",
+        "name": "Wasserauen",
+        "lon": 9.428839579205212,
+        "lat": 47.28574001946487,
+        "lines": [
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "4",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.428839588458784,
+          47.28574002932934
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506289.link:954469",
+        "name": "Wasserauen",
+        "lon": 9.428839579205212,
+        "lat": 47.28574001946487,
+        "lines": [
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line23",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "4",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.428839588458784,
+          47.28574002932934
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506380.link:861152",
+        "name": "Hirschberg",
+        "lon": 9.42282958070596,
+        "lat": 47.33131001955905,
+        "lines": [
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "3",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.422829589938468,
+          47.33131002944004
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506380.link:pt_8506380",
+        "name": "Hirschberg",
+        "lon": 9.42282958070596,
+        "lat": 47.33131001955905,
+        "lines": [
+          {
+            "line_id": "AB-",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line22",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line22",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line22",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line22",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "3",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.422829589938468,
+          47.33131002944004
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506381.link:630384",
+        "name": "Sammelplatz",
+        "lon": 9.432549581275971,
+        "lat": 47.34848001940577,
+        "lines": [
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "3",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.432549590511325,
+          47.348480029289114
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506381.link:630385",
+        "name": "Sammelplatz",
+        "lon": 9.432549581275971,
+        "lat": 47.34848001940577,
+        "lines": [
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "3",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.432549590511325,
+          47.348480029289114
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506381.link:pt_8506381",
+        "name": "Sammelplatz",
+        "lon": 9.432549581275971,
+        "lat": 47.34848001940577,
+        "lines": [
+          {
+            "line_id": "AB-",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line22",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line22",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line22",
+            "mode": "rail"
+          },
+          {
+            "line_id": "AB-_line22",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "3",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.432549590511325,
+          47.348480029289114
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506765.link:661213",
+        "name": "Oberegg AI, Post",
+        "lon": 9.552527583744647,
+        "lat": 47.42207001751542,
+        "lines": [
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line228",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.552527593061498,
+          47.42207002738261
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506765.link:661214",
+        "name": "Oberegg AI, Post",
+        "lon": 9.552527583744647,
+        "lat": 47.42207001751542,
+        "lines": [
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line228",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.552527593061498,
+          47.42207002738261
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506765.link:884250",
+        "name": "Oberegg AI, Post",
+        "lon": 9.552527583744647,
+        "lat": 47.42207001751542,
+        "lines": [
+          {
+            "line_id": "PAG_line228",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line228",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line229",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line229",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.552527593061498,
+          47.42207002738261
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506860.link:11876",
+        "name": "Oberegg AI, St. Anton Kapelle",
+        "lon": 9.535138583342109,
+        "lat": 47.41005201778956,
+        "lines": [
+          {
+            "line_id": "PAG_line229",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.535138592647774,
+          47.41005202765882
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8506860.link:11877",
+        "name": "Oberegg AI, St. Anton Kapelle",
+        "lon": 9.535138583342109,
+        "lat": 47.41005201778956,
+        "lines": [
+          {
+            "line_id": "PAG_line229",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.535138592647774,
+          47.41005202765882
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574054.link:69764",
+        "name": "Appenzell, Mettlenbrücke",
+        "lon": 9.40576958084999,
+        "lat": 47.335843019827415,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.405769590065537,
+          47.335843029715335
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574054.link:69765",
+        "name": "Appenzell, Mettlenbrücke",
+        "lon": 9.40576958084999,
+        "lat": 47.335843019827415,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.405769590065537,
+          47.335843029715335
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574055.link:138199",
+        "name": "Appenzell, Steig",
+        "lon": 9.399752581030478,
+        "lat": 47.34137001992191,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.399752590238688,
+          47.3413700298135
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574055.link:138200",
+        "name": "Appenzell, Steig",
+        "lon": 9.399752581030478,
+        "lat": 47.34137001992191,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.399752590238688,
+          47.3413700298135
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574056.link:138203",
+        "name": "Appenzell, Lank",
+        "lon": 9.397620581267146,
+        "lat": 47.34855901995537,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.397620590470952,
+          47.348559029849895
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574056.link:138204",
+        "name": "Appenzell, Lank",
+        "lon": 9.397620581267146,
+        "lat": 47.34855901995537,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.397620590470952,
+          47.348559029849895
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574057.link:161180",
+        "name": "Appenzell, Unterschlatt",
+        "lon": 9.388498581371149,
+        "lat": 47.35180002009879,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.388498590565597,
+          47.351800029997264
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574057.link:161181",
+        "name": "Appenzell, Unterschlatt",
+        "lon": 9.388498581371149,
+        "lat": 47.35180002009879,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.388498590565597,
+          47.351800029997264
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574058.link:481744",
+        "name": "Haslen AI, Tanne",
+        "lon": 9.376561581491144,
+        "lat": 47.355555020286516,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.376561590673504,
+          47.35555503018998
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574058.link:481745",
+        "name": "Haslen AI, Tanne",
+        "lon": 9.376561581491144,
+        "lat": 47.355555020286516,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.376561590673504,
+          47.35555503018998
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574059.link:481748",
+        "name": "Haslen AI, Schiessegg",
+        "lon": 9.369306581645755,
+        "lat": 47.36031002040054,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.369306590819908,
+          47.360310030307815
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574059.link:481749",
+        "name": "Haslen AI, Schiessegg",
+        "lon": 9.369306581645755,
+        "lat": 47.36031002040054,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.369306590819908,
+          47.360310030307815
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574060.link:481752",
+        "name": "Haslen AI, List",
+        "lon": 9.36826158175509,
+        "lat": 47.36362902041694,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.368261590927155,
+          47.36362903032557
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574061.link:1071958",
+        "name": "Haslen AI, Linde",
+        "lon": 9.368297581812465,
+        "lat": 47.36536502041633,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.368297590983966,
+          47.365365030325506
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574062.link:1071959",
+        "name": "Haslen AI, Dorf",
+        "lon": 9.367574581913715,
+        "lat": 47.36843602042764,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.367574591083509,
+          47.368436030338
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574062.link:1071960",
+        "name": "Haslen AI, Dorf",
+        "lon": 9.367574581913715,
+        "lat": 47.36843602042764,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.367574591083509,
+          47.368436030338
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574063.link:482437",
+        "name": "Haslen AI, Hüsli",
+        "lon": 9.366013582084143,
+        "lat": 47.37360802045204,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.366013591250738,
+          47.373608030364544
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574063.link:482438",
+        "name": "Haslen AI, Hüsli",
+        "lon": 9.366013582084143,
+        "lat": 47.37360802045204,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.366013591250738,
+          47.373608030364544
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574064.link:482443",
+        "name": "Haslen AI, Kastbühl",
+        "lon": 9.373421582283981,
+        "lat": 47.37957502033534,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.373421591455225,
+          47.37957503024729
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574064.link:482444",
+        "name": "Haslen AI, Kastbühl",
+        "lon": 9.373421582283981,
+        "lat": 47.37957502033534,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.373421591455225,
+          47.37957503024729
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574124.link:884291",
+        "name": "Oberegg AI, Wässern",
+        "lon": 9.540940584030027,
+        "lat": 47.43078401769737,
+        "lines": [
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line229",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.540940593333504,
+          47.43078402757101
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574124.link:884292",
+        "name": "Oberegg AI, Wässern",
+        "lon": 9.540940584030027,
+        "lat": 47.43078401769737,
+        "lines": [
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line229",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.540940593333504,
+          47.43078402757101
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574125.link:978670",
+        "name": "Oberegg AI, Riethof",
+        "lon": 9.5465865839519,
+        "lat": 47.42837801760864,
+        "lines": [
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line229",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.546586593261248,
+          47.42837802747969
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574125.link:978671",
+        "name": "Oberegg AI, Riethof",
+        "lon": 9.5465865839519,
+        "lat": 47.42837801760864,
+        "lines": [
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line229",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.546586593261248,
+          47.42837802747969
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574126.link:932540",
+        "name": "Oberegg AI, Unterdorf",
+        "lon": 9.554116583798342,
+        "lat": 47.42367901749036,
+        "lines": [
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.554116593116033,
+          47.423679027357544
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574126.link:932541",
+        "name": "Oberegg AI, Unterdorf",
+        "lon": 9.554116583798342,
+        "lat": 47.42367901749036,
+        "lines": [
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.554116593116033,
+          47.423679027357544
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574129.link:673469",
+        "name": "Reute AR, Brücke",
+        "lon": 9.57692658372255,
+        "lat": 47.42120701713142,
+        "lines": [
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.576926593061337,
+          47.42120702699044
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574129.link:673470",
+        "name": "Reute AR, Brücke",
+        "lon": 9.57692658372255,
+        "lat": 47.42120701713142,
+        "lines": [
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.576926593061337,
+          47.42120702699044
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574130.link:948848",
+        "name": "Oberegg AI, Sonderegg",
+        "lon": 9.587075583774686,
+        "lat": 47.42270201697165,
+        "lines": [
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.587075593121922,
+          47.422702026827785
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574130.link:948849",
+        "name": "Oberegg AI, Sonderegg",
+        "lon": 9.587075583774686,
+        "lat": 47.42270201697165,
+        "lines": [
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line228",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line228",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.587075593121922,
+          47.422702026827785
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574148.link:884275",
+        "name": "Oberegg AI, Eugst",
+        "lon": 9.543018583661118,
+        "lat": 47.41962501766517,
+        "lines": [
+          {
+            "line_id": "PAG_line229",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.543018592970395,
+          47.41962502753475
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574148.link:884276",
+        "name": "Oberegg AI, Eugst",
+        "lon": 9.543018583661118,
+        "lat": 47.41962501766517,
+        "lines": [
+          {
+            "line_id": "PAG_line229",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.543018592970395,
+          47.41962502753475
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574149.link:895434",
+        "name": "Oberegg AI, St. Anton",
+        "lon": 9.540049583371447,
+        "lat": 47.41089801771225,
+        "lines": [
+          {
+            "line_id": "PAG_line228",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line228",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line229",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.540049592681175,
+          47.41089802758015
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574149.link:895435",
+        "name": "Oberegg AI, St. Anton",
+        "lon": 9.540049583371447,
+        "lat": 47.41089801771225,
+        "lines": [
+          {
+            "line_id": "PAG_line229",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.540049592681175,
+          47.41089802758015
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574150.link:414011",
+        "name": "Oberegg AI, Haggen",
+        "lon": 9.524891583203939,
+        "lat": 47.405963017951045,
+        "lines": [
+          {
+            "line_id": "PAG_line229",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.524891592501923,
+          47.4059630278224
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8574150.link:414012",
+        "name": "Oberegg AI, Haggen",
+        "lon": 9.524891583203939,
+        "lat": 47.405963017951045,
+        "lines": [
+          {
+            "line_id": "PAG_line229",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.524891592501923,
+          47.4059630278224
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578411.link:478061",
+        "name": "Weissbad, Bötz",
+        "lon": 9.444189579746897,
+        "lat": 47.302026019223284,
+        "lines": [
+          {
+            "line_id": "PAG_line192",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.444189589008746,
+          47.30202602908808
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578411.link:478062",
+        "name": "Weissbad, Bötz",
+        "lon": 9.444189579746897,
+        "lat": 47.302026019223284,
+        "lines": [
+          {
+            "line_id": "PAG_line192",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.444189589008746,
+          47.30202602908808
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578412.link:478059",
+        "name": "Weissbad, Berg",
+        "lon": 9.44781157966532,
+        "lat": 47.29951601916629,
+        "lines": [
+          {
+            "line_id": "PAG_line192",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.447811588931296,
+          47.29951602902915
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578412.link:478060",
+        "name": "Weissbad, Berg",
+        "lon": 9.44781157966532,
+        "lat": 47.29951601916629,
+        "lines": [
+          {
+            "line_id": "PAG_line192",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.447811588931296,
+          47.29951602902915
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578413.link:107737",
+        "name": "Weissbad, Zidler",
+        "lon": 9.435841579893776,
+        "lat": 47.306562019354594,
+        "lines": [
+          {
+            "line_id": "PAG_line192",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.43584158914653,
+          47.306562029223535
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578413.link:107738",
+        "name": "Weissbad, Zidler",
+        "lon": 9.435841579893776,
+        "lat": 47.306562019354594,
+        "lines": [
+          {
+            "line_id": "PAG_line192",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.43584158914653,
+          47.306562029223535
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578414.link:718307",
+        "name": "Eggerstanden, Kirche",
+        "lon": 9.466657580725665,
+        "lat": 47.33148601886941,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.46665758999758,
+          47.331486028736435
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578414.link:718324",
+        "name": "Eggerstanden, Kirche",
+        "lon": 9.466657580725665,
+        "lat": 47.33148601886941,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.46665758999758,
+          47.331486028736435
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578415.link:997253",
+        "name": "Appenzell, Kreuzstrasse",
+        "lon": 9.46245658079953,
+        "lat": 47.333764018935454,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.462456590066886,
+          47.33376402880456
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578415.link:997254",
+        "name": "Appenzell, Kreuzstrasse",
+        "lon": 9.46245658079953,
+        "lat": 47.333764018935454,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.462456590066886,
+          47.33376402880456
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578416.link:708427",
+        "name": "Appenzell, Lädeli",
+        "lon": 9.454713580831623,
+        "lat": 47.334809019057296,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.454713590091647,
+          47.3348090289292
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578416.link:708428",
+        "name": "Appenzell, Lädeli",
+        "lon": 9.454713580831623,
+        "lat": 47.334809019057296,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.454713590091647,
+          47.3348090289292
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578417.link:372617",
+        "name": "Appenzell, Bleuer",
+        "lon": 9.444464580742514,
+        "lat": 47.33220701921857,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.444464589994217,
+          47.33220702909296
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578417.link:372618",
+        "name": "Appenzell, Bleuer",
+        "lon": 9.444464580742514,
+        "lat": 47.33220701921857,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.444464589994217,
+          47.33220702909296
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578418.link:372615",
+        "name": "Appenzell, Moren",
+        "lon": 9.437712580703273,
+        "lat": 47.33108301932486,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.437712589949284,
+          47.33108302920102
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578418.link:372616",
+        "name": "Appenzell, Moren",
+        "lon": 9.437712580703273,
+        "lat": 47.33108301932486,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.437712589949284,
+          47.33108302920102
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578419.link:146077",
+        "name": "Appenzell, Alpsteinstrasse",
+        "lon": 9.426283580668708,
+        "lat": 47.330147019504686,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.426283589904736,
+          47.33014702938423
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578419.link:146078",
+        "name": "Appenzell, Alpsteinstrasse",
+        "lon": 9.426283580668708,
+        "lat": 47.330147019504686,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.426283589904736,
+          47.33014702938423
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578421.link:488446",
+        "name": "Appenzell, Ziel",
+        "lon": 9.407525580787489,
+        "lat": 47.333932019799754,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.407525590005283,
+          47.333932029686544
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578421.link:963717",
+        "name": "Appenzell, Ziel",
+        "lon": 9.407525580787489,
+        "lat": 47.333932019799754,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.407525590005283,
+          47.333932029686544
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578423.link:134352",
+        "name": "Appenzell, Bahnhof",
+        "lon": 9.409768580616815,
+        "lat": 47.32873801976459,
+        "lines": [
+          {
+            "line_id": "AB-_line854",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "3",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.409768589838414,
+          47.32873802964896
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578423.link:148746",
+        "name": "Appenzell, Bahnhof",
+        "lon": 9.409768580616815,
+        "lat": 47.32873801976459,
+        "lines": [
+          {
+            "line_id": "AB-_line854",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "3",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.409768589838414,
+          47.32873802964896
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578423.link:761417",
+        "name": "Appenzell, Bahnhof",
+        "lon": 9.409768580616815,
+        "lat": 47.32873801976459,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "3",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.409768589838414,
+          47.32873802964896
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578423.link:761418",
+        "name": "Appenzell, Bahnhof",
+        "lon": 9.409768580616815,
+        "lat": 47.32873801976459,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "3",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.409768589838414,
+          47.32873802964896
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578423.link:966223",
+        "name": "Appenzell, Bahnhof",
+        "lon": 9.409768580616815,
+        "lat": 47.32873801976459,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "3",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.409768589838414,
+          47.32873802964896
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578423.link:966224",
+        "name": "Appenzell, Bahnhof",
+        "lon": 9.409768580616815,
+        "lat": 47.32873801976459,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "3",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.409768589838414,
+          47.32873802964896
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578424.link:333259",
+        "name": "Appenzell, Zentrale",
+        "lon": 9.438583580794205,
+        "lat": 47.333830019311094,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.43858359004005,
+          47.333830029187865
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578424.link:333260",
+        "name": "Appenzell, Zentrale",
+        "lon": 9.438583580794205,
+        "lat": 47.333830019311094,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.43858359004005,
+          47.333830029187865
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578425.link:333257",
+        "name": "Appenzell, Schönenbüel",
+        "lon": 9.427999580770711,
+        "lat": 47.33322101947763,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.42799959000723,
+          47.333221029357574
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578425.link:333258",
+        "name": "Appenzell, Schönenbüel",
+        "lon": 9.427999580770711,
+        "lat": 47.33322101947763,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.42799959000723,
+          47.333221029357574
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578426.link:439259",
+        "name": "Appenzell, Bleichenwald",
+        "lon": 9.42525358091631,
+        "lat": 47.33765901952078,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.425253590148818,
+          47.33765902940301
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8578426.link:439260",
+        "name": "Appenzell, Bleichenwald",
+        "lon": 9.42525358091631,
+        "lat": 47.33765901952078,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.425253590148818,
+          47.33765902940301
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8579823.link:347126",
+        "name": "Appenzell, Rapisau",
+        "lon": 9.386260581093786,
+        "lat": 47.3434250201342,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.386260590289089,
+          47.34342503003076
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8579823.link:347127",
+        "name": "Appenzell, Rapisau",
+        "lon": 9.386260581093786,
+        "lat": 47.3434250201342,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.386260590289089,
+          47.34342503003076
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8579824.link:463627",
+        "name": "Weissbad, Lehmen/Triebern",
+        "lon": 9.393189579446124,
+        "lat": 47.293410020025725,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.39318958866481,
+          47.29341002990407
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8579825.link:1016191",
+        "name": "Appenzell, Kau",
+        "lon": 9.38717158039901,
+        "lat": 47.32236602012019,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.387171589602351,
+          47.32236603000973
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8579825.link:1016192",
+        "name": "Appenzell, Kau",
+        "lon": 9.38717158039901,
+        "lat": 47.32236602012019,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.387171589602351,
+          47.32236603000973
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8579826.link:176414",
+        "name": "Appenzell, Meistersrüte",
+        "lon": 9.4296465811627,
+        "lat": 47.34507801945153,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.429646590396612,
+          47.345078029334694
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8579826.link:176415",
+        "name": "Appenzell, Meistersrüte",
+        "lon": 9.4296465811627,
+        "lat": 47.34507801945153,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.429646590396612,
+          47.345078029334694
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8579828.link:482405",
+        "name": "Appenzell Schlatt",
+        "lon": 9.39613358153647,
+        "lat": 47.356727019978564,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.39613359073612,
+          47.35672702987613
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8579828.link:482406",
+        "name": "Appenzell Schlatt",
+        "lon": 9.39613358153647,
+        "lat": 47.356727019978564,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.39613359073612,
+          47.35672702987613
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8579829.link:pt_8579829",
+        "name": "Brülisau, Schwarzenegg",
+        "lon": 9.457895579949794,
+        "lat": 47.30804901900756,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.45789558922192,
+          47.308049028869924
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8579830.link:601404",
+        "name": "Appenzell, Sonnenhalb",
+        "lon": 9.425263580046778,
+        "lat": 47.311306019520984,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.425263589288363,
+          47.31130602939487
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8579830.link:601405",
+        "name": "Appenzell, Sonnenhalb",
+        "lon": 9.425263580046778,
+        "lat": 47.311306019520984,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.425263589288363,
+          47.31130602939487
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8579831.link:617905",
+        "name": "Appenzell Steinegg, Steinegg",
+        "lon": 9.43019058035751,
+        "lat": 47.32067701944339,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.430190589600318,
+          47.32067702931869
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8579831.link:617906",
+        "name": "Appenzell Steinegg, Steinegg",
+        "lon": 9.43019058035751,
+        "lat": 47.32067701944339,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.430190589600318,
+          47.32067702931869
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8579832.link:802577",
+        "name": "Appenzell, Unterrain",
+        "lon": 9.415951580409343,
+        "lat": 47.322389019667355,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.415951589638711,
+          47.32238902954771
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8579832.link:802578",
+        "name": "Appenzell, Unterrain",
+        "lon": 9.415951580409343,
+        "lat": 47.322389019667355,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.415951589638711,
+          47.32238902954771
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8579833.link:904465",
+        "name": "Appenzell Enggenhütten",
+        "lon": 9.362174581405249,
+        "lat": 47.35310502051296,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.362174590575407,
+          47.35310503042019
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8579852.link:57302",
+        "name": "Appenzell, Lehn",
+        "lon": 9.41571758101427,
+        "lat": 47.34072001967075,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.415717590237126,
+          47.34072002955698
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8579852.link:57303",
+        "name": "Appenzell, Lehn",
+        "lon": 9.41571758101427,
+        "lat": 47.34072001967075,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.415717590237126,
+          47.34072002955698
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8580720.link:978668",
+        "name": "Oberegg AI, Rutlenstrasse",
+        "lon": 9.54929558381187,
+        "lat": 47.42412701756619,
+        "lines": [
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line229",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.549295593125127,
+          47.424127027435084
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8580720.link:978669",
+        "name": "Oberegg AI, Rutlenstrasse",
+        "lon": 9.54929558381187,
+        "lat": 47.42412701756619,
+        "lines": [
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line226",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line229",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.549295593125127,
+          47.424127027435084
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8580996.link:168180",
+        "name": "Altstätten SG, Kapf",
+        "lon": 9.554950582871202,
+        "lat": 47.39565401747832,
+        "lines": [
+          {
+            "line_id": "PAG_line227",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.554950592199564,
+          47.39565402733672
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8580996.link:168181",
+        "name": "Altstätten SG, Kapf",
+        "lon": 9.554950582871202,
+        "lat": 47.39565401747832,
+        "lines": [
+          {
+            "line_id": "PAG_line227",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.554950592199564,
+          47.39565402733672
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8581180.link:400534",
+        "name": "Appenzell, Kreuzhof",
+        "lon": 9.413431580733866,
+        "lat": 47.33224801970689,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.413431589957572,
+          47.33224802959121
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8581180.link:400535",
+        "name": "Appenzell, Kreuzhof",
+        "lon": 9.413431580733866,
+        "lat": 47.33224801970689,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.413431589957572,
+          47.33224802959121
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8581181.link:5081",
+        "name": "Appenzell, Adlerplatz",
+        "lon": 9.41092158068961,
+        "lat": 47.330932019746385,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.410921589911498,
+          47.33093202963109
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8581181.link:9897",
+        "name": "Appenzell, Adlerplatz",
+        "lon": 9.41092158068961,
+        "lat": 47.330932019746385,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.410921589911498,
+          47.33093202963109
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8581182.link:9899",
+        "name": "Appenzell, Hallenbad",
+        "lon": 9.411804580792735,
+        "lat": 47.33404801973242,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.411804590014352,
+          47.334048029617826
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8581183.link:372872",
+        "name": "Appenzell, Hirschberg Station",
+        "lon": 9.420978580738872,
+        "lat": 47.332325019588126,
+        "lines": [
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.420978589969359,
+          47.33232502947008
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8581183.link:372873",
+        "name": "Appenzell, Hirschberg Station",
+        "lon": 9.420978580738872,
+        "lat": 47.332325019588126,
+        "lines": [
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AB-_line855",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.420978589969359,
+          47.33232502947008
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8581403.link:884279",
+        "name": "Oberegg AI, Bäumen",
+        "lon": 9.538520583489278,
+        "lat": 47.41447101773615,
+        "lines": [
+          {
+            "line_id": "PAG_line229",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.538520592796385,
+          47.41447102760562
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8581403.link:884280",
+        "name": "Oberegg AI, Bäumen",
+        "lon": 9.538520583489278,
+        "lat": 47.41447101773615,
+        "lines": [
+          {
+            "line_id": "PAG_line229",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.538520592796385,
+          47.41447102760562
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8582241.link:414021",
+        "name": "Oberegg AI, Landmark",
+        "lon": 9.510180582861448,
+        "lat": 47.395737018182885,
+        "lines": [
+          {
+            "line_id": "PAG_line229",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.510180592149926,
+          47.39573702805587
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8582241.link:414022",
+        "name": "Oberegg AI, Landmark",
+        "lon": 9.510180582861448,
+        "lat": 47.395737018182885,
+        "lines": [
+          {
+            "line_id": "PAG_line229",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.510180592149926,
+          47.39573702805587
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8582242.link:414017",
+        "name": "Oberegg AI, Honegg",
+        "lon": 9.518801583005208,
+        "lat": 47.40000901804705,
+        "lines": [
+          {
+            "line_id": "PAG_line229",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.518801592299864,
+          47.40000902791856
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8582242.link:414018",
+        "name": "Oberegg AI, Honegg",
+        "lon": 9.518801583005208,
+        "lat": 47.40000901804705,
+        "lines": [
+          {
+            "line_id": "PAG_line229",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.518801592299864,
+          47.40000902791856
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8582796.link:769970",
+        "name": "Jakobsbad, Station",
+        "lon": 9.328839580322432,
+        "lat": 47.32066402103788,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.328839589473377,
+          47.320664030945444
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8582796.link:769971",
+        "name": "Jakobsbad, Station",
+        "lon": 9.328839580322432,
+        "lat": 47.32066402103788,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.328839589473377,
+          47.320664030945444
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8582797.link:1026121",
+        "name": "Gontenbad, Station",
+        "lon": 9.372463580724004,
+        "lat": 47.33236602035145,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.372463589910598,
+          47.33236603024889
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8582797.link:1026122",
+        "name": "Gontenbad, Station",
+        "lon": 9.372463580724004,
+        "lat": 47.33236602035145,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.372463589910598,
+          47.33236603024889
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8582798.link:347086",
+        "name": "Gonten, Station",
+        "lon": 9.347174580594556,
+        "lat": 47.32871102074939,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.347174589759446,
+          47.328711030653736
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8582798.link:347087",
+        "name": "Gonten, Station",
+        "lon": 9.347174580594556,
+        "lat": 47.32871102074939,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.347174589759446,
+          47.328711030653736
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8582881.link:107723",
+        "name": "Schwende, Station",
+        "lon": 9.435522579694505,
+        "lat": 47.30052101935963,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.435522588949052,
+          47.30052102922674
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8582881.link:107724",
+        "name": "Schwende, Station",
+        "lon": 9.435522579694505,
+        "lat": 47.30052101935963,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.435522588949052,
+          47.30052102922674
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8582882.link:107611",
+        "name": "Wasserauen, Station",
+        "lon": 9.428823579219022,
+        "lat": 47.28616001946507,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.428823588472433,
+          47.28616002932971
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8582882.link:107612",
+        "name": "Wasserauen, Station",
+        "lon": 9.428823579219022,
+        "lat": 47.28616001946507,
+        "lines": [
+          {
+            "line_id": "PAG_line193",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.428823588472433,
+          47.28616002932971
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8583201.link:488444",
+        "name": "Appenzell, Spital",
+        "lon": 9.416375580775004,
+        "lat": 47.33346601966054,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.416375590000943,
+          47.33346602954427
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8583201.link:9662",
+        "name": "Appenzell, Spital",
+        "lon": 9.416375580775004,
+        "lat": 47.33346601966054,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.416375590000943,
+          47.33346602954427
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8583201.link:9663",
+        "name": "Appenzell, Spital",
+        "lon": 9.416375580775004,
+        "lat": 47.33346601966054,
+        "lines": [
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line191",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.416375590000943,
+          47.33346602954427
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8587015.link:514417",
+        "name": "Brülisau, Kastenbahn",
+        "lon": 9.456698579574878,
+        "lat": 47.296688019026504,
+        "lines": [
+          {
+            "line_id": "PAG_line192",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.456698588849832,
+          47.29668802888558
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8587015.link:514418",
+        "name": "Brülisau, Kastenbahn",
+        "lon": 9.456698579574878,
+        "lat": 47.296688019026504,
+        "lines": [
+          {
+            "line_id": "PAG_line192",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "AppenzellInnerrhoden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.456698588849832,
+          47.29668802888558
+        ]
+      }
+    }
+  ]
+}

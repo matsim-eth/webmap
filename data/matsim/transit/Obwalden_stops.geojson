@@ -1,0 +1,7569 @@
+{
+  "type": "FeatureCollection",
+  "name": "Obwalden_stops",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508310.link:pt_8508310",
+        "name": "Lungern",
+        "lon": 8.163559562156358,
+        "lat": 46.78634003930838,
+        "lines": [
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.163559570340615,
+          46.78634004936121
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508311.link:pt_8508311",
+        "name": "Kaiserstuhl OW",
+        "lon": 8.175509563075035,
+        "lat": 46.814360039125134,
+        "lines": [
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.175509571264024,
+          46.81436004918627
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508312.link:pt_8508312",
+        "name": "Giswil",
+        "lon": 8.186309563803581,
+        "lat": 46.836530038958806,
+        "lines": [
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB_line5",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB_line5",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB_line5",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "3",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.186309571997636,
+          46.83653004902601
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508313.link:pt_8508313",
+        "name": "Sachseln",
+        "lon": 8.238299564963924,
+        "lat": 46.87096003814755,
+        "lines": [
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB_line5",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB_line5",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB_line5",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB_line55",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB_line55",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "2",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.238299573201518,
+          46.87096004821453
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508314.link:pt_8508314",
+        "name": "Sarnen",
+        "lon": 8.247479565739884,
+        "lat": 46.89459003800646,
+        "lines": [
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB_line5",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB_line5",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB_line5",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB_line55",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB_line55",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "2",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.247479573980312,
+          46.89459004808026
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508316.link:pt_8508316",
+        "name": "Alpnach Dorf",
+        "lon": 8.275239567261382,
+        "lat": 46.940640037576074,
+        "lines": [
+          {
+            "line_id": "ZB_line5",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB_line5",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB_line5",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB_line55",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB_line55",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "3",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.275239575517169,
+          46.94064004766037
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508317.link:pt_8508317",
+        "name": "Alpnachstad",
+        "lon": 8.27782956773261,
+        "lat": 46.955030037536964,
+        "lines": [
+          {
+            "line_id": "ZB_line5",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB_line5",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB_line5",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "4",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.277829575987013,
+          46.9550300476261
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508323.link:pt_8508323",
+        "name": "Sarnen Nord",
+        "lon": 8.24910956592308,
+        "lat": 46.90018003798157,
+        "lines": [
+          {
+            "line_id": "ZB_line5",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB_line5",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB_line5",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "4",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.249109574163631,
+          46.900180048057166
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508327.link:pt_8508327",
+        "name": "Ewil Maxon",
+        "lon": 8.218669564615503,
+        "lat": 46.86072003845426,
+        "lines": [
+          {
+            "line_id": "ZB_line5",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB_line5",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB_line5",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "4",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.218669572835957,
+          46.86072004852247
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508364.link:pt_8508364",
+        "name": "Lungern (Turren-Bahn)",
+        "lon": 8.149410562104803,
+        "lat": 46.78510703953023,
+        "lines": [
+          {
+            "line_id": "LTB",
+            "mode": "gondola"
+          },
+          {
+            "line_id": "LTB",
+            "mode": "gondola"
+          }
+        ],
+        "predominant_mode": "gondola",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "gondola"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.14941057027491,
+          46.785107049586394
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508365.link:pt_8508365",
+        "name": "Gerschnialp",
+        "lon": 8.392482563187968,
+        "lat": 46.81268203571927,
+        "lines": [
+          {
+            "line_id": "BET",
+            "mode": "funicular"
+          },
+          {
+            "line_id": "BET",
+            "mode": "funicular"
+          }
+        ],
+        "predominant_mode": "funicular",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "funicular"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.39248257159723,
+          46.81268204572045
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508367.link:pt_8508367",
+        "name": "Turren",
+        "lon": 8.129832562222667,
+        "lat": 46.789240039838035,
+        "lines": [
+          {
+            "line_id": "LTB",
+            "mode": "gondola"
+          },
+          {
+            "line_id": "LTB",
+            "mode": "gondola"
+          }
+        ],
+        "predominant_mode": "gondola",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "gondola"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.129832570371615,
+          46.78924004990113
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508368.link:pt_8508368",
+        "name": "Ristis (Brunni-Bahnen)",
+        "lon": 8.407140563828186,
+        "lat": 46.832080035491884,
+        "lines": [
+          {
+            "line_id": "EB",
+            "mode": "gondola"
+          },
+          {
+            "line_id": "EB",
+            "mode": "gondola"
+          }
+        ],
+        "predominant_mode": "gondola",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "gondola"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.407140572246792,
+          46.832080045496824
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508396.link:938092",
+        "name": "Grafenort",
+        "lon": 8.37239956505429,
+        "lat": 46.87060003604251,
+        "lines": [
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.372399573427327,
+          46.87060004607244
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508396.link:938093",
+        "name": "Grafenort",
+        "lon": 8.37239956505429,
+        "lat": 46.87060003604251,
+        "lines": [
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.372399573427327,
+          46.87060004607244
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508396.link:pt_8508396",
+        "name": "Grafenort",
+        "lon": 8.37239956505429,
+        "lat": 46.87060003604251,
+        "lines": [
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.372399573427327,
+          46.87060004607244
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508399.link:176574",
+        "name": "Engelberg",
+        "lon": 8.402639563417244,
+        "lat": 46.81952003556077,
+        "lines": [
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.402639571834818,
+          46.81952004556191
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508399.link:176575",
+        "name": "Engelberg",
+        "lon": 8.402639563417244,
+        "lat": 46.81952003556077,
+        "lines": [
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.402639571834818,
+          46.81952004556191
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508399.link:pt_8508399",
+        "name": "Engelberg",
+        "lon": 8.402639563417244,
+        "lat": 46.81952003556077,
+        "lines": [
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.402639571834818,
+          46.81952004556191
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508449.link:pt_8508449",
+        "name": "Aemsigen",
+        "lon": 8.271227568233062,
+        "lat": 46.970525037642226,
+        "lines": [
+          {
+            "line_id": "PB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "PB",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.271227576476496,
+          46.97052504773916
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508456.link:pt_8508456",
+        "name": "Pilatus Kulm",
+        "lon": 8.255947568512028,
+        "lat": 46.97943203788289,
+        "lines": [
+          {
+            "line_id": "PB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "PB",
+            "mode": "gondola"
+          },
+          {
+            "line_id": "PB",
+            "mode": "gondola"
+          },
+          {
+            "line_id": "PB",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "Mixed",
+        "stopCategory": "3",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "gondola",
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.255947576737569,
+          46.9794320479874
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508458.link:pt_8508458",
+        "name": "Alpnachstad PB",
+        "lon": 8.277182567747225,
+        "lat": 46.955494037547176,
+        "lines": [
+          {
+            "line_id": "PB",
+            "mode": "rail"
+          },
+          {
+            "line_id": "PB",
+            "mode": "rail"
+          }
+        ],
+        "predominant_mode": "rail",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "rail"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.277182576000845,
+          46.955494047636684
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508493.link:pt_8508493",
+        "name": "Titlis",
+        "lon": 8.422914561848533,
+        "lat": 46.77068203523514,
+        "lines": [
+          {
+            "line_id": "BET",
+            "mode": "gondola"
+          },
+          {
+            "line_id": "BET",
+            "mode": "gondola"
+          }
+        ],
+        "predominant_mode": "gondola",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "gondola"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.422914570299938,
+          46.77068204521075
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508501.link:pt_8508501",
+        "name": "Engelberg (Talstation Titlis)",
+        "lon": 8.39560856329914,
+        "lat": 46.81603803567065,
+        "lines": [
+          {
+            "line_id": "BET",
+            "mode": "funicular"
+          },
+          {
+            "line_id": "BET",
+            "mode": "funicular"
+          }
+        ],
+        "predominant_mode": "funicular",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "funicular"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.395608571710607,
+          46.816038045672336
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508502.link:pt_8508502",
+        "name": "Engelberg (Brunni-Bahnen)",
+        "lon": 8.415408563406789,
+        "lat": 46.81891203536022,
+        "lines": [
+          {
+            "line_id": "EB",
+            "mode": "gondola"
+          },
+          {
+            "line_id": "EB",
+            "mode": "gondola"
+          }
+        ],
+        "predominant_mode": "gondola",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "gondola"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.41540857183734,
+          46.81891204535757
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508503.link:pt_8508503",
+        "name": "Alpnachstad (See)",
+        "lon": 8.279422567763097,
+        "lat": 46.955928037512074,
+        "lines": [
+          {
+            "line_id": "SGV",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "SGV",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "SGV",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "SGV",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "SGV",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "SGV",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "SGV",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "SGV",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "SGV",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "SGV",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "SGV",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "SGV",
+            "mode": "ferry"
+          }
+        ],
+        "predominant_mode": "ferry",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "ferry"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.279422576018852,
+          46.95592804760109
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508669.link:554080",
+        "name": "Sarnen, Kreuzstrasse",
+        "lon": 8.255587566328924,
+        "lat": 46.91248903788137,
+        "lines": [
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.25558757457264,
+          46.912489047960065
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508669.link:554081",
+        "name": "Sarnen, Kreuzstrasse",
+        "lon": 8.255587566328924,
+        "lat": 46.91248903788137,
+        "lines": [
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.25558757457264,
+          46.912489047960065
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508670.link:640379",
+        "name": "Kerns, Sand",
+        "lon": 8.29350856624249,
+        "lat": 46.90893803728568,
+        "lines": [
+          {
+            "line_id": "PAG_line341",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line341",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.293508574525488,
+          46.90893804735259
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508670.link:986701",
+        "name": "Kerns, Sand",
+        "lon": 8.29350856624249,
+        "lat": 46.90893803728568,
+        "lines": [
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line341",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.293508574525488,
+          46.90893804735259
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508670.link:986702",
+        "name": "Kerns, Sand",
+        "lon": 8.29350856624249,
+        "lat": 46.90893803728568,
+        "lines": [
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.293508574525488,
+          46.90893804735259
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508683.link:156196",
+        "name": "Glaubenbielen, Parkplatz",
+        "lon": 8.085939563130704,
+        "lat": 46.81835504053113,
+        "lines": [
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.085939571226909,
+          46.81835505061785
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508683.link:156197",
+        "name": "Glaubenbielen, Parkplatz",
+        "lon": 8.085939563130704,
+        "lat": 46.81835504053113,
+        "lines": [
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.085939571226909,
+          46.81835505061785
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508684.link:976657",
+        "name": "Mörlialp",
+        "lon": 8.113762563398465,
+        "lat": 46.8258850400957,
+        "lines": [
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.113762571521221,
+          46.82588505017806
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508684.link:976658",
+        "name": "Mörlialp",
+        "lon": 8.113762563398465,
+        "lat": 46.8258850400957,
+        "lines": [
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.113762571521221,
+          46.82588505017806
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508726.link:86671",
+        "name": "Langis",
+        "lon": 8.126611565591311,
+        "lat": 46.893006039903064,
+        "lines": [
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.12661157370925,
+          46.89300605000898
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508726.link:86672",
+        "name": "Langis",
+        "lon": 8.126611565591311,
+        "lat": 46.893006039903064,
+        "lines": [
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.12661157370925,
+          46.89300605000898
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508743.link:548796",
+        "name": "Sachseln, Dorf",
+        "lon": 8.239153564884852,
+        "lat": 46.86850803813381,
+        "lines": [
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.23915357312398,
+          46.86850804819956
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508743.link:548797",
+        "name": "Sachseln, Dorf",
+        "lon": 8.239153564884852,
+        "lat": 46.86850803813381,
+        "lines": [
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.23915357312398,
+          46.86850804819956
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508744.link:548943",
+        "name": "Sachseln, Steinen",
+        "lon": 8.238946564775931,
+        "lat": 46.8651630381366,
+        "lines": [
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.238946573015756,
+          46.86516304820106
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508744.link:548944",
+        "name": "Sachseln, Steinen",
+        "lon": 8.238946564775931,
+        "lat": 46.8651630381366,
+        "lines": [
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.238946573015756,
+          46.86516304820106
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508745.link:548792",
+        "name": "Sachseln, Felsenheim",
+        "lon": 8.245064564879684,
+        "lat": 46.868206038041016,
+        "lines": [
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.245064573124885,
+          46.86820604810505
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508745.link:548793",
+        "name": "Sachseln, Felsenheim",
+        "lon": 8.245064564879684,
+        "lat": 46.868206038041016,
+        "lines": [
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.245064573124885,
+          46.86820604810505
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508746.link:856769",
+        "name": "Flüeli-Ranft, Chilchweg",
+        "lon": 8.248425564945855,
+        "lat": 46.8701610379885,
+        "lines": [
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.248425573193927,
+          46.87016104805237
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508746.link:856770",
+        "name": "Flüeli-Ranft, Chilchweg",
+        "lon": 8.248425564945855,
+        "lat": 46.8701610379885,
+        "lines": [
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.248425573193927,
+          46.87016104805237
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508747.link:120079",
+        "name": "Flüeli-Ranft, Kehrwäldli",
+        "lon": 8.25731556514119,
+        "lat": 46.87595403784971,
+        "lines": [
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.25731557339669,
+          46.87595404791346
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508747.link:120080",
+        "name": "Flüeli-Ranft, Kehrwäldli",
+        "lon": 8.25731556514119,
+        "lat": 46.87595403784971,
+        "lines": [
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.25731557339669,
+          46.87595404791346
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508748.link:120083",
+        "name": "Flüeli-Ranft, Z'Mos",
+        "lon": 8.265008565132497,
+        "lat": 46.87550303772892,
+        "lines": [
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.265008573395907,
+          46.8755030477904
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508748.link:120084",
+        "name": "Flüeli-Ranft, Z'Mos",
+        "lon": 8.265008565132497,
+        "lat": 46.87550303772892,
+        "lines": [
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.265008573395907,
+          46.8755030477904
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508749.link:289705",
+        "name": "Flüeli-Ranft, St. Dorothea",
+        "lon": 8.268672565087671,
+        "lat": 46.874037037671215,
+        "lines": [
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.26867257335519,
+          46.87403704773111
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508749.link:289706",
+        "name": "Flüeli-Ranft, St. Dorothea",
+        "lon": 8.268672565087671,
+        "lat": 46.874037037671215,
+        "lines": [
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.26867257335519,
+          46.87403704773111
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508758.link:545188",
+        "name": "Flüeli-Ranft, Dorf",
+        "lon": 8.26933056501076,
+        "lat": 46.871657037660576,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.269330573279595,
+          46.87165704771935
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508758.link:545189",
+        "name": "Flüeli-Ranft, Dorf",
+        "lon": 8.26933056501076,
+        "lat": 46.871657037660576,
+        "lines": [
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.269330573279595,
+          46.87165704771935
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508769.link:36127",
+        "name": "Kerns, Post",
+        "lon": 8.274638565967203,
+        "lat": 46.90092703758094,
+        "lines": [
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line341",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "4",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.274638574233364,
+          46.90092704764986
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508769.link:36128",
+        "name": "Kerns, Post",
+        "lon": 8.274638565967203,
+        "lat": 46.90092703758094,
+        "lines": [
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line341",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line341",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "4",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.274638574233364,
+          46.90092704764986
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508769.link:594556",
+        "name": "Kerns, Post",
+        "lon": 8.274638565967203,
+        "lat": 46.90092703758094,
+        "lines": [
+          {
+            "line_id": "PAG_line341",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "4",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.274638574233364,
+          46.90092704764986
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508771.link:298461",
+        "name": "Melchtal, Dorf",
+        "lon": 8.289432563824395,
+        "lat": 46.83467203734006,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.289432572123687,
+          46.83467204737848
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508771.link:298462",
+        "name": "Melchtal, Dorf",
+        "lon": 8.289432563824395,
+        "lat": 46.83467203734006,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.289432572123687,
+          46.83467204737848
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508790.link:593746",
+        "name": "Stalden (Sarnen), Post",
+        "lon": 8.211354565447632,
+        "lat": 46.88648403857241,
+        "lines": [
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.211354573653642,
+          46.886484048652854
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508790.link:593747",
+        "name": "Stalden (Sarnen), Post",
+        "lon": 8.211354565447632,
+        "lat": 46.88648403857241,
+        "lines": [
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.211354573653642,
+          46.886484048652854
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508851.link:1044954",
+        "name": "Wilen (Sarnen)",
+        "lon": 8.224314565274419,
+        "lat": 46.880845038368314,
+        "lines": [
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.224314573495121,
+          46.88084504844301
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508851.link:1044955",
+        "name": "Wilen (Sarnen)",
+        "lon": 8.224314565274419,
+        "lat": 46.880845038368314,
+        "lines": [
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.224314573495121,
+          46.88084504844301
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508852.link:169093",
+        "name": "Oberwilen, Forst",
+        "lon": 8.191414564676743,
+        "lat": 46.86327303888234,
+        "lines": [
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.19141457286878,
+          46.863273048958945
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508852.link:251498",
+        "name": "Oberwilen, Forst",
+        "lon": 8.191414564676743,
+        "lat": 46.86327303888234,
+        "lines": [
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.19141457286878,
+          46.863273048958945
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508853.link:1067552",
+        "name": "Oberwilen, Wilerbad",
+        "lon": 8.220288565157432,
+        "lat": 46.87734603843105,
+        "lines": [
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.220288573375004,
+          46.87734604850545
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508853.link:1067553",
+        "name": "Oberwilen, Wilerbad",
+        "lon": 8.220288565157432,
+        "lat": 46.87734603843105,
+        "lines": [
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.220288573375004,
+          46.87734604850545
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508854.link:648097",
+        "name": "Stöckalp",
+        "lon": 8.279229562769926,
+        "lat": 46.802425037495546,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.279229571067654,
+          46.802425047523734
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508854.link:648098",
+        "name": "Stöckalp",
+        "lon": 8.279229562769926,
+        "lat": 46.802425037495546,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.279229571067654,
+          46.802425047523734
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508855.link:858041",
+        "name": "Kerns, Chäli-Burgflue",
+        "lon": 8.278768565878334,
+        "lat": 46.898099037515756,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.278768574149444,
+          46.8980990475824
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508855.link:858042",
+        "name": "Kerns, Chäli-Burgflue",
+        "lon": 8.278768565878334,
+        "lat": 46.898099037515756,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.278768574149444,
+          46.8980990475824
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508856.link:593720",
+        "name": "Stalden (Sarnen), Geren",
+        "lon": 8.224623565610923,
+        "lat": 46.891179038364754,
+        "lines": [
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.224623573829122,
+          46.891179048443455
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508856.link:593721",
+        "name": "Stalden (Sarnen), Geren",
+        "lon": 8.224623565610923,
+        "lat": 46.891179038364754,
+        "lines": [
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.224623573829122,
+          46.891179048443455
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508866.link:50555",
+        "name": "St. Niklausen OW, alte Post",
+        "lon": 8.280160565170764,
+        "lat": 46.87631903749118,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.280160573449278,
+          46.876319047548805
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508866.link:50556",
+        "name": "St. Niklausen OW, alte Post",
+        "lon": 8.280160565170764,
+        "lat": 46.87631903749118,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.280160573449278,
+          46.876319047548805
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508970.link:30652",
+        "name": "Kerns, Boll",
+        "lon": 8.269234565940602,
+        "lat": 46.90023803766569,
+        "lines": [
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line341",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line341",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "4",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.269234574201494,
+          46.900238047735776
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508970.link:30653",
+        "name": "Kerns, Boll",
+        "lon": 8.269234565940602,
+        "lat": 46.90023803766569,
+        "lines": [
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line341",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line341",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "4",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.269234574201494,
+          46.900238047735776
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508971.link:608629",
+        "name": "Melchtal, Sportcamp",
+        "lon": 8.282949563151897,
+        "lat": 46.814110037438866,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.282949571450226,
+          46.81411004747075
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508971.link:608630",
+        "name": "Melchtal, Sportcamp",
+        "lon": 8.282949563151897,
+        "lat": 46.814110037438866,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.282949571450226,
+          46.81411004747075
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508972.link:1044942",
+        "name": "Sarnen, Kurhaus am Sarnersee",
+        "lon": 8.232865565535043,
+        "lat": 46.888648038235054,
+        "lines": [
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.232865573762293,
+          46.88864804831049
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508972.link:1044943",
+        "name": "Sarnen, Kurhaus am Sarnersee",
+        "lon": 8.232865565535043,
+        "lat": 46.888648038235054,
+        "lines": [
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.232865573762293,
+          46.88864804831049
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508972.link:pt_8508972",
+        "name": "Sarnen, Kurhaus am Sarnersee",
+        "lon": 8.232865565535043,
+        "lat": 46.888648038235054,
+        "lines": [
+          {
+            "line_id": "FWS",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "FWS",
+            "mode": "ferry"
+          }
+        ],
+        "predominant_mode": "ferry",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "ferry"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.232865573762293,
+          46.88864804831049
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508974.link:98925",
+        "name": "Kägiswil, Dorf",
+        "lon": 8.260672566652534,
+        "lat": 46.92230303780265,
+        "lines": [
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.26067257489869,
+          46.92230304788378
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508974.link:98944",
+        "name": "Kägiswil, Dorf",
+        "lon": 8.260672566652534,
+        "lat": 46.92230303780265,
+        "lines": [
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.26067257489869,
+          46.92230304788378
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508974.link:98945",
+        "name": "Kägiswil, Dorf",
+        "lon": 8.260672566652534,
+        "lat": 46.92230303780265,
+        "lines": [
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.26067257489869,
+          46.92230304788378
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508976.link:593730",
+        "name": "Sarnen, Sonnenberg",
+        "lon": 8.238651565767238,
+        "lat": 46.89564303814514,
+        "lines": [
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.23865157399844,
+          46.8956430482218
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508976.link:593731",
+        "name": "Sarnen, Sonnenberg",
+        "lon": 8.238651565767238,
+        "lat": 46.89564303814514,
+        "lines": [
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.23865157399844,
+          46.8956430482218
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508977.link:1067558",
+        "name": "Oberwilen, Badmatt",
+        "lon": 8.21759756512108,
+        "lat": 46.87629403847312,
+        "lines": [
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.217597573336207,
+          46.87629404854782
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508977.link:1067559",
+        "name": "Oberwilen, Badmatt",
+        "lon": 8.21759756512108,
+        "lat": 46.87629403847312,
+        "lines": [
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.217597573336207,
+          46.87629404854782
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508978.link:251489",
+        "name": "Oberwilen, Seefuren",
+        "lon": 8.202997564871303,
+        "lat": 46.86897103870135,
+        "lines": [
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.202997573073585,
+          46.868971048777084
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508978.link:251490",
+        "name": "Oberwilen, Seefuren",
+        "lon": 8.202997564871303,
+        "lat": 46.86897103870135,
+        "lines": [
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.202997573073585,
+          46.868971048777084
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508979.link:593724",
+        "name": "Sarnen, Abzw. Ramersberg",
+        "lon": 8.232843565746975,
+        "lat": 46.89516103823625,
+        "lines": [
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.232843573972419,
+          46.8951610483143
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508979.link:593727",
+        "name": "Sarnen, Abzw. Ramersberg",
+        "lon": 8.232843565746975,
+        "lat": 46.89516103823625,
+        "lines": [
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.232843573972419,
+          46.8951610483143
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508980.link:251493",
+        "name": "Oberwilen, Moos",
+        "lon": 8.195373564767113,
+        "lat": 46.86595403882057,
+        "lines": [
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.195373572962458,
+          46.86595404889712
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8508980.link:251494",
+        "name": "Oberwilen, Moos",
+        "lon": 8.195373564767113,
+        "lat": 46.86595403882057,
+        "lines": [
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.195373572962458,
+          46.86595404889712
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8530364.link:pt_8530364",
+        "name": "Distelboden (Talst. Bonistock)",
+        "lon": 8.28137756176551,
+        "lat": 46.77139103745703,
+        "lines": [
+          {
+            "line_id": "SMF",
+            "mode": "gondola"
+          },
+          {
+            "line_id": "SMF",
+            "mode": "gondola"
+          }
+        ],
+        "predominant_mode": "gondola",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "gondola"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.281377570073817,
+          46.77139104747188
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8530365.link:pt_8530365",
+        "name": "Bonistock (Distelboden)",
+        "lon": 8.2900275619797,
+        "lat": 46.77779503732228,
+        "lines": [
+          {
+            "line_id": "SMF",
+            "mode": "gondola"
+          },
+          {
+            "line_id": "SMF",
+            "mode": "gondola"
+          }
+        ],
+        "predominant_mode": "gondola",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "gondola"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.29002757029505,
+          46.77779504733738
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8530368.link:pt_8530368",
+        "name": "Engelberg (Fürenalp Bahn)",
+        "lon": 8.449225562874378,
+        "lat": 46.80175003482679,
+        "lines": [
+          {
+            "line_id": "LEF",
+            "mode": "gondola"
+          },
+          {
+            "line_id": "LEF",
+            "mode": "gondola"
+          }
+        ],
+        "predominant_mode": "gondola",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "gondola"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.44922557134358,
+          46.801750044807754
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8530369.link:pt_8530369",
+        "name": "Fürenalp",
+        "lon": 8.46826156286775,
+        "lat": 46.80113003452782,
+        "lines": [
+          {
+            "line_id": "LEF",
+            "mode": "gondola"
+          },
+          {
+            "line_id": "LEF",
+            "mode": "gondola"
+          }
+        ],
+        "predominant_mode": "gondola",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "gondola"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.468261571356177,
+          46.801130044503246
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8530814.link:pt_8530814",
+        "name": "Sarnen Seefeld",
+        "lon": 8.243137565507975,
+        "lat": 46.88756903807369,
+        "lines": [
+          {
+            "line_id": "FWS",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "FWS",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "FWS",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "FWS",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "FWS",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "FWS",
+            "mode": "ferry"
+          }
+        ],
+        "predominant_mode": "ferry",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "ferry"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.243137573745937,
+          46.88756904814593
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8530815.link:pt_8530815",
+        "name": "Wilen Waldheim",
+        "lon": 8.226285565223142,
+        "lat": 46.87922103833716,
+        "lines": [
+          {
+            "line_id": "FWS",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "FWS",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "FWS",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "FWS",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "FWS",
+            "mode": "ferry"
+          }
+        ],
+        "predominant_mode": "ferry",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "ferry"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.226285573446294,
+          46.87922104841063
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8530816.link:pt_8530816",
+        "name": "Giswil Zollhaus",
+        "lon": 8.202574564112245,
+        "lat": 46.84563003870483,
+        "lines": [
+          {
+            "line_id": "FWS",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "FWS",
+            "mode": "ferry"
+          }
+        ],
+        "predominant_mode": "ferry",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "ferry"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.202574572320417,
+          46.84563004877133
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8530817.link:pt_8530817",
+        "name": "Giswil Camping",
+        "lon": 8.188890564355336,
+        "lat": 46.85344803892061,
+        "lines": [
+          {
+            "line_id": "FWS",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "FWS",
+            "mode": "ferry"
+          }
+        ],
+        "predominant_mode": "ferry",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "ferry"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.18889057254746,
+          46.853448048993954
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8530818.link:pt_8530818",
+        "name": "Sachseln Schiffstation",
+        "lon": 8.236361564944445,
+        "lat": 46.87040803817787,
+        "lines": [
+          {
+            "line_id": "FWS",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "FWS",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "FWS",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "FWS",
+            "mode": "ferry"
+          },
+          {
+            "line_id": "FWS",
+            "mode": "ferry"
+          }
+        ],
+        "predominant_mode": "ferry",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "ferry"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.23636157318022,
+          46.87040804824514
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8557023.link:594583",
+        "name": "Sarnen, Seefeld Park/Spital",
+        "lon": 8.244844565569235,
+        "lat": 46.88941003804718,
+        "lines": [
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.24484457380842,
+          46.889410048119686
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8557023.link:594584",
+        "name": "Sarnen, Seefeld Park/Spital",
+        "lon": 8.244844565569235,
+        "lat": 46.88941003804718,
+        "lines": [
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.24484457380842,
+          46.889410048119686
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8557024.link:554069",
+        "name": "Sachseln, Seehof/Brüggi",
+        "lon": 8.243142565205073,
+        "lat": 46.87825803807249,
+        "lines": [
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.243142573445583,
+          46.87825804814103
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8557024.link:554070",
+        "name": "Sachseln, Seehof/Brüggi",
+        "lon": 8.243142565205073,
+        "lat": 46.87825803807249,
+        "lines": [
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.243142573445583,
+          46.87825804814103
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8557092.link:1010203",
+        "name": "Sachseln, Brünigstrasse",
+        "lon": 8.239160564901542,
+        "lat": 46.86902103813377,
+        "lines": [
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.23916057314053,
+          46.869021048199684
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572886.link:520700",
+        "name": "Giswil, Emmenrank",
+        "lon": 8.078785562876323,
+        "lat": 46.81070404064225,
+        "lines": [
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.078785570967197,
+          46.81070405072775
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572886.link:520701",
+        "name": "Giswil, Emmenrank",
+        "lon": 8.078785562876323,
+        "lat": 46.81070404064225,
+        "lines": [
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.078785570967197,
+          46.81070405072775
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572887.link:976508",
+        "name": "Giswil, Jwi",
+        "lon": 8.123969563567114,
+        "lat": 46.83081703993624,
+        "lines": [
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.123969571699012,
+          46.83081705001789
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572887.link:976509",
+        "name": "Giswil, Jwi",
+        "lon": 8.123969563567114,
+        "lat": 46.83081703993624,
+        "lines": [
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.123969571699012,
+          46.83081705001789
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572888.link:pt_8572888",
+        "name": "Giswil, Abzw. Brosmatt",
+        "lon": 8.132170563496043,
+        "lat": 46.8284200398072,
+        "lines": [
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.132170571636973,
+          46.828420049885665
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572889.link:976013",
+        "name": "Giswil, Buechenegg",
+        "lon": 8.137812563681013,
+        "lat": 46.83397203971948,
+        "lines": [
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.137812571826238,
+          46.83397204979866
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572889.link:976014",
+        "name": "Giswil, Buechenegg",
+        "lon": 8.137812563681013,
+        "lat": 46.83397203971948,
+        "lines": [
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.137812571826238,
+          46.83397204979866
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572890.link:976019",
+        "name": "Giswil, Bärecken",
+        "lon": 8.144219563777321,
+        "lat": 46.836775039619354,
+        "lines": [
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.14421957192835,
+          46.836775049698
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572890.link:976020",
+        "name": "Giswil, Bärecken",
+        "lon": 8.144219563777321,
+        "lat": 46.836775039619354,
+        "lines": [
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.14421957192835,
+          46.836775049698
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572891.link:540773",
+        "name": "Giswil, Rütimatt",
+        "lon": 8.15404756358326,
+        "lat": 46.83055203946424,
+        "lines": [
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.154047571745997,
+          46.83055204953772
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572891.link:540774",
+        "name": "Giswil, Rütimatt",
+        "lon": 8.15404756358326,
+        "lat": 46.83055203946424,
+        "lines": [
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.154047571745997,
+          46.83055204953772
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572892.link:250698",
+        "name": "Giswil, Kirche",
+        "lon": 8.179266563667744,
+        "lat": 46.83252303906877,
+        "lines": [
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.1792665718557,
+          46.83252304913626
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572892.link:250699",
+        "name": "Giswil, Kirche",
+        "lon": 8.179266563667744,
+        "lat": 46.83252303906877,
+        "lines": [
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.1792665718557,
+          46.83252304913626
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572893.link:818260",
+        "name": "Giswil, Bahnhof",
+        "lon": 8.186312563812214,
+        "lat": 46.83679603895882,
+        "lines": [
+          {
+            "line_id": "Bah",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.186312572006205,
+          46.83679604902615
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572893.link:818261",
+        "name": "Giswil, Bahnhof",
+        "lon": 8.186312563812214,
+        "lat": 46.83679603895882,
+        "lines": [
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line241",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.186312572006205,
+          46.83679604902615
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572897.link:244114",
+        "name": "Sarnen, Bahnhof",
+        "lon": 8.247380565721988,
+        "lat": 46.89404303800794,
+        "lines": [
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "3",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.24738057396247,
+          46.89404304808156
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572897.link:471214",
+        "name": "Sarnen, Bahnhof",
+        "lon": 8.247380565721988,
+        "lat": 46.89404303800794,
+        "lines": [
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line341",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line341",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "3",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.24738057396247,
+          46.89404304808156
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572897.link:471215",
+        "name": "Sarnen, Bahnhof",
+        "lon": 8.247380565721988,
+        "lat": 46.89404303800794,
+        "lines": [
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line341",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line341",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "3",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.24738057396247,
+          46.89404304808156
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572898.link:30662",
+        "name": "Kerns, Foribach",
+        "lon": 8.260098565847231,
+        "lat": 46.897587037808755,
+        "lines": [
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line341",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line341",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "4",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.260098574099613,
+          46.89758704788036
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572898.link:30663",
+        "name": "Kerns, Foribach",
+        "lon": 8.260098565847231,
+        "lat": 46.897587037808755,
+        "lines": [
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line341",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line341",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "4",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.260098574099613,
+          46.89758704788036
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572900.link:960755",
+        "name": "Kerns, Kernwald",
+        "lon": 8.299466566911635,
+        "lat": 46.92934103719453,
+        "lines": [
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.29946657519498,
+          46.92934104726776
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572900.link:960756",
+        "name": "Kerns, Kernwald",
+        "lon": 8.299466566911635,
+        "lat": 46.92934103719453,
+        "lines": [
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.29946657519498,
+          46.92934104726776
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572904.link:157165",
+        "name": "Sarnen, Ei",
+        "lon": 8.2449955658703,
+        "lat": 46.8986570380459,
+        "lines": [
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.244995574107103,
+          46.89865704812202
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572904.link:157166",
+        "name": "Sarnen, Ei",
+        "lon": 8.2449955658703,
+        "lat": 46.8986570380459,
+        "lines": [
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.244995574107103,
+          46.89865704812202
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572905.link:642817",
+        "name": "Stalden (Sarnen), Brünischwand",
+        "lon": 8.21815556549073,
+        "lat": 46.887643038465804,
+        "lines": [
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.218155573703328,
+          46.88764304854486
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572905.link:642818",
+        "name": "Stalden (Sarnen), Brünischwand",
+        "lon": 8.21815556549073,
+        "lat": 46.887643038465804,
+        "lines": [
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.218155573703328,
+          46.88764304854486
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572907.link:440379",
+        "name": "Kägiswil, Schlieren",
+        "lon": 8.265171566756685,
+        "lat": 46.925392037732394,
+        "lines": [
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.265171575006535,
+          46.92539204781349
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572907.link:440380",
+        "name": "Kägiswil, Schlieren",
+        "lon": 8.265171566756685,
+        "lat": 46.925392037732394,
+        "lines": [
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.265171575006535,
+          46.92539204781349
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572908.link:148315",
+        "name": "Alpnach Dorf, Kantonalbank",
+        "lon": 8.270605567226314,
+        "lat": 46.939674037648714,
+        "lines": [
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.270605575477695,
+          46.93967404773392
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572908.link:148316",
+        "name": "Alpnach Dorf, Kantonalbank",
+        "lon": 8.270605567226314,
+        "lat": 46.939674037648714,
+        "lines": [
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.270605575477695,
+          46.93967404773392
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572909.link:284401",
+        "name": "Alpnach Dorf, Bahnhof",
+        "lon": 8.275162567257153,
+        "lat": 46.94051303757726,
+        "lines": [
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.275162575512898,
+          46.940513047661476
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572909.link:284402",
+        "name": "Alpnach Dorf, Bahnhof",
+        "lon": 8.275162567257153,
+        "lat": 46.94051303757726,
+        "lines": [
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.275162575512898,
+          46.940513047661476
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572910.link:1044934",
+        "name": "Sarnen, Kirchhofen",
+        "lon": 8.238055565667636,
+        "lat": 46.89259703815412,
+        "lines": [
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.238055573899066,
+          46.892597048229746
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572910.link:1044935",
+        "name": "Sarnen, Kirchhofen",
+        "lon": 8.238055565667636,
+        "lat": 46.89259703815412,
+        "lines": [
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.238055573899066,
+          46.892597048229746
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572911.link:858049",
+        "name": "Kerns, Bodacher",
+        "lon": 8.277264565587696,
+        "lat": 46.88920403753826,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.277264573859743,
+          46.88920404760183
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572911.link:858050",
+        "name": "Kerns, Bodacher",
+        "lon": 8.277264565587696,
+        "lat": 46.88920403753826,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.277264573859743,
+          46.88920404760183
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572912.link:548822",
+        "name": "St. Niklausen OW, Alpenblick",
+        "lon": 8.280641565107512,
+        "lat": 46.874363037483384,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.280641573387047,
+          46.87436304754015
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572912.link:548823",
+        "name": "St. Niklausen OW, Alpenblick",
+        "lon": 8.280641565107512,
+        "lat": 46.874363037483384,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.280641573387047,
+          46.87436304754015
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572913.link:212179",
+        "name": "St. Niklausen OW, Eistlibach",
+        "lon": 8.296616564393027,
+        "lat": 46.852007037229676,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.296616572694841,
+          46.852007047273155
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572913.link:212180",
+        "name": "St. Niklausen OW, Eistlibach",
+        "lon": 8.296616564393027,
+        "lat": 46.852007037229676,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.296616572694841,
+          46.852007047273155
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572914.link:212211",
+        "name": "Melchtal, gedeckte Brücke",
+        "lon": 8.296943564230103,
+        "lat": 46.84698503722386,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.296943572533625,
+          46.846985047265214
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572914.link:212212",
+        "name": "Melchtal, gedeckte Brücke",
+        "lon": 8.296943564230103,
+        "lat": 46.84698503722386,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.296943572533625,
+          46.846985047265214
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572915.link:147390",
+        "name": "Melchtal, Weidli",
+        "lon": 8.292117563928345,
+        "lat": 46.83780903729836,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.292117572229497,
+          46.83780904733735
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572915.link:147391",
+        "name": "Melchtal, Weidli",
+        "lon": 8.292117563928345,
+        "lat": 46.83780903729836,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.292117572229497,
+          46.83780904733735
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572916.link:129925",
+        "name": "Sachseln, Bahnhof",
+        "lon": 8.238573564964385,
+        "lat": 46.87096803814323,
+        "lines": [
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.23857357320225,
+          46.87096804821011
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572917.link:897875",
+        "name": "Grossteil, Schulhaus",
+        "lon": 8.173904563848327,
+        "lat": 46.83821603915371,
+        "lines": [
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.173904572029285,
+          46.83821604922495
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572917.link:897876",
+        "name": "Grossteil, Schulhaus",
+        "lon": 8.173904563848327,
+        "lat": 46.83821603915371,
+        "lines": [
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.173904572029285,
+          46.83821604922495
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572918.link:897865",
+        "name": "Grossteil, Unterni",
+        "lon": 8.171755564067409,
+        "lat": 46.845013039188366,
+        "lines": [
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.171755572244342,
+          46.84501304926292
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572918.link:897866",
+        "name": "Grossteil, Unterni",
+        "lon": 8.171755564067409,
+        "lat": 46.845013039188366,
+        "lines": [
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.171755572244342,
+          46.84501304926292
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572919.link:976503",
+        "name": "Kleinteil, Post",
+        "lon": 8.156199563622556,
+        "lat": 46.83170803943064,
+        "lines": [
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.156199571787182,
+          46.83170804950402
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572919.link:976504",
+        "name": "Kleinteil, Post",
+        "lon": 8.156199563622556,
+        "lat": 46.83170803943064,
+        "lines": [
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.156199571787182,
+          46.83170804950402
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8572919.link:976507",
+        "name": "Kleinteil, Post",
+        "lon": 8.156199563622556,
+        "lat": 46.83170803943064,
+        "lines": [
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.156199571787182,
+          46.83170804950402
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8577654.link:86689",
+        "name": "Stalden OW, Abzw. Stockenmatt",
+        "lon": 8.165813565162633,
+        "lat": 46.878848039286105,
+        "lines": [
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.165813573324387,
+          46.87884804937585
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8577654.link:86690",
+        "name": "Stalden OW, Abzw. Stockenmatt",
+        "lon": 8.165813565162633,
+        "lat": 46.878848039286105,
+        "lines": [
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.165813573324387,
+          46.87884804937585
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8579959.link:593740",
+        "name": "Stalden (Sarnen), Sportplatz",
+        "lon": 8.206450565390915,
+        "lat": 46.88486103864918,
+        "lines": [
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.206450573592392,
+          46.88486104873035
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8579959.link:593741",
+        "name": "Stalden (Sarnen), Sportplatz",
+        "lon": 8.206450565390915,
+        "lat": 46.88486103864918,
+        "lines": [
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line344",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.206450573592392,
+          46.88486104873035
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8579960.link:1044948",
+        "name": "Oberwilen, Bodenmattli",
+        "lon": 8.226922565356094,
+        "lat": 46.88329203832767,
+        "lines": [
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.226922573578781,
+          46.8832920484026
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8579960.link:1044949",
+        "name": "Oberwilen, Bodenmattli",
+        "lon": 8.226922565356094,
+        "lat": 46.88329203832767,
+        "lines": [
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.226922573578781,
+          46.8832920484026
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8580011.link:120077",
+        "name": "Flüeli-Ranft, Allmend",
+        "lon": 8.254951565106845,
+        "lat": 46.8749540378867,
+        "lines": [
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.254951573360223,
+          46.87495404795071
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8580011.link:120078",
+        "name": "Flüeli-Ranft, Allmend",
+        "lon": 8.254951565106845,
+        "lat": 46.8749540378867,
+        "lines": [
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line351",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.254951573360223,
+          46.87495404795071
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8580012.link:49021",
+        "name": "Sarnen, Kantonsschule",
+        "lon": 8.243135565676024,
+        "lat": 46.892733038074404,
+        "lines": [
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.243135573912564,
+          46.89273304814867
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8580012.link:49022",
+        "name": "Sarnen, Kantonsschule",
+        "lon": 8.243135565676024,
+        "lat": 46.892733038074404,
+        "lines": [
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.243135573912564,
+          46.89273304814867
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8580014.link:48941",
+        "name": "Grossteil, Rüti",
+        "lon": 8.162268564230343,
+        "lat": 46.85026403933798,
+        "lines": [
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.162268572396188,
+          46.85026404941723
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8580014.link:48942",
+        "name": "Grossteil, Rüti",
+        "lon": 8.162268564230343,
+        "lat": 46.85026403933798,
+        "lines": [
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.162268572396188,
+          46.85026404941723
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8580102.link:471271",
+        "name": "Melchtal, Plätzli",
+        "lon": 8.286721563664328,
+        "lat": 46.82980703738194,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.286721571962206,
+          46.82980704741917
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8580102.link:471272",
+        "name": "Melchtal, Plätzli",
+        "lon": 8.286721563664328,
+        "lat": 46.82980703738194,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.286721571962206,
+          46.82980704741917
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8581160.link:440396",
+        "name": "Alpnach Dorf, Schoried",
+        "lon": 8.255604567014162,
+        "lat": 46.93352103788352,
+        "lines": [
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.255604575252097,
+          46.93352104797044
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8581164.link:440409",
+        "name": "Alpnach Dorf, Hofmättelikreuz",
+        "lon": 8.269358567171107,
+        "lat": 46.93801003766813,
+        "lines": [
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.26935857542169,
+          46.938010047753004
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8581164.link:440410",
+        "name": "Alpnach Dorf, Hofmättelikreuz",
+        "lon": 8.269358567171107,
+        "lat": 46.93801003766813,
+        "lines": [
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.26935857542169,
+          46.938010047753004
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8581326.link:440401",
+        "name": "Alpnach Dorf, untere Feldstr.",
+        "lon": 8.263914567098698,
+        "lat": 46.93591703775334,
+        "lines": [
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.263914575344362,
+          46.93591704783889
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8581466.link:734892",
+        "name": "Sarnen, Kernserstrasse",
+        "lon": 8.2522745658084,
+        "lat": 46.896581037931405,
+        "lines": [
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line341",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line341",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "4",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.252274574053141,
+          46.89658104800473
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8581466.link:734893",
+        "name": "Sarnen, Kernserstrasse",
+        "lon": 8.2522745658084,
+        "lat": 46.896581037931405,
+        "lines": [
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line312",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line341",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line341",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "4",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.252274574053141,
+          46.89658104800473
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8581467.link:554120",
+        "name": "Sarnen, Schatzli",
+        "lon": 8.251265566150193,
+        "lat": 46.907104037948564,
+        "lines": [
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.251265574391025,
+          46.90710404802631
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8581467.link:554121",
+        "name": "Sarnen, Schatzli",
+        "lon": 8.251265566150193,
+        "lat": 46.907104037948564,
+        "lines": [
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.251265574391025,
+          46.90710404802631
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8581468.link:1067560",
+        "name": "Oberwilen, Mätteli",
+        "lon": 8.211891564998412,
+        "lat": 46.87266203856221,
+        "lines": [
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.21189157320873,
+          46.872662048637025
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8581468.link:1067561",
+        "name": "Oberwilen, Mätteli",
+        "lon": 8.211891564998412,
+        "lat": 46.87266203856221,
+        "lines": [
+          {
+            "line_id": "PAG_line345",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.21189157320873,
+          46.872662048637025
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8581528.link:471186",
+        "name": "Sarnen, Bitzighofen",
+        "lon": 8.248028566017519,
+        "lat": 46.90310603799886,
+        "lines": [
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.248028574256171,
+          46.903106048075884
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8581528.link:471187",
+        "name": "Sarnen, Bitzighofen",
+        "lon": 8.248028566017519,
+        "lat": 46.90310603799886,
+        "lines": [
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line342",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.248028574256171,
+          46.903106048075884
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8581862.link:858055",
+        "name": "St. Niklausen OW, Haueti",
+        "lon": 8.277905565308838,
+        "lat": 46.880618037527135,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.277905573583887,
+          46.880618047587134
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8581862.link:858056",
+        "name": "St. Niklausen OW, Haueti",
+        "lon": 8.277905565308838,
+        "lat": 46.880618037527135,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.277905573583887,
+          46.880618047587134
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8582460.link:80197",
+        "name": "Kaiserstuhl OW, Bahnhof",
+        "lon": 8.175500563033808,
+        "lat": 46.81309003912507,
+        "lines": [
+          {
+            "line_id": "Bah",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.175500571223132,
+          46.81309004918569
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8582460.link:80198",
+        "name": "Kaiserstuhl OW, Bahnhof",
+        "lon": 8.175500563033808,
+        "lat": 46.81309003912507,
+        "lines": [
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.175500571223132,
+          46.81309004918569
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8582768.link:976600",
+        "name": "Grossteil, Zopf",
+        "lon": 8.170351564251305,
+        "lat": 46.8507070392112,
+        "lines": [
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.170351572425275,
+          46.85070704928844
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8582768.link:976601",
+        "name": "Grossteil, Zopf",
+        "lon": 8.170351564251305,
+        "lat": 46.8507070392112,
+        "lines": [
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.170351572425275,
+          46.85070704928844
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8582883.link:48666",
+        "name": "Grossteil, Haltenrain",
+        "lon": 8.160795564377663,
+        "lat": 46.854834039361684,
+        "lines": [
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.16079557254078,
+          46.854834049443156
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8583070.link:80193",
+        "name": "Lungern, Zihl",
+        "lon": 8.164134562345751,
+        "lat": 46.79216703930029,
+        "lines": [
+          {
+            "line_id": "Bah",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.164134570529047,
+          46.79216704935543
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8583070.link:80194",
+        "name": "Lungern, Zihl",
+        "lon": 8.164134562345751,
+        "lat": 46.79216703930029,
+        "lines": [
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.164134570529047,
+          46.79216704935543
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8583552.link:608627",
+        "name": "Melchtal, Turrenbach",
+        "lon": 8.284022563394227,
+        "lat": 46.82155103742309,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.284022571691622,
+          46.82155104745771
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8583552.link:608628",
+        "name": "Melchtal, Turrenbach",
+        "lon": 8.284022563394227,
+        "lat": 46.82155103742309,
+        "lines": [
+          {
+            "line_id": "PAG_line343",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.284022571691622,
+          46.82155104745771
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8587662.link:250655",
+        "name": "Lungern, Dorfkapelle",
+        "lon": 8.158917562141571,
+        "lat": 46.78600103938118,
+        "lines": [
+          {
+            "line_id": "Bah",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.15891757032117,
+          46.78600104943517
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8587662.link:478013",
+        "name": "Lungern, Dorfkapelle",
+        "lon": 8.158917562141571,
+        "lat": 46.78600103938118,
+        "lines": [
+          {
+            "line_id": "PAG_line361",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.15891757032117,
+          46.78600104943517
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8595205.link:140227",
+        "name": "Melchsee-Frutt, alte Bergstat.",
+        "lon": 8.268735561852225,
+        "lat": 46.77437103765596,
+        "lines": [
+          {
+            "line_id": "SMF_line349",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.26873557014689,
+          46.77437104767553
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8595205.link:761026",
+        "name": "Melchsee-Frutt, alte Bergstat.",
+        "lon": 8.268735561852225,
+        "lat": 46.77437103765596,
+        "lines": [
+          {
+            "line_id": "SMF_line349",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.26873557014689,
+          46.77437104767553
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8595206.link:850143",
+        "name": "Melchsee-Frutt, Panoramalift",
+        "lon": 8.274363561850924,
+        "lat": 46.77419503756761,
+        "lines": [
+          {
+            "line_id": "SMF_line349",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.274363570151356,
+          46.77419504758551
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8595206.link:850144",
+        "name": "Melchsee-Frutt, Panoramalift",
+        "lon": 8.274363561850924,
+        "lat": 46.77419503756761,
+        "lines": [
+          {
+            "line_id": "SMF_line349",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.274363570151356,
+          46.77419504758551
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8595207.link:pt_8595207",
+        "name": "Melchsee-Frutt, Kapelle",
+        "lon": 8.27750656179926,
+        "lat": 46.77252603751797,
+        "lines": [
+          {
+            "line_id": "SMF_line349",
+            "mode": "bus"
+          },
+          {
+            "line_id": "SMF_line349",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.277506570103329,
+          46.77252604753437
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8595208.link:pt_8595208",
+        "name": "Melchsee-Frutt, Distelboden",
+        "lon": 8.280260561757048,
+        "lat": 46.77115703747453,
+        "lines": [
+          {
+            "line_id": "SMF_line349",
+            "mode": "bus"
+          },
+          {
+            "line_id": "SMF_line349",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.280260570064282,
+          46.7711570474896
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8595209.link:pt_8595209",
+        "name": "Melchsee-Frutt, March",
+        "lon": 8.294184561753662,
+        "lat": 46.770720037255934,
+        "lines": [
+          {
+            "line_id": "SMF_line349",
+            "mode": "bus"
+          },
+          {
+            "line_id": "SMF_line349",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.294184570075142,
+          46.77072004726702
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8595210.link:pt_8595210",
+        "name": "Melchsee-Frutt, Tannendamm",
+        "lon": 8.30139756191543,
+        "lat": 46.77554203714345,
+        "lines": [
+          {
+            "line_id": "SMF_line349",
+            "mode": "bus"
+          },
+          {
+            "line_id": "SMF_line349",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.301397570242912,
+          46.77554204715455
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8595211.link:pt_8595211",
+        "name": "Melchsee-Frutt, Tannensee",
+        "lon": 8.313969561929534,
+        "lat": 46.775680036946135,
+        "lines": [
+          {
+            "line_id": "SMF_line349",
+            "mode": "bus"
+          },
+          {
+            "line_id": "SMF_line349",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.313969570269716,
+          46.77568004695381
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8595212.link:pt_8595212",
+        "name": "Melchsee-Frutt, Tannalp",
+        "lon": 8.319151562031022,
+        "lat": 46.77869003686527,
+        "lines": [
+          {
+            "line_id": "SMF_line349",
+            "mode": "bus"
+          },
+          {
+            "line_id": "SMF_line349",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.319151570375631,
+          46.778690046872796
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8595400.link:997125",
+        "name": "Engelberg, Bahnhof",
+        "lon": 8.402823563413378,
+        "lat": 46.81939603555791,
+        "lines": [
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.40282357183117,
+          46.81939604555897
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8595400.link:997380",
+        "name": "Engelberg, Bahnhof",
+        "lon": 8.402823563413378,
+        "lat": 46.81939603555791,
+        "lines": [
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.40282357183117,
+          46.81939604555897
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8595400.link:997381",
+        "name": "Engelberg, Bahnhof",
+        "lon": 8.402823563413378,
+        "lat": 46.81939603555791,
+        "lines": [
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.40282357183117,
+          46.81939604555897
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8595401.link:395434",
+        "name": "Engelberg, Titlisbahn",
+        "lon": 8.39585156331269,
+        "lat": 46.81645003566693,
+        "lines": [
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.39585157172429,
+          46.816450045668695
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8595401.link:993829",
+        "name": "Engelberg, Titlisbahn",
+        "lon": 8.39585156331269,
+        "lat": 46.81645003566693,
+        "lines": [
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.39585157172429,
+          46.816450045668695
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8595402.link:128347",
+        "name": "Engelberg, Brunnibahn",
+        "lon": 8.41542856339541,
+        "lat": 46.81856103535982,
+        "lines": [
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.415428571826086,
+          46.818561045356994
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8595402.link:128348",
+        "name": "Engelberg, Brunnibahn",
+        "lon": 8.41542856339541,
+        "lat": 46.81856103535982,
+        "lines": [
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.415428571826086,
+          46.818561045356994
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8595402.link:128349",
+        "name": "Engelberg, Brunnibahn",
+        "lon": 8.41542856339541,
+        "lat": 46.81856103535982,
+        "lines": [
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.415428571826086,
+          46.818561045356994
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8595403.link:128353",
+        "name": "Engelberg, Fürenalpbahn",
+        "lon": 8.449367562871533,
+        "lat": 46.801659034824524,
+        "lines": [
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.449367571340908,
+          46.80165904480541
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8595403.link:128354",
+        "name": "Engelberg, Fürenalpbahn",
+        "lon": 8.449367562871533,
+        "lat": 46.801659034824524,
+        "lines": [
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          },
+          {
+            "line_id": "ZB",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.449367571340908,
+          46.80165904480541
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8595455.link:158589",
+        "name": "Melchsee-Frutt, Dörfli",
+        "lon": 8.268907561827602,
+        "lat": 46.773606037653096,
+        "lines": [
+          {
+            "line_id": "SMF_line349",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.268907570122646,
+          46.77360604767225
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "stop_id": "8595455.link:158590",
+        "name": "Melchsee-Frutt, Dörfli",
+        "lon": 8.268907561827602,
+        "lat": 46.773606037653096,
+        "lines": [
+          {
+            "line_id": "SMF_line349",
+            "mode": "bus"
+          }
+        ],
+        "predominant_mode": "bus",
+        "stopCategory": "5",
+        "assigned_canton": "Obwalden",
+        "modes_list": [
+          "bus"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          8.268907570122646,
+          46.77360604767225
+        ]
+      }
+    }
+  ]
+}
