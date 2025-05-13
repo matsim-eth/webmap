@@ -15,7 +15,7 @@ import TransitStopAttributesTable from "./TransitStopAttributesTable";
 const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, resetMapView, updateMapSymbology,
   selectedNetworkModes, setSelectedNetworkModes, selectedNetworkFeature, setVisualizeLinkId, dataURL, setDataURL,
   selectedTransitModes, setSelectedTransitModes, selectedTransitStop, highlightedLineId, setHighlightedLineId,
-setHighlightedRouteIds }) => {
+  setHighlightedRouteIds }) => {
     
     // ======================= INITIALIZE VARIABLES =======================
     
@@ -85,8 +85,9 @@ setHighlightedRouteIds }) => {
       setSelectedTransitModes(["all"]);
       updateMapSymbology("None", selectedDataset);
       resetMapView();
-
+      
       setHighlightedLineId(null);
+      setHighlightedRouteIds([]);
     };
     
     
@@ -323,16 +324,16 @@ setHighlightedRouteIds }) => {
               ))}
               </select>
               </div>
-                {selectedTransitStop && (
-                  <TransitStopAttributesTable
-                    properties={selectedTransitStop}
-                    highlightedLineId={highlightedLineId}
-  onLineClick={(lineId, routeIds) => {
-    setHighlightedLineId(lineId);
-    setHighlightedRouteIds(routeIds);
-  }}
-                  />
-                )}
+              {selectedTransitStop && (
+                <TransitStopAttributesTable
+                properties={selectedTransitStop}
+                highlightedLineId={highlightedLineId}
+                onLineClick={(lineId, routeIds) => {
+                  setHighlightedLineId(lineId);
+                  setHighlightedRouteIds(routeIds);
+                }}
+                />
+              )}
               </div>
             )}
             
