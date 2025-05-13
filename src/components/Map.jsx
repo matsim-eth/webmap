@@ -639,7 +639,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
     };
     
     if (isGraphExpanded === "Transit" && searchCanton) {
-      const path = `data/matsim/transit/${searchCanton}_stops.geojson`;
+      const path = `${dataURL}matsim/transit/${searchCanton}_stops.geojson`;
       
       fetch(path)
       .then((res) => res.json())
@@ -807,7 +807,7 @@ useEffect(() => {
   if (map.getLayer(ROUTE_LAYER_ID)) map.removeLayer(ROUTE_LAYER_ID);
   if (map.getSource(ROUTE_SOURCE_ID)) map.removeSource(ROUTE_SOURCE_ID);
 
-  fetch("data/matsim/transit/transit_routes.geojson")
+  fetch(`${dataURL}matsim/transit/transit_routes.geojson`)
     .then((res) => res.json())
     .then((geojson) => {
       const matched = geojson.features.filter(
