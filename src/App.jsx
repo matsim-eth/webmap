@@ -37,6 +37,10 @@ function App() {
   const [selectedTransitModes, setSelectedTransitModes] = useState(["all"]);
   const [selectedTransitStop, setSelectedTransitStop] = useState(null);
 
+  // Pass selected transit line to map
+  const [highlightedLineId, setHighlightedLineId] = useState(null);
+  const [highlightedRouteIds, setHighlightedRouteIds] = useState([]);
+
   // Read cantons
   useEffect(() => {
     fetch('/data/TLM_KANTONSGEBIET.geojson')
@@ -108,7 +112,11 @@ function App() {
       setVisualizeLinkId={setVisualizeLinkId} // from sidebar
       dataURL={dataURL} // from Sidebar
       selectedTransitModes={selectedTransitModes} // from sidebar
-      setSelectedTransitStop={setSelectedTransitStop} // from sidebar
+      setSelectedTransitStop={setSelectedTransitStop} // to sidebar
+      highlightedLineId={highlightedLineId}
+      setHighlightedLineId={setHighlightedLineId}
+      highlightedRouteIds={highlightedRouteIds}
+      setHighlightedRouteIds = {setHighlightedRouteIds}
     />
 
     <Sidebar
@@ -129,6 +137,9 @@ function App() {
       selectedTransitModes={selectedTransitModes}
       setSelectedTransitModes={setSelectedTransitModes} 
       selectedTransitStop={selectedTransitStop}
+      highlightedLineId={highlightedLineId}
+      setHighlightedLineId={setHighlightedLineId}
+      setHighlightedRouteIds = {setHighlightedRouteIds}
     />
 
     <NetworkLegend
