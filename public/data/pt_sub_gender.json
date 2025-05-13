@@ -1,0 +1,1136 @@
+{
+    "Zurich": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.149602,
+                "Halbtax": 0.286205,
+                "Strecke": 0.027042,
+                "Gleis7": 0.006,
+                "Junior": 0.071736,
+                "Other": 0.011652,
+                "Ga": 0.096691
+            },
+            "1": {
+                "Verbund": 0.169134,
+                "Halbtax": 0.338224,
+                "Strecke": 0.036466,
+                "Gleis7": 0.005036,
+                "Junior": 0.081094,
+                "Other": 0.013762,
+                "Ga": 0.087997
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.223654,
+                "Halbtax": 0.362444,
+                "Strecke": 0.018387,
+                "Gleis7": 0.007415,
+                "Junior": 0.06969,
+                "Other": 0.011272,
+                "Ga": 0.104265
+            },
+            "1": {
+                "Verbund": 0.229288,
+                "Halbtax": 0.458361,
+                "Strecke": 0.040236,
+                "Gleis7": 0.004074,
+                "Junior": 0.092787,
+                "Other": 0.014599,
+                "Ga": 0.10961
+            }
+        }
+    },
+    "Basel-Stadt": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.240014,
+                "Halbtax": 0.318474,
+                "Strecke": 0.028887,
+                "Gleis7": 0.003566,
+                "Junior": 0.07525,
+                "Other": 0.010342,
+                "Ga": 0.115549
+            },
+            "1": {
+                "Verbund": 0.250246,
+                "Halbtax": 0.364532,
+                "Strecke": 0.042036,
+                "Gleis7": 0.005911,
+                "Junior": 0.071593,
+                "Other": 0.017406,
+                "Ga": 0.121511
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.272384,
+                "Halbtax": 0.291206,
+                "Strecke": 0.018593,
+                "Gleis7": 0.00694,
+                "Junior": 0.065685,
+                "Other": 0.024559,
+                "Ga": 0.114875
+            },
+            "1": {
+                "Verbund": 0.427259,
+                "Halbtax": 0.416263,
+                "Strecke": 0.036235,
+                "Gleis7": 0.009054,
+                "Junior": 0.096645,
+                "Other": 0.03987,
+                "Ga": 0.110698
+            }
+        }
+    },
+    "St. Gallen": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.121803,
+                "Halbtax": 0.27861,
+                "Strecke": 0.028029,
+                "Gleis7": 0.00465,
+                "Junior": 0.071041,
+                "Other": 0.010333,
+                "Ga": 0.082666
+            },
+            "1": {
+                "Verbund": 0.132098,
+                "Halbtax": 0.322673,
+                "Strecke": 0.034982,
+                "Gleis7": 0.006918,
+                "Junior": 0.079232,
+                "Other": 0.012139,
+                "Ga": 0.076491
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.107482,
+                "Halbtax": 0.268341,
+                "Strecke": 0.028266,
+                "Gleis7": 0.003915,
+                "Junior": 0.072975,
+                "Other": 0.006624,
+                "Ga": 0.052179
+            },
+            "1": {
+                "Verbund": 0.111588,
+                "Halbtax": 0.40542,
+                "Strecke": 0.043176,
+                "Gleis7": 0.007858,
+                "Junior": 0.085343,
+                "Other": 0.007355,
+                "Ga": 0.056323
+            }
+        }
+    },
+    "Bern": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.124711,
+                "Halbtax": 0.283903,
+                "Strecke": 0.025629,
+                "Gleis7": 0.004954,
+                "Junior": 0.070612,
+                "Other": 0.010833,
+                "Ga": 0.085607
+            },
+            "1": {
+                "Verbund": 0.140624,
+                "Halbtax": 0.336716,
+                "Strecke": 0.034983,
+                "Gleis7": 0.005358,
+                "Junior": 0.079294,
+                "Other": 0.014686,
+                "Ga": 0.078916
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.102177,
+                "Halbtax": 0.349824,
+                "Strecke": 0.026769,
+                "Gleis7": 0.005069,
+                "Junior": 0.084958,
+                "Other": 0.017223,
+                "Ga": 0.13661
+            },
+            "1": {
+                "Verbund": 0.125953,
+                "Halbtax": 0.426666,
+                "Strecke": 0.036449,
+                "Gleis7": 0.009012,
+                "Junior": 0.087928,
+                "Other": 0.009478,
+                "Ga": 0.166104
+            }
+        }
+    },
+    "Fribourg": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.097286,
+                "Halbtax": 0.254906,
+                "Strecke": 0.021086,
+                "Gleis7": 0.004802,
+                "Junior": 0.064718,
+                "Other": 0.012317,
+                "Ga": 0.077662
+            },
+            "1": {
+                "Verbund": 0.114791,
+                "Halbtax": 0.310636,
+                "Strecke": 0.029006,
+                "Gleis7": 0.007612,
+                "Junior": 0.083522,
+                "Other": 0.012137,
+                "Ga": 0.063979
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.096614,
+                "Halbtax": 0.216336,
+                "Strecke": 0.026828,
+                "Gleis7": 0.006292,
+                "Junior": 0.028994,
+                "Other": 0.007486,
+                "Ga": 0.086619
+            },
+            "1": {
+                "Verbund": 0.10325,
+                "Halbtax": 0.224608,
+                "Strecke": 0.041414,
+                "Gleis7": 0.013478,
+                "Junior": 0.082514,
+                "Other": 0.009664,
+                "Ga": 0.074828
+            }
+        }
+    },
+    "Vaud": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.1411,
+                "Halbtax": 0.264861,
+                "Strecke": 0.026255,
+                "Gleis7": 0.006192,
+                "Junior": 0.069848,
+                "Other": 0.010816,
+                "Ga": 0.083223
+            },
+            "1": {
+                "Verbund": 0.151525,
+                "Halbtax": 0.318656,
+                "Strecke": 0.037742,
+                "Gleis7": 0.005972,
+                "Junior": 0.077634,
+                "Other": 0.015288,
+                "Ga": 0.073095
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.125391,
+                "Halbtax": 0.226733,
+                "Strecke": 0.031346,
+                "Gleis7": 0.007399,
+                "Junior": 0.057762,
+                "Other": 0.011106,
+                "Ga": 0.093709
+            },
+            "1": {
+                "Verbund": 0.172443,
+                "Halbtax": 0.28251,
+                "Strecke": 0.042069,
+                "Gleis7": 0.00551,
+                "Junior": 0.056628,
+                "Other": 0.014701,
+                "Ga": 0.063596
+            }
+        }
+    },
+    "Ticino": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.10916,
+                "Halbtax": 0.289896,
+                "Strecke": 0.023985,
+                "Gleis7": 0.003588,
+                "Junior": 0.0661,
+                "Other": 0.01152,
+                "Ga": 0.074599
+            },
+            "1": {
+                "Verbund": 0.129464,
+                "Halbtax": 0.335,
+                "Strecke": 0.035,
+                "Gleis7": 0.005,
+                "Junior": 0.0675,
+                "Other": 0.011607,
+                "Ga": 0.068036
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.110189,
+                "Halbtax": 0.132174,
+                "Strecke": 0.012692,
+                "Gleis7": 0.008492,
+                "Junior": 0.024296,
+                "Other": 0.012876,
+                "Ga": 0.02901
+            },
+            "1": {
+                "Verbund": 0.15062,
+                "Halbtax": 0.121579,
+                "Strecke": 0.020098,
+                "Gleis7": 0.002669,
+                "Junior": 0.024711,
+                "Other": 0.012244,
+                "Ga": 0.01616
+            }
+        }
+    },
+    "Aargau": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.113535,
+                "Halbtax": 0.279649,
+                "Strecke": 0.024927,
+                "Gleis7": 0.004966,
+                "Junior": 0.067381,
+                "Other": 0.01149,
+                "Ga": 0.082084
+            },
+            "1": {
+                "Verbund": 0.129381,
+                "Halbtax": 0.326298,
+                "Strecke": 0.02886,
+                "Gleis7": 0.006479,
+                "Junior": 0.070973,
+                "Other": 0.011682,
+                "Ga": 0.073623
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.082189,
+                "Halbtax": 0.293451,
+                "Strecke": 0.030413,
+                "Gleis7": 0.006776,
+                "Junior": 0.062141,
+                "Other": 0.006113,
+                "Ga": 0.114295
+            },
+            "1": {
+                "Verbund": 0.10175,
+                "Halbtax": 0.355576,
+                "Strecke": 0.04251,
+                "Gleis7": 0.006088,
+                "Junior": 0.085518,
+                "Other": 0.011221,
+                "Ga": 0.084671
+            }
+        }
+    },
+    "Geneve": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.194763,
+                "Halbtax": 0.272095,
+                "Strecke": 0.029733,
+                "Gleis7": 0.009411,
+                "Junior": 0.091244,
+                "Other": 0.014048,
+                "Ga": 0.086743
+            },
+            "1": {
+                "Verbund": 0.218628,
+                "Halbtax": 0.306986,
+                "Strecke": 0.036375,
+                "Gleis7": 0.004783,
+                "Junior": 0.092637,
+                "Other": 0.017873,
+                "Ga": 0.091001
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.258783,
+                "Halbtax": 0.188217,
+                "Strecke": 0.020288,
+                "Gleis7": 0.00488,
+                "Junior": 0.041071,
+                "Other": 0.022321,
+                "Ga": 0.053747
+            },
+            "1": {
+                "Verbund": 0.304364,
+                "Halbtax": 0.188514,
+                "Strecke": 0.033751,
+                "Gleis7": 0.005735,
+                "Junior": 0.058491,
+                "Other": 0.0428,
+                "Ga": 0.059693
+            }
+        }
+    },
+    "Solothurn": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.108069,
+                "Halbtax": 0.279622,
+                "Strecke": 0.028592,
+                "Gleis7": 0.003392,
+                "Junior": 0.07148,
+                "Other": 0.00945,
+                "Ga": 0.074146
+            },
+            "1": {
+                "Verbund": 0.111244,
+                "Halbtax": 0.30933,
+                "Strecke": 0.033493,
+                "Gleis7": 0.004785,
+                "Junior": 0.072727,
+                "Other": 0.009569,
+                "Ga": 0.067703
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.062094,
+                "Halbtax": 0.242321,
+                "Strecke": 0.018278,
+                "Gleis7": 0.009077,
+                "Junior": 0.069859,
+                "Other": 0.011674,
+                "Ga": 0.121236
+            },
+            "1": {
+                "Verbund": 0.084908,
+                "Halbtax": 0.387685,
+                "Strecke": 0.029041,
+                "Gleis7": 0.004856,
+                "Junior": 0.092165,
+                "Other": 0.011409,
+                "Ga": 0.110151
+            }
+        }
+    },
+    "Jura": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.104244,
+                "Halbtax": 0.25738,
+                "Strecke": 0.02952,
+                "Gleis7": 0.001845,
+                "Junior": 0.053506,
+                "Other": 0.009225,
+                "Ga": 0.061808
+            },
+            "1": {
+                "Verbund": 0.105796,
+                "Halbtax": 0.312787,
+                "Strecke": 0.034959,
+                "Gleis7": 0.00736,
+                "Junior": 0.074517,
+                "Other": 0.01104,
+                "Ga": 0.067157
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.05112,
+                "Halbtax": 0.178432,
+                "Strecke": 0.029933,
+                "Gleis7": 0.015974,
+                "Junior": 0.041529,
+                "Other": 0.008437,
+                "Ga": 0.080824
+            },
+            "1": {
+                "Verbund": 0.063525,
+                "Halbtax": 0.223656,
+                "Strecke": 0.023552,
+                "Gleis7": 0.0,
+                "Junior": 0.04941,
+                "Other": 0.002277,
+                "Ga": 0.038247
+            }
+        }
+    },
+    "Valais": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.094267,
+                "Halbtax": 0.255788,
+                "Strecke": 0.029217,
+                "Gleis7": 0.004594,
+                "Junior": 0.066887,
+                "Other": 0.009555,
+                "Ga": 0.071297
+            },
+            "1": {
+                "Verbund": 0.09544,
+                "Halbtax": 0.30312,
+                "Strecke": 0.035259,
+                "Gleis7": 0.005538,
+                "Junior": 0.080118,
+                "Other": 0.011815,
+                "Ga": 0.06775
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.026786,
+                "Halbtax": 0.247056,
+                "Strecke": 0.056254,
+                "Gleis7": 0.005392,
+                "Junior": 0.049372,
+                "Other": 0.011349,
+                "Ga": 0.087296
+            },
+            "1": {
+                "Verbund": 0.028258,
+                "Halbtax": 0.319746,
+                "Strecke": 0.060832,
+                "Gleis7": 0.00427,
+                "Junior": 0.068805,
+                "Other": 0.010694,
+                "Ga": 0.064372
+            }
+        }
+    },
+    "Luzern": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.126504,
+                "Halbtax": 0.2633,
+                "Strecke": 0.026757,
+                "Gleis7": 0.005858,
+                "Junior": 0.073148,
+                "Other": 0.011716,
+                "Ga": 0.085022
+            },
+            "1": {
+                "Verbund": 0.142144,
+                "Halbtax": 0.31487,
+                "Strecke": 0.035887,
+                "Gleis7": 0.005617,
+                "Junior": 0.084725,
+                "Other": 0.017163,
+                "Ga": 0.083944
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.092118,
+                "Halbtax": 0.307099,
+                "Strecke": 0.024297,
+                "Gleis7": 0.007833,
+                "Junior": 0.06921,
+                "Other": 0.005727,
+                "Ga": 0.097107
+            },
+            "1": {
+                "Verbund": 0.148694,
+                "Halbtax": 0.408732,
+                "Strecke": 0.052897,
+                "Gleis7": 0.007051,
+                "Junior": 0.099648,
+                "Other": 0.015185,
+                "Ga": 0.079866
+            }
+        }
+    },
+    "Basel-Landschaft": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.137264,
+                "Halbtax": 0.287028,
+                "Strecke": 0.022877,
+                "Gleis7": 0.003774,
+                "Junior": 0.076887,
+                "Other": 0.008726,
+                "Ga": 0.087736
+            },
+            "1": {
+                "Verbund": 0.143736,
+                "Halbtax": 0.35467,
+                "Strecke": 0.034169,
+                "Gleis7": 0.004328,
+                "Junior": 0.070615,
+                "Other": 0.015945,
+                "Ga": 0.080866
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.261428,
+                "Halbtax": 0.305285,
+                "Strecke": 0.009287,
+                "Gleis7": 0.008359,
+                "Junior": 0.078045,
+                "Other": 0.031411,
+                "Ga": 0.07095
+            },
+            "1": {
+                "Verbund": 0.332874,
+                "Halbtax": 0.365205,
+                "Strecke": 0.018164,
+                "Gleis7": 0.0,
+                "Junior": 0.093606,
+                "Other": 0.036306,
+                "Ga": 0.04987
+            }
+        }
+    },
+    "Neuchatel": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.130663,
+                "Halbtax": 0.26432,
+                "Strecke": 0.025459,
+                "Gleis7": 0.006739,
+                "Junior": 0.063647,
+                "Other": 0.013104,
+                "Ga": 0.082741
+            },
+            "1": {
+                "Verbund": 0.159091,
+                "Halbtax": 0.339844,
+                "Strecke": 0.037997,
+                "Gleis7": 0.004972,
+                "Junior": 0.071378,
+                "Other": 0.012784,
+                "Ga": 0.069247
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.145227,
+                "Halbtax": 0.205687,
+                "Strecke": 0.02066,
+                "Gleis7": 0.003382,
+                "Junior": 0.057651,
+                "Other": 0.006097,
+                "Ga": 0.0504
+            },
+            "1": {
+                "Verbund": 0.155567,
+                "Halbtax": 0.243751,
+                "Strecke": 0.023732,
+                "Gleis7": 0.004444,
+                "Junior": 0.053087,
+                "Other": 0.010798,
+                "Ga": 0.058546
+            }
+        }
+    },
+    "Thurgau": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.098524,
+                "Halbtax": 0.271283,
+                "Strecke": 0.025199,
+                "Gleis7": 0.004086,
+                "Junior": 0.072872,
+                "Other": 0.010443,
+                "Ga": 0.07605
+            },
+            "1": {
+                "Verbund": 0.100047,
+                "Halbtax": 0.315007,
+                "Strecke": 0.030203,
+                "Gleis7": 0.004247,
+                "Junior": 0.079283,
+                "Other": 0.010854,
+                "Ga": 0.063945
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.03762,
+                "Halbtax": 0.264379,
+                "Strecke": 0.028664,
+                "Gleis7": 0.00949,
+                "Junior": 0.052259,
+                "Other": 0.006551,
+                "Ga": 0.070719
+            },
+            "1": {
+                "Verbund": 0.061016,
+                "Halbtax": 0.387003,
+                "Strecke": 0.039361,
+                "Gleis7": 0.015013,
+                "Junior": 0.067096,
+                "Other": 0.009163,
+                "Ga": 0.078454
+            }
+        }
+    },
+    "Uri": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.119086,
+                "Halbtax": 0.288744,
+                "Strecke": 0.027732,
+                "Gleis7": 0.001631,
+                "Junior": 0.084829,
+                "Other": 0.017945,
+                "Ga": 0.071778
+            },
+            "1": {
+                "Verbund": 0.132879,
+                "Halbtax": 0.316865,
+                "Strecke": 0.030664,
+                "Gleis7": 0.006814,
+                "Junior": 0.07155,
+                "Other": 0.017036,
+                "Ga": 0.080068
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.008918,
+                "Halbtax": 0.283583,
+                "Strecke": 0.017802,
+                "Gleis7": 0.0,
+                "Junior": 0.095227,
+                "Other": 0.0,
+                "Ga": 0.141309
+            },
+            "1": {
+                "Verbund": 0.012876,
+                "Halbtax": 0.484606,
+                "Strecke": 0.015412,
+                "Gleis7": 0.0,
+                "Junior": 0.092101,
+                "Other": 0.0,
+                "Ga": 0.068292
+            }
+        }
+    },
+    "Schwyz": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.115354,
+                "Halbtax": 0.280547,
+                "Strecke": 0.0209,
+                "Gleis7": 0.005627,
+                "Junior": 0.069936,
+                "Other": 0.01246,
+                "Ga": 0.063907
+            },
+            "1": {
+                "Verbund": 0.119983,
+                "Halbtax": 0.329843,
+                "Strecke": 0.030105,
+                "Gleis7": 0.005672,
+                "Junior": 0.085515,
+                "Other": 0.016143,
+                "Ga": 0.066318
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.084602,
+                "Halbtax": 0.341517,
+                "Strecke": 0.026659,
+                "Gleis7": 0.001317,
+                "Junior": 0.089652,
+                "Other": 0.002875,
+                "Ga": 0.058017
+            },
+            "1": {
+                "Verbund": 0.089177,
+                "Halbtax": 0.414789,
+                "Strecke": 0.036362,
+                "Gleis7": 0.005129,
+                "Junior": 0.074252,
+                "Other": 0.006529,
+                "Ga": 0.07642
+            }
+        }
+    },
+    "Nidwalden": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.116129,
+                "Halbtax": 0.283871,
+                "Strecke": 0.027419,
+                "Gleis7": 0.009677,
+                "Junior": 0.054839,
+                "Other": 0.014516,
+                "Ga": 0.091935
+            },
+            "1": {
+                "Verbund": 0.09854,
+                "Halbtax": 0.315693,
+                "Strecke": 0.031022,
+                "Gleis7": 0.001825,
+                "Junior": 0.074818,
+                "Other": 0.014599,
+                "Ga": 0.078467
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.045349,
+                "Halbtax": 0.389465,
+                "Strecke": 0.046238,
+                "Gleis7": 0.0,
+                "Junior": 0.083897,
+                "Other": 0.012054,
+                "Ga": 0.045641
+            },
+            "1": {
+                "Verbund": 0.124823,
+                "Halbtax": 0.425458,
+                "Strecke": 0.024138,
+                "Gleis7": 0.004764,
+                "Junior": 0.114833,
+                "Other": 0.0,
+                "Ga": 0.035056
+            }
+        }
+    },
+    "Glarus": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.104235,
+                "Halbtax": 0.265472,
+                "Strecke": 0.02443,
+                "Gleis7": 0.006515,
+                "Junior": 0.058632,
+                "Other": 0.009772,
+                "Ga": 0.078176
+            },
+            "1": {
+                "Verbund": 0.103691,
+                "Halbtax": 0.318102,
+                "Strecke": 0.019332,
+                "Gleis7": 0.001757,
+                "Junior": 0.084359,
+                "Other": 0.00703,
+                "Ga": 0.079086
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.076887,
+                "Halbtax": 0.281178,
+                "Strecke": 0.029465,
+                "Gleis7": 0.0,
+                "Junior": 0.02341,
+                "Other": 0.0,
+                "Ga": 0.033124
+            },
+            "1": {
+                "Verbund": 0.013461,
+                "Halbtax": 0.409919,
+                "Strecke": 0.018496,
+                "Gleis7": 0.009089,
+                "Junior": 0.032464,
+                "Other": 0.011833,
+                "Ga": 0.148934
+            }
+        }
+    },
+    "Graubunden": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.104138,
+                "Halbtax": 0.291379,
+                "Strecke": 0.027586,
+                "Gleis7": 0.004828,
+                "Junior": 0.061724,
+                "Other": 0.00931,
+                "Ga": 0.080345
+            },
+            "1": {
+                "Verbund": 0.116879,
+                "Halbtax": 0.344792,
+                "Strecke": 0.035407,
+                "Gleis7": 0.004813,
+                "Junior": 0.07769,
+                "Other": 0.013063,
+                "Ga": 0.068408
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.096457,
+                "Halbtax": 0.282033,
+                "Strecke": 0.029854,
+                "Gleis7": 0.003902,
+                "Junior": 0.06629,
+                "Other": 0.027274,
+                "Ga": 0.061314
+            },
+            "1": {
+                "Verbund": 0.091484,
+                "Halbtax": 0.413609,
+                "Strecke": 0.028183,
+                "Gleis7": 0.005914,
+                "Junior": 0.079451,
+                "Other": 0.045615,
+                "Ga": 0.052299
+            }
+        }
+    },
+    "Schaffhausen": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.129676,
+                "Halbtax": 0.270158,
+                "Strecke": 0.029094,
+                "Gleis7": 0.004988,
+                "Junior": 0.065669,
+                "Other": 0.007481,
+                "Ga": 0.093101
+            },
+            "1": {
+                "Verbund": 0.137579,
+                "Halbtax": 0.330975,
+                "Strecke": 0.033805,
+                "Gleis7": 0.007862,
+                "Junior": 0.083333,
+                "Other": 0.015723,
+                "Ga": 0.068396
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.094889,
+                "Halbtax": 0.307886,
+                "Strecke": 0.018479,
+                "Gleis7": 0.003231,
+                "Junior": 0.051608,
+                "Other": 0.0,
+                "Ga": 0.088032
+            },
+            "1": {
+                "Verbund": 0.194343,
+                "Halbtax": 0.366659,
+                "Strecke": 0.020799,
+                "Gleis7": 0.002367,
+                "Junior": 0.061643,
+                "Other": 0.002483,
+                "Ga": 0.08422
+            }
+        }
+    },
+    "Zug": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.160546,
+                "Halbtax": 0.285414,
+                "Strecke": 0.029906,
+                "Gleis7": 0.004722,
+                "Junior": 0.070829,
+                "Other": 0.010493,
+                "Ga": 0.084995
+            },
+            "1": {
+                "Verbund": 0.170386,
+                "Halbtax": 0.337507,
+                "Strecke": 0.035928,
+                "Gleis7": 0.005988,
+                "Junior": 0.074034,
+                "Other": 0.013609,
+                "Ga": 0.076211
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.133061,
+                "Halbtax": 0.368973,
+                "Strecke": 0.03029,
+                "Gleis7": 0.009841,
+                "Junior": 0.098951,
+                "Other": 0.015561,
+                "Ga": 0.11619
+            },
+            "1": {
+                "Verbund": 0.132322,
+                "Halbtax": 0.535226,
+                "Strecke": 0.05588,
+                "Gleis7": 0.015931,
+                "Junior": 0.120442,
+                "Other": 0.023951,
+                "Ga": 0.072556
+            }
+        }
+    },
+    "Obwalden": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.071895,
+                "Halbtax": 0.254902,
+                "Strecke": 0.03268,
+                "Gleis7": 0.003268,
+                "Junior": 0.065359,
+                "Other": 0.014706,
+                "Ga": 0.073529
+            },
+            "1": {
+                "Verbund": 0.073214,
+                "Halbtax": 0.316071,
+                "Strecke": 0.028571,
+                "Gleis7": 0.001786,
+                "Junior": 0.094643,
+                "Other": 0.014286,
+                "Ga": 0.053571
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.08197,
+                "Halbtax": 0.349981,
+                "Strecke": 0.033682,
+                "Gleis7": 0.0,
+                "Junior": 0.103887,
+                "Other": 0.018116,
+                "Ga": 0.050069
+            },
+            "1": {
+                "Verbund": 0.077286,
+                "Halbtax": 0.486309,
+                "Strecke": 0.049092,
+                "Gleis7": 0.012493,
+                "Junior": 0.105464,
+                "Other": 0.00486,
+                "Ga": 0.057002
+            }
+        }
+    },
+    "Appenzell Ausserrhoden": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.109819,
+                "Halbtax": 0.27907,
+                "Strecke": 0.027132,
+                "Gleis7": 0.003876,
+                "Junior": 0.064599,
+                "Other": 0.009044,
+                "Ga": 0.083979
+            },
+            "1": {
+                "Verbund": 0.123596,
+                "Halbtax": 0.334582,
+                "Strecke": 0.032459,
+                "Gleis7": 0.001248,
+                "Junior": 0.083645,
+                "Other": 0.017478,
+                "Ga": 0.068664
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.123686,
+                "Halbtax": 0.309078,
+                "Strecke": 0.043272,
+                "Gleis7": 0.032706,
+                "Junior": 0.091173,
+                "Other": 0.0,
+                "Ga": 0.104853
+            },
+            "1": {
+                "Verbund": 0.052355,
+                "Halbtax": 0.506727,
+                "Strecke": 0.06826,
+                "Gleis7": 0.0,
+                "Junior": 0.05664,
+                "Other": 0.0,
+                "Ga": 0.068304
+            }
+        }
+    },
+    "Appenzell Innerrhoden": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.088,
+                "Halbtax": 0.268,
+                "Strecke": 0.028,
+                "Gleis7": 0.012,
+                "Junior": 0.06,
+                "Other": 0.02,
+                "Ga": 0.08
+            },
+            "1": {
+                "Verbund": 0.107759,
+                "Halbtax": 0.258621,
+                "Strecke": 0.021552,
+                "Gleis7": 0.008621,
+                "Junior": 0.064655,
+                "Other": 0.00431,
+                "Ga": 0.064655
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.110586,
+                "Halbtax": 0.128957,
+                "Strecke": 0.0,
+                "Gleis7": 0.0,
+                "Junior": 0.0,
+                "Other": 0.054755,
+                "Ga": 0.0
+            },
+            "1": {
+                "Verbund": 0.053712,
+                "Halbtax": 0.524641,
+                "Strecke": 0.0,
+                "Gleis7": 0.0,
+                "Junior": 0.272402,
+                "Other": 0.0,
+                "Ga": 0.11608
+            }
+        }
+    },
+    "All": {
+        "Synthetic": {
+            "0": {
+                "Verbund": 0.131565,
+                "Halbtax": 0.277553,
+                "Strecke": 0.026431,
+                "Gleis7": 0.005344,
+                "Junior": 0.070967,
+                "Other": 0.011184,
+                "Ga": 0.08473
+            },
+            "1": {
+                "Verbund": 0.146002,
+                "Halbtax": 0.327367,
+                "Strecke": 0.034705,
+                "Gleis7": 0.005493,
+                "Junior": 0.078746,
+                "Other": 0.013873,
+                "Ga": 0.07802
+            }
+        },
+        "Microcensus": {
+            "0": {
+                "Verbund": 0.135905,
+                "Halbtax": 0.286744,
+                "Strecke": 0.025225,
+                "Gleis7": 0.006612,
+                "Junior": 0.064367,
+                "Other": 0.012437,
+                "Ga": 0.091883
+            },
+            "1": {
+                "Verbund": 0.162214,
+                "Halbtax": 0.361804,
+                "Strecke": 0.038235,
+                "Gleis7": 0.006288,
+                "Junior": 0.078814,
+                "Other": 0.015688,
+                "Ga": 0.087025
+            }
+        }
+    }
+}
