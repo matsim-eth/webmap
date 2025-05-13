@@ -1,0 +1,167 @@
+{
+  "Aargau": [
+    "bus",
+    "ferry",
+    "other",
+    "rail"
+  ],
+  "AppenzellAusserrhoden": [
+    "bus",
+    "gondola",
+    "rail"
+  ],
+  "AppenzellInnerrhoden": [
+    "bus",
+    "gondola",
+    "rail"
+  ],
+  "Basel-Landschaft": [
+    "bus",
+    "rail",
+    "tram"
+  ],
+  "Basel-Stadt": [
+    "bus",
+    "other",
+    "rail",
+    "tram"
+  ],
+  "Bern": [
+    "bus",
+    "ferry",
+    "funicular",
+    "gondola",
+    "rail",
+    "tram"
+  ],
+  "Fribourg": [
+    "bus",
+    "ferry",
+    "funicular",
+    "gondola",
+    "rail"
+  ],
+  "Geneve": [
+    "bus",
+    "ferry",
+    "rail",
+    "tram"
+  ],
+  "Glarus": [
+    "bus",
+    "ferry",
+    "funicular",
+    "gondola",
+    "rail"
+  ],
+  "Graubunden": [
+    "bus",
+    "funicular",
+    "gondola",
+    "rail"
+  ],
+  "Jura": [
+    "bus",
+    "rail"
+  ],
+  "Luzern": [
+    "bus",
+    "ferry",
+    "funicular",
+    "gondola",
+    "rail"
+  ],
+  "Neuchatel": [
+    "bus",
+    "ferry",
+    "funicular",
+    "rail"
+  ],
+  "Nidwalden": [
+    "bus",
+    "ferry",
+    "funicular",
+    "gondola",
+    "rail"
+  ],
+  "Obwalden": [
+    "bus",
+    "ferry",
+    "funicular",
+    "gondola",
+    "rail"
+  ],
+  "Schaffhausen": [
+    "bus",
+    "ferry",
+    "rail"
+  ],
+  "Schwyz": [
+    "bus",
+    "ferry",
+    "funicular",
+    "gondola",
+    "other",
+    "rail"
+  ],
+  "Solothurn": [
+    "bus",
+    "rail",
+    "tram"
+  ],
+  "StGallen": [
+    "bus",
+    "ferry",
+    "other",
+    "rail"
+  ],
+  "Thurgau": [
+    "bus",
+    "ferry",
+    "rail"
+  ],
+  "Ticino": [
+    "bus",
+    "ferry",
+    "funicular",
+    "gondola",
+    "rail"
+  ],
+  "Uri": [
+    "bus",
+    "ferry",
+    "funicular",
+    "gondola",
+    "rail"
+  ],
+  "Valais": [
+    "bus",
+    "ferry",
+    "funicular",
+    "gondola",
+    "rail"
+  ],
+  "Vaud": [
+    "bus",
+    "ferry",
+    "funicular",
+    "gondola",
+    "rail",
+    "subway"
+  ],
+  "Zug": [
+    "bus",
+    "ferry",
+    "funicular",
+    "rail"
+  ],
+  "Zurich": [
+    "bus",
+    "ferry",
+    "funicular",
+    "gondola",
+    "other",
+    "rail",
+    "tram"
+  ]
+}
