@@ -757,13 +757,6 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
             },
             "transit-stops-layer"
           );
-          
-          setSelectedTransitStop({
-            name,
-            stop_id,
-            lines: combinedLines,
-            modes_list: combinedModes,
-          });
         });
         
         // Apply mode filtering
@@ -792,20 +785,20 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
   
   
 useEffect(() => {
-  if (
-    !highlightedRouteIds || highlightedRouteIds.length === 0 ||
-    !highlightedLineId || isGraphExpanded !== "Transit"
-  ) return;
-
   const map = mapRef.current;
   if (!map) return;
 
   const ROUTE_LAYER_ID = "transit-line-highlight";
   const ROUTE_SOURCE_ID = "transit-line-highlight";
 
-  // Remove previous layer and source
-  if (map.getLayer(ROUTE_LAYER_ID)) map.removeLayer(ROUTE_LAYER_ID);
-  if (map.getSource(ROUTE_SOURCE_ID)) map.removeSource(ROUTE_SOURCE_ID);
+      if (
+    !highlightedRouteIds || highlightedRouteIds.length === 0 ||
+    !highlightedLineId || isGraphExpanded !== "Transit"
+  ) {
+    if (map.getLayer(ROUTE_LAYER_ID)) map.removeLayer(ROUTE_LAYER_ID);
+    if (map.getSource(ROUTE_SOURCE_ID)) map.removeSource(ROUTE_SOURCE_ID);
+    return;
+  }
 
   fetch(`${dataURL}matsim/transit/transit_routes.geojson`)
     .then((res) => res.json())
@@ -818,33 +811,38 @@ useEffect(() => {
 
       if (matched.length === 0) return;
 
-      map.addSource(ROUTE_SOURCE_ID, {
-        type: "geojson",
-        data: {
-          type: "FeatureCollection",
-          features: matched,
-        },
-      });
+      const newData = {
+        type: "FeatureCollection",
+        features: matched,
+      };
 
-      map.addLayer(
-        {
-          id: ROUTE_LAYER_ID,
-          type: "line",
-          source: ROUTE_SOURCE_ID,
-          layout: {
-            "line-join": "round",
-            "line-cap": "round",
+      if (map.getSource(ROUTE_SOURCE_ID)) {
+        map.getSource(ROUTE_SOURCE_ID).setData(newData);
+      } else {
+        map.addSource(ROUTE_SOURCE_ID, {
+          type: "geojson",
+          data: newData,
+        });
+
+        map.addLayer(
+          {
+            id: ROUTE_LAYER_ID,
+            type: "line",
+            source: ROUTE_SOURCE_ID,
+            layout: {
+              "line-join": "round",
+              "line-cap": "round",
+            },
+            paint: {
+              "line-color": "#007AFF",
+              "line-width": 2,
+            },
           },
-          paint: {
-            "line-color": "#007AFF",
-            "line-width": 2,
-          },
-        },
-        "canton-highlight"
-      );
+          "canton-highlight"
+        );
+      }
     });
 }, [highlightedRouteIds, highlightedLineId, isGraphExpanded]);
-
 
 
 

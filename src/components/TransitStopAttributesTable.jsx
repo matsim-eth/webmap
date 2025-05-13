@@ -15,15 +15,16 @@ const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId
   const numRoutes = lines?.length || 0;
   const numLines = Object.keys(groupedLines).length;
   
-  const activeBadge = highlightedLineId;
-  
 const handleBadgeClick = (line_id) => {
   const isActive = highlightedLineId === line_id;
 
-  const routeIds = groupedLines[line_id].map(route => route.route_id);
-
   if (onLineClick) {
-    onLineClick(isActive ? null : line_id, isActive ? [] : routeIds);
+    if (isActive) {
+      onLineClick(null, []);
+    } else {
+      const routeIds = groupedLines[line_id].map(route => route.route_id);
+      onLineClick(line_id, routeIds);
+    }
   }
 };
   
@@ -41,22 +42,22 @@ const handleBadgeClick = (line_id) => {
     <td>
     <div className="badge-container">
     {Object.entries(groupedLines).map(([lineId, routes], idx) => (
-      <span
-      key={idx}
-      className={`mode-badge ${activeBadge === lineId ? "active" : ""}`}
-      onClick={() => handleBadgeClick(lineId)}
-      >
-      {lineId} ({routes[0].mode})
-      </span>
-    ))}
+  <span
+    key={idx}
+    className={`mode-badge ${highlightedLineId === lineId ? "active" : ""}`}
+    onClick={() => handleBadgeClick(lineId)}
+  >
+    {lineId} ({routes[0].mode})
+  </span>
+))}
     </div>
-    {activeBadge && Array.isArray(groupedLines[activeBadge]) && (
-      <ul className="route-list">
-      {groupedLines[activeBadge].map((route, i) => (
-        <li key={i}>{route.route_id}</li>
-      ))}
-      </ul>
-    )}
+   {highlightedLineId && Array.isArray(groupedLines[highlightedLineId]) && (
+  <ul className="route-list">
+    {groupedLines[highlightedLineId].map((route, i) => (
+      <li key={i}>{route.route_id}</li>
+    ))}
+  </ul>
+)}
     
     </td>
     </tr>
