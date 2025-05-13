@@ -628,12 +628,12 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
       
       if (map.getLayer("transit-highlight-layer")) map.removeLayer("transit-highlight-layer");
       if (map.getSource("transit-highlight")) map.removeSource("transit-highlight");
-
+      
       if (map.getLayer("transit-line-highlight")) map.removeLayer("transit-line-highlight");
       if (map.getSource("transit-line-highlight")) map.removeSource("transit-line-highlight");
       
       setSelectedTransitStop(null);
-
+      
       setHighlightedLineId(null)
       setHighlightedRouteIds([])
     };
@@ -647,46 +647,46 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
         const map = mapRef.current;
         if (!map) return;
         
-        removeTransitStops();
-        
-        map.addSource("transit-stops", {
-          type: "geojson",
-          data: geojson,
-        });
-        
-        map.addLayer({
-          id: "transit-stops-layer",
-          type: "circle",
-          source: "transit-stops",
-          paint: {
-            "circle-radius": 3,
-            "circle-color": "#ff8800",
-            "circle-stroke-color": "#333",
-            "circle-stroke-width": 1,
-          },
-        });
-        
-        map.addLayer(
-          {
-            id: "transit-stops-label",
-            type: "symbol",
+        if(!map.getLayer("transit-stops-layer")) {
+          map.addSource("transit-stops", {
+            type: "geojson",
+            data: geojson,
+          });
+          
+          map.addLayer({
+            id: "transit-stops-layer",
+            type: "circle",
             source: "transit-stops",
-            layout: {
-              "text-field": ["get", "name"],
-              "text-size": 12,
-              "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
-              "text-offset": [0, -0.8],
-              "text-anchor": "bottom-left",
-            },
             paint: {
-              "text-color": "#222",
-              "text-halo-color": "#ffffff",
-              "text-halo-width": 1,
+              "circle-radius": 3,
+              "circle-color": "#ff8800",
+              "circle-stroke-color": "#333",
+              "circle-stroke-width": 1,
             },
-            minzoom: 14,
-          },
-          "transit-stops-layer"
-        );
+          });
+          
+          map.addLayer(
+            {
+              id: "transit-stops-label",
+              type: "symbol",
+              source: "transit-stops",
+              layout: {
+                "text-field": ["get", "name"],
+                "text-size": 12,
+                "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+                "text-offset": [0, -0.8],
+                "text-anchor": "bottom-left",
+              },
+              paint: {
+                "text-color": "#222",
+                "text-halo-color": "#ffffff",
+                "text-halo-width": 1,
+              },
+              minzoom: 14,
+            },
+            "transit-stops-layer"
+          );
+        }
         
         // Add click event
         map.on("click", "transit-stops-layer", (e) => {
@@ -757,6 +757,13 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
             },
             "transit-stops-layer"
           );
+          
+          setSelectedTransitStop({
+            name,
+            stop_id,
+            lines: combinedLines,
+            modes_list: combinedModes,
+          });
         });
         
         // Apply mode filtering
@@ -773,7 +780,14 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
           ]),
         ];
         
-        map.setFilter("transit-stops-layer", modeFilter);
+        ["transit-stops-layer", "transit-highlight-layer", "transit-stops-label"].forEach((id) => {
+          if (map.getLayer(id)) {
+            map.setFilter(id, modeFilter);
+          }
+        });
+        
+        setHighlightedLineId(null)
+        setHighlightedRouteIds([])
       })
       .catch((err) => {
         console.error("Error loading transit stops:", err);
@@ -784,38 +798,38 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
   }, [isGraphExpanded, selectedTransitModes, searchCanton]);
   
   
-useEffect(() => {
-  const map = mapRef.current;
-  if (!map) return;
-
-  const ROUTE_LAYER_ID = "transit-line-highlight";
-  const ROUTE_SOURCE_ID = "transit-line-highlight";
-
-      if (
-    !highlightedRouteIds || highlightedRouteIds.length === 0 ||
-    !highlightedLineId || isGraphExpanded !== "Transit"
-  ) {
-    if (map.getLayer(ROUTE_LAYER_ID)) map.removeLayer(ROUTE_LAYER_ID);
-    if (map.getSource(ROUTE_SOURCE_ID)) map.removeSource(ROUTE_SOURCE_ID);
-    return;
-  }
-
-  fetch(`${dataURL}matsim/transit/transit_routes.geojson`)
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    
+    const ROUTE_LAYER_ID = "transit-line-highlight";
+    const ROUTE_SOURCE_ID = "transit-line-highlight";
+    
+    if (
+      !highlightedRouteIds || highlightedRouteIds.length === 0 ||
+      !highlightedLineId || isGraphExpanded !== "Transit"
+    ) {
+      if (map.getLayer(ROUTE_LAYER_ID)) map.removeLayer(ROUTE_LAYER_ID);
+      if (map.getSource(ROUTE_SOURCE_ID)) map.removeSource(ROUTE_SOURCE_ID);
+      return;
+    }
+    
+    fetch(`${dataURL}matsim/transit/transit_routes.geojson`)
     .then((res) => res.json())
     .then((geojson) => {
       const matched = geojson.features.filter(
         (f) =>
           f.properties.line_id === highlightedLineId &&
-          highlightedRouteIds.includes(f.properties.route_id)
+        highlightedRouteIds.includes(f.properties.route_id)
       );
-
+      
       if (matched.length === 0) return;
-
+      
       const newData = {
         type: "FeatureCollection",
         features: matched,
       };
-
+      
       if (map.getSource(ROUTE_SOURCE_ID)) {
         map.getSource(ROUTE_SOURCE_ID).setData(newData);
       } else {
@@ -823,7 +837,7 @@ useEffect(() => {
           type: "geojson",
           data: newData,
         });
-
+        
         map.addLayer(
           {
             id: ROUTE_LAYER_ID,
@@ -842,190 +856,190 @@ useEffect(() => {
         );
       }
     });
-}, [highlightedRouteIds, highlightedLineId, isGraphExpanded]);
-
-
-
-// ======================= CHOROPLETH MODULE =======================
-
-useEffect(() => {
-  fetch(`${dataURL}mode_share.json`)
-  .then((response) => response.json())
-  .then((data) => {
-    setModeShareData(data);
-    setMaxSharePerMode(data.max_share_per_mode);
-  })
-  .catch((error) => console.error("Error loading mode share data:", error));
-}, []);
-
-// Set colours for choropleth by mode (matches with plots)
-const MODE_COLORS = {
-  car: "#636efa",
-  car_passenger: "#ef553b",
-  pt: "#00cc96",
-  bike: "#ab63fa",
-  walk: "#ffa15a",
-};
-
-// Set choropleth colours for cantons
-useEffect(() => {
-  const map = mapRef.current;
+  }, [highlightedRouteIds, highlightedLineId, isGraphExpanded]);
   
-  if (!map.getLayer("canton-fill")) return; // incase canton-fill not loaded yet
   
-  if (selectedMode === "None") {
-    // Reset to default
-    map.setPaintProperty("canton-fill", "fill-opacity", 0.15);
-    map.setPaintProperty("canton-fill", "fill-color", "#A07CC5");
-    return;
-  }
   
-  let colorStops = {};
+  // ======================= CHOROPLETH MODULE =======================
   
-  if (selectedDataset === "Difference") {
-    const micro = modeShareData["Microcensus"].filter(entry => entry.mode === selectedMode);
-    const synthetic = modeShareData["Synthetic"].filter(entry => entry.mode === selectedMode);
-    
-    const microMap = Object.fromEntries(micro.map(e => [e.canton_name, e.share]));
-    const syntheticMap = Object.fromEntries(synthetic.map(e => [e.canton_name, e.share]));
-    
-    colorStops = Object.keys(microMap).reduce((acc, canton) => {
-      const diff = Math.abs((syntheticMap[canton] || 0) - (microMap[canton] || 0));
-      const clampedDiff = Math.min(diff, 0.1); // max out at 10%
-      const normalized = clampedDiff / 0.1;
-      acc[canton] = `rgb(${interpolateColor("#FFFFFF", "#ff0000", normalized)})`; // White to Red
-      return acc;
-    }, {});
-  } else {
-    const maxShare = maxSharePerMode[selectedMode] || 1;
-    colorStops = modeShareData[selectedDataset]
-    .filter(entry => entry.mode === selectedMode)
-    .reduce((acc, entry) => {
-      const normalizedShare = entry.share / maxShare;
-      acc[entry.canton_name] = `rgb(${interpolateColor("#FFFFFF", MODE_COLORS[selectedMode], normalizedShare)})`;
-      return acc;
-    }, {});
-  }
-  map.setPaintProperty("canton-fill", "fill-color", [
-    "case",
-    ...Object.entries(colorStops).flatMap(([canton, color]) => [["==", ["get", "NAME"], canton], color]),
-    "#FFFFFF"
-  ]);
+  useEffect(() => {
+    fetch(`${dataURL}mode_share.json`)
+    .then((response) => response.json())
+    .then((data) => {
+      setModeShareData(data);
+      setMaxSharePerMode(data.max_share_per_mode);
+    })
+    .catch((error) => console.error("Error loading mode share data:", error));
+  }, []);
   
-  map.setPaintProperty("canton-fill", "fill-opacity", 1.0); // No transparency
+  // Set colours for choropleth by mode (matches with plots)
+  const MODE_COLORS = {
+    car: "#636efa",
+    car_passenger: "#ef553b",
+    pt: "#00cc96",
+    bike: "#ab63fa",
+    walk: "#ffa15a",
+  };
   
-}, [modeShareData, selectedMode, selectedDataset, maxSharePerMode]);
-
-// Function to interpolate between two colors (White → Mode Color)
-const interpolateColor = (color1, color2, factor) => {
-  const rgb1 = hexToRgb(color1);
-  const rgb2 = hexToRgb(color2);
-  
-  return rgb1.map((c, i) => Math.round(c + (rgb2[i] - c) * factor)).join(", ");
-};
-
-// Convert HEX to RGB array (since we defined colours in HEX)
-const hexToRgb = (hex) => {
-  const bigint = parseInt(hex.slice(1), 16);
-  return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
-};
-
-//  ======================= MAP PADDING LOGIC =======================
-// this ensures that the map stays focused on the same feature even
-// as the width of the sidebar changes (otherwise as the sidebar)
-// gets wider, it could hide what we are originally looking at
-
-useEffect(() => {
-  if (mapRef.current) {
+  // Set choropleth colours for cantons
+  useEffect(() => {
     const map = mapRef.current;
     
-    // Determine the right padding based on which graph is selected
-    let rightPadding = 50; // Default for collapsed sidebar
+    if (!map.getLayer("canton-fill")) return; // incase canton-fill not loaded yet
     
-    if (isSidebarOpen) {
-      // Widest width
-      if (isGraphExpanded === "Graph 3" || isGraphExpanded === "Graph 4") {
-        rightPadding = 950; // Adjust for 900px width
-        // Middle width
-      } else if (isGraphExpanded === "Graph 1" || isGraphExpanded === "Graph 2" || isGraphExpanded === "Volumes" || isGraphExpanded === "Transit"
-      ) {
-        rightPadding = 650; // Adjust for 600px width
-      } else {
-        // Smallest width
-        rightPadding = 350;
-      }
+    if (selectedMode === "None") {
+      // Reset to default
+      map.setPaintProperty("canton-fill", "fill-opacity", 0.15);
+      map.setPaintProperty("canton-fill", "fill-color", "#A07CC5");
+      return;
     }
     
-    // Smoothly adjust padding when sidebar changes
-    map.easeTo({
-      padding: { top: 50, bottom: 50, left: 50, right: rightPadding },
-      duration: 600,
-    });
-  }
-}, [isSidebarOpen, isGraphExpanded]); // Re-run when sidebar size changes
-
-// handle search-based zooming
-useEffect(() => {
-  if (searchCanton && mapRef.current && bboxCache[searchCanton]) {
-    const map = mapRef.current;
-    const cantonBbox = bboxCache[searchCanton]; // fetch bbox
+    let colorStops = {};
     
-    // Determine the correct right padding
-    let rightPadding = 50; // Default for collapsed sidebar
-    if (isSidebarOpen) {
-      if (isGraphExpanded === "Graph 3" || isGraphExpanded === "Graph 4") {
-        rightPadding = 950; // Adjust for 900px width
-      } else if (isGraphExpanded === "Graph 1" || isGraphExpanded === "Graph 2" || isGraphExpanded === "Volumes" || isGraphExpanded === "Transit"
-      ) {
-        rightPadding = 650; // Adjust for 600px width
-      } else {
-        rightPadding = 350; // Default open sidebar
-      }
-    }
-    
-    map.fitBounds(cantonBbox, {
-      padding: { top: 50, bottom: 50, left: 50, right: rightPadding },
-      maxZoom: 10,
-      duration: 1000,
-    });
-    
-    setClickedCanton(searchCanton);
-    
-    map.setFilter("selected-canton-border", ["==", "NAME", searchCanton]);
-    
-    if (graphExpandedRef.current === "Network" || graphExpandedRef.current === "Volumes") {
-      loadNetworkForCanton(searchCanton);
+    if (selectedDataset === "Difference") {
+      const micro = modeShareData["Microcensus"].filter(entry => entry.mode === selectedMode);
+      const synthetic = modeShareData["Synthetic"].filter(entry => entry.mode === selectedMode);
+      
+      const microMap = Object.fromEntries(micro.map(e => [e.canton_name, e.share]));
+      const syntheticMap = Object.fromEntries(synthetic.map(e => [e.canton_name, e.share]));
+      
+      colorStops = Object.keys(microMap).reduce((acc, canton) => {
+        const diff = Math.abs((syntheticMap[canton] || 0) - (microMap[canton] || 0));
+        const clampedDiff = Math.min(diff, 0.1); // max out at 10%
+        const normalized = clampedDiff / 0.1;
+        acc[canton] = `rgb(${interpolateColor("#FFFFFF", "#ff0000", normalized)})`; // White to Red
+        return acc;
+      }, {});
     } else {
-      // Remove network-related layers and sources
-      if (map.getLayer("network-layer")) {
-        map.removeLayer("network-layer");
-        map.removeLayer("click-network-layer");
-        map.removeSource("network-source");
+      const maxShare = maxSharePerMode[selectedMode] || 1;
+      colorStops = modeShareData[selectedDataset]
+      .filter(entry => entry.mode === selectedMode)
+      .reduce((acc, entry) => {
+        const normalizedShare = entry.share / maxShare;
+        acc[entry.canton_name] = `rgb(${interpolateColor("#FFFFFF", MODE_COLORS[selectedMode], normalizedShare)})`;
+        return acc;
+      }, {});
+    }
+    map.setPaintProperty("canton-fill", "fill-color", [
+      "case",
+      ...Object.entries(colorStops).flatMap(([canton, color]) => [["==", ["get", "NAME"], canton], color]),
+      "#FFFFFF"
+    ]);
+    
+    map.setPaintProperty("canton-fill", "fill-opacity", 1.0); // No transparency
+    
+  }, [modeShareData, selectedMode, selectedDataset, maxSharePerMode]);
+  
+  // Function to interpolate between two colors (White → Mode Color)
+  const interpolateColor = (color1, color2, factor) => {
+    const rgb1 = hexToRgb(color1);
+    const rgb2 = hexToRgb(color2);
+    
+    return rgb1.map((c, i) => Math.round(c + (rgb2[i] - c) * factor)).join(", ");
+  };
+  
+  // Convert HEX to RGB array (since we defined colours in HEX)
+  const hexToRgb = (hex) => {
+    const bigint = parseInt(hex.slice(1), 16);
+    return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
+  };
+  
+  //  ======================= MAP PADDING LOGIC =======================
+  // this ensures that the map stays focused on the same feature even
+  // as the width of the sidebar changes (otherwise as the sidebar)
+  // gets wider, it could hide what we are originally looking at
+  
+  useEffect(() => {
+    if (mapRef.current) {
+      const map = mapRef.current;
+      
+      // Determine the right padding based on which graph is selected
+      let rightPadding = 50; // Default for collapsed sidebar
+      
+      if (isSidebarOpen) {
+        // Widest width
+        if (isGraphExpanded === "Graph 3" || isGraphExpanded === "Graph 4") {
+          rightPadding = 950; // Adjust for 900px width
+          // Middle width
+        } else if (isGraphExpanded === "Graph 1" || isGraphExpanded === "Graph 2" || isGraphExpanded === "Volumes" || isGraphExpanded === "Transit"
+        ) {
+          rightPadding = 650; // Adjust for 600px width
+        } else {
+          // Smallest width
+          rightPadding = 350;
+        }
       }
-      if (map.getLayer("ant-line")) {
-        map.removeLayer("ant-line");
-        map.removeSource("ant-path")
-      }
-      ["network-highlight"].forEach(id => {
-        if (map.getLayer(id)) map.removeLayer(id);
-        if (map.getSource(id)) map.removeSource(id);
+      
+      // Smoothly adjust padding when sidebar changes
+      map.easeTo({
+        padding: { top: 50, bottom: 50, left: 50, right: rightPadding },
+        duration: 600,
       });
     }
-  }
-}, [searchCanton]); // only update when searchCanton updates
-
-return (
-  <>
-  <div id="map-container" ref={mapContainerRef} />
+  }, [isSidebarOpen, isGraphExpanded]); // Re-run when sidebar size changes
   
-  {isLoadingNetwork && (
-    <div className="map-loading-overlay">
-    <div className="spinner" />
-    <div className="loading-text">Loading network...</div>
-    </div>
-  )}
-  </>
-);
+  // handle search-based zooming
+  useEffect(() => {
+    if (searchCanton && mapRef.current && bboxCache[searchCanton]) {
+      const map = mapRef.current;
+      const cantonBbox = bboxCache[searchCanton]; // fetch bbox
+      
+      // Determine the correct right padding
+      let rightPadding = 50; // Default for collapsed sidebar
+      if (isSidebarOpen) {
+        if (isGraphExpanded === "Graph 3" || isGraphExpanded === "Graph 4") {
+          rightPadding = 950; // Adjust for 900px width
+        } else if (isGraphExpanded === "Graph 1" || isGraphExpanded === "Graph 2" || isGraphExpanded === "Volumes" || isGraphExpanded === "Transit"
+        ) {
+          rightPadding = 650; // Adjust for 600px width
+        } else {
+          rightPadding = 350; // Default open sidebar
+        }
+      }
+      
+      map.fitBounds(cantonBbox, {
+        padding: { top: 50, bottom: 50, left: 50, right: rightPadding },
+        maxZoom: 10,
+        duration: 1000,
+      });
+      
+      setClickedCanton(searchCanton);
+      
+      map.setFilter("selected-canton-border", ["==", "NAME", searchCanton]);
+      
+      if (graphExpandedRef.current === "Network" || graphExpandedRef.current === "Volumes") {
+        loadNetworkForCanton(searchCanton);
+      } else {
+        // Remove network-related layers and sources
+        if (map.getLayer("network-layer")) {
+          map.removeLayer("network-layer");
+          map.removeLayer("click-network-layer");
+          map.removeSource("network-source");
+        }
+        if (map.getLayer("ant-line")) {
+          map.removeLayer("ant-line");
+          map.removeSource("ant-path")
+        }
+        ["network-highlight"].forEach(id => {
+          if (map.getLayer(id)) map.removeLayer(id);
+          if (map.getSource(id)) map.removeSource(id);
+        });
+      }
+    }
+  }, [searchCanton]); // only update when searchCanton updates
+  
+  return (
+    <>
+    <div id="map-container" ref={mapContainerRef} />
+    
+    {isLoadingNetwork && (
+      <div className="map-loading-overlay">
+      <div className="spinner" />
+      <div className="loading-text">Loading network...</div>
+      </div>
+    )}
+    </>
+  );
 };
 
 export default Map;
