@@ -647,11 +647,16 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
         const map = mapRef.current;
         if (!map) return;
         
-        if(!map.getLayer("transit-stops-layer")) {
-          map.addSource("transit-stops", {
+        if (map.getSource("transit-stops")) {
+            map.getSource("transit-stops").setData(geojson);
+          } else {
+            map.addSource("transit-stops", {
             type: "geojson",
             data: geojson,
           });
+          }
+
+        if(!map.getLayer("transit-stops-layer")) {
           
           map.addLayer({
             id: "transit-stops-layer",
