@@ -18,7 +18,8 @@ import TransitStopAttributesTable from "./TransitStopAttributesTable";
 
 const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, resetMapView, updateMapSymbology,
   selectedNetworkModes, setSelectedNetworkModes, selectedNetworkFeature, setVisualizeLinkId, dataURL, setDataURL,
-  selectedTransitModes, setSelectedTransitModes }) => {
+  selectedTransitModes, setSelectedTransitModes, selectedTransitStop, highlightedLineId, setHighlightedLineId,
+  setHighlightedRouteIds }) => {
     
     // ======================= INITIALIZE VARIABLES =======================
     
@@ -33,7 +34,6 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
     // Transit module
     const [availableTransitModes, setAvailableTransitModes] = useState([]);
     const [transitModesByCanton, setTransitModesByCanton] = useState({});
-    const [selectedTransitStop, setSelectedTransitStop] = useState(null);
     
     // ======================= GENERAL FEATURES (BUTTONS / DROPDOWN) =======================
     
@@ -89,6 +89,9 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
       setSelectedTransitModes(["all"]);
       updateMapSymbology("None", selectedDataset);
       resetMapView();
+      
+      setHighlightedLineId(null);
+      setHighlightedRouteIds([]);
     };
     
     
@@ -333,9 +336,15 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
               ))}
               </select>
               </div>
-              
               {selectedTransitStop && (
-                <TransitStopAttributesTable properties={selectedTransitStop} />
+                <TransitStopAttributesTable
+                properties={selectedTransitStop}
+                highlightedLineId={highlightedLineId}
+                onLineClick={(lineId, routeIds) => {
+                  setHighlightedLineId(lineId);
+                  setHighlightedRouteIds(routeIds);
+                }}
+                />
               )}
               </div>
             )}

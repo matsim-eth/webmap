@@ -17,19 +17,23 @@
         "lat": 47.15219002573669,
         "lines": [
           {
-            "line_id": "SBB_S2_8503016-8503225",
-            "mode": "rail"
-          },
-          {
             "line_id": "SBB_S8_8503225-8506000",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S_8503016-8503225",
+            "route_id": "18892_002",
             "mode": "rail"
           },
           {
             "line_id": "SOB_line27",
+            "route_id": "08222_003",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S_8503016-8503225",
+            "route_id": "19016_001",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S2_8503016-8503225",
+            "route_id": "18220_001",
             "mode": "rail"
           }
         ],
@@ -57,27 +61,33 @@
         "lat": 47.15219002573669,
         "lines": [
           {
-            "line_id": "SBB_S2_8503016-8503225",
-            "mode": "rail"
-          },
-          {
             "line_id": "SBB_S2_8503209-8503225",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S8_8503225-8503305",
+            "route_id": "18285_001",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S8_8503225-8506000",
+            "route_id": "18819_001",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S2_8503016-8503225",
+            "route_id": "18283_064",
             "mode": "rail"
           },
           {
             "line_id": "SOB_line27",
+            "route_id": "08221_002",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S8_8503225-8503305",
+            "route_id": "31193_001",
             "mode": "rail"
           },
           {
             "line_id": "SOB_line27",
+            "route_id": "08219_001",
             "mode": "rail"
           }
         ],
@@ -105,27 +115,33 @@
         "lat": 47.12236002522484,
         "lines": [
           {
-            "line_id": "SBB_S25_8503000-8503233",
-            "mode": "rail"
-          },
-          {
             "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503225-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "20523_002",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23665_001",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503233",
+            "route_id": "20571_001",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503225-8503233",
+            "route_id": "23611_001",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20511_001",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "23613_001",
             "mode": "rail"
           }
         ],
@@ -154,22 +170,27 @@
         "lines": [
           {
             "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503225-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "20524_003",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23682_002",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20580_004",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "23620_003",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20520_001",
             "mode": "rail"
           }
         ],
@@ -198,10 +219,12 @@
         "lines": [
           {
             "line_id": "Ext",
+            "route_id": "87009_215",
             "mode": "bus"
           },
           {
             "line_id": "Ext",
+            "route_id": "87003_209",
             "mode": "bus"
           }
         ],
@@ -230,10 +253,12 @@
         "lines": [
           {
             "line_id": "Ext",
+            "route_id": "87004_210",
             "mode": "bus"
           },
           {
             "line_id": "Ext",
+            "route_id": "87002_208",
             "mode": "bus"
           }
         ],
@@ -261,27 +286,33 @@
         "lat": 47.09872002510456,
         "lines": [
           {
-            "line_id": "SBB_S25_8503000-8503233",
-            "mode": "rail"
-          },
-          {
             "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503225-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "20523_002",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23665_001",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503233",
+            "route_id": "20571_001",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503225-8503233",
+            "route_id": "23611_001",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20511_001",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "23613_001",
             "mode": "rail"
           }
         ],
@@ -310,22 +341,27 @@
         "lines": [
           {
             "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503225-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "20524_003",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23682_002",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20580_004",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "23620_003",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20520_001",
             "mode": "rail"
           }
         ],
@@ -354,22 +390,27 @@
         "lines": [
           {
             "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503225-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "20524_003",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23682_002",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20580_004",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "23620_003",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20520_001",
             "mode": "rail"
           }
         ],
@@ -397,27 +438,33 @@
         "lat": 47.06452002526791,
         "lines": [
           {
-            "line_id": "SBB_S25_8503000-8503233",
-            "mode": "rail"
-          },
-          {
             "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503225-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "20523_002",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23665_001",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503233",
+            "route_id": "20571_001",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503225-8503233",
+            "route_id": "23611_001",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20511_001",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "23613_001",
             "mode": "rail"
           }
         ],
@@ -446,22 +493,27 @@
         "lines": [
           {
             "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503225-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "20524_003",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23682_002",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20580_004",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "23620_003",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20520_001",
             "mode": "rail"
           }
         ],
@@ -489,27 +541,33 @@
         "lat": 47.039920025075475,
         "lines": [
           {
-            "line_id": "SBB_S25_8503000-8503233",
-            "mode": "rail"
-          },
-          {
             "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503225-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "20523_002",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23665_001",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503233",
+            "route_id": "20571_001",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503225-8503233",
+            "route_id": "23611_001",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20511_001",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "23613_001",
             "mode": "rail"
           }
         ],
@@ -538,10 +596,12 @@
         "lines": [
           {
             "line_id": "Ext",
+            "route_id": "87004_210",
             "mode": "bus"
           },
           {
             "line_id": "Ext",
+            "route_id": "87002_208",
             "mode": "bus"
           }
         ],
@@ -570,10 +630,12 @@
         "lines": [
           {
             "line_id": "Ext",
+            "route_id": "87009_215",
             "mode": "bus"
           },
           {
             "line_id": "Ext",
+            "route_id": "87003_209",
             "mode": "bus"
           }
         ],
@@ -602,22 +664,27 @@
         "lines": [
           {
             "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503225-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "20524_003",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23682_002",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20580_004",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "23620_003",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20520_001",
             "mode": "rail"
           }
         ],
@@ -645,27 +712,33 @@
         "lat": 47.03295002498643,
         "lines": [
           {
-            "line_id": "SBB_S25_8503000-8503233",
-            "mode": "rail"
-          },
-          {
             "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503225-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "20523_002",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23665_001",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503233",
+            "route_id": "20571_001",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503225-8503233",
+            "route_id": "23611_001",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20511_001",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "23613_001",
             "mode": "rail"
           }
         ],
@@ -694,10 +767,12 @@
         "lines": [
           {
             "line_id": "Ext",
+            "route_id": "87009_215",
             "mode": "bus"
           },
           {
             "line_id": "Ext",
+            "route_id": "87003_209",
             "mode": "bus"
           }
         ],
@@ -726,6 +801,7 @@
         "lines": [
           {
             "line_id": "Ext",
+            "route_id": "87002_208",
             "mode": "bus"
           }
         ],
@@ -754,6 +830,7 @@
         "lines": [
           {
             "line_id": "Ext",
+            "route_id": "87004_210",
             "mode": "bus"
           }
         ],
@@ -782,22 +859,27 @@
         "lines": [
           {
             "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503225-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "20524_003",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23682_002",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20580_004",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "23620_003",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20520_001",
             "mode": "rail"
           }
         ],
@@ -825,27 +907,33 @@
         "lat": 47.010130024921615,
         "lines": [
           {
-            "line_id": "SBB_S25_8503000-8503233",
-            "mode": "rail"
-          },
-          {
             "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503225-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "20523_002",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23665_001",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503233",
+            "route_id": "20571_001",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503225-8503233",
+            "route_id": "23611_001",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20511_001",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "23613_001",
             "mode": "rail"
           }
         ],
@@ -874,22 +962,27 @@
         "lines": [
           {
             "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503225-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "20524_003",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23682_002",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20580_004",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "23620_003",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20520_001",
             "mode": "rail"
           }
         ],
@@ -917,27 +1010,33 @@
         "lat": 46.996850024979324,
         "lines": [
           {
-            "line_id": "SBB_S25_8503000-8503233",
-            "mode": "rail"
-          },
-          {
             "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503225-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "20523_002",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23665_001",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503233",
+            "route_id": "20571_001",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503225-8503233",
+            "route_id": "23611_001",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20511_001",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S6_8503110-8503233",
+            "route_id": "23613_001",
             "mode": "rail"
           }
         ],
@@ -965,19 +1064,23 @@
         "lat": 46.985890025264304,
         "lines": [
           {
-            "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
             "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20580_004",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20524_003",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23682_002",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20520_001",
             "mode": "rail"
           }
         ],
@@ -1006,14 +1109,17 @@
         "lines": [
           {
             "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20523_002",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20511_001",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23665_001",
             "mode": "rail"
           }
         ],
@@ -1041,19 +1147,23 @@
         "lat": 46.975740025457405,
         "lines": [
           {
-            "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
             "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20580_004",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20524_003",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23682_002",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20520_001",
             "mode": "rail"
           }
         ],
@@ -1082,14 +1192,17 @@
         "lines": [
           {
             "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20523_002",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20511_001",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23665_001",
             "mode": "rail"
           }
         ],
@@ -1117,19 +1230,23 @@
         "lat": 46.96506002558074,
         "lines": [
           {
-            "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
             "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20580_004",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20524_003",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23682_002",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20520_001",
             "mode": "rail"
           }
         ],
@@ -1158,14 +1275,17 @@
         "lines": [
           {
             "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20523_002",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20511_001",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23665_001",
             "mode": "rail"
           }
         ],
@@ -1194,6 +1314,7 @@
         "lines": [
           {
             "line_id": "Ext",
+            "route_id": "87004_210",
             "mode": "bus"
           }
         ],
@@ -1222,10 +1343,12 @@
         "lines": [
           {
             "line_id": "Ext",
+            "route_id": "87001_207",
             "mode": "bus"
           },
           {
             "line_id": "Ext",
+            "route_id": "87003_209",
             "mode": "bus"
           }
         ],
@@ -1253,19 +1376,23 @@
         "lat": 46.946170025809195,
         "lines": [
           {
-            "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
             "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20580_004",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20524_003",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23682_002",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20520_001",
             "mode": "rail"
           }
         ],
@@ -1294,14 +1421,17 @@
         "lines": [
           {
             "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20523_002",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20511_001",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23665_001",
             "mode": "rail"
           }
         ],
@@ -1330,6 +1460,7 @@
         "lines": [
           {
             "line_id": "Ext",
+            "route_id": "87004_210",
             "mode": "bus"
           }
         ],
@@ -1358,10 +1489,12 @@
         "lines": [
           {
             "line_id": "Ext",
+            "route_id": "87001_207",
             "mode": "bus"
           },
           {
             "line_id": "Ext",
+            "route_id": "87003_209",
             "mode": "bus"
           }
         ],
@@ -1390,14 +1523,17 @@
         "lines": [
           {
             "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20523_002",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20511_001",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23665_001",
             "mode": "rail"
           }
         ],
@@ -1425,19 +1561,23 @@
         "lat": 46.9345400259861,
         "lines": [
           {
-            "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
             "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20580_004",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20524_003",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23682_002",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20520_001",
             "mode": "rail"
           }
         ],
@@ -1466,14 +1606,17 @@
         "lines": [
           {
             "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20523_002",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20511_001",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23665_001",
             "mode": "rail"
           }
         ],
@@ -1501,19 +1644,23 @@
         "lat": 46.92557002622487,
         "lines": [
           {
-            "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
             "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20580_004",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20524_003",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23682_002",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20520_001",
             "mode": "rail"
           }
         ],
@@ -1542,6 +1689,7 @@
         "lines": [
           {
             "line_id": "Bah_line736",
+            "route_id": "93620_003",
             "mode": "bus"
           }
         ],
@@ -1570,14 +1718,17 @@
         "lines": [
           {
             "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20523_002",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20511_001",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23665_001",
             "mode": "rail"
           }
         ],
@@ -1605,19 +1756,23 @@
         "lat": 46.92839002615126,
         "lines": [
           {
-            "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
-            "line_id": "SBB_S25_8503000-8503239",
-            "mode": "rail"
-          },
-          {
             "line_id": "SBB_S25_8503225-8503239",
+            "route_id": "20580_004",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20524_003",
             "mode": "rail"
           },
           {
             "line_id": "SBB_S6_8503110-8503239",
+            "route_id": "23682_002",
+            "mode": "rail"
+          },
+          {
+            "line_id": "SBB_S25_8503000-8503239",
+            "route_id": "20520_001",
             "mode": "rail"
           }
         ],
@@ -1646,6 +1801,7 @@
         "lines": [
           {
             "line_id": "Bah_line736",
+            "route_id": "93611_001",
             "mode": "bus"
           }
         ],
@@ -1674,6 +1830,7 @@
         "lines": [
           {
             "line_id": "Bah_line736",
+            "route_id": "93620_003",
             "mode": "bus"
           }
         ],
@@ -1702,6 +1859,7 @@
         "lines": [
           {
             "line_id": "Bah_line736",
+            "route_id": "93620_003",
             "mode": "bus"
           }
         ],
@@ -1729,23 +1887,28 @@
         "lat": 46.94636002575081,
         "lines": [
           {
+            "line_id": "Ext",
+            "route_id": "87004_210",
+            "mode": "bus"
+          },
+          {
             "line_id": "Bah_line736",
+            "route_id": "93620_003",
             "mode": "bus"
           },
           {
             "line_id": "Bah_line736",
+            "route_id": "93611_001",
             "mode": "bus"
           },
           {
             "line_id": "Ext",
+            "route_id": "87001_207",
             "mode": "bus"
           },
           {
             "line_id": "Ext",
-            "mode": "bus"
-          },
-          {
-            "line_id": "Ext",
+            "route_id": "87003_209",
             "mode": "bus"
           }
         ],
@@ -1774,18 +1937,22 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00124_045",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00008_007",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00002_001",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00006_005",
             "mode": "bus"
           }
         ],
@@ -1814,26 +1981,32 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00109_040",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00005_004",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00123_044",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00003_002",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00007_006",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00039_038",
             "mode": "bus"
           }
         ],
@@ -1862,6 +2035,7 @@
         "lines": [
           {
             "line_id": "AS_line543",
+            "route_id": "00301_001",
             "mode": "bus"
           }
         ],
@@ -1890,6 +2064,7 @@
         "lines": [
           {
             "line_id": "AS_line543",
+            "route_id": "00302_002",
             "mode": "bus"
           }
         ],
@@ -1918,38 +2093,47 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00006_005",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00007_006",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00008_007",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00005_004",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00123_044",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00003_002",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00124_045",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00002_001",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00039_038",
             "mode": "bus"
           }
         ],
@@ -1978,18 +2162,22 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00003_002",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00005_004",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00123_044",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00007_006",
             "mode": "bus"
           }
         ],
@@ -2018,18 +2206,22 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00124_045",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00008_007",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00002_001",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00006_005",
             "mode": "bus"
           }
         ],
@@ -2058,26 +2250,32 @@
         "lines": [
           {
             "line_id": "BRS",
+            "route_id": "00100_020",
             "mode": "funicular"
           },
           {
             "line_id": "BRS",
+            "route_id": "00005_002",
             "mode": "funicular"
           },
           {
             "line_id": "BRS",
+            "route_id": "01005_037",
             "mode": "funicular"
           },
           {
             "line_id": "BRS",
+            "route_id": "00001_001",
             "mode": "funicular"
           },
           {
             "line_id": "BRS",
+            "route_id": "01001_036",
             "mode": "funicular"
           },
           {
             "line_id": "BRS",
+            "route_id": "01100_055",
             "mode": "funicular"
           }
         ],
@@ -2106,26 +2304,32 @@
         "lines": [
           {
             "line_id": "BRS",
+            "route_id": "00100_020",
             "mode": "funicular"
           },
           {
             "line_id": "BRS",
+            "route_id": "00005_002",
             "mode": "funicular"
           },
           {
             "line_id": "BRS",
+            "route_id": "01005_037",
             "mode": "funicular"
           },
           {
             "line_id": "BRS",
+            "route_id": "00001_001",
             "mode": "funicular"
           },
           {
             "line_id": "BRS",
+            "route_id": "01001_036",
             "mode": "funicular"
           },
           {
             "line_id": "BRS",
+            "route_id": "01100_055",
             "mode": "funicular"
           }
         ],
@@ -2154,22 +2358,27 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00005_004",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00123_044",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00003_002",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00007_006",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00039_038",
             "mode": "bus"
           }
         ],
@@ -2198,18 +2407,22 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00124_045",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00008_007",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00002_001",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00006_005",
             "mode": "bus"
           }
         ],
@@ -2238,22 +2451,27 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00005_004",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00123_044",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00003_002",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00007_006",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00039_038",
             "mode": "bus"
           }
         ],
@@ -2282,14 +2500,17 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00008_007",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00002_001",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00006_005",
             "mode": "bus"
           }
         ],
@@ -2318,22 +2539,27 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00005_004",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00123_044",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00003_002",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00007_006",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00039_038",
             "mode": "bus"
           }
         ],
@@ -2362,14 +2588,17 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00008_007",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00002_001",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00006_005",
             "mode": "bus"
           }
         ],
@@ -2398,26 +2627,32 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00109_040",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00005_004",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00123_044",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00003_002",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00007_006",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00039_038",
             "mode": "bus"
           }
         ],
@@ -2446,18 +2681,22 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00124_045",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00008_007",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00002_001",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00006_005",
             "mode": "bus"
           }
         ],
@@ -2486,26 +2725,32 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00109_040",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00005_004",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00123_044",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00003_002",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00007_006",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00039_038",
             "mode": "bus"
           }
         ],
@@ -2534,18 +2779,22 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00124_045",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00008_007",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00002_001",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00006_005",
             "mode": "bus"
           }
         ],
@@ -2574,18 +2823,22 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00124_045",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00008_007",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00002_001",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00006_005",
             "mode": "bus"
           }
         ],
@@ -2614,26 +2867,32 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00109_040",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00005_004",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00123_044",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00003_002",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00007_006",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00039_038",
             "mode": "bus"
           }
         ],
@@ -2662,6 +2921,7 @@
         "lines": [
           {
             "line_id": "AS_line544",
+            "route_id": "00053_001",
             "mode": "bus"
           }
         ],
@@ -2690,6 +2950,7 @@
         "lines": [
           {
             "line_id": "AS_line544",
+            "route_id": "00054_002",
             "mode": "bus"
           }
         ],
@@ -2717,15 +2978,18 @@
         "lat": 46.913054023637564,
         "lines": [
           {
+            "line_id": "AS_line545",
+            "route_id": "00417_003",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AS_line545",
+            "route_id": "00409_001",
+            "mode": "bus"
+          },
+          {
             "line_id": "AS_line541",
-            "mode": "bus"
-          },
-          {
-            "line_id": "AS_line545",
-            "mode": "bus"
-          },
-          {
-            "line_id": "AS_line545",
+            "route_id": "00007_006",
             "mode": "bus"
           }
         ],
@@ -2754,10 +3018,12 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00008_007",
             "mode": "bus"
           },
           {
             "line_id": "AS_line545",
+            "route_id": "00424_004",
             "mode": "bus"
           }
         ],
@@ -2786,14 +3052,17 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00109_040",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00005_004",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00123_044",
             "mode": "bus"
           }
         ],
@@ -2822,10 +3091,12 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00124_045",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00006_005",
             "mode": "bus"
           }
         ],
@@ -2854,18 +3125,22 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00124_045",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00008_007",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00002_001",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00006_005",
             "mode": "bus"
           }
         ],
@@ -2894,26 +3169,32 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00109_040",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00005_004",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00123_044",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00003_002",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00007_006",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00039_038",
             "mode": "bus"
           }
         ],
@@ -2942,6 +3223,7 @@
         "lines": [
           {
             "line_id": "AS_line542",
+            "route_id": "00202_002",
             "mode": "bus"
           }
         ],
@@ -2970,6 +3252,7 @@
         "lines": [
           {
             "line_id": "AS_line542",
+            "route_id": "00201_001",
             "mode": "bus"
           }
         ],
@@ -2998,6 +3281,7 @@
         "lines": [
           {
             "line_id": "AS_line542",
+            "route_id": "00202_002",
             "mode": "bus"
           }
         ],
@@ -3026,6 +3310,7 @@
         "lines": [
           {
             "line_id": "AS_line542",
+            "route_id": "00201_001",
             "mode": "bus"
           }
         ],
@@ -3054,10 +3339,12 @@
         "lines": [
           {
             "line_id": "Ext",
+            "route_id": "87001_207",
             "mode": "bus"
           },
           {
             "line_id": "Ext",
+            "route_id": "87003_209",
             "mode": "bus"
           }
         ],
@@ -3086,6 +3373,7 @@
         "lines": [
           {
             "line_id": "Ext",
+            "route_id": "87004_210",
             "mode": "bus"
           }
         ],
@@ -3114,6 +3402,7 @@
         "lines": [
           {
             "line_id": "Bah_line736",
+            "route_id": "93611_001",
             "mode": "bus"
           }
         ],
@@ -3142,6 +3431,7 @@
         "lines": [
           {
             "line_id": "Bah_line736",
+            "route_id": "93620_003",
             "mode": "bus"
           }
         ],
@@ -3170,6 +3460,7 @@
         "lines": [
           {
             "line_id": "Bah_line736",
+            "route_id": "93611_001",
             "mode": "bus"
           }
         ],
@@ -3198,6 +3489,7 @@
         "lines": [
           {
             "line_id": "Bah_line736",
+            "route_id": "93611_001",
             "mode": "bus"
           }
         ],
@@ -3226,6 +3518,7 @@
         "lines": [
           {
             "line_id": "Bah_line736",
+            "route_id": "93620_003",
             "mode": "bus"
           }
         ],
@@ -3254,6 +3547,7 @@
         "lines": [
           {
             "line_id": "Bah_line736",
+            "route_id": "93611_001",
             "mode": "bus"
           }
         ],
@@ -3281,19 +3575,23 @@
         "lat": 46.927835026170406,
         "lines": [
           {
-            "line_id": "Bah_line736",
-            "mode": "bus"
-          },
-          {
-            "line_id": "Bah_line736",
+            "line_id": "Ext",
+            "route_id": "87001_207",
             "mode": "bus"
           },
           {
             "line_id": "Ext",
+            "route_id": "87004_210",
             "mode": "bus"
           },
           {
-            "line_id": "Ext",
+            "line_id": "Bah_line736",
+            "route_id": "93620_003",
+            "mode": "bus"
+          },
+          {
+            "line_id": "Bah_line736",
+            "route_id": "93611_001",
             "mode": "bus"
           }
         ],
@@ -3322,6 +3620,7 @@
         "lines": [
           {
             "line_id": "Ext",
+            "route_id": "87003_209",
             "mode": "bus"
           }
         ],
@@ -3350,18 +3649,22 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00101_001",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00305_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
             "mode": "bus"
           }
         ],
@@ -3390,10 +3693,12 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -3421,15 +3726,18 @@
         "lat": 46.90767402390104,
         "lines": [
           {
+            "line_id": "AS_line545",
+            "route_id": "00417_003",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AS_line545",
+            "route_id": "00409_001",
+            "mode": "bus"
+          },
+          {
             "line_id": "AS_line541",
-            "mode": "bus"
-          },
-          {
-            "line_id": "AS_line545",
-            "mode": "bus"
-          },
-          {
-            "line_id": "AS_line545",
+            "route_id": "00007_006",
             "mode": "bus"
           }
         ],
@@ -3458,10 +3766,12 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00008_007",
             "mode": "bus"
           },
           {
             "line_id": "AS_line545",
+            "route_id": "00424_004",
             "mode": "bus"
           }
         ],
@@ -3490,6 +3800,7 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00007_006",
             "mode": "bus"
           }
         ],
@@ -3518,6 +3829,7 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00008_007",
             "mode": "bus"
           }
         ],
@@ -3546,14 +3858,17 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00008_007",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00124_045",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00006_005",
             "mode": "bus"
           }
         ],
@@ -3582,18 +3897,22 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00109_040",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00005_004",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00123_044",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00007_006",
             "mode": "bus"
           }
         ],
@@ -3622,14 +3941,17 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00008_007",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00124_045",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00006_005",
             "mode": "bus"
           }
         ],
@@ -3658,18 +3980,22 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00109_040",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00005_004",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00123_044",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00007_006",
             "mode": "bus"
           }
         ],
@@ -3698,18 +4024,22 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00003_002",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00005_004",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00123_044",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00007_006",
             "mode": "bus"
           }
         ],
@@ -3738,18 +4068,22 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00124_045",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00008_007",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00002_001",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00006_005",
             "mode": "bus"
           }
         ],
@@ -3778,6 +4112,7 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00007_006",
             "mode": "bus"
           }
         ],
@@ -3806,6 +4141,7 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00008_007",
             "mode": "bus"
           }
         ],
@@ -3834,14 +4170,17 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00305_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00135_035",
             "mode": "bus"
           }
         ],
@@ -3870,14 +4209,17 @@
         "lines": [
           {
             "line_id": "PAG_line504",
+            "route_id": "50404_074",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50410_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50403_073",
             "mode": "bus"
           }
         ],
@@ -3906,10 +4248,12 @@
         "lines": [
           {
             "line_id": "PAG_line504",
+            "route_id": "50403_073",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50417_081",
             "mode": "bus"
           }
         ],
@@ -3938,10 +4282,12 @@
         "lines": [
           {
             "line_id": "PAG_line504",
+            "route_id": "50404_074",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50410_078",
             "mode": "bus"
           }
         ],
@@ -3970,10 +4316,12 @@
         "lines": [
           {
             "line_id": "PAG_line504",
+            "route_id": "50404_074",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50410_078",
             "mode": "bus"
           }
         ],
@@ -4002,10 +4350,12 @@
         "lines": [
           {
             "line_id": "PAG_line504",
+            "route_id": "50403_073",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50417_081",
             "mode": "bus"
           }
         ],
@@ -4034,6 +4384,7 @@
         "lines": [
           {
             "line_id": "PAG_line504",
+            "route_id": "50417_081",
             "mode": "bus"
           }
         ],
@@ -4062,10 +4413,12 @@
         "lines": [
           {
             "line_id": "PAG_line504",
+            "route_id": "50404_074",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50410_078",
             "mode": "bus"
           }
         ],
@@ -4094,6 +4447,7 @@
         "lines": [
           {
             "line_id": "PAG_line504",
+            "route_id": "50403_073",
             "mode": "bus"
           }
         ],
@@ -4122,18 +4476,22 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00101_001",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00305_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
             "mode": "bus"
           }
         ],
@@ -4162,10 +4520,12 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -4194,6 +4554,7 @@
         "lines": [
           {
             "line_id": "PAG_line408",
+            "route_id": "00718_024",
             "mode": "bus"
           }
         ],
@@ -4222,6 +4583,7 @@
         "lines": [
           {
             "line_id": "PAG_line408",
+            "route_id": "00805_025",
             "mode": "bus"
           }
         ],
@@ -4250,6 +4612,7 @@
         "lines": [
           {
             "line_id": "PAG_line408",
+            "route_id": "00718_024",
             "mode": "bus"
           }
         ],
@@ -4278,6 +4641,7 @@
         "lines": [
           {
             "line_id": "PAG_line408",
+            "route_id": "00805_025",
             "mode": "bus"
           }
         ],
@@ -4306,6 +4670,7 @@
         "lines": [
           {
             "line_id": "PAG_line408",
+            "route_id": "00718_024",
             "mode": "bus"
           }
         ],
@@ -4334,6 +4699,7 @@
         "lines": [
           {
             "line_id": "PAG_line408",
+            "route_id": "00805_025",
             "mode": "bus"
           }
         ],
@@ -4362,6 +4728,7 @@
         "lines": [
           {
             "line_id": "PAG_line408",
+            "route_id": "00718_024",
             "mode": "bus"
           }
         ],
@@ -4390,6 +4757,7 @@
         "lines": [
           {
             "line_id": "PAG_line408",
+            "route_id": "00805_025",
             "mode": "bus"
           }
         ],
@@ -4418,6 +4786,7 @@
         "lines": [
           {
             "line_id": "SOB_line4",
+            "route_id": "23413_004",
             "mode": "rail"
           }
         ],
@@ -4446,6 +4815,7 @@
         "lines": [
           {
             "line_id": "SOB_line4",
+            "route_id": "23400_001",
             "mode": "rail"
           }
         ],
@@ -4474,22 +4844,27 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00101_001",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line511",
+            "route_id": "00305_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line511",
+            "route_id": "00135_035",
             "mode": "bus"
           }
         ],
@@ -4518,14 +4893,17 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00102_002",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -4554,14 +4932,17 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00305_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00135_035",
             "mode": "bus"
           }
         ],
@@ -4590,10 +4971,12 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00102_002",
             "mode": "bus"
           }
         ],
@@ -4622,6 +5005,7 @@
         "lines": [
           {
             "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -4650,10 +5034,12 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00101_001",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
             "mode": "bus"
           }
         ],
@@ -4682,10 +5068,12 @@
         "lines": [
           {
             "line_id": "GLN",
+            "route_id": "00002_002",
             "mode": "gondola"
           },
           {
             "line_id": "GLN",
+            "route_id": "00001_001",
             "mode": "gondola"
           }
         ],
@@ -4714,10 +5102,12 @@
         "lines": [
           {
             "line_id": "GLN",
+            "route_id": "00002_002",
             "mode": "gondola"
           },
           {
             "line_id": "GLN",
+            "route_id": "00001_001",
             "mode": "gondola"
           }
         ],
@@ -4746,14 +5136,17 @@
         "lines": [
           {
             "line_id": "LKM",
+            "route_id": "00037_001",
             "mode": "gondola"
           },
           {
             "line_id": "LKM",
+            "route_id": "00038_003",
             "mode": "gondola"
           },
           {
             "line_id": "LKM",
+            "route_id": "00038_004",
             "mode": "gondola"
           }
         ],
@@ -4782,14 +5175,17 @@
         "lines": [
           {
             "line_id": "LKM",
+            "route_id": "00037_001",
             "mode": "gondola"
           },
           {
             "line_id": "LKM",
+            "route_id": "00038_003",
             "mode": "gondola"
           },
           {
             "line_id": "LKM",
+            "route_id": "00038_004",
             "mode": "gondola"
           }
         ],
@@ -4818,10 +5214,12 @@
         "lines": [
           {
             "line_id": "LMW",
+            "route_id": "00105_024",
             "mode": "gondola"
           },
           {
             "line_id": "LMW",
+            "route_id": "00005_001",
             "mode": "gondola"
           }
         ],
@@ -4850,10 +5248,12 @@
         "lines": [
           {
             "line_id": "LMW",
+            "route_id": "00105_024",
             "mode": "gondola"
           },
           {
             "line_id": "LMW",
+            "route_id": "00005_001",
             "mode": "gondola"
           }
         ],
@@ -4882,18 +5282,22 @@
         "lines": [
           {
             "line_id": "SW",
+            "route_id": "00002_002",
             "mode": "ferry"
           },
           {
             "line_id": "SW",
+            "route_id": "00016_008",
             "mode": "ferry"
           },
           {
             "line_id": "SW",
+            "route_id": "00015_007",
             "mode": "ferry"
           },
           {
             "line_id": "SW",
+            "route_id": "00005_003",
             "mode": "ferry"
           }
         ],
@@ -4922,14 +5326,17 @@
         "lines": [
           {
             "line_id": "PAG_line502",
+            "route_id": "50215_027",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
+            "route_id": "50201_014",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
+            "route_id": "50203_016",
             "mode": "bus"
           }
         ],
@@ -4958,10 +5365,12 @@
         "lines": [
           {
             "line_id": "PAG_line502",
+            "route_id": "50202_015",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
+            "route_id": "50208_020",
             "mode": "bus"
           }
         ],
@@ -4990,6 +5399,7 @@
         "lines": [
           {
             "line_id": "PAG_line408",
+            "route_id": "00718_024",
             "mode": "bus"
           }
         ],
@@ -5018,6 +5428,7 @@
         "lines": [
           {
             "line_id": "PAG_line408",
+            "route_id": "00805_025",
             "mode": "bus"
           }
         ],
@@ -5046,6 +5457,7 @@
         "lines": [
           {
             "line_id": "PAG_line408",
+            "route_id": "00805_025",
             "mode": "bus"
           }
         ],
@@ -5073,11 +5485,13 @@
         "lat": 46.92133902619044,
         "lines": [
           {
-            "line_id": "Bah_line736",
+            "line_id": "PAG_line408",
+            "route_id": "00718_024",
             "mode": "bus"
           },
           {
-            "line_id": "PAG_line408",
+            "line_id": "Bah_line736",
+            "route_id": "93611_001",
             "mode": "bus"
           }
         ],
@@ -5106,6 +5520,7 @@
         "lines": [
           {
             "line_id": "Bah_line736",
+            "route_id": "93620_003",
             "mode": "bus"
           }
         ],
@@ -5133,15 +5548,18 @@
         "lat": 46.92535102622019,
         "lines": [
           {
+            "line_id": "Ext",
+            "route_id": "87001_207",
+            "mode": "bus"
+          },
+          {
+            "line_id": "Ext",
+            "route_id": "87003_209",
+            "mode": "bus"
+          },
+          {
             "line_id": "Bah_line736",
-            "mode": "bus"
-          },
-          {
-            "line_id": "Ext",
-            "mode": "bus"
-          },
-          {
-            "line_id": "Ext",
+            "route_id": "93611_001",
             "mode": "bus"
           }
         ],
@@ -5170,6 +5588,7 @@
         "lines": [
           {
             "line_id": "Ext",
+            "route_id": "87004_210",
             "mode": "bus"
           }
         ],
@@ -5198,6 +5617,7 @@
         "lines": [
           {
             "line_id": "WSU_line551",
+            "route_id": "00002_002",
             "mode": "bus"
           }
         ],
@@ -5226,6 +5646,7 @@
         "lines": [
           {
             "line_id": "WSU_line551",
+            "route_id": "00001_001",
             "mode": "bus"
           }
         ],
@@ -5254,6 +5675,7 @@
         "lines": [
           {
             "line_id": "PAG_line408",
+            "route_id": "00718_024",
             "mode": "bus"
           }
         ],
@@ -5282,6 +5704,7 @@
         "lines": [
           {
             "line_id": "PAG_line408",
+            "route_id": "00805_025",
             "mode": "bus"
           }
         ],
@@ -5310,18 +5733,22 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00101_001",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00203_073",
             "mode": "bus"
           }
         ],
@@ -5349,15 +5776,18 @@
         "lat": 47.11424602526264,
         "lines": [
           {
+            "line_id": "PAG_line512",
+            "route_id": "00200_070",
+            "mode": "bus"
+          },
+          {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -5386,18 +5816,22 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00101_001",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00203_073",
             "mode": "bus"
           }
         ],
@@ -5425,15 +5859,18 @@
         "lat": 47.10744202519923,
         "lines": [
           {
+            "line_id": "PAG_line512",
+            "route_id": "00200_070",
+            "mode": "bus"
+          },
+          {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -5462,18 +5899,22 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00101_001",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00203_073",
             "mode": "bus"
           }
         ],
@@ -5501,15 +5942,18 @@
         "lat": 47.09991202521916,
         "lines": [
           {
+            "line_id": "PAG_line512",
+            "route_id": "00200_070",
+            "mode": "bus"
+          },
+          {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -5538,6 +5982,7 @@
         "lines": [
           {
             "line_id": "SSM_line519",
+            "route_id": "00010_003",
             "mode": "bus"
           }
         ],
@@ -5566,6 +6011,7 @@
         "lines": [
           {
             "line_id": "SSM_line519",
+            "route_id": "00001_001",
             "mode": "bus"
           }
         ],
@@ -5593,43 +6039,53 @@
         "lat": 47.09849702510667,
         "lines": [
           {
-            "line_id": "Ext",
-            "mode": "bus"
-          },
-          {
-            "line_id": "Ext",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line501",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line501",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line502",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line502",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line502",
+            "line_id": "PAG_line512",
+            "route_id": "00200_070",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line501",
+            "route_id": "50109_095",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50201_014",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50203_016",
+            "mode": "bus"
+          },
+          {
+            "line_id": "Ext",
+            "route_id": "87009_215",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line501",
+            "route_id": "50101_087",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50215_027",
+            "mode": "bus"
+          },
+          {
+            "line_id": "Ext",
+            "route_id": "87003_209",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -5658,30 +6114,37 @@
         "lines": [
           {
             "line_id": "Ext",
+            "route_id": "87004_210",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line511",
+            "route_id": "00103_003",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line511",
+            "route_id": "00101_001",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line511",
+            "route_id": "00305_078",
             "mode": "bus"
           },
           {
             "line_id": "Ext",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line511",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line511",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line511",
+            "route_id": "87002_208",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00203_073",
             "mode": "bus"
           }
         ],
@@ -5709,19 +6172,23 @@
         "lat": 47.09849702510667,
         "lines": [
           {
-            "line_id": "PAG_line501",
+            "line_id": "PAG_line502",
+            "route_id": "50202_015",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50110_096",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
+            "route_id": "50208_020",
             "mode": "bus"
           },
           {
-            "line_id": "PAG_line502",
+            "line_id": "PAG_line501",
+            "route_id": "50104_090",
             "mode": "bus"
           }
         ],
@@ -5750,18 +6217,22 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00101_001",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00305_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
             "mode": "bus"
           }
         ],
@@ -5790,10 +6261,12 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -5822,18 +6295,22 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00101_001",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00305_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
             "mode": "bus"
           }
         ],
@@ -5862,10 +6339,12 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -5894,18 +6373,22 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00101_001",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00305_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
             "mode": "bus"
           }
         ],
@@ -5934,10 +6417,12 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -5966,18 +6451,22 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00101_001",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00305_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
             "mode": "bus"
           }
         ],
@@ -6006,10 +6495,12 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -6038,22 +6529,27 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00101_001",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line511",
+            "route_id": "00305_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line511",
+            "route_id": "00135_035",
             "mode": "bus"
           }
         ],
@@ -6082,14 +6578,17 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00102_002",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -6118,22 +6617,27 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00101_001",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line511",
+            "route_id": "00305_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line511",
+            "route_id": "00135_035",
             "mode": "bus"
           }
         ],
@@ -6162,14 +6666,17 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00102_002",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -6198,34 +6705,42 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00101_001",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00305_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line511",
+            "route_id": "00102_002",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line511",
+            "route_id": "00135_035",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -6254,14 +6769,17 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00305_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00135_035",
             "mode": "bus"
           }
         ],
@@ -6290,10 +6808,12 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00102_002",
             "mode": "bus"
           }
         ],
@@ -6322,10 +6842,12 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00102_002",
             "mode": "bus"
           }
         ],
@@ -6354,14 +6876,17 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00305_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00135_035",
             "mode": "bus"
           }
         ],
@@ -6390,10 +6915,12 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00102_002",
             "mode": "bus"
           }
         ],
@@ -6422,14 +6949,17 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00305_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00135_035",
             "mode": "bus"
           }
         ],
@@ -6458,10 +6988,12 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00102_002",
             "mode": "bus"
           }
         ],
@@ -6490,14 +7022,17 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00305_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00135_035",
             "mode": "bus"
           }
         ],
@@ -6526,10 +7061,12 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00102_002",
             "mode": "bus"
           }
         ],
@@ -6558,14 +7095,17 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00305_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00135_035",
             "mode": "bus"
           }
         ],
@@ -6594,10 +7134,12 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00102_002",
             "mode": "bus"
           }
         ],
@@ -6626,10 +7168,12 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00102_002",
             "mode": "bus"
           }
         ],
@@ -6658,14 +7202,17 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00305_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00135_035",
             "mode": "bus"
           }
         ],
@@ -6694,10 +7241,12 @@
         "lines": [
           {
             "line_id": "PAG_line502",
+            "route_id": "50215_027",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
+            "route_id": "50203_016",
             "mode": "bus"
           }
         ],
@@ -6726,22 +7275,27 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50109_095",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
+            "route_id": "50201_014",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line504",
+            "route_id": "50403_073",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line504",
+            "route_id": "50417_081",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line504",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line504",
+            "route_id": "50202_015",
             "mode": "bus"
           }
         ],
@@ -6769,35 +7323,43 @@
         "lat": 47.039571025076846,
         "lines": [
           {
-            "line_id": "Ext",
-            "mode": "bus"
-          },
-          {
-            "line_id": "Ext",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line501",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line501",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line501",
-            "mode": "bus"
-          },
-          {
             "line_id": "PAG_line502",
+            "route_id": "50208_020",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line501",
+            "route_id": "50102_088",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line501",
+            "route_id": "50104_090",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50404_074",
+            "mode": "bus"
+          },
+          {
+            "line_id": "Ext",
+            "route_id": "87009_215",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50410_078",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line501",
+            "route_id": "50110_096",
+            "mode": "bus"
+          },
+          {
+            "line_id": "Ext",
+            "route_id": "87003_209",
             "mode": "bus"
           }
         ],
@@ -6826,14 +7388,17 @@
         "lines": [
           {
             "line_id": "Ext",
-            "mode": "bus"
-          },
-          {
-            "line_id": "Ext",
+            "route_id": "87004_210",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50101_087",
+            "mode": "bus"
+          },
+          {
+            "line_id": "Ext",
+            "route_id": "87002_208",
             "mode": "bus"
           }
         ],
@@ -6862,6 +7427,7 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50102_088",
             "mode": "bus"
           }
         ],
@@ -6890,18 +7456,22 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50109_095",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50101_087",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50403_073",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50417_081",
             "mode": "bus"
           }
         ],
@@ -6929,19 +7499,23 @@
         "lat": 47.04928002537895,
         "lines": [
           {
-            "line_id": "PAG_line501",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line501",
+            "line_id": "PAG_line504",
+            "route_id": "50404_074",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50410_078",
             "mode": "bus"
           },
           {
-            "line_id": "PAG_line504",
+            "line_id": "PAG_line501",
+            "route_id": "50110_096",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line501",
+            "route_id": "50104_090",
             "mode": "bus"
           }
         ],
@@ -6970,10 +7544,12 @@
         "lines": [
           {
             "line_id": "PAG_line504",
+            "route_id": "50404_074",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50410_078",
             "mode": "bus"
           }
         ],
@@ -7002,10 +7578,12 @@
         "lines": [
           {
             "line_id": "PAG_line504",
+            "route_id": "50403_073",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50417_081",
             "mode": "bus"
           }
         ],
@@ -7034,10 +7612,12 @@
         "lines": [
           {
             "line_id": "PAG_line504",
+            "route_id": "50403_073",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50417_081",
             "mode": "bus"
           }
         ],
@@ -7066,10 +7646,12 @@
         "lines": [
           {
             "line_id": "PAG_line504",
+            "route_id": "50404_074",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50410_078",
             "mode": "bus"
           }
         ],
@@ -7098,10 +7680,12 @@
         "lines": [
           {
             "line_id": "Ext",
+            "route_id": "87004_210",
             "mode": "bus"
           },
           {
             "line_id": "Ext",
+            "route_id": "87002_208",
             "mode": "bus"
           }
         ],
@@ -7130,10 +7714,12 @@
         "lines": [
           {
             "line_id": "Ext",
+            "route_id": "87009_215",
             "mode": "bus"
           },
           {
             "line_id": "Ext",
+            "route_id": "87003_209",
             "mode": "bus"
           }
         ],
@@ -7162,10 +7748,12 @@
         "lines": [
           {
             "line_id": "AS_line542",
+            "route_id": "00202_002",
             "mode": "bus"
           },
           {
             "line_id": "Bah_line736",
+            "route_id": "93620_003",
             "mode": "bus"
           }
         ],
@@ -7193,15 +7781,18 @@
         "lat": 46.99695502498779,
         "lines": [
           {
+            "line_id": "Ext",
+            "route_id": "87001_207",
+            "mode": "bus"
+          },
+          {
             "line_id": "AS_line542",
+            "route_id": "00201_001",
             "mode": "bus"
           },
           {
             "line_id": "Bah_line736",
-            "mode": "bus"
-          },
-          {
-            "line_id": "Ext",
+            "route_id": "93611_001",
             "mode": "bus"
           }
         ],
@@ -7230,26 +7821,32 @@
         "lines": [
           {
             "line_id": "AS_line541",
-            "mode": "bus"
-          },
-          {
-            "line_id": "AS_line541",
-            "mode": "bus"
-          },
-          {
-            "line_id": "AS_line541",
-            "mode": "bus"
-          },
-          {
-            "line_id": "AS_line541",
-            "mode": "bus"
-          },
-          {
-            "line_id": "AS_line543",
+            "route_id": "00008_007",
             "mode": "bus"
           },
           {
             "line_id": "AS_line544",
+            "route_id": "00054_002",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AS_line543",
+            "route_id": "00302_002",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AS_line541",
+            "route_id": "00124_045",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AS_line541",
+            "route_id": "00002_001",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AS_line541",
+            "route_id": "00006_005",
             "mode": "bus"
           }
         ],
@@ -7278,34 +7875,42 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00109_040",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00005_004",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00123_044",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
-            "mode": "bus"
-          },
-          {
-            "line_id": "AS_line541",
-            "mode": "bus"
-          },
-          {
-            "line_id": "AS_line541",
-            "mode": "bus"
-          },
-          {
-            "line_id": "AS_line543",
+            "route_id": "00003_002",
             "mode": "bus"
           },
           {
             "line_id": "AS_line544",
+            "route_id": "00053_001",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AS_line543",
+            "route_id": "00301_001",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AS_line541",
+            "route_id": "00007_006",
+            "mode": "bus"
+          },
+          {
+            "line_id": "AS_line541",
+            "route_id": "00039_038",
             "mode": "bus"
           }
         ],
@@ -7334,6 +7939,7 @@
         "lines": [
           {
             "line_id": "AS_line542",
+            "route_id": "00202_002",
             "mode": "bus"
           }
         ],
@@ -7362,6 +7968,7 @@
         "lines": [
           {
             "line_id": "AS_line542",
+            "route_id": "00201_001",
             "mode": "bus"
           }
         ],
@@ -7390,6 +7997,7 @@
         "lines": [
           {
             "line_id": "AS_line542",
+            "route_id": "00202_002",
             "mode": "bus"
           }
         ],
@@ -7418,6 +8026,7 @@
         "lines": [
           {
             "line_id": "AS_line542",
+            "route_id": "00201_001",
             "mode": "bus"
           }
         ],
@@ -7446,10 +8055,12 @@
         "lines": [
           {
             "line_id": "PAG_line524",
+            "route_id": "52402_074",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "54402_176",
             "mode": "bus"
           }
         ],
@@ -7478,10 +8089,12 @@
         "lines": [
           {
             "line_id": "PAG_line524",
+            "route_id": "52411_089",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "54401_175",
             "mode": "bus"
           }
         ],
@@ -7510,18 +8123,22 @@
         "lines": [
           {
             "line_id": "PAG_line524",
+            "route_id": "52411_089",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "52402_074",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "54401_175",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "54402_176",
             "mode": "bus"
           }
         ],
@@ -7550,18 +8167,22 @@
         "lines": [
           {
             "line_id": "PAG_line524",
+            "route_id": "52411_089",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "52402_074",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "54401_175",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "54402_176",
             "mode": "bus"
           }
         ],
@@ -7590,6 +8211,7 @@
         "lines": [
           {
             "line_id": "PAG_line524",
+            "route_id": "52402_074",
             "mode": "bus"
           }
         ],
@@ -7618,10 +8240,12 @@
         "lines": [
           {
             "line_id": "PAG_line524",
+            "route_id": "52411_089",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "54401_175",
             "mode": "bus"
           }
         ],
@@ -7650,6 +8274,7 @@
         "lines": [
           {
             "line_id": "PAG_line524",
+            "route_id": "54402_176",
             "mode": "bus"
           }
         ],
@@ -7678,6 +8303,7 @@
         "lines": [
           {
             "line_id": "PAG_line524",
+            "route_id": "52411_089",
             "mode": "bus"
           }
         ],
@@ -7706,6 +8332,7 @@
         "lines": [
           {
             "line_id": "PAG_line524",
+            "route_id": "52402_074",
             "mode": "bus"
           }
         ],
@@ -7734,10 +8361,12 @@
         "lines": [
           {
             "line_id": "PAG_line524",
+            "route_id": "54401_175",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "54402_176",
             "mode": "bus"
           }
         ],
@@ -7766,18 +8395,22 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00101_001",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00203_073",
             "mode": "bus"
           }
         ],
@@ -7805,15 +8438,18 @@
         "lat": 47.10178802521404,
         "lines": [
           {
+            "line_id": "PAG_line512",
+            "route_id": "00200_070",
+            "mode": "bus"
+          },
+          {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -7842,18 +8478,22 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00101_001",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00203_073",
             "mode": "bus"
           }
         ],
@@ -7881,15 +8521,18 @@
         "lat": 47.12198302536295,
         "lines": [
           {
+            "line_id": "PAG_line512",
+            "route_id": "00200_070",
+            "mode": "bus"
+          },
+          {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -7918,18 +8561,22 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00101_001",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00203_073",
             "mode": "bus"
           }
         ],
@@ -7957,15 +8604,18 @@
         "lat": 47.11767102526947,
         "lines": [
           {
+            "line_id": "PAG_line512",
+            "route_id": "00200_070",
+            "mode": "bus"
+          },
+          {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -7994,18 +8644,22 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00101_001",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00203_073",
             "mode": "bus"
           }
         ],
@@ -8033,15 +8687,18 @@
         "lat": 47.10507802517121,
         "lines": [
           {
+            "line_id": "PAG_line512",
+            "route_id": "00200_070",
+            "mode": "bus"
+          },
+          {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -8070,18 +8727,22 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00101_001",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00203_073",
             "mode": "bus"
           }
         ],
@@ -8109,15 +8770,18 @@
         "lat": 47.111429025230684,
         "lines": [
           {
+            "line_id": "PAG_line512",
+            "route_id": "00200_070",
+            "mode": "bus"
+          },
+          {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -8146,26 +8810,32 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line524",
+            "route_id": "54402_176",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line512",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line512",
+            "route_id": "00101_001",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "52402_074",
             "mode": "bus"
           },
           {
-            "line_id": "PAG_line524",
+            "line_id": "PAG_line512",
+            "route_id": "00201_071",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line512",
+            "route_id": "00203_073",
             "mode": "bus"
           }
         ],
@@ -8193,23 +8863,28 @@
         "lat": 47.13347502523678,
         "lines": [
           {
+            "line_id": "PAG_line512",
+            "route_id": "00200_070",
+            "mode": "bus"
+          },
+          {
             "line_id": "PAG_line511",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line512",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line512",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "54401_175",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "52411_089",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -8238,6 +8913,7 @@
         "lines": [
           {
             "line_id": "Bah_line736",
+            "route_id": "93611_001",
             "mode": "bus"
           }
         ],
@@ -8265,11 +8941,13 @@
         "lat": 46.919251026250826,
         "lines": [
           {
-            "line_id": "Bah_line736",
+            "line_id": "PAG_line408",
+            "route_id": "00718_024",
             "mode": "bus"
           },
           {
-            "line_id": "PAG_line408",
+            "line_id": "Bah_line736",
+            "route_id": "93620_003",
             "mode": "bus"
           }
         ],
@@ -8298,6 +8976,7 @@
         "lines": [
           {
             "line_id": "PAG_line408",
+            "route_id": "00805_025",
             "mode": "bus"
           }
         ],
@@ -8326,22 +9005,27 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50109_095",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50201_014",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50203_016",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50101_087",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line502",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line502",
+            "route_id": "50215_027",
             "mode": "bus"
           }
         ],
@@ -8369,19 +9053,23 @@
         "lat": 47.09435902524699,
         "lines": [
           {
-            "line_id": "PAG_line501",
+            "line_id": "PAG_line502",
+            "route_id": "50202_015",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50110_096",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
+            "route_id": "50208_020",
             "mode": "bus"
           },
           {
-            "line_id": "PAG_line502",
+            "line_id": "PAG_line501",
+            "route_id": "50104_090",
             "mode": "bus"
           }
         ],
@@ -8410,22 +9098,27 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50109_095",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50201_014",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50203_016",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50101_087",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line502",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line502",
+            "route_id": "50215_027",
             "mode": "bus"
           }
         ],
@@ -8453,19 +9146,23 @@
         "lat": 47.09715302521204,
         "lines": [
           {
-            "line_id": "PAG_line501",
+            "line_id": "PAG_line502",
+            "route_id": "50202_015",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50110_096",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
+            "route_id": "50208_020",
             "mode": "bus"
           },
           {
-            "line_id": "PAG_line502",
+            "line_id": "PAG_line501",
+            "route_id": "50104_090",
             "mode": "bus"
           }
         ],
@@ -8493,35 +9190,43 @@
         "lat": 47.09949302519307,
         "lines": [
           {
-            "line_id": "PAG_line501",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line501",
-            "mode": "bus"
-          },
-          {
             "line_id": "PAG_line502",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line502",
+            "route_id": "50208_020",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line501",
+            "route_id": "50104_090",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00101_001",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line501",
+            "route_id": "50110_096",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50202_015",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00203_073",
             "mode": "bus"
           }
         ],
@@ -8549,35 +9254,43 @@
         "lat": 47.09949302519307,
         "lines": [
           {
-            "line_id": "PAG_line501",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line501",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line502",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line502",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line502",
+            "line_id": "PAG_line512",
+            "route_id": "00200_070",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line501",
+            "route_id": "50109_095",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50201_014",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50203_016",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line501",
+            "route_id": "50101_087",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50215_027",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -8606,6 +9319,7 @@
         "lines": [
           {
             "line_id": "PAG_line512",
+            "route_id": "00200_070",
             "mode": "bus"
           }
         ],
@@ -8634,6 +9348,7 @@
         "lines": [
           {
             "line_id": "PAG_line512",
+            "route_id": "00203_073",
             "mode": "bus"
           }
         ],
@@ -8662,6 +9377,7 @@
         "lines": [
           {
             "line_id": "PAG_line512",
+            "route_id": "00200_070",
             "mode": "bus"
           }
         ],
@@ -8690,6 +9406,7 @@
         "lines": [
           {
             "line_id": "PAG_line512",
+            "route_id": "00203_073",
             "mode": "bus"
           }
         ],
@@ -8718,6 +9435,7 @@
         "lines": [
           {
             "line_id": "PAG_line512",
+            "route_id": "00203_073",
             "mode": "bus"
           }
         ],
@@ -8746,10 +9464,12 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50102_088",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50104_090",
             "mode": "bus"
           }
         ],
@@ -8778,6 +9498,7 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50101_087",
             "mode": "bus"
           }
         ],
@@ -8806,6 +9527,7 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50101_087",
             "mode": "bus"
           }
         ],
@@ -8834,10 +9556,12 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50102_088",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50104_090",
             "mode": "bus"
           }
         ],
@@ -8866,30 +9590,37 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50109_095",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50201_014",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50203_016",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line504",
+            "route_id": "50417_081",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line504",
+            "route_id": "50403_073",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50101_087",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line502",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line502",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line504",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line504",
+            "route_id": "50215_027",
             "mode": "bus"
           }
         ],
@@ -8917,31 +9648,38 @@
         "lat": 47.04126402511831,
         "lines": [
           {
-            "line_id": "PAG_line501",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line501",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line501",
-            "mode": "bus"
-          },
-          {
             "line_id": "PAG_line502",
+            "route_id": "50208_020",
             "mode": "bus"
           },
           {
-            "line_id": "PAG_line502",
+            "line_id": "PAG_line501",
+            "route_id": "50102_088",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line501",
+            "route_id": "50104_090",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50404_074",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50410_078",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line501",
+            "route_id": "50110_096",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50202_015",
             "mode": "bus"
           }
         ],
@@ -8970,22 +9708,27 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50102_088",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50104_090",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line504",
+            "route_id": "50404_074",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line504",
+            "route_id": "50410_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line504",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line504",
+            "route_id": "50110_096",
             "mode": "bus"
           }
         ],
@@ -9014,18 +9757,22 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50109_095",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50101_087",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50403_073",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50417_081",
             "mode": "bus"
           }
         ],
@@ -9054,22 +9801,27 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50102_088",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50104_090",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line504",
+            "route_id": "50404_074",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line504",
+            "route_id": "50410_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line504",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line504",
+            "route_id": "50110_096",
             "mode": "bus"
           }
         ],
@@ -9098,18 +9850,22 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50109_095",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50101_087",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50403_073",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50417_081",
             "mode": "bus"
           }
         ],
@@ -9138,10 +9894,12 @@
         "lines": [
           {
             "line_id": "PAG_line502",
+            "route_id": "50215_027",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
+            "route_id": "50203_016",
             "mode": "bus"
           }
         ],
@@ -9170,6 +9928,7 @@
         "lines": [
           {
             "line_id": "PAG_line502",
+            "route_id": "50202_015",
             "mode": "bus"
           }
         ],
@@ -9198,6 +9957,7 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50101_087",
             "mode": "bus"
           }
         ],
@@ -9226,6 +9986,7 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50101_087",
             "mode": "bus"
           }
         ],
@@ -9254,10 +10015,12 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50102_088",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50104_090",
             "mode": "bus"
           }
         ],
@@ -9285,31 +10048,38 @@
         "lat": 47.0480990252155,
         "lines": [
           {
-            "line_id": "PAG_line501",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line501",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line501",
-            "mode": "bus"
-          },
-          {
             "line_id": "PAG_line502",
+            "route_id": "50208_020",
             "mode": "bus"
           },
           {
-            "line_id": "PAG_line502",
+            "line_id": "PAG_line501",
+            "route_id": "50102_088",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line501",
+            "route_id": "50104_090",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50404_074",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50410_078",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line501",
+            "route_id": "50110_096",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50202_015",
             "mode": "bus"
           }
         ],
@@ -9338,30 +10108,37 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50109_095",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50201_014",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50203_016",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line504",
+            "route_id": "50417_081",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line504",
+            "route_id": "50403_073",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50101_087",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line502",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line502",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line504",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line504",
+            "route_id": "50215_027",
             "mode": "bus"
           }
         ],
@@ -9389,15 +10166,18 @@
         "lat": 47.044576025160225,
         "lines": [
           {
+            "line_id": "PAG_line504",
+            "route_id": "50404_074",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line504",
+            "route_id": "50410_078",
+            "mode": "bus"
+          },
+          {
             "line_id": "PAG_line501",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line504",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line504",
+            "route_id": "50102_088",
             "mode": "bus"
           }
         ],
@@ -9426,10 +10206,12 @@
         "lines": [
           {
             "line_id": "PAG_line502",
+            "route_id": "50215_027",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
+            "route_id": "50203_016",
             "mode": "bus"
           }
         ],
@@ -9457,19 +10239,23 @@
         "lat": 47.044576025160225,
         "lines": [
           {
-            "line_id": "PAG_line501",
+            "line_id": "PAG_line502",
+            "route_id": "50202_015",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50110_096",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
+            "route_id": "50208_020",
             "mode": "bus"
           },
           {
-            "line_id": "PAG_line502",
+            "line_id": "PAG_line501",
+            "route_id": "50104_090",
             "mode": "bus"
           }
         ],
@@ -9498,22 +10284,27 @@
         "lines": [
           {
             "line_id": "PAG_line501",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line501",
+            "route_id": "50109_095",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
+            "route_id": "50201_014",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50403_073",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50417_081",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line501",
+            "route_id": "50101_087",
             "mode": "bus"
           }
         ],
@@ -9542,10 +10333,12 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50110_096",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50104_090",
             "mode": "bus"
           }
         ],
@@ -9574,10 +10367,12 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50109_095",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50101_087",
             "mode": "bus"
           }
         ],
@@ -9606,10 +10401,12 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50110_096",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50104_090",
             "mode": "bus"
           }
         ],
@@ -9638,10 +10435,12 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50109_095",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50101_087",
             "mode": "bus"
           }
         ],
@@ -9669,19 +10468,23 @@
         "lat": 47.06751402529664,
         "lines": [
           {
-            "line_id": "PAG_line501",
+            "line_id": "PAG_line502",
+            "route_id": "50202_015",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50110_096",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
+            "route_id": "50208_020",
             "mode": "bus"
           },
           {
-            "line_id": "PAG_line502",
+            "line_id": "PAG_line501",
+            "route_id": "50104_090",
             "mode": "bus"
           }
         ],
@@ -9710,22 +10513,27 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50109_095",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50201_014",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50203_016",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50101_087",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line502",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line502",
+            "route_id": "50215_027",
             "mode": "bus"
           }
         ],
@@ -9754,10 +10562,12 @@
         "lines": [
           {
             "line_id": "PAG_line502",
+            "route_id": "50215_027",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
+            "route_id": "50203_016",
             "mode": "bus"
           }
         ],
@@ -9786,6 +10596,7 @@
         "lines": [
           {
             "line_id": "PAG_line502",
+            "route_id": "50202_015",
             "mode": "bus"
           }
         ],
@@ -9814,10 +10625,12 @@
         "lines": [
           {
             "line_id": "PAG_line502",
+            "route_id": "50215_027",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
+            "route_id": "50203_016",
             "mode": "bus"
           }
         ],
@@ -9846,6 +10659,7 @@
         "lines": [
           {
             "line_id": "PAG_line502",
+            "route_id": "50202_015",
             "mode": "bus"
           }
         ],
@@ -9874,10 +10688,12 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50109_095",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50101_087",
             "mode": "bus"
           }
         ],
@@ -9906,10 +10722,12 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50110_096",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50104_090",
             "mode": "bus"
           }
         ],
@@ -9938,10 +10756,12 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50110_096",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50104_090",
             "mode": "bus"
           }
         ],
@@ -9970,10 +10790,12 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50109_095",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50101_087",
             "mode": "bus"
           }
         ],
@@ -10002,6 +10824,7 @@
         "lines": [
           {
             "line_id": "PAG_line502",
+            "route_id": "50202_015",
             "mode": "bus"
           }
         ],
@@ -10030,10 +10853,12 @@
         "lines": [
           {
             "line_id": "PAG_line502",
+            "route_id": "50215_027",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
+            "route_id": "50203_016",
             "mode": "bus"
           }
         ],
@@ -10062,22 +10887,27 @@
         "lines": [
           {
             "line_id": "PAG_line501",
+            "route_id": "50109_095",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50201_014",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50203_016",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50101_087",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line502",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line502",
+            "route_id": "50215_027",
             "mode": "bus"
           }
         ],
@@ -10105,19 +10935,23 @@
         "lat": 47.092366025271645,
         "lines": [
           {
-            "line_id": "PAG_line501",
+            "line_id": "PAG_line502",
+            "route_id": "50202_015",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line501",
+            "route_id": "50110_096",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
+            "route_id": "50208_020",
             "mode": "bus"
           },
           {
-            "line_id": "PAG_line502",
+            "line_id": "PAG_line501",
+            "route_id": "50104_090",
             "mode": "bus"
           }
         ],
@@ -10146,10 +10980,12 @@
         "lines": [
           {
             "line_id": "PAG_line504",
+            "route_id": "50403_073",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50417_081",
             "mode": "bus"
           }
         ],
@@ -10178,10 +11014,12 @@
         "lines": [
           {
             "line_id": "PAG_line504",
+            "route_id": "50404_074",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50410_078",
             "mode": "bus"
           }
         ],
@@ -10210,18 +11048,22 @@
         "lines": [
           {
             "line_id": "PAG_line504",
+            "route_id": "50404_074",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50410_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50403_073",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line504",
+            "route_id": "50417_081",
             "mode": "bus"
           }
         ],
@@ -10250,14 +11092,17 @@
         "lines": [
           {
             "line_id": "PAG_line502",
+            "route_id": "50215_027",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
+            "route_id": "50201_014",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
+            "route_id": "50203_016",
             "mode": "bus"
           }
         ],
@@ -10286,10 +11131,12 @@
         "lines": [
           {
             "line_id": "PAG_line502",
+            "route_id": "50202_015",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
+            "route_id": "50208_020",
             "mode": "bus"
           }
         ],
@@ -10318,22 +11165,27 @@
         "lines": [
           {
             "line_id": "Ext",
+            "route_id": "87004_210",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50201_014",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50203_016",
             "mode": "bus"
           },
           {
             "line_id": "Ext",
+            "route_id": "87002_208",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line502",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line502",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line502",
+            "route_id": "50215_027",
             "mode": "bus"
           }
         ],
@@ -10362,18 +11214,22 @@
         "lines": [
           {
             "line_id": "Ext",
+            "route_id": "87009_215",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50202_015",
+            "mode": "bus"
+          },
+          {
+            "line_id": "PAG_line502",
+            "route_id": "50208_020",
             "mode": "bus"
           },
           {
             "line_id": "Ext",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line502",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line502",
+            "route_id": "87003_209",
             "mode": "bus"
           }
         ],
@@ -10402,18 +11258,22 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00101_001",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00203_073",
             "mode": "bus"
           }
         ],
@@ -10441,15 +11301,18 @@
         "lat": 47.128122025325936,
         "lines": [
           {
+            "line_id": "PAG_line512",
+            "route_id": "00200_070",
+            "mode": "bus"
+          },
+          {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -10478,18 +11341,22 @@
         "lines": [
           {
             "line_id": "PAG_line524",
+            "route_id": "52411_089",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "52402_074",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "54401_175",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "54402_176",
             "mode": "bus"
           }
         ],
@@ -10518,18 +11385,22 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00101_001",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00203_073",
             "mode": "bus"
           }
         ],
@@ -10557,15 +11428,18 @@
         "lat": 47.12592802536813,
         "lines": [
           {
+            "line_id": "PAG_line512",
+            "route_id": "00200_070",
+            "mode": "bus"
+          },
+          {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
-            "mode": "bus"
-          },
-          {
-            "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -10594,10 +11468,12 @@
         "lines": [
           {
             "line_id": "PAG_line524",
+            "route_id": "52402_074",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "54402_176",
             "mode": "bus"
           }
         ],
@@ -10626,10 +11502,12 @@
         "lines": [
           {
             "line_id": "PAG_line524",
+            "route_id": "52411_089",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "54401_175",
             "mode": "bus"
           }
         ],
@@ -10658,18 +11536,22 @@
         "lines": [
           {
             "line_id": "PAG_line524",
+            "route_id": "52411_089",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "52402_074",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "54401_175",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "54402_176",
             "mode": "bus"
           }
         ],
@@ -10698,18 +11580,22 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00109_040",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00005_004",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00123_044",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00007_006",
             "mode": "bus"
           }
         ],
@@ -10738,14 +11624,17 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00008_007",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00124_045",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00006_005",
             "mode": "bus"
           }
         ],
@@ -10774,10 +11663,12 @@
         "lines": [
           {
             "line_id": "SSM_line519",
+            "route_id": "00001_001",
             "mode": "bus"
           },
           {
             "line_id": "SSM_line519",
+            "route_id": "00010_003",
             "mode": "bus"
           }
         ],
@@ -10806,10 +11697,12 @@
         "lines": [
           {
             "line_id": "AS_line542",
+            "route_id": "00202_002",
             "mode": "bus"
           },
           {
             "line_id": "Bah_line736",
+            "route_id": "93620_003",
             "mode": "bus"
           }
         ],
@@ -10838,10 +11731,12 @@
         "lines": [
           {
             "line_id": "AS_line542",
+            "route_id": "00201_001",
             "mode": "bus"
           },
           {
             "line_id": "Bah_line736",
+            "route_id": "93611_001",
             "mode": "bus"
           }
         ],
@@ -10870,6 +11765,7 @@
         "lines": [
           {
             "line_id": "Bah_line736",
+            "route_id": "93611_001",
             "mode": "bus"
           }
         ],
@@ -10898,6 +11794,7 @@
         "lines": [
           {
             "line_id": "Bah_line736",
+            "route_id": "93620_003",
             "mode": "bus"
           }
         ],
@@ -10926,6 +11823,7 @@
         "lines": [
           {
             "line_id": "Bah_line736",
+            "route_id": "93611_001",
             "mode": "bus"
           }
         ],
@@ -10954,6 +11852,7 @@
         "lines": [
           {
             "line_id": "Bah_line736",
+            "route_id": "93620_003",
             "mode": "bus"
           }
         ],
@@ -10982,6 +11881,7 @@
         "lines": [
           {
             "line_id": "Bah_line736",
+            "route_id": "93611_001",
             "mode": "bus"
           }
         ],
@@ -11010,6 +11910,7 @@
         "lines": [
           {
             "line_id": "Bah_line736",
+            "route_id": "93620_003",
             "mode": "bus"
           }
         ],
@@ -11037,15 +11938,18 @@
         "lat": 46.97595202550064,
         "lines": [
           {
+            "line_id": "Ext",
+            "route_id": "87001_207",
+            "mode": "bus"
+          },
+          {
+            "line_id": "Ext",
+            "route_id": "87003_209",
+            "mode": "bus"
+          },
+          {
             "line_id": "Bah_line736",
-            "mode": "bus"
-          },
-          {
-            "line_id": "Ext",
-            "mode": "bus"
-          },
-          {
-            "line_id": "Ext",
+            "route_id": "93611_001",
             "mode": "bus"
           }
         ],
@@ -11073,11 +11977,13 @@
         "lat": 46.97595202550064,
         "lines": [
           {
-            "line_id": "Bah_line736",
+            "line_id": "Ext",
+            "route_id": "87004_210",
             "mode": "bus"
           },
           {
-            "line_id": "Ext",
+            "line_id": "Bah_line736",
+            "route_id": "93620_003",
             "mode": "bus"
           }
         ],
@@ -11106,18 +12012,22 @@
         "lines": [
           {
             "line_id": "PAG_line524",
+            "route_id": "52411_089",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "52402_074",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "54401_175",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "54402_176",
             "mode": "bus"
           }
         ],
@@ -11146,10 +12056,12 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00102_002",
             "mode": "bus"
           }
         ],
@@ -11178,14 +12090,17 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00305_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00135_035",
             "mode": "bus"
           }
         ],
@@ -11214,18 +12129,22 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00101_001",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00305_078",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line511",
+            "route_id": "00103_003",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00201_071",
             "mode": "bus"
           }
         ],
@@ -11254,10 +12173,12 @@
         "lines": [
           {
             "line_id": "PAG_line511",
+            "route_id": "00104_004",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00230_100",
             "mode": "bus"
           }
         ],
@@ -11286,6 +12207,7 @@
         "lines": [
           {
             "line_id": "AS_line542",
+            "route_id": "00202_002",
             "mode": "bus"
           }
         ],
@@ -11314,6 +12236,7 @@
         "lines": [
           {
             "line_id": "AS_line542",
+            "route_id": "00201_001",
             "mode": "bus"
           }
         ],
@@ -11342,22 +12265,27 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00005_004",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00123_044",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00003_002",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00007_006",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00039_038",
             "mode": "bus"
           }
         ],
@@ -11386,18 +12314,22 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00124_045",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00008_007",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00002_001",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00006_005",
             "mode": "bus"
           }
         ],
@@ -11426,6 +12358,7 @@
         "lines": [
           {
             "line_id": "AS_line542",
+            "route_id": "00202_002",
             "mode": "bus"
           }
         ],
@@ -11454,6 +12387,7 @@
         "lines": [
           {
             "line_id": "AS_line542",
+            "route_id": "00201_001",
             "mode": "bus"
           }
         ],
@@ -11482,6 +12416,7 @@
         "lines": [
           {
             "line_id": "AS_line542",
+            "route_id": "00202_002",
             "mode": "bus"
           }
         ],
@@ -11510,6 +12445,7 @@
         "lines": [
           {
             "line_id": "AS_line542",
+            "route_id": "00201_001",
             "mode": "bus"
           }
         ],
@@ -11538,26 +12474,32 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00109_040",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00005_004",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00123_044",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00003_002",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00007_006",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00039_038",
             "mode": "bus"
           }
         ],
@@ -11586,18 +12528,22 @@
         "lines": [
           {
             "line_id": "AS_line541",
+            "route_id": "00124_045",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00008_007",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00002_001",
             "mode": "bus"
           },
           {
             "line_id": "AS_line541",
+            "route_id": "00006_005",
             "mode": "bus"
           }
         ],
@@ -11626,18 +12572,22 @@
         "lines": [
           {
             "line_id": "PAG_line524",
+            "route_id": "52411_089",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "52402_074",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "54401_175",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line524",
+            "route_id": "54402_176",
             "mode": "bus"
           }
         ],
@@ -11666,6 +12616,7 @@
         "lines": [
           {
             "line_id": "AS_line543",
+            "route_id": "00301_001",
             "mode": "bus"
           }
         ],
@@ -11694,6 +12645,7 @@
         "lines": [
           {
             "line_id": "AS_line543",
+            "route_id": "00302_002",
             "mode": "bus"
           }
         ],
@@ -11722,6 +12674,7 @@
         "lines": [
           {
             "line_id": "AS_line543",
+            "route_id": "00301_001",
             "mode": "bus"
           }
         ],
@@ -11750,6 +12703,7 @@
         "lines": [
           {
             "line_id": "AS_line543",
+            "route_id": "00302_002",
             "mode": "bus"
           }
         ],
@@ -11778,6 +12732,7 @@
         "lines": [
           {
             "line_id": "Bah_line736",
+            "route_id": "93620_003",
             "mode": "bus"
           }
         ],
@@ -11806,10 +12761,12 @@
         "lines": [
           {
             "line_id": "AS_line545",
+            "route_id": "00409_001",
             "mode": "bus"
           },
           {
             "line_id": "AS_line545",
+            "route_id": "00417_003",
             "mode": "bus"
           }
         ],
@@ -11838,6 +12795,7 @@
         "lines": [
           {
             "line_id": "AS_line545",
+            "route_id": "00424_004",
             "mode": "bus"
           }
         ],
@@ -11866,10 +12824,12 @@
         "lines": [
           {
             "line_id": "AS_line545",
+            "route_id": "00409_001",
             "mode": "bus"
           },
           {
             "line_id": "AS_line545",
+            "route_id": "00417_003",
             "mode": "bus"
           }
         ],
@@ -11898,6 +12858,7 @@
         "lines": [
           {
             "line_id": "AS_line545",
+            "route_id": "00424_004",
             "mode": "bus"
           }
         ],
@@ -11926,10 +12887,12 @@
         "lines": [
           {
             "line_id": "AS_line545",
+            "route_id": "00409_001",
             "mode": "bus"
           },
           {
             "line_id": "AS_line545",
+            "route_id": "00417_003",
             "mode": "bus"
           }
         ],
@@ -11958,6 +12921,7 @@
         "lines": [
           {
             "line_id": "AS_line545",
+            "route_id": "00424_004",
             "mode": "bus"
           }
         ],
@@ -11986,6 +12950,7 @@
         "lines": [
           {
             "line_id": "Bah_line736",
+            "route_id": "93611_001",
             "mode": "bus"
           }
         ],
@@ -12014,6 +12979,7 @@
         "lines": [
           {
             "line_id": "Bah_line736",
+            "route_id": "93620_003",
             "mode": "bus"
           }
         ],
@@ -12042,10 +13008,12 @@
         "lines": [
           {
             "line_id": "PAG_line512",
+            "route_id": "00200_070",
             "mode": "bus"
           },
           {
             "line_id": "PAG_line512",
+            "route_id": "00203_073",
             "mode": "bus"
           }
         ],

@@ -5,8 +5,8 @@ import bboxCache from '../utils/bboxCanton.json';
 import "./Loading.css" // loading screen for network
 
 const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchCanton, selectedMode,
-  selectedDataset, selectedNetworkModes, selectedTransitModes, selectedTransitStop, setSelectedNetworkFeature,
-  visualizeLinkId, dataURL }) => {
+  selectedDataset, selectedNetworkModes, selectedTransitModes, setSelectedTransitStop, setSelectedNetworkFeature,
+  visualizeLinkId, dataURL, setHighlightedLineId, setHighlightedRouteIds, highlightedRouteIds, highlightedLineId }) => {
     
     // ======================= INITIALIZE VARIABLES =======================
     
@@ -57,7 +57,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
           source: 'cantons',
           paint: {
             'fill-color': '#A07CC5', // Default color
-            'fill-opacity': 0.4
+            'fill-opacity': 0.15
           }
         });
         
@@ -115,7 +115,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
             
             if (graphExpandedRef.current === "Graph 3" || graphExpandedRef.current === "Graph 4") {
               rightPadding = 950; // Adjust for 900px width
-            } else if (graphExpandedRef.current === "Graph 1" || graphExpandedRef.current === "Graph 2" || graphExpandedRef.current === "Volumes") {
+            } else if (graphExpandedRef.current === "Graph 1" || graphExpandedRef.current === "Graph 2" || graphExpandedRef.current === "Volumes" || isGraphExpanded === "Transit") {
               rightPadding = 650; // Adjust for 600px width
             } else {
               rightPadding = 350; // Default open sidebar
@@ -617,70 +617,252 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
   // ======================= TRANSIT STOPS MODULE =======================
   
   useEffect(() => {
-    const sourceId = "transit-stops";
-    const layerId = "transit-stops-layer";
-  
-    console.log("Selected Transit Modes:", searchCanton);
-  
+    
     const removeTransitStops = () => {
       if (!mapRef.current) return;
       const map = mapRef.current;
-  
-      if (map.getLayer(layerId)) map.removeLayer(layerId);
-      if (map.getSource(sourceId)) map.removeSource(sourceId);
+      
+      if (map.getLayer("transit-stops-layer")) map.removeLayer("transit-stops-layer");
+      if (map.getLayer("transit-stops-label")) map.removeLayer("transit-stops-label");
+      if (map.getSource("transit-stops")) map.removeSource("transit-stops");
+      
+      if (map.getLayer("transit-highlight-layer")) map.removeLayer("transit-highlight-layer");
+      if (map.getSource("transit-highlight")) map.removeSource("transit-highlight");
+      
+      if (map.getLayer("transit-line-highlight")) map.removeLayer("transit-line-highlight");
+      if (map.getSource("transit-line-highlight")) map.removeSource("transit-line-highlight");
+      
+      setSelectedTransitStop(null);
+      
+      setHighlightedLineId(null)
+      setHighlightedRouteIds([])
     };
-  
+    
     if (isGraphExpanded === "Transit" && searchCanton) {
       const path = `${dataURL}matsim/transit/${searchCanton}_stops.geojson`;
-  
+      
       fetch(path)
-        .then((res) => res.json())
-        .then((geojson) => {
-          const map = mapRef.current;
-          if (!map) return;
-  
-          removeTransitStops();
-  
-          map.addSource(sourceId, {
+      .then((res) => res.json())
+      .then((geojson) => {
+        const map = mapRef.current;
+        if (!map) return;
+        
+        if (map.getSource("transit-stops")) {
+            map.getSource("transit-stops").setData(geojson);
+          } else {
+            map.addSource("transit-stops", {
             type: "geojson",
             data: geojson,
           });
-  
+          }
+
+        if(!map.getLayer("transit-stops-layer")) {
+          
           map.addLayer({
-            id: layerId,
+            id: "transit-stops-layer",
             type: "circle",
-            source: sourceId,
+            source: "transit-stops",
             paint: {
-              "circle-radius": 5,
+              "circle-radius": 3,
               "circle-color": "#ff8800",
               "circle-stroke-color": "#333",
               "circle-stroke-width": 1,
             },
           });
-  
-          // Apply mode filtering
-          const modeFilter = selectedTransitModes.includes("all")
-            ? null
-            : [
-                "any",
-                ...selectedTransitModes.map((mode) => [
-                  "match",
-                  ["index-of", mode, ["get", "modes_list"]],
-                  -1,
-                  false,
-                  true,
-                ]),
-              ];
-  
-          map.setFilter(layerId, modeFilter);
-        })
-        .catch((err) => {
-          console.error("Error loading transit stops:", err);
+          
+          map.addLayer(
+            {
+              id: "transit-stops-label",
+              type: "symbol",
+              source: "transit-stops",
+              layout: {
+                "text-field": ["get", "name"],
+                "text-size": 12,
+                "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+                "text-offset": [0, -0.8],
+                "text-anchor": "bottom-left",
+              },
+              paint: {
+                "text-color": "#222",
+                "text-halo-color": "#ffffff",
+                "text-halo-width": 1,
+              },
+              minzoom: 14,
+            },
+            "transit-stops-layer"
+          );
+        }
+        
+        // Add click event
+        map.on("click", "transit-stops-layer", (e) => {
+          const map = mapRef.current;
+          const features = e.features;
+          if (!features || features.length === 0 || !map) return;
+          
+          // Combine all lines + modes from overlapping points
+          const combinedLines = features.flatMap(f => JSON.parse(f.properties.lines));
+          const combinedModes = Array.from(new Set(
+            features.flatMap(f => JSON.parse(f.properties.modes_list))
+          ));
+          
+          const { name, stop_id } = features[0].properties;
+          const lineIdsAtStop = combinedLines.map(l => l.line_id);
+          
+          // Get current highlighted line
+          let currentHighlightedLineId = null;
+          if (map.getSource("transit-line-highlight")) {
+            const currentData = map.getSource("transit-line-highlight")._data;
+            const currentFeature = currentData?.features?.[0];
+            currentHighlightedLineId = currentFeature?.properties?.line_id;
+          }
+          
+          // If same line is still selected, just update route list and return early
+          if (lineIdsAtStop.includes(currentHighlightedLineId)) {
+            const updatedRouteIds = combinedLines
+            .filter(l => l.line_id === currentHighlightedLineId)
+            .map(l => l.route_id);
+            
+            setHighlightedRouteIds(updatedRouteIds);
+            setSelectedTransitStop({
+              name,
+              stop_id,
+              lines: combinedLines,
+              modes_list: combinedModes,
+            });
+            
+          } else {
+            // Otherwise: remove old route line
+            if (map.getLayer("transit-line-highlight")) map.removeLayer("transit-line-highlight");
+            if (map.getSource("transit-line-highlight")) map.removeSource("transit-line-highlight");
+            setHighlightedLineId(null);
+            setHighlightedRouteIds([]);
+          }
+          
+          // Highlight the clicked stop (first feature only)
+          if (map.getLayer("transit-highlight-layer")) map.removeLayer("transit-highlight-layer");
+          if (map.getSource("transit-highlight")) map.removeSource("transit-highlight");
+          
+          map.addSource("transit-highlight", {
+            type: "geojson",
+            data: {
+              type: "FeatureCollection",
+              features: [features[0]],
+            },
+          });
+          
+          map.addLayer(
+            {
+              id: "transit-highlight-layer",
+              type: "circle",
+              source: "transit-highlight",
+              paint: {
+                "circle-radius": 7,
+                "circle-color": "#00ffff",
+              },
+            },
+            "transit-stops-layer"
+          );
+          
+          setSelectedTransitStop({
+            name,
+            stop_id,
+            lines: combinedLines,
+            modes_list: combinedModes,
+          });
         });
+        
+        // Apply mode filtering
+        const modeFilter = selectedTransitModes.includes("all")
+        ? null
+        : [
+          "any",
+          ...selectedTransitModes.map((mode) => [
+            "match",
+            ["index-of", mode, ["get", "modes_list"]],
+            -1,
+            false,
+            true,
+          ]),
+        ];
+        
+        ["transit-stops-layer", "transit-highlight-layer", "transit-stops-label"].forEach((id) => {
+          if (map.getLayer(id)) {
+            map.setFilter(id, modeFilter);
+          }
+        });
+        
+        setHighlightedLineId(null)
+        setHighlightedRouteIds([])
+      })
+      .catch((err) => {
+        console.error("Error loading transit stops:", err);
+      });
     } else {
       removeTransitStops();
     }
   }, [isGraphExpanded, selectedTransitModes, searchCanton]);
+  
+  
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    
+    const ROUTE_LAYER_ID = "transit-line-highlight";
+    const ROUTE_SOURCE_ID = "transit-line-highlight";
+    
+    if (
+      !highlightedRouteIds || highlightedRouteIds.length === 0 ||
+      !highlightedLineId || isGraphExpanded !== "Transit"
+    ) {
+      if (map.getLayer(ROUTE_LAYER_ID)) map.removeLayer(ROUTE_LAYER_ID);
+      if (map.getSource(ROUTE_SOURCE_ID)) map.removeSource(ROUTE_SOURCE_ID);
+      return;
+    }
+    
+    fetch(`${dataURL}matsim/transit/transit_routes.geojson`)
+    .then((res) => res.json())
+    .then((geojson) => {
+      const matched = geojson.features.filter(
+        (f) =>
+          f.properties.line_id === highlightedLineId &&
+        highlightedRouteIds.includes(f.properties.route_id)
+      );
+      
+      if (matched.length === 0) return;
+      
+      const newData = {
+        type: "FeatureCollection",
+        features: matched,
+      };
+      
+      if (map.getSource(ROUTE_SOURCE_ID)) {
+        map.getSource(ROUTE_SOURCE_ID).setData(newData);
+      } else {
+        map.addSource(ROUTE_SOURCE_ID, {
+          type: "geojson",
+          data: newData,
+        });
+        
+        map.addLayer(
+          {
+            id: ROUTE_LAYER_ID,
+            type: "line",
+            source: ROUTE_SOURCE_ID,
+            layout: {
+              "line-join": "round",
+              "line-cap": "round",
+            },
+            paint: {
+              "line-color": "#007AFF",
+              "line-width": 2,
+            },
+          },
+          "canton-highlight"
+        );
+      }
+    });
+  }, [highlightedRouteIds, highlightedLineId, isGraphExpanded]);
+  
   
   
   // ======================= CHOROPLETH MODULE =======================
@@ -712,7 +894,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
     
     if (selectedMode === "None") {
       // Reset to default
-      map.setPaintProperty("canton-fill", "fill-opacity", 0.4);
+      map.setPaintProperty("canton-fill", "fill-opacity", 0.15);
       map.setPaintProperty("canton-fill", "fill-color", "#A07CC5");
       return;
     }
@@ -784,7 +966,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
         if (isGraphExpanded === "Graph 3" || isGraphExpanded === "Graph 4") {
           rightPadding = 950; // Adjust for 900px width
           // Middle width
-        } else if (isGraphExpanded === "Graph 1" || isGraphExpanded === "Graph 2" || isGraphExpanded === "Volumes"
+        } else if (isGraphExpanded === "Graph 1" || isGraphExpanded === "Graph 2" || isGraphExpanded === "Volumes" || isGraphExpanded === "Transit"
         ) {
           rightPadding = 650; // Adjust for 600px width
         } else {
@@ -812,7 +994,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
       if (isSidebarOpen) {
         if (isGraphExpanded === "Graph 3" || isGraphExpanded === "Graph 4") {
           rightPadding = 950; // Adjust for 900px width
-        } else if (isGraphExpanded === "Graph 1" || isGraphExpanded === "Graph 2" || isGraphExpanded === "Volumes"
+        } else if (isGraphExpanded === "Graph 1" || isGraphExpanded === "Graph 2" || isGraphExpanded === "Volumes" || isGraphExpanded === "Transit"
         ) {
           rightPadding = 650; // Adjust for 600px width
         } else {
