@@ -2,15 +2,20 @@ import React, { useState, useEffect  } from "react";
 import "./Sidebar.css";
 
 // Sidebar Modules / Graphs
+import ActivityDist from "./ActivityDist";
 import AverageDist from "./AverageDist";
 import Histogram from "./Histogram";
 import StackedBarPlot from "./StackedBarPlot";
 import ChoroplethControls from "./ChoroplethControls";
 import CantonModeShareTable from "./CantonModeShareTable"; 
+import CarAvailability from "./CarAvailability";
+import DepartureTimes from "./DepartureTimes";
 import ModeShareLinePlot from "./ModeShareLinePlot";
 import SegmentAttributesTable from "./SegmentAttributesTable";
+import PtSubscription from "./PtSubscription";
 import SegmentVolumeHistogram from "./SegmentVolumeHistogram";
 import TransitStopAttributesTable from "./TransitStopAttributesTable";
+import Demographics from "./Demographics";
 
 const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, resetMapView, updateMapSymbology,
   selectedNetworkModes, setSelectedNetworkModes, selectedNetworkFeature, setVisualizeLinkId, dataURL, setDataURL,
@@ -169,6 +174,11 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
             <option value="Graph 2">Histogram</option>
             <option value="Graph 3">Stacked Bar Plot</option>
             <option value="Graph 4">Line Plot</option>
+            <option value="Graph 5">Activity Distribution</option>
+            <option value="Graph 6">Public Transport Subscriptions</option>
+            <option value="Graph 7">Car Availability Class</option>
+            <option value="Graph 8">Departure Times</option>
+            <option value="Graph 9">Demographics</option>
             </select>
             </div>
             </div>
@@ -243,6 +253,11 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
             {selectedGraph === "Graph 2" && <div className="plot-container"><Histogram canton={canton || "All"} aggCol={selectedAggCol} dataURL={dataURL}/></div>}
             {selectedGraph === "Graph 3" && <div className="plot-container"><StackedBarPlot canton={canton || "All"} aggCol={selectedAggCol} dataURL={dataURL}/></div>}
             {selectedGraph === "Graph 4" && <div className="plot-container"><ModeShareLinePlot canton={canton || "All"} aggCol={selectedAggCol} dataURL={dataURL}/></div>}
+            {selectedGraph === "Graph 5" && <div className="plot-container"><ActivityDist canton={canton || "All"} dataURL={dataURL} /></div>}
+            {selectedGraph === "Graph 6" && <div className="plot-container"><PtSubscription canton={canton || "All"} dataURL={dataURL} /></div>}
+            {selectedGraph === "Graph 7" && <div className="plot-container"><CarAvailability canton={canton || "All"} dataURL={dataURL} /></div>}
+            {selectedGraph === "Graph 8" && <div className="plot-container"><DepartureTimes canton={canton || "All"} dataURL={dataURL} /></div>}
+            {selectedGraph === "Graph 9" && <div className="plot-container"><Demographics canton={canton || "All"} dataURL={dataURL} /></div>}
             
             {/* Mode Share Choropleth Selection */}
             {selectedGraph === "Choropleth" && (
