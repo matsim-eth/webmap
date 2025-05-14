@@ -1029,6 +1029,10 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
           if (map.getLayer(id)) map.removeLayer(id);
           if (map.getSource(id)) map.removeSource(id);
         });
+
+        
+        if (map.getLayer("transit-highlight-layer")) map.removeLayer("transit-highlight-layer");
+        if (map.getSource("transit-highlight")) map.removeSource("transit-highlight");
       }
     }
   }, [searchCanton]); // only update when searchCanton updates
