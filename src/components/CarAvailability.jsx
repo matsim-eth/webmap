@@ -34,7 +34,7 @@ const CarAvailability = ({ canton, onClose, dataURL }) => {
       <h3>{canton || "All"} - Car Availability</h3>
 
       <BasicBarPlot
-        dataFile="/data/car_availability.json"
+        dataFile="car_availability.json"
         title="Car Availability Class Distribution"
         xAxisTitle="Car Class"
         yAxisTitle="Proportion"
@@ -43,7 +43,7 @@ const CarAvailability = ({ canton, onClose, dataURL }) => {
       />
 
       <GenericBarPlot
-        dataFile="/data/num_cars_age.json"
+        dataFile="num_cars_age.json"
         title="Car Availability Class by Age"
         xAxisTitle="Car Availability Class"
         variables={AGE_VARIABLES}
@@ -54,7 +54,7 @@ const CarAvailability = ({ canton, onClose, dataURL }) => {
       />
 
       <GenericBarPlot
-        dataFile="/data/num_cars_gender.json"
+        dataFile="num_cars_gender.json"
         title="Car Availability Class by Gender"
         xAxisTitle="Car Availability Class"
         variables={GENDER_VARIABLES}
@@ -65,7 +65,7 @@ const CarAvailability = ({ canton, onClose, dataURL }) => {
       />
 
       <GenericBarPlot
-        dataFile="/data/num_cars_income.json"
+        dataFile="num_cars_income.json"
         title="Car Availability Class by Income"
         xAxisTitle="Car Availability Class"
         variables={INCOME_VARIABLES}

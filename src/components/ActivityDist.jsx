@@ -16,7 +16,7 @@ const ActivityDist = ({ canton, onClose, dataURL }) => {
       <h3>{canton || "All"} - Activity Distributions</h3>
 
       <BasicBarPlot
-        dataFile="/data/num_activities.json"
+        dataFile="num_activities.json"
         title="Number of Activities Per Day"
         xAxisTitle="Number of Activities"
         yAxisTitle="Proportion"
@@ -25,7 +25,7 @@ const ActivityDist = ({ canton, onClose, dataURL }) => {
       />
 
       <BasicBarPlot
-        dataFile="/data/frequent_sequences.json"
+        dataFile="frequent_sequences.json"
         title="Frequent Activity Sequences"
         xAxisTitle="Activity Sequence"
         yAxisTitle="Proportion"
@@ -34,7 +34,7 @@ const ActivityDist = ({ canton, onClose, dataURL }) => {
       />
 
       <BasicBarPlot
-        dataFile="/data/out_of_home.json"
+        dataFile="out_of_home.json"
         title="Number of Out of Home Activities"
         xAxisTitle="Number of Activities"
         yAxisTitle="Proportion"
@@ -43,7 +43,7 @@ const ActivityDist = ({ canton, onClose, dataURL }) => {
       />
 
       <GenericBarPlot
-        dataFile="/data/activity_durations.json"
+        dataFile="activity_durations.json"
         title="Activity Duration Distribution"
         xAxisTitle="Duration [HH:mm:ss]"
         variables={ACTIVITY_VARIABLES}

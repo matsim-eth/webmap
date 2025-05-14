@@ -21,7 +21,7 @@ const DepartureTimes = ({ canton, onClose, dataURL}) => {
       <h3>{canton || "All"} - Departure Times</h3>
       
       <GenericBarPlot
-        dataFile="/data/departure_times.json"
+        dataFile="departure_times.json"
         title="Depature Times by Activity"
         xAxisTitle="Departure Time [HH:mm:ss]"
         variables={VARIABLES}

@@ -34,7 +34,7 @@ const PtSubscription = ({ canton, onClose, dataURL }) => {
       <h3>{canton || "All"} - Public Transport Subscription</h3>
 
       <BasicBarPlot
-        dataFile="/data/pt_subscriptions.json"
+        dataFile="pt_subscriptions.json"
         title="Public Transport Subscription Distribution"
         xAxisTitle="Subscription Type"
         yAxisTitle="Proportion"
@@ -43,7 +43,7 @@ const PtSubscription = ({ canton, onClose, dataURL }) => {
       />
 
       <GenericBarPlot
-        dataFile="/data/pt_sub_age.json"
+        dataFile="pt_sub_age.json"
         title="Public Transport Subscriptions by Age"
         xAxisTitle="Subscription Type"
         variables={AGE_VARIABLES}
@@ -54,7 +54,7 @@ const PtSubscription = ({ canton, onClose, dataURL }) => {
       />
 
       <GenericBarPlot
-        dataFile="/data/pt_sub_gender.json"
+        dataFile="pt_sub_gender.json"
         title="Public Transport Subscriptions by Gender"
         xAxisTitle="Subscription Type"
         variables={GENDER_VARIABLES}
@@ -65,7 +65,7 @@ const PtSubscription = ({ canton, onClose, dataURL }) => {
       />
 
       <GenericBarPlot
-        dataFile="/data/pt_sub_income.json"
+        dataFile="pt_sub_income.json"
         title="Public Transport Subscriptions by Income"
         xAxisTitle="Subscription Type"
         variables={INCOME_VARIABLES}
