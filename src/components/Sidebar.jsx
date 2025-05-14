@@ -15,6 +15,7 @@ import SegmentAttributesTable from "./SegmentAttributesTable";
 import PtSubscription from "./PtSubscription";
 import SegmentVolumeHistogram from "./SegmentVolumeHistogram";
 import TransitStopAttributesTable from "./TransitStopAttributesTable";
+import Demographics from "./Demographics";
 
 const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, resetMapView, updateMapSymbology,
   selectedNetworkModes, setSelectedNetworkModes, selectedNetworkFeature, setVisualizeLinkId, dataURL, setDataURL,
@@ -177,6 +178,7 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
             <option value="Graph 6">Public Transport Subscriptions</option>
             <option value="Graph 7">Car Availability Class</option>
             <option value="Graph 8">Departure Times</option>
+            <option value="Graph 9">Demographics</option>
             </select>
             </div>
             </div>
@@ -255,7 +257,8 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
             {selectedGraph === "Graph 6" && <div className="plot-container"><PtSubscription canton={canton || "All"} dataURL={dataURL} /></div>}
             {selectedGraph === "Graph 7" && <div className="plot-container"><CarAvailability canton={canton || "All"} dataURL={dataURL} /></div>}
             {selectedGraph === "Graph 8" && <div className="plot-container"><DepartureTimes canton={canton || "All"} dataURL={dataURL} /></div>}
-
+            {selectedGraph === "Graph 9" && <div className="plot-container"><Demographics canton={canton || "All"} dataURL={dataURL} /></div>}
+            
             {/* Mode Share Choropleth Selection */}
             {selectedGraph === "Choropleth" && (
               <div>
