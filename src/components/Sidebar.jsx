@@ -166,14 +166,14 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
             </button>
             <select className="graph-dropdown" value={selectedGraph || ""} onChange={handleGraphSelection}>
             <option value="">Select a Graph</option>
-            <option value="Choropleth">Choropleth</option>
+            <option value="Choropleth">{selectedAggCol.charAt(0).toUpperCase() + selectedAggCol.slice(1)} by Canton</option>
             <option value="Network">MATSim Network</option>
-            <option value="Volumes">Simulation Volumes</option>
-            <option value="Transit">Transit Volumes</option>
-            <option value="Graph 1">Average Distance</option>
-            <option value="Graph 2">Histogram</option>
-            <option value="Graph 3">Stacked Bar Plot</option>
-            <option value="Graph 4">Line Plot</option>
+            <option value="Volumes">Road Volumes</option>
+            <option value="Transit">Transit Stops/Lines</option>
+            <option value="Graph 1">Average Distance by {selectedAggCol.charAt(0).toUpperCase() + selectedAggCol.slice(1)}</option>
+            <option value="Graph 2">Distance Distribution by {selectedAggCol.charAt(0).toUpperCase() + selectedAggCol.slice(1)}</option>
+            <option value="Graph 3">{selectedAggCol.charAt(0).toUpperCase() + selectedAggCol.slice(1)} by Distance (Stacked)</option>
+            <option value="Graph 4">{selectedAggCol.charAt(0).toUpperCase() + selectedAggCol.slice(1)} by Time/Distance (Line)</option>
             <option value="Graph 5">Activity Distribution</option>
             <option value="Graph 6">Public Transport Subscriptions</option>
             <option value="Graph 7">Car Availability Class</option>
