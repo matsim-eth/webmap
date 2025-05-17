@@ -5,8 +5,9 @@ const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId
   if (!properties) return null;
   
   const { name, modes_list, stop_id, lines } = properties;
-
+  
   const [hoveredRoute, setHoveredRoute] = useState(null);
+  const [showRoutes, setShowRoutes] = useState(false); 
   
   const groupedLines = lines.reduce((acc, line) => {
     if (!acc[line.line_id]) acc[line.line_id] = [];
@@ -21,7 +22,6 @@ const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId
   
   const handleBadgeClick = (line_id) => {
     const isActive = highlightedLineId === line_id;
-    
     const routeIds = groupedLines[line_id].map(route => route.route_id);
     
     if (onLineClick) {
@@ -52,7 +52,26 @@ const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId
       </span>
     ))}
     </div>
-    {activeBadge && Array.isArray(groupedLines[activeBadge]) && (
+    
+    {/* Toggle button to show/hide routes */}
+    {activeBadge && (
+      <div
+      onClick={() => setShowRoutes(!showRoutes)}
+      style={{
+        fontWeight: "bold",
+        fontSize: "10pt",
+        marginTop: "0.5rem",
+        cursor: "pointer",
+        userSelect: "none",
+        color: "#333"
+      }}
+      >
+      {showRoutes ? "Hide Routes" : "Show Routes"}
+      </div>
+    )}
+    
+    {/* Conditional route list */}
+    {showRoutes && activeBadge && Array.isArray(groupedLines[activeBadge]) && (
       <ul className="route-list">
       {groupedLines[activeBadge].map((route, i) => (
         <li
@@ -75,7 +94,6 @@ const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId
       ))}
       </ul>
     )}
-    
     </td>
     </tr>
     </tbody>

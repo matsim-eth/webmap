@@ -59,7 +59,7 @@ const PtStopPassengerHistogram = ({ stopIds, canton, dataURL, lineId }) => {
   
   return (
     <div className="plot-container">
-    <h4 style={{ margin: 0 }}>Hourly Passenger Volumes{lineId ? ` (Line ${lineId})` : ""}</h4>
+    <h4 style={{ margin: 0 }}>Hourly Passenger Volumes{lineId ? " (filtered)" : ""}</h4>
     <Plot
     data={[
       { x: labels, y: boardings, name: "Boardings", type: "bar", marker: { color: "#1f77b4" } },
