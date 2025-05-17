@@ -19,12 +19,14 @@
           {
             "line_id": "93-I-Y-j24-1",
             "route_id": "117.TA.93-I-Y-j24-1.1.H",
-            "mode": "cable car"
+            "mode": "cable car",
+            "line_name": "PB"
           },
           {
             "line_id": "93-I-Y-j24-1",
             "route_id": "271.TA.93-I-Y-j24-1.2.R",
-            "mode": "cable car"
+            "mode": "cable car",
+            "line_name": "PB"
           }
         ],
         "predominant_mode": "cable car",
@@ -53,12 +55,14 @@
           {
             "line_id": "93-I-Y-j24-1",
             "route_id": "117.TA.93-I-Y-j24-1.1.H",
-            "mode": "cable car"
+            "mode": "cable car",
+            "line_name": "PB"
           },
           {
             "line_id": "93-I-Y-j24-1",
             "route_id": "271.TA.93-I-Y-j24-1.2.R",
-            "mode": "cable car"
+            "mode": "cable car",
+            "line_name": "PB"
           }
         ],
         "predominant_mode": "cable car",
@@ -87,12 +91,14 @@
           {
             "line_id": "96-221-8-j24-1",
             "route_id": "45.TA.96-221-8-j24-1.2.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "192"
           },
           {
             "line_id": "92-B23-j24-1",
             "route_id": "8.TA.92-B23-j24-1.4.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "B23"
           }
         ],
         "predominant_mode": "bus",
@@ -121,12 +127,14 @@
           {
             "line_id": "96-221-8-j24-1",
             "route_id": "21.TA.96-221-8-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "192"
           },
           {
             "line_id": "92-B23-j24-1",
             "route_id": "3.TA.92-B23-j24-1.2.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "B23"
           }
         ],
         "predominant_mode": "bus",
@@ -155,7 +163,8 @@
           {
             "line_id": "92-B23-j24-1",
             "route_id": "5.TA.92-B23-j24-1.3.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "B23"
           }
         ],
         "predominant_mode": "bus",
@@ -184,7 +193,8 @@
           {
             "line_id": "92-B23-j24-1",
             "route_id": "1.TA.92-B23-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "B23"
           }
         ],
         "predominant_mode": "bus",
@@ -212,13 +222,15 @@
         "lines": [
           {
             "line_id": "93-64-Y-j24-1",
-            "route_id": "18.TA.93-64-Y-j24-1.1.H",
-            "mode": "cable car"
+            "route_id": "209.TA.93-64-Y-j24-1.2.R",
+            "mode": "cable car",
+            "line_name": "PB"
           },
           {
             "line_id": "93-64-Y-j24-1",
-            "route_id": "209.TA.93-64-Y-j24-1.2.R",
-            "mode": "cable car"
+            "route_id": "18.TA.93-64-Y-j24-1.1.H",
+            "mode": "cable car",
+            "line_name": "PB"
           }
         ],
         "predominant_mode": "cable car",
@@ -246,13 +258,15 @@
         "lines": [
           {
             "line_id": "93-64-Y-j24-1",
-            "route_id": "18.TA.93-64-Y-j24-1.1.H",
-            "mode": "cable car"
+            "route_id": "209.TA.93-64-Y-j24-1.2.R",
+            "mode": "cable car",
+            "line_name": "PB"
           },
           {
             "line_id": "93-64-Y-j24-1",
-            "route_id": "209.TA.93-64-Y-j24-1.2.R",
-            "mode": "cable car"
+            "route_id": "18.TA.93-64-Y-j24-1.1.H",
+            "mode": "cable car",
+            "line_name": "PB"
           }
         ],
         "predominant_mode": "cable car",
@@ -280,13 +294,15 @@
         "lines": [
           {
             "line_id": "93-94-Y-j24-1",
-            "route_id": "25.TA.93-94-Y-j24-1.1.H",
-            "mode": "cable car"
+            "route_id": "65.TA.93-94-Y-j24-1.2.R",
+            "mode": "cable car",
+            "line_name": "PB"
           },
           {
             "line_id": "93-94-Y-j24-1",
-            "route_id": "65.TA.93-94-Y-j24-1.2.R",
-            "mode": "cable car"
+            "route_id": "25.TA.93-94-Y-j24-1.1.H",
+            "mode": "cable car",
+            "line_name": "PB"
           }
         ],
         "predominant_mode": "cable car",
@@ -314,13 +330,15 @@
         "lines": [
           {
             "line_id": "93-94-Y-j24-1",
-            "route_id": "25.TA.93-94-Y-j24-1.1.H",
-            "mode": "cable car"
+            "route_id": "65.TA.93-94-Y-j24-1.2.R",
+            "mode": "cable car",
+            "line_name": "PB"
           },
           {
             "line_id": "93-94-Y-j24-1",
-            "route_id": "65.TA.93-94-Y-j24-1.2.R",
-            "mode": "cable car"
+            "route_id": "25.TA.93-94-Y-j24-1.1.H",
+            "mode": "cable car",
+            "line_name": "PB"
           }
         ],
         "predominant_mode": "cable car",
@@ -348,43 +366,51 @@
         "lines": [
           {
             "line_id": "91-23-A-j24-1",
-            "route_id": "35.TA.91-23-A-j24-1.7.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "20.TA.91-23-A-j24-1.6.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "12.TA.91-23-A-j24-1.4.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "42.TA.91-23-A-j24-1.8.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "11.TA.91-23-A-j24-1.3.H",
-            "mode": "rail"
+            "route_id": "43.TA.91-23-A-j24-1.9.H",
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "16.TA.91-23-A-j24-1.5.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
-            "route_id": "43.TA.91-23-A-j24-1.9.H",
-            "mode": "rail"
+            "route_id": "35.TA.91-23-A-j24-1.7.H",
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "42.TA.91-23-A-j24-1.8.H",
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "3.TA.91-23-A-j24-1.2.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "11.TA.91-23-A-j24-1.3.H",
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "12.TA.91-23-A-j24-1.4.H",
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "20.TA.91-23-A-j24-1.6.H",
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -412,53 +438,63 @@
         "lines": [
           {
             "line_id": "91-23-A-j24-1",
-            "route_id": "51.TA.91-23-A-j24-1.12.R",
-            "mode": "rail"
+            "route_id": "84.TA.91-23-A-j24-1.20.R",
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "54.TA.91-23-A-j24-1.14.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "84.TA.91-23-A-j24-1.20.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "87.TA.91-23-A-j24-1.21.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "88.TA.91-23-A-j24-1.22.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "46.TA.91-23-A-j24-1.11.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "56.TA.91-23-A-j24-1.15.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "61.TA.91-23-A-j24-1.17.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "88.TA.91-23-A-j24-1.22.R",
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "59.TA.91-23-A-j24-1.16.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "51.TA.91-23-A-j24-1.12.R",
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "46.TA.91-23-A-j24-1.11.R",
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "53.TA.91-23-A-j24-1.13.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "56.TA.91-23-A-j24-1.15.R",
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -487,17 +523,20 @@
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "88.TA.91-23-A-j24-1.22.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "84.TA.91-23-A-j24-1.20.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "87.TA.91-23-A-j24-1.21.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -525,23 +564,27 @@
         "lines": [
           {
             "line_id": "91-23-A-j24-1",
-            "route_id": "35.TA.91-23-A-j24-1.7.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
             "route_id": "43.TA.91-23-A-j24-1.9.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "42.TA.91-23-A-j24-1.8.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "20.TA.91-23-A-j24-1.6.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "35.TA.91-23-A-j24-1.7.H",
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "42.TA.91-23-A-j24-1.8.H",
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -570,17 +613,20 @@
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "88.TA.91-23-A-j24-1.22.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "84.TA.91-23-A-j24-1.20.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "87.TA.91-23-A-j24-1.21.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -608,23 +654,27 @@
         "lines": [
           {
             "line_id": "91-23-A-j24-1",
-            "route_id": "35.TA.91-23-A-j24-1.7.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
             "route_id": "43.TA.91-23-A-j24-1.9.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "42.TA.91-23-A-j24-1.8.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "20.TA.91-23-A-j24-1.6.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "35.TA.91-23-A-j24-1.7.H",
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "42.TA.91-23-A-j24-1.8.H",
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -652,43 +702,51 @@
         "lines": [
           {
             "line_id": "91-23-A-j24-1",
-            "route_id": "35.TA.91-23-A-j24-1.7.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "20.TA.91-23-A-j24-1.6.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "12.TA.91-23-A-j24-1.4.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "42.TA.91-23-A-j24-1.8.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "11.TA.91-23-A-j24-1.3.H",
-            "mode": "rail"
+            "route_id": "43.TA.91-23-A-j24-1.9.H",
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "16.TA.91-23-A-j24-1.5.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
-            "route_id": "43.TA.91-23-A-j24-1.9.H",
-            "mode": "rail"
+            "route_id": "35.TA.91-23-A-j24-1.7.H",
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "42.TA.91-23-A-j24-1.8.H",
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "3.TA.91-23-A-j24-1.2.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "11.TA.91-23-A-j24-1.3.H",
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "12.TA.91-23-A-j24-1.4.H",
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "20.TA.91-23-A-j24-1.6.H",
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -716,53 +774,63 @@
         "lines": [
           {
             "line_id": "91-23-A-j24-1",
-            "route_id": "51.TA.91-23-A-j24-1.12.R",
-            "mode": "rail"
+            "route_id": "84.TA.91-23-A-j24-1.20.R",
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "54.TA.91-23-A-j24-1.14.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "84.TA.91-23-A-j24-1.20.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "87.TA.91-23-A-j24-1.21.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "88.TA.91-23-A-j24-1.22.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "46.TA.91-23-A-j24-1.11.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "56.TA.91-23-A-j24-1.15.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "61.TA.91-23-A-j24-1.17.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "88.TA.91-23-A-j24-1.22.R",
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "59.TA.91-23-A-j24-1.16.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "51.TA.91-23-A-j24-1.12.R",
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "46.TA.91-23-A-j24-1.11.R",
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "53.TA.91-23-A-j24-1.13.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "56.TA.91-23-A-j24-1.15.R",
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -790,43 +858,51 @@
         "lines": [
           {
             "line_id": "91-23-A-j24-1",
-            "route_id": "35.TA.91-23-A-j24-1.7.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "20.TA.91-23-A-j24-1.6.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "12.TA.91-23-A-j24-1.4.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "42.TA.91-23-A-j24-1.8.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "11.TA.91-23-A-j24-1.3.H",
-            "mode": "rail"
+            "route_id": "43.TA.91-23-A-j24-1.9.H",
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "16.TA.91-23-A-j24-1.5.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
-            "route_id": "43.TA.91-23-A-j24-1.9.H",
-            "mode": "rail"
+            "route_id": "35.TA.91-23-A-j24-1.7.H",
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "42.TA.91-23-A-j24-1.8.H",
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "3.TA.91-23-A-j24-1.2.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "11.TA.91-23-A-j24-1.3.H",
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "12.TA.91-23-A-j24-1.4.H",
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "20.TA.91-23-A-j24-1.6.H",
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -854,53 +930,63 @@
         "lines": [
           {
             "line_id": "91-23-A-j24-1",
-            "route_id": "51.TA.91-23-A-j24-1.12.R",
-            "mode": "rail"
+            "route_id": "84.TA.91-23-A-j24-1.20.R",
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "54.TA.91-23-A-j24-1.14.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "84.TA.91-23-A-j24-1.20.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "87.TA.91-23-A-j24-1.21.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "88.TA.91-23-A-j24-1.22.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "46.TA.91-23-A-j24-1.11.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "56.TA.91-23-A-j24-1.15.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "61.TA.91-23-A-j24-1.17.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "88.TA.91-23-A-j24-1.22.R",
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "59.TA.91-23-A-j24-1.16.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "51.TA.91-23-A-j24-1.12.R",
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "46.TA.91-23-A-j24-1.11.R",
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "53.TA.91-23-A-j24-1.13.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "56.TA.91-23-A-j24-1.15.R",
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -929,17 +1015,20 @@
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "3.TA.91-23-A-j24-1.2.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-21-j24-1",
-            "route_id": "11.TA.91-21-j24-1.4.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "11.TA.91-23-A-j24-1.3.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-21-j24-1",
+            "route_id": "11.TA.91-21-j24-1.4.H",
+            "mode": "rail",
+            "line_name": "S21"
           }
         ],
         "predominant_mode": "rail",
@@ -968,12 +1057,14 @@
           {
             "line_id": "91-21-j24-1",
             "route_id": "91.TA.91-21-j24-1.9.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S21"
           },
           {
             "line_id": "91-21-j24-1",
             "route_id": "77.TA.91-21-j24-1.8.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S21"
           }
         ],
         "predominant_mode": "rail",
@@ -1001,18 +1092,21 @@
         "lines": [
           {
             "line_id": "91-21-j24-1",
+            "route_id": "15.TA.91-21-j24-1.5.H",
+            "mode": "rail",
+            "line_name": "S21"
+          },
+          {
+            "line_id": "91-21-j24-1",
             "route_id": "51.TA.91-21-j24-1.5.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S21"
           },
           {
             "line_id": "91-21-j24-1",
             "route_id": "49.TA.91-21-j24-1.5.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-21-j24-1",
-            "route_id": "15.TA.91-21-j24-1.5.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S21"
           }
         ],
         "predominant_mode": "rail",
@@ -1040,13 +1134,15 @@
         "lines": [
           {
             "line_id": "91-21-j24-1",
-            "route_id": "18.TA.91-21-j24-1.5.H",
-            "mode": "rail"
+            "route_id": "43.TA.91-21-j24-1.5.H",
+            "mode": "rail",
+            "line_name": "S21"
           },
           {
             "line_id": "91-21-j24-1",
-            "route_id": "43.TA.91-21-j24-1.5.H",
-            "mode": "rail"
+            "route_id": "18.TA.91-21-j24-1.5.H",
+            "mode": "rail",
+            "line_name": "S21"
           }
         ],
         "predominant_mode": "rail",
@@ -1073,29 +1169,34 @@
         "lat": 47.32829030681375,
         "lines": [
           {
-            "line_id": "91-21-j24-1",
-            "route_id": "96.TA.91-21-j24-1.10.R",
-            "mode": "rail"
+            "line_id": "91-20-E-j24-1",
+            "route_id": "3.TA.91-20-E-j24-1.2.R",
+            "mode": "rail",
+            "line_name": "S20"
           },
           {
             "line_id": "91-21-j24-1",
-            "route_id": "92.TA.91-21-j24-1.10.R",
-            "mode": "rail"
+            "route_id": "96.TA.91-21-j24-1.10.R",
+            "mode": "rail",
+            "line_name": "S21"
           },
           {
             "line_id": "91-21-j24-1",
             "route_id": "102.TA.91-21-j24-1.11.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S21"
           },
           {
             "line_id": "91-21-j24-1",
             "route_id": "99.TA.91-21-j24-1.11.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S21"
           },
           {
-            "line_id": "91-20-E-j24-1",
-            "route_id": "3.TA.91-20-E-j24-1.2.R",
-            "mode": "rail"
+            "line_id": "91-21-j24-1",
+            "route_id": "92.TA.91-21-j24-1.10.R",
+            "mode": "rail",
+            "line_name": "S21"
           }
         ],
         "predominant_mode": "rail",
@@ -1124,7 +1225,8 @@
           {
             "line_id": "91-20-E-j24-1",
             "route_id": "4.TA.91-20-E-j24-1.3.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S20"
           }
         ],
         "predominant_mode": "rail",
@@ -1153,7 +1255,8 @@
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "43.TA.91-23-A-j24-1.9.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -1182,12 +1285,14 @@
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "88.TA.91-23-A-j24-1.22.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "61.TA.91-23-A-j24-1.17.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -1216,7 +1321,8 @@
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "20.TA.91-23-A-j24-1.6.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -1245,12 +1351,14 @@
           {
             "line_id": "91-20-E-j24-1",
             "route_id": "2.TA.91-20-E-j24-1.1.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S20"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "12.TA.91-23-A-j24-1.4.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -1278,13 +1386,15 @@
         "lines": [
           {
             "line_id": "91-23-A-j24-1",
-            "route_id": "51.TA.91-23-A-j24-1.12.R",
-            "mode": "rail"
+            "route_id": "46.TA.91-23-A-j24-1.11.R",
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
-            "route_id": "46.TA.91-23-A-j24-1.11.R",
-            "mode": "rail"
+            "route_id": "51.TA.91-23-A-j24-1.12.R",
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -1313,7 +1423,8 @@
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "42.TA.91-23-A-j24-1.8.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -1342,7 +1453,8 @@
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "54.TA.91-23-A-j24-1.14.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -1371,7 +1483,8 @@
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "87.TA.91-23-A-j24-1.21.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -1400,7 +1513,8 @@
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "59.TA.91-23-A-j24-1.16.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -1429,7 +1543,8 @@
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "35.TA.91-23-A-j24-1.7.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -1458,7 +1573,8 @@
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "84.TA.91-23-A-j24-1.20.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -1487,7 +1603,8 @@
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "16.TA.91-23-A-j24-1.5.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -1516,7 +1633,8 @@
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "53.TA.91-23-A-j24-1.13.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -1545,7 +1663,8 @@
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "56.TA.91-23-A-j24-1.15.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -1574,17 +1693,20 @@
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "88.TA.91-23-A-j24-1.22.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "84.TA.91-23-A-j24-1.20.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "87.TA.91-23-A-j24-1.21.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -1612,23 +1734,27 @@
         "lines": [
           {
             "line_id": "91-23-A-j24-1",
-            "route_id": "35.TA.91-23-A-j24-1.7.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
             "route_id": "43.TA.91-23-A-j24-1.9.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "42.TA.91-23-A-j24-1.8.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "20.TA.91-23-A-j24-1.6.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "35.TA.91-23-A-j24-1.7.H",
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "42.TA.91-23-A-j24-1.8.H",
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -1657,17 +1783,20 @@
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "88.TA.91-23-A-j24-1.22.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "84.TA.91-23-A-j24-1.20.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "87.TA.91-23-A-j24-1.21.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -1695,23 +1824,27 @@
         "lines": [
           {
             "line_id": "91-23-A-j24-1",
-            "route_id": "35.TA.91-23-A-j24-1.7.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
             "route_id": "43.TA.91-23-A-j24-1.9.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-23-A-j24-1",
-            "route_id": "42.TA.91-23-A-j24-1.8.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
           },
           {
             "line_id": "91-23-A-j24-1",
             "route_id": "20.TA.91-23-A-j24-1.6.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "35.TA.91-23-A-j24-1.7.H",
+            "mode": "rail",
+            "line_name": "S23"
+          },
+          {
+            "line_id": "91-23-A-j24-1",
+            "route_id": "42.TA.91-23-A-j24-1.8.H",
+            "mode": "rail",
+            "line_name": "S23"
           }
         ],
         "predominant_mode": "rail",
@@ -1739,78 +1872,93 @@
         "lines": [
           {
             "line_id": "91-21-j24-1",
-            "route_id": "91.TA.91-21-j24-1.9.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-21-j24-1",
-            "route_id": "11.TA.91-21-j24-1.4.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-21-j24-1",
-            "route_id": "96.TA.91-21-j24-1.10.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-21-j24-1",
-            "route_id": "18.TA.91-21-j24-1.5.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-20-E-j24-1",
-            "route_id": "4.TA.91-20-E-j24-1.3.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-21-j24-1",
-            "route_id": "15.TA.91-21-j24-1.5.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-21-j24-1",
             "route_id": "92.TA.91-21-j24-1.10.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-20-E-j24-1",
-            "route_id": "2.TA.91-20-E-j24-1.1.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-21-j24-1",
-            "route_id": "99.TA.91-21-j24-1.11.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-21-j24-1",
-            "route_id": "77.TA.91-21-j24-1.8.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-21-j24-1",
-            "route_id": "102.TA.91-21-j24-1.11.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-21-j24-1",
-            "route_id": "51.TA.91-21-j24-1.5.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-20-E-j24-1",
-            "route_id": "3.TA.91-20-E-j24-1.2.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S21"
           },
           {
             "line_id": "91-21-j24-1",
             "route_id": "49.TA.91-21-j24-1.5.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S21"
+          },
+          {
+            "line_id": "91-20-E-j24-1",
+            "route_id": "3.TA.91-20-E-j24-1.2.R",
+            "mode": "rail",
+            "line_name": "S20"
+          },
+          {
+            "line_id": "91-20-E-j24-1",
+            "route_id": "2.TA.91-20-E-j24-1.1.H",
+            "mode": "rail",
+            "line_name": "S20"
+          },
+          {
+            "line_id": "91-20-E-j24-1",
+            "route_id": "4.TA.91-20-E-j24-1.3.R",
+            "mode": "rail",
+            "line_name": "S20"
+          },
+          {
+            "line_id": "91-21-j24-1",
+            "route_id": "51.TA.91-21-j24-1.5.H",
+            "mode": "rail",
+            "line_name": "S21"
+          },
+          {
+            "line_id": "91-21-j24-1",
+            "route_id": "77.TA.91-21-j24-1.8.R",
+            "mode": "rail",
+            "line_name": "S21"
+          },
+          {
+            "line_id": "91-21-j24-1",
+            "route_id": "11.TA.91-21-j24-1.4.H",
+            "mode": "rail",
+            "line_name": "S21"
+          },
+          {
+            "line_id": "91-21-j24-1",
+            "route_id": "96.TA.91-21-j24-1.10.R",
+            "mode": "rail",
+            "line_name": "S21"
+          },
+          {
+            "line_id": "91-21-j24-1",
+            "route_id": "15.TA.91-21-j24-1.5.H",
+            "mode": "rail",
+            "line_name": "S21"
+          },
+          {
+            "line_id": "91-21-j24-1",
+            "route_id": "91.TA.91-21-j24-1.9.R",
+            "mode": "rail",
+            "line_name": "S21"
+          },
+          {
+            "line_id": "91-21-j24-1",
+            "route_id": "102.TA.91-21-j24-1.11.R",
+            "mode": "rail",
+            "line_name": "S21"
+          },
+          {
+            "line_id": "91-21-j24-1",
+            "route_id": "99.TA.91-21-j24-1.11.R",
+            "mode": "rail",
+            "line_name": "S21"
           },
           {
             "line_id": "91-21-j24-1",
             "route_id": "43.TA.91-21-j24-1.5.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S21"
+          },
+          {
+            "line_id": "91-21-j24-1",
+            "route_id": "18.TA.91-21-j24-1.5.H",
+            "mode": "rail",
+            "line_name": "S21"
           }
         ],
         "predominant_mode": "rail",
@@ -1838,78 +1986,93 @@
         "lines": [
           {
             "line_id": "91-21-j24-1",
-            "route_id": "91.TA.91-21-j24-1.9.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-21-j24-1",
-            "route_id": "11.TA.91-21-j24-1.4.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-21-j24-1",
-            "route_id": "96.TA.91-21-j24-1.10.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-21-j24-1",
-            "route_id": "18.TA.91-21-j24-1.5.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-20-E-j24-1",
-            "route_id": "4.TA.91-20-E-j24-1.3.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-21-j24-1",
-            "route_id": "15.TA.91-21-j24-1.5.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-21-j24-1",
             "route_id": "92.TA.91-21-j24-1.10.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-20-E-j24-1",
-            "route_id": "2.TA.91-20-E-j24-1.1.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-21-j24-1",
-            "route_id": "99.TA.91-21-j24-1.11.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-21-j24-1",
-            "route_id": "77.TA.91-21-j24-1.8.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-21-j24-1",
-            "route_id": "102.TA.91-21-j24-1.11.R",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-21-j24-1",
-            "route_id": "51.TA.91-21-j24-1.5.H",
-            "mode": "rail"
-          },
-          {
-            "line_id": "91-20-E-j24-1",
-            "route_id": "3.TA.91-20-E-j24-1.2.R",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S21"
           },
           {
             "line_id": "91-21-j24-1",
             "route_id": "49.TA.91-21-j24-1.5.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S21"
+          },
+          {
+            "line_id": "91-20-E-j24-1",
+            "route_id": "3.TA.91-20-E-j24-1.2.R",
+            "mode": "rail",
+            "line_name": "S20"
+          },
+          {
+            "line_id": "91-20-E-j24-1",
+            "route_id": "2.TA.91-20-E-j24-1.1.H",
+            "mode": "rail",
+            "line_name": "S20"
+          },
+          {
+            "line_id": "91-20-E-j24-1",
+            "route_id": "4.TA.91-20-E-j24-1.3.R",
+            "mode": "rail",
+            "line_name": "S20"
+          },
+          {
+            "line_id": "91-21-j24-1",
+            "route_id": "51.TA.91-21-j24-1.5.H",
+            "mode": "rail",
+            "line_name": "S21"
+          },
+          {
+            "line_id": "91-21-j24-1",
+            "route_id": "77.TA.91-21-j24-1.8.R",
+            "mode": "rail",
+            "line_name": "S21"
+          },
+          {
+            "line_id": "91-21-j24-1",
+            "route_id": "11.TA.91-21-j24-1.4.H",
+            "mode": "rail",
+            "line_name": "S21"
+          },
+          {
+            "line_id": "91-21-j24-1",
+            "route_id": "96.TA.91-21-j24-1.10.R",
+            "mode": "rail",
+            "line_name": "S21"
+          },
+          {
+            "line_id": "91-21-j24-1",
+            "route_id": "15.TA.91-21-j24-1.5.H",
+            "mode": "rail",
+            "line_name": "S21"
+          },
+          {
+            "line_id": "91-21-j24-1",
+            "route_id": "91.TA.91-21-j24-1.9.R",
+            "mode": "rail",
+            "line_name": "S21"
+          },
+          {
+            "line_id": "91-21-j24-1",
+            "route_id": "102.TA.91-21-j24-1.11.R",
+            "mode": "rail",
+            "line_name": "S21"
+          },
+          {
+            "line_id": "91-21-j24-1",
+            "route_id": "99.TA.91-21-j24-1.11.R",
+            "mode": "rail",
+            "line_name": "S21"
           },
           {
             "line_id": "91-21-j24-1",
             "route_id": "43.TA.91-21-j24-1.5.H",
-            "mode": "rail"
+            "mode": "rail",
+            "line_name": "S21"
+          },
+          {
+            "line_id": "91-21-j24-1",
+            "route_id": "18.TA.91-21-j24-1.5.H",
+            "mode": "rail",
+            "line_name": "S21"
           }
         ],
         "predominant_mode": "rail",
@@ -1938,37 +2101,44 @@
           {
             "line_id": "96-224-7-j24-1",
             "route_id": "13.TA.96-224-7-j24-1.6.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-225-0-j24-1",
-            "route_id": "13.TA.96-225-0-j24-1.4.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-224-6-j24-1",
-            "route_id": "25.TA.96-224-6-j24-1.5.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-224-6-j24-1",
-            "route_id": "21.TA.96-224-6-j24-1.4.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-224-6-j24-1",
-            "route_id": "19.TA.96-224-6-j24-1.3.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "227"
           },
           {
             "line_id": "96-225-0-j24-1",
             "route_id": "15.TA.96-225-0-j24-1.4.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "228"
           },
           {
             "line_id": "96-224-6-j24-1",
             "route_id": "36.TA.96-224-6-j24-1.6.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "226"
+          },
+          {
+            "line_id": "96-224-6-j24-1",
+            "route_id": "19.TA.96-224-6-j24-1.3.R",
+            "mode": "bus",
+            "line_name": "226"
+          },
+          {
+            "line_id": "96-224-6-j24-1",
+            "route_id": "21.TA.96-224-6-j24-1.4.R",
+            "mode": "bus",
+            "line_name": "226"
+          },
+          {
+            "line_id": "96-225-0-j24-1",
+            "route_id": "13.TA.96-225-0-j24-1.4.R",
+            "mode": "bus",
+            "line_name": "228"
+          },
+          {
+            "line_id": "96-224-6-j24-1",
+            "route_id": "25.TA.96-224-6-j24-1.5.R",
+            "mode": "bus",
+            "line_name": "226"
           }
         ],
         "predominant_mode": "bus",
@@ -1996,28 +2166,33 @@
         "lines": [
           {
             "line_id": "96-224-6-j24-1",
+            "route_id": "1.TA.96-224-6-j24-1.1.H",
+            "mode": "bus",
+            "line_name": "226"
+          },
+          {
+            "line_id": "96-224-6-j24-1",
             "route_id": "2.TA.96-224-6-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "226"
           },
           {
             "line_id": "96-224-6-j24-1",
             "route_id": "17.TA.96-224-6-j24-1.2.H",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-225-0-j24-1",
-            "route_id": "4.TA.96-225-0-j24-1.1.H",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-224-6-j24-1",
-            "route_id": "1.TA.96-224-6-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "226"
           },
           {
             "line_id": "96-224-7-j24-1",
             "route_id": "2.TA.96-224-7-j24-1.2.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "227"
+          },
+          {
+            "line_id": "96-225-0-j24-1",
+            "route_id": "4.TA.96-225-0-j24-1.1.H",
+            "mode": "bus",
+            "line_name": "228"
           }
         ],
         "predominant_mode": "bus",
@@ -2045,33 +2220,39 @@
         "lines": [
           {
             "line_id": "96-225-0-j24-1",
-            "route_id": "13.TA.96-225-0-j24-1.4.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-224-8-j24-1",
-            "route_id": "3.TA.96-224-8-j24-1.1.H",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-224-8-j24-1",
-            "route_id": "14.TA.96-224-8-j24-1.3.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-225-0-j24-1",
-            "route_id": "4.TA.96-225-0-j24-1.1.H",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-225-0-j24-1",
             "route_id": "15.TA.96-225-0-j24-1.4.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "228"
           },
           {
             "line_id": "96-224-8-j24-1",
             "route_id": "9.TA.96-224-8-j24-1.2.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "229"
+          },
+          {
+            "line_id": "96-225-0-j24-1",
+            "route_id": "4.TA.96-225-0-j24-1.1.H",
+            "mode": "bus",
+            "line_name": "228"
+          },
+          {
+            "line_id": "96-224-8-j24-1",
+            "route_id": "14.TA.96-224-8-j24-1.3.R",
+            "mode": "bus",
+            "line_name": "229"
+          },
+          {
+            "line_id": "96-225-0-j24-1",
+            "route_id": "13.TA.96-225-0-j24-1.4.R",
+            "mode": "bus",
+            "line_name": "228"
+          },
+          {
+            "line_id": "96-224-8-j24-1",
+            "route_id": "3.TA.96-224-8-j24-1.1.H",
+            "mode": "bus",
+            "line_name": "229"
           }
         ],
         "predominant_mode": "bus",
@@ -2100,7 +2281,8 @@
           {
             "line_id": "96-224-8-j24-1",
             "route_id": "3.TA.96-224-8-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "229"
           }
         ],
         "predominant_mode": "bus",
@@ -2128,13 +2310,15 @@
         "lines": [
           {
             "line_id": "96-224-8-j24-1",
-            "route_id": "14.TA.96-224-8-j24-1.3.R",
-            "mode": "bus"
+            "route_id": "9.TA.96-224-8-j24-1.2.R",
+            "mode": "bus",
+            "line_name": "229"
           },
           {
             "line_id": "96-224-8-j24-1",
-            "route_id": "9.TA.96-224-8-j24-1.2.R",
-            "mode": "bus"
+            "route_id": "14.TA.96-224-8-j24-1.3.R",
+            "mode": "bus",
+            "line_name": "229"
           }
         ],
         "predominant_mode": "bus",
@@ -2163,7 +2347,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "44.TA.96-221-6-j24-1.8.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -2192,7 +2377,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "12.TA.96-221-6-j24-1.3.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -2221,7 +2407,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "12.TA.96-221-6-j24-1.3.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -2250,7 +2437,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "44.TA.96-221-6-j24-1.8.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -2279,7 +2467,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "12.TA.96-221-6-j24-1.3.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -2308,7 +2497,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "44.TA.96-221-6-j24-1.8.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -2337,7 +2527,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "12.TA.96-221-6-j24-1.3.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -2366,7 +2557,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "44.TA.96-221-6-j24-1.8.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -2395,7 +2587,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "12.TA.96-221-6-j24-1.3.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -2424,7 +2617,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "44.TA.96-221-6-j24-1.8.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -2453,7 +2647,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "12.TA.96-221-6-j24-1.3.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -2482,7 +2677,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "44.TA.96-221-6-j24-1.8.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -2511,7 +2707,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "12.TA.96-221-6-j24-1.3.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -2540,7 +2737,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "44.TA.96-221-6-j24-1.8.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -2569,7 +2767,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "12.TA.96-221-6-j24-1.3.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -2598,7 +2797,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "44.TA.96-221-6-j24-1.8.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -2627,7 +2827,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "12.TA.96-221-6-j24-1.3.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -2656,7 +2857,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "44.TA.96-221-6-j24-1.8.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -2685,7 +2887,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "12.TA.96-221-6-j24-1.3.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -2714,7 +2917,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "44.TA.96-221-6-j24-1.8.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -2741,49 +2945,58 @@
         "lat": 47.43083475155472,
         "lines": [
           {
-            "line_id": "96-224-7-j24-1",
-            "route_id": "13.TA.96-224-7-j24-1.6.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-225-0-j24-1",
-            "route_id": "13.TA.96-225-0-j24-1.4.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-224-6-j24-1",
-            "route_id": "25.TA.96-224-6-j24-1.5.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-224-6-j24-1",
-            "route_id": "21.TA.96-224-6-j24-1.4.R",
-            "mode": "bus"
-          },
-          {
             "line_id": "96-224-8-j24-1",
             "route_id": "14.TA.96-224-8-j24-1.3.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "229"
           },
           {
-            "line_id": "96-224-6-j24-1",
-            "route_id": "19.TA.96-224-6-j24-1.3.R",
-            "mode": "bus"
+            "line_id": "96-224-7-j24-1",
+            "route_id": "13.TA.96-224-7-j24-1.6.R",
+            "mode": "bus",
+            "line_name": "227"
           },
           {
             "line_id": "96-225-0-j24-1",
             "route_id": "15.TA.96-225-0-j24-1.4.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "228"
           },
           {
             "line_id": "96-224-8-j24-1",
             "route_id": "9.TA.96-224-8-j24-1.2.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "229"
           },
           {
             "line_id": "96-224-6-j24-1",
             "route_id": "36.TA.96-224-6-j24-1.6.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "226"
+          },
+          {
+            "line_id": "96-224-6-j24-1",
+            "route_id": "19.TA.96-224-6-j24-1.3.R",
+            "mode": "bus",
+            "line_name": "226"
+          },
+          {
+            "line_id": "96-224-6-j24-1",
+            "route_id": "21.TA.96-224-6-j24-1.4.R",
+            "mode": "bus",
+            "line_name": "226"
+          },
+          {
+            "line_id": "96-225-0-j24-1",
+            "route_id": "13.TA.96-225-0-j24-1.4.R",
+            "mode": "bus",
+            "line_name": "228"
+          },
+          {
+            "line_id": "96-224-6-j24-1",
+            "route_id": "25.TA.96-224-6-j24-1.5.R",
+            "mode": "bus",
+            "line_name": "226"
           }
         ],
         "predominant_mode": "bus",
@@ -2811,28 +3024,33 @@
         "lines": [
           {
             "line_id": "96-224-6-j24-1",
-            "route_id": "2.TA.96-224-6-j24-1.1.H",
-            "mode": "bus"
+            "route_id": "1.TA.96-224-6-j24-1.1.H",
+            "mode": "bus",
+            "line_name": "226"
           },
           {
-            "line_id": "96-224-8-j24-1",
-            "route_id": "3.TA.96-224-8-j24-1.1.H",
-            "mode": "bus"
+            "line_id": "96-224-6-j24-1",
+            "route_id": "2.TA.96-224-6-j24-1.1.H",
+            "mode": "bus",
+            "line_name": "226"
           },
           {
             "line_id": "96-224-6-j24-1",
             "route_id": "17.TA.96-224-6-j24-1.2.H",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-224-6-j24-1",
-            "route_id": "1.TA.96-224-6-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "226"
           },
           {
             "line_id": "96-224-7-j24-1",
             "route_id": "2.TA.96-224-7-j24-1.2.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "227"
+          },
+          {
+            "line_id": "96-224-8-j24-1",
+            "route_id": "3.TA.96-224-8-j24-1.1.H",
+            "mode": "bus",
+            "line_name": "229"
           }
         ],
         "predominant_mode": "bus",
@@ -2859,49 +3077,58 @@
         "lat": 47.42829453727068,
         "lines": [
           {
-            "line_id": "96-224-7-j24-1",
-            "route_id": "13.TA.96-224-7-j24-1.6.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-225-0-j24-1",
-            "route_id": "13.TA.96-225-0-j24-1.4.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-224-6-j24-1",
-            "route_id": "25.TA.96-224-6-j24-1.5.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-224-6-j24-1",
-            "route_id": "21.TA.96-224-6-j24-1.4.R",
-            "mode": "bus"
-          },
-          {
             "line_id": "96-224-8-j24-1",
             "route_id": "14.TA.96-224-8-j24-1.3.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "229"
           },
           {
-            "line_id": "96-224-6-j24-1",
-            "route_id": "19.TA.96-224-6-j24-1.3.R",
-            "mode": "bus"
+            "line_id": "96-224-7-j24-1",
+            "route_id": "13.TA.96-224-7-j24-1.6.R",
+            "mode": "bus",
+            "line_name": "227"
           },
           {
             "line_id": "96-225-0-j24-1",
             "route_id": "15.TA.96-225-0-j24-1.4.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "228"
           },
           {
             "line_id": "96-224-8-j24-1",
             "route_id": "9.TA.96-224-8-j24-1.2.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "229"
           },
           {
             "line_id": "96-224-6-j24-1",
             "route_id": "36.TA.96-224-6-j24-1.6.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "226"
+          },
+          {
+            "line_id": "96-224-6-j24-1",
+            "route_id": "19.TA.96-224-6-j24-1.3.R",
+            "mode": "bus",
+            "line_name": "226"
+          },
+          {
+            "line_id": "96-224-6-j24-1",
+            "route_id": "21.TA.96-224-6-j24-1.4.R",
+            "mode": "bus",
+            "line_name": "226"
+          },
+          {
+            "line_id": "96-225-0-j24-1",
+            "route_id": "13.TA.96-225-0-j24-1.4.R",
+            "mode": "bus",
+            "line_name": "228"
+          },
+          {
+            "line_id": "96-224-6-j24-1",
+            "route_id": "25.TA.96-224-6-j24-1.5.R",
+            "mode": "bus",
+            "line_name": "226"
           }
         ],
         "predominant_mode": "bus",
@@ -2929,28 +3156,33 @@
         "lines": [
           {
             "line_id": "96-224-6-j24-1",
-            "route_id": "2.TA.96-224-6-j24-1.1.H",
-            "mode": "bus"
+            "route_id": "1.TA.96-224-6-j24-1.1.H",
+            "mode": "bus",
+            "line_name": "226"
           },
           {
-            "line_id": "96-224-8-j24-1",
-            "route_id": "3.TA.96-224-8-j24-1.1.H",
-            "mode": "bus"
+            "line_id": "96-224-6-j24-1",
+            "route_id": "2.TA.96-224-6-j24-1.1.H",
+            "mode": "bus",
+            "line_name": "226"
           },
           {
             "line_id": "96-224-6-j24-1",
             "route_id": "17.TA.96-224-6-j24-1.2.H",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-224-6-j24-1",
-            "route_id": "1.TA.96-224-6-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "226"
           },
           {
             "line_id": "96-224-7-j24-1",
             "route_id": "2.TA.96-224-7-j24-1.2.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "227"
+          },
+          {
+            "line_id": "96-224-8-j24-1",
+            "route_id": "3.TA.96-224-8-j24-1.1.H",
+            "mode": "bus",
+            "line_name": "229"
           }
         ],
         "predominant_mode": "bus",
@@ -2979,27 +3211,32 @@
           {
             "line_id": "96-224-7-j24-1",
             "route_id": "13.TA.96-224-7-j24-1.6.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-224-6-j24-1",
-            "route_id": "25.TA.96-224-6-j24-1.5.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-224-6-j24-1",
-            "route_id": "21.TA.96-224-6-j24-1.4.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-224-6-j24-1",
-            "route_id": "19.TA.96-224-6-j24-1.3.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "227"
           },
           {
             "line_id": "96-224-6-j24-1",
             "route_id": "36.TA.96-224-6-j24-1.6.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "226"
+          },
+          {
+            "line_id": "96-224-6-j24-1",
+            "route_id": "19.TA.96-224-6-j24-1.3.R",
+            "mode": "bus",
+            "line_name": "226"
+          },
+          {
+            "line_id": "96-224-6-j24-1",
+            "route_id": "21.TA.96-224-6-j24-1.4.R",
+            "mode": "bus",
+            "line_name": "226"
+          },
+          {
+            "line_id": "96-224-6-j24-1",
+            "route_id": "25.TA.96-224-6-j24-1.5.R",
+            "mode": "bus",
+            "line_name": "226"
           }
         ],
         "predominant_mode": "bus",
@@ -3028,22 +3265,26 @@
           {
             "line_id": "96-224-6-j24-1",
             "route_id": "17.TA.96-224-6-j24-1.2.H",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-224-6-j24-1",
-            "route_id": "2.TA.96-224-6-j24-1.1.H",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-224-7-j24-1",
-            "route_id": "2.TA.96-224-7-j24-1.2.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "226"
           },
           {
             "line_id": "96-224-6-j24-1",
             "route_id": "1.TA.96-224-6-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "226"
+          },
+          {
+            "line_id": "96-224-7-j24-1",
+            "route_id": "2.TA.96-224-7-j24-1.2.H",
+            "mode": "bus",
+            "line_name": "227"
+          },
+          {
+            "line_id": "96-224-6-j24-1",
+            "route_id": "2.TA.96-224-6-j24-1.1.H",
+            "mode": "bus",
+            "line_name": "226"
           }
         ],
         "predominant_mode": "bus",
@@ -3072,12 +3313,14 @@
           {
             "line_id": "96-224-6-j24-1",
             "route_id": "25.TA.96-224-6-j24-1.5.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "226"
           },
           {
             "line_id": "96-224-6-j24-1",
             "route_id": "36.TA.96-224-6-j24-1.6.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "226"
           }
         ],
         "predominant_mode": "bus",
@@ -3106,7 +3349,8 @@
           {
             "line_id": "96-224-6-j24-1",
             "route_id": "17.TA.96-224-6-j24-1.2.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "226"
           }
         ],
         "predominant_mode": "bus",
@@ -3135,22 +3379,26 @@
           {
             "line_id": "96-224-6-j24-1",
             "route_id": "25.TA.96-224-6-j24-1.5.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-225-0-j24-1",
-            "route_id": "15.TA.96-225-0-j24-1.4.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "226"
           },
           {
             "line_id": "96-225-0-j24-1",
             "route_id": "13.TA.96-225-0-j24-1.4.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "228"
           },
           {
             "line_id": "96-224-6-j24-1",
             "route_id": "36.TA.96-224-6-j24-1.6.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "226"
+          },
+          {
+            "line_id": "96-225-0-j24-1",
+            "route_id": "15.TA.96-225-0-j24-1.4.R",
+            "mode": "bus",
+            "line_name": "228"
           }
         ],
         "predominant_mode": "bus",
@@ -3179,12 +3427,14 @@
           {
             "line_id": "96-224-6-j24-1",
             "route_id": "17.TA.96-224-6-j24-1.2.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "226"
           },
           {
             "line_id": "96-225-0-j24-1",
             "route_id": "4.TA.96-225-0-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "228"
           }
         ],
         "predominant_mode": "bus",
@@ -3213,7 +3463,8 @@
           {
             "line_id": "96-224-8-j24-1",
             "route_id": "3.TA.96-224-8-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "229"
           }
         ],
         "predominant_mode": "bus",
@@ -3241,13 +3492,15 @@
         "lines": [
           {
             "line_id": "96-224-8-j24-1",
-            "route_id": "14.TA.96-224-8-j24-1.3.R",
-            "mode": "bus"
+            "route_id": "9.TA.96-224-8-j24-1.2.R",
+            "mode": "bus",
+            "line_name": "229"
           },
           {
             "line_id": "96-224-8-j24-1",
-            "route_id": "9.TA.96-224-8-j24-1.2.R",
-            "mode": "bus"
+            "route_id": "14.TA.96-224-8-j24-1.3.R",
+            "mode": "bus",
+            "line_name": "229"
           }
         ],
         "predominant_mode": "bus",
@@ -3274,24 +3527,28 @@
         "lat": 47.41080748839922,
         "lines": [
           {
-            "line_id": "96-224-8-j24-1",
-            "route_id": "3.TA.96-224-8-j24-1.1.H",
-            "mode": "bus"
+            "line_id": "96-225-0-j24-1",
+            "route_id": "4.TA.96-225-0-j24-1.1.H",
+            "mode": "bus",
+            "line_name": "228"
           },
           {
             "line_id": "96-225-0-j24-1",
             "route_id": "15.TA.96-225-0-j24-1.4.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "228"
           },
           {
             "line_id": "96-225-0-j24-1",
             "route_id": "13.TA.96-225-0-j24-1.4.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "228"
           },
           {
-            "line_id": "96-225-0-j24-1",
-            "route_id": "4.TA.96-225-0-j24-1.1.H",
-            "mode": "bus"
+            "line_id": "96-224-8-j24-1",
+            "route_id": "3.TA.96-224-8-j24-1.1.H",
+            "mode": "bus",
+            "line_name": "229"
           }
         ],
         "predominant_mode": "bus",
@@ -3319,13 +3576,15 @@
         "lines": [
           {
             "line_id": "96-224-8-j24-1",
-            "route_id": "14.TA.96-224-8-j24-1.3.R",
-            "mode": "bus"
+            "route_id": "9.TA.96-224-8-j24-1.2.R",
+            "mode": "bus",
+            "line_name": "229"
           },
           {
             "line_id": "96-224-8-j24-1",
-            "route_id": "9.TA.96-224-8-j24-1.2.R",
-            "mode": "bus"
+            "route_id": "14.TA.96-224-8-j24-1.3.R",
+            "mode": "bus",
+            "line_name": "229"
           }
         ],
         "predominant_mode": "bus",
@@ -3354,7 +3613,8 @@
           {
             "line_id": "96-224-8-j24-1",
             "route_id": "3.TA.96-224-8-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "229"
           }
         ],
         "predominant_mode": "bus",
@@ -3382,13 +3642,15 @@
         "lines": [
           {
             "line_id": "96-224-8-j24-1",
-            "route_id": "14.TA.96-224-8-j24-1.3.R",
-            "mode": "bus"
+            "route_id": "9.TA.96-224-8-j24-1.2.R",
+            "mode": "bus",
+            "line_name": "229"
           },
           {
             "line_id": "96-224-8-j24-1",
-            "route_id": "9.TA.96-224-8-j24-1.2.R",
-            "mode": "bus"
+            "route_id": "14.TA.96-224-8-j24-1.3.R",
+            "mode": "bus",
+            "line_name": "229"
           }
         ],
         "predominant_mode": "bus",
@@ -3417,7 +3679,8 @@
           {
             "line_id": "96-221-8-j24-1",
             "route_id": "45.TA.96-221-8-j24-1.2.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "192"
           }
         ],
         "predominant_mode": "bus",
@@ -3446,7 +3709,8 @@
           {
             "line_id": "96-221-8-j24-1",
             "route_id": "21.TA.96-221-8-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "192"
           }
         ],
         "predominant_mode": "bus",
@@ -3475,7 +3739,8 @@
           {
             "line_id": "96-221-8-j24-1",
             "route_id": "45.TA.96-221-8-j24-1.2.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "192"
           }
         ],
         "predominant_mode": "bus",
@@ -3504,7 +3769,8 @@
           {
             "line_id": "96-221-8-j24-1",
             "route_id": "21.TA.96-221-8-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "192"
           }
         ],
         "predominant_mode": "bus",
@@ -3533,7 +3799,8 @@
           {
             "line_id": "96-221-8-j24-1",
             "route_id": "45.TA.96-221-8-j24-1.2.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "192"
           }
         ],
         "predominant_mode": "bus",
@@ -3562,7 +3829,8 @@
           {
             "line_id": "96-221-8-j24-1",
             "route_id": "21.TA.96-221-8-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "192"
           }
         ],
         "predominant_mode": "bus",
@@ -3591,12 +3859,14 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "1.TA.96-221-6-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           },
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "9.TA.96-221-6-j24-1.2.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -3624,13 +3894,15 @@
         "lines": [
           {
             "line_id": "96-221-6-j24-1",
-            "route_id": "28.TA.96-221-6-j24-1.7.R",
-            "mode": "bus"
+            "route_id": "24.TA.96-221-6-j24-1.6.R",
+            "mode": "bus",
+            "line_name": "191"
           },
           {
             "line_id": "96-221-6-j24-1",
-            "route_id": "24.TA.96-221-6-j24-1.6.R",
-            "mode": "bus"
+            "route_id": "28.TA.96-221-6-j24-1.7.R",
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -3659,12 +3931,14 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "1.TA.96-221-6-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           },
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "9.TA.96-221-6-j24-1.2.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -3692,13 +3966,15 @@
         "lines": [
           {
             "line_id": "96-221-6-j24-1",
-            "route_id": "28.TA.96-221-6-j24-1.7.R",
-            "mode": "bus"
+            "route_id": "24.TA.96-221-6-j24-1.6.R",
+            "mode": "bus",
+            "line_name": "191"
           },
           {
             "line_id": "96-221-6-j24-1",
-            "route_id": "24.TA.96-221-6-j24-1.6.R",
-            "mode": "bus"
+            "route_id": "28.TA.96-221-6-j24-1.7.R",
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -3726,13 +4002,15 @@
         "lines": [
           {
             "line_id": "96-221-6-j24-1",
-            "route_id": "28.TA.96-221-6-j24-1.7.R",
-            "mode": "bus"
+            "route_id": "24.TA.96-221-6-j24-1.6.R",
+            "mode": "bus",
+            "line_name": "191"
           },
           {
             "line_id": "96-221-6-j24-1",
-            "route_id": "24.TA.96-221-6-j24-1.6.R",
-            "mode": "bus"
+            "route_id": "28.TA.96-221-6-j24-1.7.R",
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -3761,12 +4039,14 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "1.TA.96-221-6-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           },
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "9.TA.96-221-6-j24-1.2.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -3795,7 +4075,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "24.TA.96-221-6-j24-1.6.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -3824,7 +4105,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "1.TA.96-221-6-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -3853,7 +4135,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "24.TA.96-221-6-j24-1.6.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -3882,7 +4165,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "1.TA.96-221-6-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -3911,7 +4195,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "24.TA.96-221-6-j24-1.6.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -3940,7 +4225,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "1.TA.96-221-6-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -3969,7 +4255,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "44.TA.96-221-6-j24-1.8.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -3997,18 +4284,21 @@
         "lines": [
           {
             "line_id": "96-221-6-j24-1",
+            "route_id": "24.TA.96-221-6-j24-1.6.R",
+            "mode": "bus",
+            "line_name": "191"
+          },
+          {
+            "line_id": "96-221-6-j24-1",
             "route_id": "28.TA.96-221-6-j24-1.7.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           },
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "12.TA.96-221-6-j24-1.3.H",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-221-6-j24-1",
-            "route_id": "24.TA.96-221-6-j24-1.6.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -4036,38 +4326,45 @@
         "lines": [
           {
             "line_id": "96-221-6-j24-1",
-            "route_id": "28.TA.96-221-6-j24-1.7.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-221-6-j24-1",
-            "route_id": "12.TA.96-221-6-j24-1.3.H",
-            "mode": "bus"
+            "route_id": "24.TA.96-221-6-j24-1.6.R",
+            "mode": "bus",
+            "line_name": "191"
           },
           {
             "line_id": "92-B21-j24-1",
             "route_id": "4.TA.92-B21-j24-1.3.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "B21"
           },
           {
-            "line_id": "92-B23-j24-1",
-            "route_id": "3.TA.92-B23-j24-1.2.H",
-            "mode": "bus"
+            "line_id": "96-221-6-j24-1",
+            "route_id": "28.TA.96-221-6-j24-1.7.R",
+            "mode": "bus",
+            "line_name": "191"
           },
           {
             "line_id": "92-B23-j24-1",
             "route_id": "1.TA.92-B23-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "B23"
           },
           {
             "line_id": "92-B21-j24-1",
             "route_id": "5.TA.92-B21-j24-1.4.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "B21"
           },
           {
             "line_id": "96-221-6-j24-1",
-            "route_id": "24.TA.96-221-6-j24-1.6.R",
-            "mode": "bus"
+            "route_id": "12.TA.96-221-6-j24-1.3.H",
+            "mode": "bus",
+            "line_name": "191"
+          },
+          {
+            "line_id": "92-B23-j24-1",
+            "route_id": "3.TA.92-B23-j24-1.2.H",
+            "mode": "bus",
+            "line_name": "B23"
           }
         ],
         "predominant_mode": "bus",
@@ -4094,39 +4391,46 @@
         "lat": 47.328899178444885,
         "lines": [
           {
-            "line_id": "92-B23-j24-1",
-            "route_id": "5.TA.92-B23-j24-1.3.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-221-6-j24-1",
-            "route_id": "44.TA.96-221-6-j24-1.8.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "92-B21-j24-1",
-            "route_id": "12.TA.92-B21-j24-1.8.R",
-            "mode": "bus"
-          },
-          {
             "line_id": "92-B21-j24-1",
             "route_id": "10.TA.92-B21-j24-1.7.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "B21"
           },
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "1.TA.96-221-6-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           },
           {
-            "line_id": "92-B23-j24-1",
-            "route_id": "8.TA.92-B23-j24-1.4.R",
-            "mode": "bus"
+            "line_id": "96-221-6-j24-1",
+            "route_id": "44.TA.96-221-6-j24-1.8.R",
+            "mode": "bus",
+            "line_name": "191"
           },
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "9.TA.96-221-6-j24-1.2.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
+          },
+          {
+            "line_id": "92-B23-j24-1",
+            "route_id": "5.TA.92-B23-j24-1.3.R",
+            "mode": "bus",
+            "line_name": "B23"
+          },
+          {
+            "line_id": "92-B21-j24-1",
+            "route_id": "12.TA.92-B21-j24-1.8.R",
+            "mode": "bus",
+            "line_name": "B21"
+          },
+          {
+            "line_id": "92-B23-j24-1",
+            "route_id": "8.TA.92-B23-j24-1.4.R",
+            "mode": "bus",
+            "line_name": "B23"
           }
         ],
         "predominant_mode": "bus",
@@ -4155,7 +4459,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "28.TA.96-221-6-j24-1.7.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -4184,7 +4489,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "9.TA.96-221-6-j24-1.2.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -4213,7 +4519,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "28.TA.96-221-6-j24-1.7.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -4242,7 +4549,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "9.TA.96-221-6-j24-1.2.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -4271,7 +4579,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "28.TA.96-221-6-j24-1.7.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -4300,7 +4609,8 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "9.TA.96-221-6-j24-1.2.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -4328,13 +4638,15 @@
         "lines": [
           {
             "line_id": "92-B21-j24-1",
-            "route_id": "4.TA.92-B21-j24-1.3.H",
-            "mode": "bus"
+            "route_id": "5.TA.92-B21-j24-1.4.H",
+            "mode": "bus",
+            "line_name": "B21"
           },
           {
             "line_id": "92-B21-j24-1",
-            "route_id": "5.TA.92-B21-j24-1.4.H",
-            "mode": "bus"
+            "route_id": "4.TA.92-B21-j24-1.3.H",
+            "mode": "bus",
+            "line_name": "B21"
           }
         ],
         "predominant_mode": "bus",
@@ -4363,12 +4675,14 @@
           {
             "line_id": "92-B21-j24-1",
             "route_id": "12.TA.92-B21-j24-1.8.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "B21"
           },
           {
             "line_id": "92-B21-j24-1",
             "route_id": "10.TA.92-B21-j24-1.7.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "B21"
           }
         ],
         "predominant_mode": "bus",
@@ -4397,12 +4711,14 @@
           {
             "line_id": "92-B23-j24-1",
             "route_id": "5.TA.92-B23-j24-1.3.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "B23"
           },
           {
             "line_id": "92-B23-j24-1",
             "route_id": "8.TA.92-B23-j24-1.4.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "B23"
           }
         ],
         "predominant_mode": "bus",
@@ -4431,12 +4747,14 @@
           {
             "line_id": "92-B23-j24-1",
             "route_id": "1.TA.92-B23-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "B23"
           },
           {
             "line_id": "92-B23-j24-1",
             "route_id": "3.TA.92-B23-j24-1.2.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "B23"
           }
         ],
         "predominant_mode": "bus",
@@ -4463,49 +4781,58 @@
         "lat": 47.423706040593814,
         "lines": [
           {
-            "line_id": "96-224-7-j24-1",
-            "route_id": "13.TA.96-224-7-j24-1.6.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-225-0-j24-1",
-            "route_id": "13.TA.96-225-0-j24-1.4.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-224-6-j24-1",
-            "route_id": "25.TA.96-224-6-j24-1.5.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-224-6-j24-1",
-            "route_id": "21.TA.96-224-6-j24-1.4.R",
-            "mode": "bus"
-          },
-          {
             "line_id": "96-224-8-j24-1",
             "route_id": "14.TA.96-224-8-j24-1.3.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "229"
           },
           {
-            "line_id": "96-224-6-j24-1",
-            "route_id": "19.TA.96-224-6-j24-1.3.R",
-            "mode": "bus"
+            "line_id": "96-224-7-j24-1",
+            "route_id": "13.TA.96-224-7-j24-1.6.R",
+            "mode": "bus",
+            "line_name": "227"
           },
           {
             "line_id": "96-225-0-j24-1",
             "route_id": "15.TA.96-225-0-j24-1.4.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "228"
           },
           {
             "line_id": "96-224-8-j24-1",
             "route_id": "9.TA.96-224-8-j24-1.2.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "229"
           },
           {
             "line_id": "96-224-6-j24-1",
             "route_id": "36.TA.96-224-6-j24-1.6.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "226"
+          },
+          {
+            "line_id": "96-224-6-j24-1",
+            "route_id": "19.TA.96-224-6-j24-1.3.R",
+            "mode": "bus",
+            "line_name": "226"
+          },
+          {
+            "line_id": "96-224-6-j24-1",
+            "route_id": "21.TA.96-224-6-j24-1.4.R",
+            "mode": "bus",
+            "line_name": "226"
+          },
+          {
+            "line_id": "96-225-0-j24-1",
+            "route_id": "13.TA.96-225-0-j24-1.4.R",
+            "mode": "bus",
+            "line_name": "228"
+          },
+          {
+            "line_id": "96-224-6-j24-1",
+            "route_id": "25.TA.96-224-6-j24-1.5.R",
+            "mode": "bus",
+            "line_name": "226"
           }
         ],
         "predominant_mode": "bus",
@@ -4533,28 +4860,33 @@
         "lines": [
           {
             "line_id": "96-224-6-j24-1",
-            "route_id": "2.TA.96-224-6-j24-1.1.H",
-            "mode": "bus"
+            "route_id": "1.TA.96-224-6-j24-1.1.H",
+            "mode": "bus",
+            "line_name": "226"
           },
           {
-            "line_id": "96-224-8-j24-1",
-            "route_id": "3.TA.96-224-8-j24-1.1.H",
-            "mode": "bus"
+            "line_id": "96-224-6-j24-1",
+            "route_id": "2.TA.96-224-6-j24-1.1.H",
+            "mode": "bus",
+            "line_name": "226"
           },
           {
             "line_id": "96-224-6-j24-1",
             "route_id": "17.TA.96-224-6-j24-1.2.H",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-224-6-j24-1",
-            "route_id": "1.TA.96-224-6-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "226"
           },
           {
             "line_id": "96-224-7-j24-1",
             "route_id": "2.TA.96-224-7-j24-1.2.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "227"
+          },
+          {
+            "line_id": "96-224-8-j24-1",
+            "route_id": "3.TA.96-224-8-j24-1.1.H",
+            "mode": "bus",
+            "line_name": "229"
           }
         ],
         "predominant_mode": "bus",
@@ -4583,7 +4915,8 @@
           {
             "line_id": "96-224-7-j24-1",
             "route_id": "14.TA.96-224-7-j24-1.7.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "227"
           }
         ],
         "predominant_mode": "bus",
@@ -4612,12 +4945,14 @@
           {
             "line_id": "96-224-7-j24-1",
             "route_id": "11.TA.96-224-7-j24-1.3.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "227"
           },
           {
             "line_id": "96-224-7-j24-1",
             "route_id": "3.TA.96-224-7-j24-1.3.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "227"
           }
         ],
         "predominant_mode": "bus",
@@ -4645,18 +4980,21 @@
         "lines": [
           {
             "line_id": "96-221-6-j24-1",
-            "route_id": "44.TA.96-221-6-j24-1.8.R",
-            "mode": "bus"
+            "route_id": "1.TA.96-221-6-j24-1.1.H",
+            "mode": "bus",
+            "line_name": "191"
           },
           {
             "line_id": "96-221-6-j24-1",
-            "route_id": "1.TA.96-221-6-j24-1.1.H",
-            "mode": "bus"
+            "route_id": "44.TA.96-221-6-j24-1.8.R",
+            "mode": "bus",
+            "line_name": "191"
           },
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "9.TA.96-221-6-j24-1.2.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -4684,18 +5022,21 @@
         "lines": [
           {
             "line_id": "96-221-6-j24-1",
+            "route_id": "24.TA.96-221-6-j24-1.6.R",
+            "mode": "bus",
+            "line_name": "191"
+          },
+          {
+            "line_id": "96-221-6-j24-1",
             "route_id": "28.TA.96-221-6-j24-1.7.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           },
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "12.TA.96-221-6-j24-1.3.H",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-221-6-j24-1",
-            "route_id": "24.TA.96-221-6-j24-1.6.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -4723,18 +5064,21 @@
         "lines": [
           {
             "line_id": "96-221-6-j24-1",
-            "route_id": "44.TA.96-221-6-j24-1.8.R",
-            "mode": "bus"
+            "route_id": "1.TA.96-221-6-j24-1.1.H",
+            "mode": "bus",
+            "line_name": "191"
           },
           {
             "line_id": "96-221-6-j24-1",
-            "route_id": "1.TA.96-221-6-j24-1.1.H",
-            "mode": "bus"
+            "route_id": "44.TA.96-221-6-j24-1.8.R",
+            "mode": "bus",
+            "line_name": "191"
           },
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "9.TA.96-221-6-j24-1.2.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -4762,18 +5106,21 @@
         "lines": [
           {
             "line_id": "96-221-6-j24-1",
+            "route_id": "24.TA.96-221-6-j24-1.6.R",
+            "mode": "bus",
+            "line_name": "191"
+          },
+          {
+            "line_id": "96-221-6-j24-1",
             "route_id": "28.TA.96-221-6-j24-1.7.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           },
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "12.TA.96-221-6-j24-1.3.H",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-221-6-j24-1",
-            "route_id": "24.TA.96-221-6-j24-1.6.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -4802,17 +5149,20 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "44.TA.96-221-6-j24-1.8.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-221-6-j24-1",
-            "route_id": "28.TA.96-221-6-j24-1.7.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           },
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "24.TA.96-221-6-j24-1.6.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
+          },
+          {
+            "line_id": "96-221-6-j24-1",
+            "route_id": "28.TA.96-221-6-j24-1.7.R",
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -4839,24 +5189,28 @@
         "lat": 47.332004314447545,
         "lines": [
           {
-            "line_id": "96-221-6-j24-1",
-            "route_id": "28.TA.96-221-6-j24-1.7.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "92-B21-j24-1",
-            "route_id": "4.TA.92-B21-j24-1.3.H",
-            "mode": "bus"
-          },
-          {
             "line_id": "92-B21-j24-1",
             "route_id": "5.TA.92-B21-j24-1.4.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "B21"
           },
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "24.TA.96-221-6-j24-1.6.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
+          },
+          {
+            "line_id": "96-221-6-j24-1",
+            "route_id": "28.TA.96-221-6-j24-1.7.R",
+            "mode": "bus",
+            "line_name": "191"
+          },
+          {
+            "line_id": "92-B21-j24-1",
+            "route_id": "4.TA.92-B21-j24-1.3.H",
+            "mode": "bus",
+            "line_name": "B21"
           }
         ],
         "predominant_mode": "bus",
@@ -4883,24 +5237,28 @@
         "lat": 47.332004314447545,
         "lines": [
           {
-            "line_id": "92-B21-j24-1",
-            "route_id": "12.TA.92-B21-j24-1.8.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "92-B21-j24-1",
-            "route_id": "10.TA.92-B21-j24-1.7.R",
-            "mode": "bus"
-          },
-          {
             "line_id": "96-221-6-j24-1",
             "route_id": "1.TA.96-221-6-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           },
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "9.TA.96-221-6-j24-1.2.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
+          },
+          {
+            "line_id": "92-B21-j24-1",
+            "route_id": "12.TA.92-B21-j24-1.8.R",
+            "mode": "bus",
+            "line_name": "B21"
+          },
+          {
+            "line_id": "92-B21-j24-1",
+            "route_id": "10.TA.92-B21-j24-1.7.R",
+            "mode": "bus",
+            "line_name": "B21"
           }
         ],
         "predominant_mode": "bus",
@@ -4929,7 +5287,8 @@
           {
             "line_id": "96-224-8-j24-1",
             "route_id": "3.TA.96-224-8-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "229"
           }
         ],
         "predominant_mode": "bus",
@@ -4957,13 +5316,15 @@
         "lines": [
           {
             "line_id": "96-224-8-j24-1",
-            "route_id": "14.TA.96-224-8-j24-1.3.R",
-            "mode": "bus"
+            "route_id": "9.TA.96-224-8-j24-1.2.R",
+            "mode": "bus",
+            "line_name": "229"
           },
           {
             "line_id": "96-224-8-j24-1",
-            "route_id": "9.TA.96-224-8-j24-1.2.R",
-            "mode": "bus"
+            "route_id": "14.TA.96-224-8-j24-1.3.R",
+            "mode": "bus",
+            "line_name": "229"
           }
         ],
         "predominant_mode": "bus",
@@ -4992,7 +5353,8 @@
           {
             "line_id": "92-333-j24-1",
             "route_id": "9.TA.92-333-j24-1.6.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "333"
           }
         ],
         "predominant_mode": "bus",
@@ -5021,7 +5383,8 @@
           {
             "line_id": "96-224-8-j24-1",
             "route_id": "3.TA.96-224-8-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "229"
           }
         ],
         "predominant_mode": "bus",
@@ -5048,19 +5411,22 @@
         "lat": 47.39573491428409,
         "lines": [
           {
-            "line_id": "92-333-j24-1",
-            "route_id": "3.TA.92-333-j24-1.3.H",
-            "mode": "bus"
-          },
-          {
             "line_id": "96-224-8-j24-1",
             "route_id": "9.TA.96-224-8-j24-1.2.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "229"
           },
           {
             "line_id": "96-224-8-j24-1",
             "route_id": "14.TA.96-224-8-j24-1.3.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "229"
+          },
+          {
+            "line_id": "92-333-j24-1",
+            "route_id": "3.TA.92-333-j24-1.3.H",
+            "mode": "bus",
+            "line_name": "333"
           }
         ],
         "predominant_mode": "bus",
@@ -5089,7 +5455,8 @@
           {
             "line_id": "96-224-8-j24-1",
             "route_id": "3.TA.96-224-8-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "229"
           }
         ],
         "predominant_mode": "bus",
@@ -5117,13 +5484,15 @@
         "lines": [
           {
             "line_id": "96-224-8-j24-1",
-            "route_id": "14.TA.96-224-8-j24-1.3.R",
-            "mode": "bus"
+            "route_id": "9.TA.96-224-8-j24-1.2.R",
+            "mode": "bus",
+            "line_name": "229"
           },
           {
             "line_id": "96-224-8-j24-1",
-            "route_id": "9.TA.96-224-8-j24-1.2.R",
-            "mode": "bus"
+            "route_id": "14.TA.96-224-8-j24-1.3.R",
+            "mode": "bus",
+            "line_name": "229"
           }
         ],
         "predominant_mode": "bus",
@@ -5152,7 +5521,8 @@
           {
             "line_id": "92-B23-j24-1",
             "route_id": "3.TA.92-B23-j24-1.2.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "B23"
           }
         ],
         "predominant_mode": "bus",
@@ -5181,7 +5551,8 @@
           {
             "line_id": "92-B23-j24-1",
             "route_id": "8.TA.92-B23-j24-1.4.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "B23"
           }
         ],
         "predominant_mode": "bus",
@@ -5210,7 +5581,8 @@
           {
             "line_id": "92-B23-j24-1",
             "route_id": "3.TA.92-B23-j24-1.2.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "B23"
           }
         ],
         "predominant_mode": "bus",
@@ -5239,7 +5611,8 @@
           {
             "line_id": "92-B23-j24-1",
             "route_id": "8.TA.92-B23-j24-1.4.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "B23"
           }
         ],
         "predominant_mode": "bus",
@@ -5268,17 +5641,20 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "44.TA.96-221-6-j24-1.8.R",
-            "mode": "bus"
-          },
-          {
-            "line_id": "96-221-6-j24-1",
-            "route_id": "28.TA.96-221-6-j24-1.7.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           },
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "24.TA.96-221-6-j24-1.6.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
+          },
+          {
+            "line_id": "96-221-6-j24-1",
+            "route_id": "28.TA.96-221-6-j24-1.7.R",
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -5307,12 +5683,14 @@
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "1.TA.96-221-6-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           },
           {
             "line_id": "96-221-6-j24-1",
             "route_id": "9.TA.96-221-6-j24-1.2.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "191"
           }
         ],
         "predominant_mode": "bus",
@@ -5341,7 +5719,8 @@
           {
             "line_id": "96-221-8-j24-1",
             "route_id": "45.TA.96-221-8-j24-1.2.R",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "192"
           }
         ],
         "predominant_mode": "bus",
@@ -5370,7 +5749,8 @@
           {
             "line_id": "96-221-8-j24-1",
             "route_id": "21.TA.96-221-8-j24-1.1.H",
-            "mode": "bus"
+            "mode": "bus",
+            "line_name": "192"
           }
         ],
         "predominant_mode": "bus",

@@ -6,7 +6,8 @@ import "./Loading.css" // loading screen for network
 
 const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchCanton, selectedMode,
   selectedDataset, selectedNetworkModes, selectedTransitModes, setSelectedTransitStop, setSelectedNetworkFeature,
-  visualizeLinkId, dataURL, setHighlightedLineId, setHighlightedRouteIds, highlightedRouteIds, highlightedLineId }) => {
+  visualizeLinkId, dataURL, setHighlightedLineId, setHighlightedRouteIds, highlightedRouteIds, highlightedLineId,
+  hoveredRouteId}) => {
     
     // ======================= INITIALIZE VARIABLES =======================
     
@@ -706,6 +707,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
           ));
           
           const { name, stop_id } = features[0].properties;
+          const allStopIds = features.map(f => f.properties.stop_id);
           const lineIdsAtStop = combinedLines.map(l => l.line_id);
           
           // Get current highlighted line
@@ -726,6 +728,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
             setSelectedTransitStop({
               name,
               stop_id,
+              stop_ids: allStopIds,
               lines: combinedLines,
               modes_list: combinedModes,
             });
@@ -766,6 +769,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
           setSelectedTransitStop({
             name,
             stop_id,
+            stop_ids: allStopIds,
             lines: combinedLines,
             modes_list: combinedModes,
           });
@@ -822,10 +826,12 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
     fetch(`${dataURL}matsim/transit/transit_routes.geojson`)
     .then((res) => res.json())
     .then((geojson) => {
+      const routeIdsToShow = hoveredRouteId ? [hoveredRouteId] : highlightedRouteIds;
+
       const matched = geojson.features.filter(
         (f) =>
           f.properties.line_id === highlightedLineId &&
-        highlightedRouteIds.includes(f.properties.route_id)
+          routeIdsToShow.includes(f.properties.route_id)
       );
       
       if (matched.length === 0) return;
@@ -861,7 +867,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
         );
       }
     });
-  }, [highlightedRouteIds, highlightedLineId, isGraphExpanded]);
+  }, [highlightedRouteIds, highlightedLineId, hoveredRouteId, isGraphExpanded]);
   
   
   

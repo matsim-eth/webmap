@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import "./Table.css";
 
-const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId }) => {
+const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId, onRouteHover }) => {
   if (!properties) return null;
   
   const { name, modes_list, stop_id, lines } = properties;
+
+  const [hoveredRoute, setHoveredRoute] = useState(null);
   
   const groupedLines = lines.reduce((acc, line) => {
     if (!acc[line.line_id]) acc[line.line_id] = [];
@@ -17,15 +19,15 @@ const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId
   
   const activeBadge = highlightedLineId;
   
-const handleBadgeClick = (line_id) => {
-  const isActive = highlightedLineId === line_id;
-
-  const routeIds = groupedLines[line_id].map(route => route.route_id);
-
-  if (onLineClick) {
-    onLineClick(isActive ? null : line_id, isActive ? [] : routeIds);
-  }
-};
+  const handleBadgeClick = (line_id) => {
+    const isActive = highlightedLineId === line_id;
+    
+    const routeIds = groupedLines[line_id].map(route => route.route_id);
+    
+    if (onLineClick) {
+      onLineClick(isActive ? null : line_id, isActive ? [] : routeIds);
+    }
+  };
   
   return (
     <div className="canton-mode-share">
@@ -46,14 +48,30 @@ const handleBadgeClick = (line_id) => {
       className={`mode-badge ${activeBadge === lineId ? "active" : ""}`}
       onClick={() => handleBadgeClick(lineId)}
       >
-      {lineId} ({routes[0].mode})
+      {routes[0].line_name || lineId} ({routes[0].mode})
       </span>
     ))}
     </div>
     {activeBadge && Array.isArray(groupedLines[activeBadge]) && (
       <ul className="route-list">
       {groupedLines[activeBadge].map((route, i) => (
-        <li key={i}>{route.route_id}</li>
+        <li
+        key={i}
+        onMouseEnter={() => {
+          setHoveredRoute(route.route_id);
+          onRouteHover?.(route.route_id);
+        }}
+        onMouseLeave={() => {
+          setHoveredRoute(null);
+          onRouteHover?.(null);
+        }}
+        style={{
+          fontWeight: hoveredRoute === route.route_id ? "bold" : "normal",
+          cursor: "pointer"
+        }}
+        >
+        {route.route_id}
+        </li>
       ))}
       </ul>
     )}
