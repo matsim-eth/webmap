@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
 
-const PtStopPassengerHistogram = ({ stopIds, canton, dataURL, lineId }) => {
+const TransitStopHistogram = ({ stopIds, canton, dataURL, lineId }) => {
   const [hourlyCounts, setHourlyCounts] = useState(null);
   
   useEffect(() => {
@@ -84,4 +84,4 @@ const PtStopPassengerHistogram = ({ stopIds, canton, dataURL, lineId }) => {
   );
 };
 
-export default PtStopPassengerHistogram;
+export default TransitStopHistogram;

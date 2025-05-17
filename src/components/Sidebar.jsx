@@ -16,7 +16,7 @@ import PtSubscription from "./PtSubscription";
 import SegmentVolumeHistogram from "./SegmentVolumeHistogram";
 import TransitStopAttributesTable from "./TransitStopAttributesTable";
 import Demographics from "./Demographics";
-import PtStopPassengerHistogram from "./PtStopPassengerHistogram";
+import TransitStopHistogram from "./TransitStopHistogram";
 
 const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, resetMapView, updateMapSymbology,
   selectedNetworkModes, setSelectedNetworkModes, selectedNetworkFeature, setVisualizeLinkId, dataURL, setDataURL,
@@ -50,7 +50,7 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
     
     // Get transit modes per stops
     useEffect(() => {
-      fetch(`${dataURL}transit_stop_modes_by_canton.json`)
+      fetch(`${dataURL}/matsim/transit/transit_stop_modes_by_canton.json`)
       .then((res) => res.json())
       .then((data) => setTransitModesByCanton(data))
       .catch((err) => console.error("Failed to load transit modes:", err));
@@ -352,7 +352,7 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
                 />
               )}
               {selectedTransitStop && (
-              <PtStopPassengerHistogram
+              <TransitStopHistogram
                 stopIds={selectedTransitStop.stop_ids}
                 canton={canton}
                 dataURL={dataURL}
