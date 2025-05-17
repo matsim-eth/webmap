@@ -649,14 +649,14 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
         if (!map) return;
         
         if (map.getSource("transit-stops")) {
-            map.getSource("transit-stops").setData(geojson);
-          } else {
-            map.addSource("transit-stops", {
+          map.getSource("transit-stops").setData(geojson);
+        } else {
+          map.addSource("transit-stops", {
             type: "geojson",
             data: geojson,
           });
-          }
-
+        }
+        
         if(!map.getLayer("transit-stops-layer")) {
           
           map.addLayer({
@@ -827,11 +827,11 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
     .then((res) => res.json())
     .then((geojson) => {
       const routeIdsToShow = hoveredRouteId ? [hoveredRouteId] : highlightedRouteIds;
-
+      
       const matched = geojson.features.filter(
         (f) =>
           f.properties.line_id === highlightedLineId &&
-          routeIdsToShow.includes(f.properties.route_id)
+        routeIdsToShow.includes(f.properties.route_id)
       );
       
       if (matched.length === 0) return;
@@ -1035,10 +1035,13 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
           if (map.getLayer(id)) map.removeLayer(id);
           if (map.getSource(id)) map.removeSource(id);
         });
-
         
-        if (map.getLayer("transit-highlight-layer")) map.removeLayer("transit-highlight-layer");
-        if (map.getSource("transit-highlight")) map.removeSource("transit-highlight");
+        if (graphExpandedRef.current === "Transit") {
+          if (map.getLayer("transit-highlight-layer")) map.removeLayer("transit-highlight-layer");
+          if (map.getSource("transit-highlight")) map.removeSource("transit-highlight");
+
+          setSelectedTransitStop(null);
+        }
       }
     }
   }, [searchCanton]); // only update when searchCanton updates
