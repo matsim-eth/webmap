@@ -37,9 +37,10 @@ function App() {
   const [selectedTransitModes, setSelectedTransitModes] = useState(["all"]);
   const [selectedTransitStop, setSelectedTransitStop] = useState(null);
 
-  // Pass selected transit line to map
+  // Pass selected transit line/route to map
   const [highlightedLineId, setHighlightedLineId] = useState(null);
   const [highlightedRouteIds, setHighlightedRouteIds] = useState([]);
+  const [hoveredRouteId, setHoveredRouteId] = useState(null);
 
   // Read cantons
   useEffect(() => {
@@ -117,6 +118,7 @@ function App() {
       setHighlightedLineId={setHighlightedLineId}
       highlightedRouteIds={highlightedRouteIds}
       setHighlightedRouteIds = {setHighlightedRouteIds}
+      hoveredRouteId={hoveredRouteId}
     />
 
     <Sidebar
@@ -140,6 +142,7 @@ function App() {
       highlightedLineId={highlightedLineId}
       setHighlightedLineId={setHighlightedLineId}
       setHighlightedRouteIds = {setHighlightedRouteIds}
+      setHoveredRouteId={setHoveredRouteId}
     />
 
     <NetworkLegend

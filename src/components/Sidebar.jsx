@@ -16,11 +16,12 @@ import PtSubscription from "./PtSubscription";
 import SegmentVolumeHistogram from "./SegmentVolumeHistogram";
 import TransitStopAttributesTable from "./TransitStopAttributesTable";
 import Demographics from "./Demographics";
+import PtStopPassengerHistogram from "./PtStopPassengerHistogram";
 
 const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, resetMapView, updateMapSymbology,
   selectedNetworkModes, setSelectedNetworkModes, selectedNetworkFeature, setVisualizeLinkId, dataURL, setDataURL,
   selectedTransitModes, setSelectedTransitModes, selectedTransitStop, highlightedLineId, setHighlightedLineId,
-  setHighlightedRouteIds }) => {
+  setHighlightedRouteIds, setHoveredRouteId }) => {
     
     // ======================= INITIALIZE VARIABLES =======================
     
@@ -347,7 +348,16 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
                   setHighlightedLineId(lineId);
                   setHighlightedRouteIds(routeIds);
                 }}
+                onRouteHover={setHoveredRouteId}
                 />
+              )}
+              {selectedTransitStop && (
+              <PtStopPassengerHistogram
+                stopIds={selectedTransitStop.stop_ids}
+                canton={canton}
+                dataURL={dataURL}
+                lineId={highlightedLineId}
+              />
               )}
               </div>
             )}
