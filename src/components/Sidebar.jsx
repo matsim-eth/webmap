@@ -21,7 +21,7 @@ import TransitStopHistogram from "./TransitStopHistogram";
 const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, resetMapView, updateMapSymbology,
   selectedNetworkModes, setSelectedNetworkModes, selectedNetworkFeature, setVisualizeLinkId, dataURL, setDataURL,
   selectedTransitModes, setSelectedTransitModes, selectedTransitStop, highlightedLineId, setHighlightedLineId,
-  setHighlightedRouteIds, setHoveredRouteId }) => {
+  setHighlightedRouteIds, setHoveredRouteId,showStopVolumeSymbology, setShowStopVolumeSymbology }) => {
     
     // ======================= INITIALIZE VARIABLES =======================
     
@@ -36,6 +36,7 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
     // Transit module
     const [availableTransitModes, setAvailableTransitModes] = useState([]);
     const [transitModesByCanton, setTransitModesByCanton] = useState({});
+    
     
     // ======================= GENERAL FEATURES (BUTTONS / DROPDOWN) =======================
     
@@ -217,6 +218,7 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
                   }
                   // Try to read data from URL
                   await response.json();
+                  alert("Data loaded successfully from the provided URL.");
                   setDataURL(trimmed);
                 } catch (error) {
                   alert("Failed to load data from the provided URL.\nPlease ensure the URL is correct and accessible.");
@@ -323,7 +325,7 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
             )}
             
             {selectedGraph === "Transit" && (
-              <div>
+              <div style={{ overflowY: "auto", overflowX: "hidden", width: "100%" }}>
               <div className="mode-filter-container">
               <label className="mode-filter-label">Filter by Mode:</label>
               <select
@@ -339,6 +341,15 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
                 </option>
               ))}
               </select>
+              <label>
+              <input
+              type="checkbox"
+              checked={showStopVolumeSymbology}
+              onChange={(e) => setShowStopVolumeSymbology(e.target.checked)}
+              style={{ marginRight: "0.5rem" }}
+              />
+              Show stop volumes
+              </label>
               </div>
               {selectedTransitStop && (
                 <TransitStopAttributesTable
@@ -352,12 +363,12 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
                 />
               )}
               {selectedTransitStop && (
-              <TransitStopHistogram
+                <TransitStopHistogram
                 stopIds={selectedTransitStop.stop_ids}
                 canton={canton}
                 dataURL={dataURL}
                 lineId={highlightedLineId}
-              />
+                />
               )}
               </div>
             )}

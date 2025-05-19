@@ -13,7 +13,15 @@ const TransitStopHistogram = ({ stopIds, canton, dataURL, lineId }) => {
     fetch(`${dataURL}/matsim/transit/${canton}_pt_passenger_counts.json`)
     .then(res => res.json())
     .then(data => {
-      const cleanedIds = Array.isArray(stopIds) ? stopIds.filter(Boolean).map(String) : [];
+const cleanedIds = stopIds.flatMap(s => {
+  if (Array.isArray(s)) return s;
+  try {
+    return JSON.parse(s); // if it's a stringified array
+  } catch {
+    return String(s).split(",").map(id => id.trim());
+  }
+});
+
       
       // Filter only matching stop_ids
       let stopData = data.filter(d => cleanedIds.includes(String(d.stop_id)));

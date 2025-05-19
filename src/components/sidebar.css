@@ -165,6 +165,7 @@
 }
 
 /* Smooth Scrolling */
+
 .floating-content::-webkit-scrollbar {
   width: 6px;
 }

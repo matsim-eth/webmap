@@ -34,7 +34,6 @@ const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId
     <h4>{name}</h4>
     <table>
     <tbody>
-    <tr><td>Stop ID</td><td>{stop_id}</td></tr>
     <tr><td>Mode</td><td>{modes_list?.join(", ")}</td></tr>
     <tr><td>Lines</td><td>{numLines}</td></tr>
     <tr><td>Routes</td><td>{numRoutes}</td></tr>

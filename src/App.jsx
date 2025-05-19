@@ -41,6 +41,7 @@ function App() {
   const [highlightedLineId, setHighlightedLineId] = useState(null);
   const [highlightedRouteIds, setHighlightedRouteIds] = useState([]);
   const [hoveredRouteId, setHoveredRouteId] = useState(null);
+  const [showStopVolumeSymbology, setShowStopVolumeSymbology] = useState(false);
 
   // Read cantons
   useEffect(() => {
@@ -119,6 +120,7 @@ function App() {
       highlightedRouteIds={highlightedRouteIds}
       setHighlightedRouteIds = {setHighlightedRouteIds}
       hoveredRouteId={hoveredRouteId}
+      showStopVolumeSymbology={showStopVolumeSymbology}
     />
 
     <Sidebar
@@ -143,6 +145,8 @@ function App() {
       setHighlightedLineId={setHighlightedLineId}
       setHighlightedRouteIds = {setHighlightedRouteIds}
       setHoveredRouteId={setHoveredRouteId}
+      showStopVolumeSymbology={showStopVolumeSymbology}
+      setShowStopVolumeSymbology={setShowStopVolumeSymbology}
     />
 
     <NetworkLegend
