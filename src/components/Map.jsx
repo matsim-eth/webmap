@@ -7,7 +7,7 @@ import "./Loading.css" // loading screen for network
 const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchCanton, selectedMode,
   selectedDataset, selectedNetworkModes, selectedTransitModes, setSelectedTransitStop, setSelectedNetworkFeature,
   visualizeLinkId, dataURL, setHighlightedLineId, setHighlightedRouteIds, highlightedRouteIds, highlightedLineId,
-  hoveredRouteId}) => {
+  hoveredRouteId, showStopVolumeSymbology}) => {
     
     // ======================= INITIALIZE VARIABLES =======================
     
@@ -29,6 +29,8 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
     // Keep track of select network modes
     const selectedNetworkModesRef = useRef(selectedNetworkModes);
     
+    // Store stop volumes
+    const [stopVolumes, setStopVolumes] = useState(null);
     
     // ======================= INITIALIZE MAP AND HANDLE CANTON SELECTION =======================
     
@@ -618,196 +620,264 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
   // ======================= TRANSIT STOPS MODULE =======================
   
   useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
     
     const removeTransitStops = () => {
-      if (!mapRef.current) return;
-      const map = mapRef.current;
+      ["transit-stops-layer", "transit-stops-label", "transit-highlight-layer", "transit-line-highlight"].forEach(id => {
+        if (map.getLayer(id)) map.removeLayer(id);
+      });
       
-      if (map.getLayer("transit-stops-layer")) map.removeLayer("transit-stops-layer");
-      if (map.getLayer("transit-stops-label")) map.removeLayer("transit-stops-label");
-      if (map.getSource("transit-stops")) map.removeSource("transit-stops");
-      
-      if (map.getLayer("transit-highlight-layer")) map.removeLayer("transit-highlight-layer");
-      if (map.getSource("transit-highlight")) map.removeSource("transit-highlight");
-      
-      if (map.getLayer("transit-line-highlight")) map.removeLayer("transit-line-highlight");
-      if (map.getSource("transit-line-highlight")) map.removeSource("transit-line-highlight");
+      ["transit-stops", "transit-highlight", "transit-line-highlight"].forEach(id => {
+        if (map.getSource(id)) map.removeSource(id);
+      });
       
       setSelectedTransitStop(null);
-      
-      setHighlightedLineId(null)
-      setHighlightedRouteIds([])
+      setHighlightedLineId(null);
+      setHighlightedRouteIds([]);
     };
     
-    if (isGraphExpanded === "Transit" && searchCanton) {
-      const path = `${dataURL}matsim/transit/${searchCanton}_stops.geojson`;
+    if (isGraphExpanded !== "Transit" || !searchCanton) {
+      removeTransitStops();
+      return;
+    }
+    
+    const stopsURL = `${dataURL}matsim/transit/${searchCanton}_stops.geojson`;
+    const volumeURL = `${dataURL}matsim/transit/${searchCanton}_pt_passenger_counts.json`;
+    
+    Promise.all([
+      fetch(stopsURL).then(res => res.json()),
+      showStopVolumeSymbology ? fetch(volumeURL).then(res => res.json()) : Promise.resolve(null)
+    ])
+    .then(([geojson, volumeData]) => {
+      let updatedGeoJSON = geojson;
       
-      fetch(path)
-      .then((res) => res.json())
-      .then((geojson) => {
-        const map = mapRef.current;
-        if (!map) return;
+      // === Inject volume into stop features ===
+      if (showStopVolumeSymbology && volumeData) {
+const volumeByStopId = {};
+volumeData.forEach(entry => {
+  const stopId = entry.stop_id;
+  if (!volumeByStopId[stopId]) volumeByStopId[stopId] = 0;
+  entry.data.forEach(dp => {
+    volumeByStopId[stopId] += dp.boardings + dp.alightings;
+  });
+});
         
-        if (map.getSource("transit-stops")) {
-          map.getSource("transit-stops").setData(geojson);
-        } else {
-          map.addSource("transit-stops", {
-            type: "geojson",
-            data: geojson,
-          });
+        updatedGeoJSON = {
+          ...geojson,
+features: geojson.features.map((f, i) => {
+const rawStopId = f.properties.stop_id;
+const ids = Array.isArray(rawStopId)
+  ? rawStopId
+  : String(rawStopId).split(",").map(id => id.trim()).filter(Boolean);
+
+  const totalVolume = ids.reduce(
+    (sum, id) => sum + (volumeByStopId[id] || 0), 0
+  );
+
+  return {
+    ...f,
+    id: i,
+    properties: {
+      ...f.properties,
+      volume: totalVolume
+    }
+  };
+})
+        };
+        
+      }
+      
+      // === Add or update source ===
+      if (map.getSource("transit-stops")) {
+        map.getSource("transit-stops").setData(updatedGeoJSON);
+      } else {
+        map.addSource("transit-stops", {
+          type: "geojson",
+          data: updatedGeoJSON
+        });
+      }
+      
+      // === Add layers if not yet present ===
+      if (!map.getLayer("transit-stops-layer")) {
+        map.addLayer({
+          id: "transit-stops-layer",
+          type: "circle",
+          source: "transit-stops",
+          paint: {
+            "circle-radius": showStopVolumeSymbology
+            ? [
+              "interpolate", ["linear"], ["get", "volume"],
+              0, 3,
+              100, 6,
+              500, 10,
+              1000, 18,
+              2000, 25
+            ]
+            : 3,
+            "circle-color": "#ff8800",
+            "circle-stroke-color": "#333",
+            "circle-stroke-width": 1
+          }
+        });
+      } else {
+        // if layer already exists, update radius only
+        map.setPaintProperty("transit-stops-layer", "circle-radius",
+          showStopVolumeSymbology
+          ? [
+            "interpolate", ["linear"], ["get", "volume"],
+            0, 3,
+            100, 6,
+            500, 10,
+            1000, 18,
+            2000, 25
+          ]
+          : 3
+        );
+      }
+      
+      if (!map.getLayer("transit-stops-label")) {
+        map.addLayer({
+          id: "transit-stops-label",
+          type: "symbol",
+          source: "transit-stops",
+          layout: {
+            "text-field": ["get", "name"],
+            "text-size": 12,
+            "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+            "text-offset": [0, -0.8],
+            "text-anchor": "bottom-left"
+          },
+          paint: {
+            "text-color": "#222",
+            "text-halo-color": "#ffffff",
+            "text-halo-width": 1
+          },
+          minzoom: 14
+        }, "transit-stops-layer");
+      }
+      
+      // === Handle click ===
+      map.on("click", "transit-stops-layer", (e) => {
+        const features = e.features;
+        if (!features || features.length === 0) return;
+        
+        const combinedLines = features.flatMap(f => JSON.parse(f.properties.lines));
+        const combinedModes = Array.from(new Set(
+          features.flatMap(f => JSON.parse(f.properties.modes_list))
+        ));
+        
+        const { name, stop_id } = features[0].properties;
+        let allStopIds;
+if (Array.isArray(stop_id)) {
+  allStopIds = stop_id;
+} else {
+  try {
+    allStopIds = JSON.parse(stop_id); // If it's a stringified array
+  } catch {
+    allStopIds = String(stop_id).split(",").map(id => id.trim());
+  }
+}
+        const lineIdsAtStop = combinedLines.map(l => l.line_id);
+        
+        let currentHighlightedLineId = null;
+        if (map.getSource("transit-line-highlight")) {
+          const currentData = map.getSource("transit-line-highlight")._data;
+          const currentFeature = currentData?.features?.[0];
+          currentHighlightedLineId = currentFeature?.properties?.line_id;
         }
         
-        if(!map.getLayer("transit-stops-layer")) {
+        if (lineIdsAtStop.includes(currentHighlightedLineId)) {
+          const updatedRouteIds = combinedLines
+          .filter(l => l.line_id === currentHighlightedLineId)
+          .map(l => l.route_id);
           
-          map.addLayer({
-            id: "transit-stops-layer",
-            type: "circle",
-            source: "transit-stops",
-            paint: {
-              "circle-radius": 3,
-              "circle-color": "#ff8800",
-              "circle-stroke-color": "#333",
-              "circle-stroke-width": 1,
-            },
-          });
-          
-          map.addLayer(
-            {
-              id: "transit-stops-label",
-              type: "symbol",
-              source: "transit-stops",
-              layout: {
-                "text-field": ["get", "name"],
-                "text-size": 12,
-                "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
-                "text-offset": [0, -0.8],
-                "text-anchor": "bottom-left",
-              },
-              paint: {
-                "text-color": "#222",
-                "text-halo-color": "#ffffff",
-                "text-halo-width": 1,
-              },
-              minzoom: 14,
-            },
-            "transit-stops-layer"
-          );
-        }
-        
-        // Add click event
-        map.on("click", "transit-stops-layer", (e) => {
-          const map = mapRef.current;
-          const features = e.features;
-          if (!features || features.length === 0 || !map) return;
-          
-          // Combine all lines + modes from overlapping points
-          const combinedLines = features.flatMap(f => JSON.parse(f.properties.lines));
-          const combinedModes = Array.from(new Set(
-            features.flatMap(f => JSON.parse(f.properties.modes_list))
-          ));
-          
-          const { name, stop_id } = features[0].properties;
-          const allStopIds = features.map(f => f.properties.stop_id);
-          const lineIdsAtStop = combinedLines.map(l => l.line_id);
-          
-          // Get current highlighted line
-          let currentHighlightedLineId = null;
-          if (map.getSource("transit-line-highlight")) {
-            const currentData = map.getSource("transit-line-highlight")._data;
-            const currentFeature = currentData?.features?.[0];
-            currentHighlightedLineId = currentFeature?.properties?.line_id;
-          }
-          
-          // If same line is still selected, just update route list and return early
-          if (lineIdsAtStop.includes(currentHighlightedLineId)) {
-            const updatedRouteIds = combinedLines
-            .filter(l => l.line_id === currentHighlightedLineId)
-            .map(l => l.route_id);
-            
-            setHighlightedRouteIds(updatedRouteIds);
-            setSelectedTransitStop({
-              name,
-              stop_id,
-              stop_ids: allStopIds,
-              lines: combinedLines,
-              modes_list: combinedModes,
-            });
-            
-          } else {
-            // Otherwise: remove old route line
-            if (map.getLayer("transit-line-highlight")) map.removeLayer("transit-line-highlight");
-            if (map.getSource("transit-line-highlight")) map.removeSource("transit-line-highlight");
-            setHighlightedLineId(null);
-            setHighlightedRouteIds([]);
-          }
-          
-          // Highlight the clicked stop (first feature only)
-          if (map.getLayer("transit-highlight-layer")) map.removeLayer("transit-highlight-layer");
-          if (map.getSource("transit-highlight")) map.removeSource("transit-highlight");
-          
-          map.addSource("transit-highlight", {
-            type: "geojson",
-            data: {
-              type: "FeatureCollection",
-              features: [features[0]],
-            },
-          });
-          
-          map.addLayer(
-            {
-              id: "transit-highlight-layer",
-              type: "circle",
-              source: "transit-highlight",
-              paint: {
-                "circle-radius": 7,
-                "circle-color": "#00ffff",
-              },
-            },
-            "transit-stops-layer"
-          );
-          
+          setHighlightedRouteIds(updatedRouteIds);
           setSelectedTransitStop({
             name,
             stop_id,
             stop_ids: allStopIds,
             lines: combinedLines,
-            modes_list: combinedModes,
+            modes_list: combinedModes
           });
-        });
+        } else {
+          if (map.getLayer("transit-line-highlight")) map.removeLayer("transit-line-highlight");
+          if (map.getSource("transit-line-highlight")) map.removeSource("transit-line-highlight");
+          setHighlightedLineId(null);
+          setHighlightedRouteIds([]);
+        }
         
-        // Apply mode filtering
-        const modeFilter = selectedTransitModes.includes("all")
-        ? null
-        : [
-          "any",
-          ...selectedTransitModes.map((mode) => [
-            "match",
-            ["index-of", mode, ["get", "modes_list"]],
-            -1,
-            false,
-            true,
-          ]),
-        ];
+        // Highlight clicked
+        if (map.getLayer("transit-highlight-layer")) map.removeLayer("transit-highlight-layer");
+        if (map.getSource("transit-highlight")) map.removeSource("transit-highlight");
         
-        ["transit-stops-layer", "transit-highlight-layer", "transit-stops-label"].forEach((id) => {
-          if (map.getLayer(id)) {
-            map.setFilter(id, modeFilter);
+        map.addSource("transit-highlight", {
+          type: "geojson",
+          data: {
+            type: "FeatureCollection",
+            features: [features[0]]
           }
         });
         
-        setHighlightedLineId(null)
-        setHighlightedRouteIds([])
-      })
-      .catch((err) => {
-        console.error("Error loading transit stops:", err);
+        map.addLayer({
+          id: "transit-highlight-layer",
+          type: "circle",
+          source: "transit-highlight",
+          paint: {
+            "circle-radius": showStopVolumeSymbology
+            ? [
+              "interpolate", ["linear"], ["get", "volume"],
+              0, 5,
+              100, 10,
+              500, 14,
+              1000, 22,
+              2000, 29
+            ]
+            : 5,
+            "circle-color": "#00ffff",
+          }
+        }, "transit-stops-layer");
+        
+        
+        setSelectedTransitStop({
+          name,
+          stop_id,
+          stop_ids: allStopIds,
+          lines: combinedLines,
+          modes_list: combinedModes
+        });
       });
-    } else {
-      removeTransitStops();
-    }
-  }, [isGraphExpanded, selectedTransitModes, searchCanton]);
-  
+      
+      // === Reapply filtering ===
+      const modeFilter = selectedTransitModes.includes("all")
+      ? null
+      : [
+        "any",
+        ...selectedTransitModes.map((mode) => [
+          "match",
+          ["index-of", mode, ["get", "modes_list"]],
+          -1,
+          false,
+          true
+        ])
+      ];
+      
+      ["transit-stops-layer", "transit-highlight-layer", "transit-stops-label"].forEach((id) => {
+        if (map.getLayer(id)) {
+          map.setFilter(id, modeFilter);
+        }
+      });
+      
+      setHighlightedLineId(null);
+      setHighlightedRouteIds([]);
+    })
+    .catch(err => {
+      console.error("Error loading transit data:", err);
+    });
+  }, [isGraphExpanded, searchCanton, dataURL, showStopVolumeSymbology, selectedTransitModes]);
   
   useEffect(() => {
+
     const map = mapRef.current;
     if (!map) return;
     
@@ -833,6 +903,8 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
           f.properties.line_id === highlightedLineId &&
         routeIdsToShow.includes(f.properties.route_id)
       );
+
+      console.log("Matched routes:", matched);
       
       if (matched.length === 0) return;
       
@@ -863,7 +935,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
               "line-width": 2,
             },
           },
-          "canton-highlight"
+          "transit-stops-layer"
         );
       }
     });
@@ -1039,7 +1111,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
         if (graphExpandedRef.current === "Transit") {
           if (map.getLayer("transit-highlight-layer")) map.removeLayer("transit-highlight-layer");
           if (map.getSource("transit-highlight")) map.removeSource("transit-highlight");
-
+          
           setSelectedTransitStop(null);
         }
       }
