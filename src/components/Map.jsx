@@ -754,7 +754,7 @@ const ids = Array.isArray(rawStopId)
             "text-halo-width": 1
           },
           minzoom: 14
-        }, "transit-stops-layer");
+        });
       }
       
       // === Handle click ===
