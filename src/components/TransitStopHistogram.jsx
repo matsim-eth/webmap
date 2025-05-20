@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
 
-const TransitStopHistogram = ({ stopIds, canton, dataURL, lineId, onVolumeUpdate }) => {
+const TransitStopHistogram = ({ stopIds, canton, dataURL, lineId, onVolumeUpdate, timeRange }) => {
   const [hourlyCounts, setHourlyCounts] = useState(null);
 
   // Fetch and process passenger data
@@ -71,51 +71,57 @@ const TransitStopHistogram = ({ stopIds, canton, dataURL, lineId, onVolumeUpdate
   const paddedBoardings = fullLabels.map(t => boardingMap[t] ?? 0);
   const paddedAlightings = fullLabels.map(t => alightingMap[t] ?? 0);
 
-  const maxY = Math.max(...paddedBoardings, ...paddedAlightings);
+  // Step: Convert timeRange index (e.g. 0–96) to slice of fullLabels
+const filteredLabels = fullLabels.slice(timeRange?.[0] ?? 0, (timeRange?.[1] ?? 96) + 1);
+const filteredBoardings = paddedBoardings.slice(timeRange?.[0] ?? 0, (timeRange?.[1] ?? 96) + 1);
+const filteredAlightings = paddedAlightings.slice(timeRange?.[0] ?? 0, (timeRange?.[1] ?? 96) + 1);
+
+
+  const maxY = Math.max(...filteredBoardings, ...filteredAlightings);
 
   // Notify parent of volume totals
-  useEffect(() => {
-    if (!hourlyCounts || !onVolumeUpdate) return;
-    const totalBoardings = paddedBoardings.reduce((sum, val) => sum + val, 0);
-    const totalAlightings = paddedAlightings.reduce((sum, val) => sum + val, 0);
-    onVolumeUpdate({ boardings: totalBoardings, alightings: totalAlightings, total: totalBoardings + totalAlightings });
-  }, [hourlyCounts, onVolumeUpdate]);
+useEffect(() => {
+  if (!hourlyCounts || !onVolumeUpdate) return;
+  const totalBoardings = filteredBoardings.reduce((sum, val) => sum + val, 0);
+  const totalAlightings = filteredAlightings.reduce((sum, val) => sum + val, 0);
+  onVolumeUpdate({ boardings: totalBoardings, alightings: totalAlightings, total: totalBoardings + totalAlightings });
+}, [hourlyCounts, timeRange, onVolumeUpdate]);
 
   if (!hourlyCounts) return <p>Loading passenger data...</p>;
 
   return (
     <div className="plot-container">
-      <h4 style={{ marginTop: "1rem" }}>Hourly Boardings{lineId ? " (filtered)" : ""}</h4>
-      <Plot
-        data={[
-          { x: fullLabels, y: paddedBoardings, name: "Boardings", type: "bar", marker: { color: "#1f77b4" } },
-        ]}
-        layout={{
-          margin: { t: 30, r: 10, l: 40, b: 10 },
-          xaxis: { title: "Hour", tickangle: -45, automargin: true },
-          yaxis: { title: "Passenger Count", range: [0, maxY] },
-          height: 250,
-          width: 525,
-          paper_bgcolor: "rgba(255,255,255,0)",
-          plot_bgcolor: "rgba(255,255,255,0)",
-        }}
-      />
+     <h4 style={{ marginTop: "1rem" }}>Hourly Boardings{lineId ? " (filtered)" : ""}</h4>
+<Plot
+  data={[
+    { x: filteredLabels, y: filteredBoardings, name: "Boardings", type: "bar", marker: { color: "#1f77b4" } },
+  ]}
+  layout={{
+    margin: { t: 30, r: 10, l: 40, b: 10 },
+    xaxis: { title: "Hour", tickangle: -45, automargin: true },
+    yaxis: { title: "Passenger Count", range: [0, maxY] },
+    height: 250,
+    width: 525,
+    paper_bgcolor: "rgba(255,255,255,0)",
+    plot_bgcolor: "rgba(255,255,255,0)",
+  }}
+/>
 
-      <h4 style={{ marginBottom: 0 }}>Hourly Alightings{lineId ? " (filtered)" : ""}</h4>
-      <Plot
-        data={[
-          { x: fullLabels, y: paddedAlightings, name: "Alightings", type: "bar", marker: { color: "#ff7f0e" } },
-        ]}
-        layout={{
-          margin: { t: 30, r: 10, l: 40, b: 10 },
-          xaxis: { title: "Hour", tickangle: -45, automargin: true },
-          yaxis: { title: "Passenger Count", range: [0, maxY] },
-          height: 250,
-          width: 525,
-          paper_bgcolor: "rgba(255,255,255,0)",
-          plot_bgcolor: "rgba(255,255,255,0)",
-        }}
-      />
+<h4 style={{ marginBottom: 0 }}>Hourly Alightings{lineId ? " (filtered)" : ""}</h4>
+<Plot
+  data={[
+    { x: filteredLabels, y: filteredAlightings, name: "Alightings", type: "bar", marker: { color: "#ff7f0e" } },
+  ]}
+  layout={{
+    margin: { t: 30, r: 10, l: 40, b: 10 },
+    xaxis: { title: "Hour", tickangle: -45, automargin: true },
+    yaxis: { title: "Passenger Count", range: [0, maxY] },
+    height: 250,
+    width: 525,
+    paper_bgcolor: "rgba(255,255,255,0)",
+    plot_bgcolor: "rgba(255,255,255,0)",
+  }}
+/>
     </div>
   );
 };

@@ -7,7 +7,7 @@ import "./Loading.css" // loading screen for network
 const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchCanton, selectedMode,
   selectedDataset, selectedNetworkModes, selectedTransitModes, setSelectedTransitStop, setSelectedNetworkFeature,
   visualizeLinkId, dataURL, setHighlightedLineId, setHighlightedRouteIds, highlightedRouteIds, highlightedLineId,
-  hoveredRouteId, showStopVolumeSymbology}) => {
+  hoveredRouteId, showStopVolumeSymbology, timeRange}) => {
     
     // ======================= INITIALIZE VARIABLES =======================
     
@@ -652,11 +652,16 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
       // === Inject volume into stop features ===
       if (showStopVolumeSymbology && volumeData) {
         const volumeByStopId = {};
+        
         volumeData.forEach(entry => {
           const stopId = entry.stop_id;
           if (!volumeByStopId[stopId]) volumeByStopId[stopId] = 0;
-          entry.data.forEach(dp => {
-            volumeByStopId[stopId] += dp.boardings + dp.alightings;
+          
+          entry.data.forEach((dp, idx) => {
+            // Only sum data points within selected time range
+            if (!timeRange || (idx >= timeRange[0] && idx <= timeRange[1])) {
+              volumeByStopId[stopId] += dp.boardings + dp.alightings;
+            }
           });
         });
         
@@ -908,7 +913,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
   .catch(err => {
     console.error("Error loading transit data:", err);
   });
-}, [isGraphExpanded, searchCanton, showStopVolumeSymbology, selectedTransitModes]);
+}, [isGraphExpanded, searchCanton, showStopVolumeSymbology, selectedTransitModes, timeRange]);
 
 
 

@@ -1,5 +1,7 @@
 import React, { useState, useEffect  } from "react";
 import "./Sidebar.css";
+import Slider from "rc-slider"; 
+import "rc-slider/assets/index.css";
 
 // Sidebar Modules / Graphs
 import ActivityDist from "./ActivityDist";
@@ -21,7 +23,7 @@ import TransitStopHistogram from "./TransitStopHistogram";
 const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, resetMapView, updateMapSymbology,
   selectedNetworkModes, setSelectedNetworkModes, selectedNetworkFeature, setVisualizeLinkId, dataURL, setDataURL,
   selectedTransitModes, setSelectedTransitModes, selectedTransitStop, highlightedLineId, setHighlightedLineId,
-  setHighlightedRouteIds, setHoveredRouteId,showStopVolumeSymbology, setShowStopVolumeSymbology }) => {
+  setHighlightedRouteIds, setHoveredRouteId,showStopVolumeSymbology, setShowStopVolumeSymbology, timeRange, setTimeRange }) => {
     
     // ======================= INITIALIZE VARIABLES =======================
     
@@ -38,6 +40,18 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
     const [transitModesByCanton, setTransitModesByCanton] = useState({});
     const [filteredStopVolumes, setFilteredStopVolumes] = useState(null); // total filtered volumes per stop
     
+    const formatTimeLabel = (index) => {
+      const hours = Math.floor(index / 4);
+      const minutes = (index % 4) * 15;
+      return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+    };
+    const marks = {
+      0: "00:00",
+      24: "06:00",
+      48: "12:00",
+      72: "18:00",
+      96: "24:00"
+    };
     
     // ======================= GENERAL FEATURES (BUTTONS / DROPDOWN) =======================
     
@@ -281,7 +295,7 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
             {/* Network Module */}
             {selectedGraph === "Network" && (
               
-              <div>
+              <div className="plot-container">
               <div className="mode-filter-container">
               <label className="mode-filter-label">Filter by Mode:</label>
               <select
@@ -299,7 +313,7 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
               </select>
               </div>  
               {selectedNetworkFeature && (
-                <SegmentAttributesTable properties={selectedNetworkFeature[0]} />
+                <SegmentAttributesTable propertiesList={selectedNetworkFeature} />
               )}
               </div>
             )}
@@ -307,7 +321,7 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
             {selectedGraph === "Volumes" && (
               <div className="plot-container">
               {selectedNetworkFeature && (
-                <SegmentAttributesTable properties={selectedNetworkFeature[0]} selectedGraph={selectedGraph}/>
+                <SegmentAttributesTable propertiesList={selectedNetworkFeature} selectedGraph={selectedGraph}/>
               )}
               
               {selectedNetworkFeature ? (
@@ -327,6 +341,7 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
             
             {selectedGraph === "Transit" && (
               <div style={{ overflowY: "auto", overflowX: "hidden", width: "100%" }}>
+              
               <div className="mode-filter-container">
               <label className="mode-filter-label">Filter by Mode:</label>
               <select
@@ -342,17 +357,60 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
                 </option>
               ))}
               </select>
-              <label>
-              <input
-              type="checkbox"
-              checked={showStopVolumeSymbology}
-              onChange={(e) => setShowStopVolumeSymbology(e.target.checked)}
-              style={{ marginRight: "0.5rem" }}
-              />
-              Show stop volumes
-              </label>
+
+
+{/* Time Range + Checkbox Row */}
+<div style={{
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  padding: "0.5rem 2rem 2rem 0.5rem",
+  gap: "1rem",
+}}>
+
+
+  {/* Slider and label */}
+  <div style={{ flex: 1 }}>
+    <label style={{
+      fontWeight: "bold",
+      fontSize: "10pt",
+      display: "block",
+      marginBottom: "0.25rem",
+      marginLeft: "7%"
+    }}>
+      Time: {formatTimeLabel(timeRange[0])} – {formatTimeLabel(timeRange[1])}
+    </label>
+    <Slider
+      range
+      min={0}
+      max={96}
+      step={1}
+      marks={marks}
+      value={timeRange}
+      onChange={(val) => setTimeRange(val)}
+      allowCross={false}
+      style={{ marginLeft: "10%", width: "80%" }}
+    />
+  </div>
+
+    {/* Checkbox */}
+  <label style={{ fontWeight: "bold", fontSize: "10pt", whiteSpace: "nowrap" }}>
+    <input
+      type="checkbox"
+      checked={showStopVolumeSymbology}
+      onChange={(e) => setShowStopVolumeSymbology(e.target.checked)}
+      style={{ marginRight: "0.5rem" }}
+    />
+    Show stop volumes
+  </label>
+
+</div>
+
+              
+             
               </div>
               {selectedTransitStop && (
+                <>
                 <TransitStopAttributesTable
                 properties={{
                   ...selectedTransitStop,
@@ -365,6 +423,9 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
                 }}
                 onRouteHover={setHoveredRouteId}
                 />
+                
+                </>
+                
               )}
               {selectedTransitStop && (
                 <TransitStopHistogram
@@ -373,6 +434,7 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
                 dataURL={dataURL}
                 lineId={highlightedLineId}
                 onVolumeUpdate={setFilteredStopVolumes}
+                timeRange={timeRange}
                 />
               )}
               </div>
