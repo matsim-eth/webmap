@@ -624,7 +624,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
     if (!map) return;
     
     const removeTransitStops = () => {
-      ["transit-stops-layer", "transit-stops-label", "transit-highlight-layer", "transit-line-highlight"].forEach(id => {
+      ["transit-stops-layer", "transit-stops-label", "transit-highlight-layer", "transit-line-highlight", "transit-stops-hitbox"].forEach(id => {
         if (map.getLayer(id)) map.removeLayer(id);
       });
       
@@ -654,36 +654,36 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
       
       // === Inject volume into stop features ===
       if (showStopVolumeSymbology && volumeData) {
-const volumeByStopId = {};
-volumeData.forEach(entry => {
-  const stopId = entry.stop_id;
-  if (!volumeByStopId[stopId]) volumeByStopId[stopId] = 0;
-  entry.data.forEach(dp => {
-    volumeByStopId[stopId] += dp.boardings + dp.alightings;
-  });
-});
+        const volumeByStopId = {};
+        volumeData.forEach(entry => {
+          const stopId = entry.stop_id;
+          if (!volumeByStopId[stopId]) volumeByStopId[stopId] = 0;
+          entry.data.forEach(dp => {
+            volumeByStopId[stopId] += dp.boardings + dp.alightings;
+          });
+        });
         
         updatedGeoJSON = {
           ...geojson,
-features: geojson.features.map((f, i) => {
-const rawStopId = f.properties.stop_id;
-const ids = Array.isArray(rawStopId)
-  ? rawStopId
-  : String(rawStopId).split(",").map(id => id.trim()).filter(Boolean);
-
-  const totalVolume = ids.reduce(
-    (sum, id) => sum + (volumeByStopId[id] || 0), 0
-  );
-
-  return {
-    ...f,
-    id: i,
-    properties: {
-      ...f.properties,
-      volume: totalVolume
-    }
-  };
-})
+          features: geojson.features.map((f, i) => {
+            const rawStopId = f.properties.stop_id;
+            const ids = Array.isArray(rawStopId)
+            ? rawStopId
+            : String(rawStopId).split(",").map(id => id.trim()).filter(Boolean);
+            
+            const totalVolume = ids.reduce(
+              (sum, id) => sum + (volumeByStopId[id] || 0), 0
+            );
+            
+            return {
+              ...f,
+              id: i,
+              properties: {
+                ...f.properties,
+                volume: totalVolume
+              }
+            };
+          })
         };
         
       }
@@ -736,400 +736,416 @@ const ids = Array.isArray(rawStopId)
         );
       }
       
-      if (!map.getLayer("transit-stops-label")) {
-        map.addLayer({
-          id: "transit-stops-label",
-          type: "symbol",
-          source: "transit-stops",
-          layout: {
-            "text-field": ["get", "name"],
-            "text-size": 12,
-            "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
-            "text-offset": [0, -0.8],
-            "text-anchor": "bottom-left"
-          },
-          paint: {
-            "text-color": "#222",
-            "text-halo-color": "#ffffff",
-            "text-halo-width": 1
-          },
-          minzoom: 14
-        });
+      
+      // change highlight on volume size toggle
+      if (map.getLayer("transit-highlight-layer")) {
+        
+        map.setPaintProperty("transit-highlight-layer", "circle-radius",
+          showStopVolumeSymbology
+          ? ["interpolate", ["linear"], ["get", "volume"],
+          0, 6,
+          100, 10,
+          500, 14,
+          1000, 22,
+          2000, 29
+        ]
+        : 6
+      );
+    }
+    
+    if (!map.getLayer("transit-stops-label")) {
+      map.addLayer({
+        id: "transit-stops-label",
+        type: "symbol",
+        source: "transit-stops",
+        layout: {
+          "text-field": ["get", "name"],
+          "text-size": 12,
+          "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+          "text-offset": [0, -0.8],
+          "text-anchor": "bottom-left"
+        },
+        paint: {
+          "text-color": "#222",
+          "text-halo-color": "#ffffff",
+          "text-halo-width": 1
+        },
+        minzoom: 14
+      });
+    }
+    
+    if (!map.getLayer("transit-stops-hitbox")) {
+      map.addLayer({
+        id: "transit-stops-hitbox",
+        type: "circle",
+        source: "transit-stops",
+        paint: {
+          "circle-radius": [
+            "interpolate", ["linear"], ["get", "volume"],
+            0, 15,      // larger than visible
+            100, 15,
+            500, 15,
+            1000, 18,
+            2000, 25
+          ],
+          "circle-opacity": 0 // invisible
+        }
+      });
+    }
+    
+    // === Handle click ===
+    map.on("click", "transit-stops-hitbox", (e) => {
+      const features = e.features;
+      if (!features || features.length === 0) return;
+      
+      const f = features[0];
+      const combinedLines = JSON.parse(f.properties.lines);
+      const combinedModes = JSON.parse(f.properties.modes_list);
+      
+      const { name, stop_id} = features[0].properties;
+      let allStopIds;
+      if (Array.isArray(stop_id)) {
+        allStopIds = stop_id;
+      } else {
+        try {
+          allStopIds = JSON.parse(stop_id); // If it's a stringified array
+        } catch {
+          allStopIds = String(stop_id).split(",").map(id => id.trim());
+        }
       }
       
-      // === Handle click ===
-      map.on("click", "transit-stops-layer", (e) => {
-        const features = e.features;
-        if (!features || features.length === 0) return;
-        
-        const combinedLines = features.flatMap(f => JSON.parse(f.properties.lines));
-        const combinedModes = Array.from(new Set(
-          features.flatMap(f => JSON.parse(f.properties.modes_list))
-        ));
-        
-        const { name, stop_id } = features[0].properties;
-        let allStopIds;
-if (Array.isArray(stop_id)) {
-  allStopIds = stop_id;
-} else {
-  try {
-    allStopIds = JSON.parse(stop_id); // If it's a stringified array
-  } catch {
-    allStopIds = String(stop_id).split(",").map(id => id.trim());
+      if (map.getLayer("transit-line-highlight")) map.removeLayer("transit-line-highlight");
+      if (map.getSource("transit-line-highlight")) map.removeSource("transit-line-highlight");
+      setHighlightedLineId(null);
+      setHighlightedRouteIds([]);
+      
+      // Highlight clicked
+      if (map.getLayer("transit-highlight-layer")) map.removeLayer("transit-highlight-layer");
+      if (map.getSource("transit-highlight")) map.removeSource("transit-highlight");
+      
+      map.addSource("transit-highlight", {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: [features[0]]
+        }
+      });
+      
+      map.addLayer({
+        id: "transit-highlight-layer",
+        type: "circle",
+        source: "transit-highlight",
+        paint: {
+          "circle-radius": showStopVolumeSymbology
+          ? [
+            "interpolate", ["linear"], ["get", "volume"],
+            0, 6,
+            100, 10,
+            500, 14,
+            1000, 22,
+            2000, 29
+          ]
+          : 6,
+          "circle-color": "#00ffff",
+        }
+      }, "transit-stops-layer");
+      
+      
+      setSelectedTransitStop({
+        name,
+        stop_id,
+        stop_ids: allStopIds,
+        lines: combinedLines,
+        modes_list: combinedModes
+      });
+    });
+    
+    // === Reapply filtering ===
+    const modeFilter = selectedTransitModes.includes("all")
+    ? null
+    : [
+      "any",
+      ...selectedTransitModes.map((mode) => [
+        "match",
+        ["index-of", mode, ["get", "modes_list"]],
+        -1,
+        false,
+        true
+      ])
+    ];
+    
+    ["transit-stops-layer", "transit-highlight-layer", "transit-stops-label", "transit-stops-hitbox"].forEach((id) => {
+      if (map.getLayer(id)) {
+        map.setFilter(id, modeFilter);
+      }
+    });
+    
+    setHighlightedLineId(null);
+    setHighlightedRouteIds([]);
+  })
+  .catch(err => {
+    console.error("Error loading transit data:", err);
+  });
+}, [isGraphExpanded, searchCanton, showStopVolumeSymbology, selectedTransitModes]);
+
+
+
+// ADD TRANSIT LINE ---
+
+useEffect(() => {
+  
+  const map = mapRef.current;
+  if (!map) return;
+  
+  const ROUTE_LAYER_ID = "transit-line-highlight";
+  const ROUTE_SOURCE_ID = "transit-line-highlight";
+  
+  if (
+    !highlightedRouteIds || highlightedRouteIds.length === 0 ||
+    !highlightedLineId || isGraphExpanded !== "Transit"
+  ) {
+    if (map.getLayer(ROUTE_LAYER_ID)) map.removeLayer(ROUTE_LAYER_ID);
+    if (map.getSource(ROUTE_SOURCE_ID)) map.removeSource(ROUTE_SOURCE_ID);
+    return;
   }
-}
-        const lineIdsAtStop = combinedLines.map(l => l.line_id);
-        
-        let currentHighlightedLineId = null;
-        if (map.getSource("transit-line-highlight")) {
-          const currentData = map.getSource("transit-line-highlight")._data;
-          const currentFeature = currentData?.features?.[0];
-          currentHighlightedLineId = currentFeature?.properties?.line_id;
-        }
-        
-        if (lineIdsAtStop.includes(currentHighlightedLineId)) {
-          const updatedRouteIds = combinedLines
-          .filter(l => l.line_id === currentHighlightedLineId)
-          .map(l => l.route_id);
-          
-          setHighlightedRouteIds(updatedRouteIds);
-          setSelectedTransitStop({
-            name,
-            stop_id,
-            stop_ids: allStopIds,
-            lines: combinedLines,
-            modes_list: combinedModes
-          });
-        } else {
-          if (map.getLayer("transit-line-highlight")) map.removeLayer("transit-line-highlight");
-          if (map.getSource("transit-line-highlight")) map.removeSource("transit-line-highlight");
-          setHighlightedLineId(null);
-          setHighlightedRouteIds([]);
-        }
-        
-        // Highlight clicked
+  
+  fetch(`${dataURL}matsim/transit/transit_routes.geojson`)
+  .then((res) => res.json())
+  .then((geojson) => {
+    const routeIdsToShow = hoveredRouteId ? [hoveredRouteId] : highlightedRouteIds;
+    
+    const matched = geojson.features.filter(
+      (f) =>
+        f.properties.line_id === highlightedLineId &&
+      routeIdsToShow.includes(f.properties.route_id)
+    );
+    
+    console.log("Matched routes:", matched);
+    
+    if (matched.length === 0) return;
+    
+    const newData = {
+      type: "FeatureCollection",
+      features: matched,
+    };
+    
+    if (map.getSource(ROUTE_SOURCE_ID)) {
+      map.getSource(ROUTE_SOURCE_ID).setData(newData);
+    } else {
+      map.addSource(ROUTE_SOURCE_ID, {
+        type: "geojson",
+        data: newData,
+      });
+      
+      map.addLayer(
+        {
+          id: ROUTE_LAYER_ID,
+          type: "line",
+          source: ROUTE_SOURCE_ID,
+          layout: {
+            "line-join": "round",
+            "line-cap": "round",
+          },
+          paint: {
+            "line-color": "#007AFF",
+            "line-width": 2,
+          },
+        },
+        "transit-stops-layer"
+      );
+    }
+  });
+}, [highlightedRouteIds, highlightedLineId, hoveredRouteId, isGraphExpanded]);
+
+
+
+// ======================= CHOROPLETH MODULE =======================
+
+useEffect(() => {
+  fetch(`${dataURL}mode_share.json`)
+  .then((response) => response.json())
+  .then((data) => {
+    setModeShareData(data);
+    setMaxSharePerMode(data.max_share_per_mode);
+  })
+  .catch((error) => console.error("Error loading mode share data:", error));
+}, []);
+
+// Set colours for choropleth by mode (matches with plots)
+const MODE_COLORS = {
+  car: "#636efa",
+  car_passenger: "#ef553b",
+  pt: "#00cc96",
+  bike: "#ab63fa",
+  walk: "#ffa15a",
+};
+
+// Set choropleth colours for cantons
+useEffect(() => {
+  const map = mapRef.current;
+  
+  if (!map.getLayer("canton-fill")) return; // incase canton-fill not loaded yet
+  
+  if (selectedMode === "None") {
+    // Reset to default
+    map.setPaintProperty("canton-fill", "fill-opacity", 0.15);
+    map.setPaintProperty("canton-fill", "fill-color", "#A07CC5");
+    return;
+  }
+  
+  let colorStops = {};
+  
+  if (selectedDataset === "Difference") {
+    const micro = modeShareData["Microcensus"].filter(entry => entry.mode === selectedMode);
+    const synthetic = modeShareData["Synthetic"].filter(entry => entry.mode === selectedMode);
+    
+    const microMap = Object.fromEntries(micro.map(e => [e.canton_name, e.share]));
+    const syntheticMap = Object.fromEntries(synthetic.map(e => [e.canton_name, e.share]));
+    
+    colorStops = Object.keys(microMap).reduce((acc, canton) => {
+      const diff = Math.abs((syntheticMap[canton] || 0) - (microMap[canton] || 0));
+      const clampedDiff = Math.min(diff, 0.1); // max out at 10%
+      const normalized = clampedDiff / 0.1;
+      acc[canton] = `rgb(${interpolateColor("#FFFFFF", "#ff0000", normalized)})`; // White to Red
+      return acc;
+    }, {});
+  } else {
+    const maxShare = maxSharePerMode[selectedMode] || 1;
+    colorStops = modeShareData[selectedDataset]
+    .filter(entry => entry.mode === selectedMode)
+    .reduce((acc, entry) => {
+      const normalizedShare = entry.share / maxShare;
+      acc[entry.canton_name] = `rgb(${interpolateColor("#FFFFFF", MODE_COLORS[selectedMode], normalizedShare)})`;
+      return acc;
+    }, {});
+  }
+  map.setPaintProperty("canton-fill", "fill-color", [
+    "case",
+    ...Object.entries(colorStops).flatMap(([canton, color]) => [["==", ["get", "NAME"], canton], color]),
+    "#FFFFFF"
+  ]);
+  
+  map.setPaintProperty("canton-fill", "fill-opacity", 1.0); // No transparency
+  
+}, [modeShareData, selectedMode, selectedDataset, maxSharePerMode]);
+
+// Function to interpolate between two colors (White → Mode Color)
+const interpolateColor = (color1, color2, factor) => {
+  const rgb1 = hexToRgb(color1);
+  const rgb2 = hexToRgb(color2);
+  
+  return rgb1.map((c, i) => Math.round(c + (rgb2[i] - c) * factor)).join(", ");
+};
+
+// Convert HEX to RGB array (since we defined colours in HEX)
+const hexToRgb = (hex) => {
+  const bigint = parseInt(hex.slice(1), 16);
+  return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
+};
+
+//  ======================= MAP PADDING LOGIC =======================
+// this ensures that the map stays focused on the same feature even
+// as the width of the sidebar changes (otherwise as the sidebar)
+// gets wider, it could hide what we are originally looking at
+
+useEffect(() => {
+  if (mapRef.current) {
+    const map = mapRef.current;
+    
+    // Determine the right padding based on which graph is selected
+    let rightPadding = 50; // Default for collapsed sidebar
+    
+    if (isSidebarOpen) {
+      // Widest width
+      if (isGraphExpanded === "Graph 3" || isGraphExpanded === "Graph 4") {
+        rightPadding = 950; // Adjust for 900px width
+        // Middle width
+      } else if (isGraphExpanded === "Graph 1" || isGraphExpanded === "Graph 2" || isGraphExpanded === "Volumes" || isGraphExpanded === "Transit"
+      ) {
+        rightPadding = 650; // Adjust for 600px width
+      } else {
+        // Smallest width
+        rightPadding = 350;
+      }
+    }
+    
+    // Smoothly adjust padding when sidebar changes
+    map.easeTo({
+      padding: { top: 50, bottom: 50, left: 50, right: rightPadding },
+      duration: 600,
+    });
+  }
+}, [isSidebarOpen, isGraphExpanded]); // Re-run when sidebar size changes
+
+// handle search-based zooming
+useEffect(() => {
+  if (searchCanton && mapRef.current && bboxCache[searchCanton]) {
+    const map = mapRef.current;
+    const cantonBbox = bboxCache[searchCanton]; // fetch bbox
+    
+    // Determine the correct right padding
+    let rightPadding = 50; // Default for collapsed sidebar
+    if (isSidebarOpen) {
+      if (isGraphExpanded === "Graph 3" || isGraphExpanded === "Graph 4") {
+        rightPadding = 950; // Adjust for 900px width
+      } else if (isGraphExpanded === "Graph 1" || isGraphExpanded === "Graph 2" || isGraphExpanded === "Volumes" || isGraphExpanded === "Transit"
+      ) {
+        rightPadding = 650; // Adjust for 600px width
+      } else {
+        rightPadding = 350; // Default open sidebar
+      }
+    }
+    
+    map.fitBounds(cantonBbox, {
+      padding: { top: 50, bottom: 50, left: 50, right: rightPadding },
+      maxZoom: 10,
+      duration: 1000,
+    });
+    
+    setClickedCanton(searchCanton);
+    
+    map.setFilter("selected-canton-border", ["==", "NAME", searchCanton]);
+    
+    if (graphExpandedRef.current === "Network" || graphExpandedRef.current === "Volumes") {
+      loadNetworkForCanton(searchCanton);
+    } else {
+      // Remove network-related layers and sources
+      if (map.getLayer("network-layer")) {
+        map.removeLayer("network-layer");
+        map.removeLayer("click-network-layer");
+        map.removeSource("network-source");
+      }
+      if (map.getLayer("ant-line")) {
+        map.removeLayer("ant-line");
+        map.removeSource("ant-path")
+      }
+      ["network-highlight"].forEach(id => {
+        if (map.getLayer(id)) map.removeLayer(id);
+        if (map.getSource(id)) map.removeSource(id);
+      });
+      
+      if (graphExpandedRef.current === "Transit") {
         if (map.getLayer("transit-highlight-layer")) map.removeLayer("transit-highlight-layer");
         if (map.getSource("transit-highlight")) map.removeSource("transit-highlight");
         
-        map.addSource("transit-highlight", {
-          type: "geojson",
-          data: {
-            type: "FeatureCollection",
-            features: [features[0]]
-          }
-        });
-        
-        map.addLayer({
-          id: "transit-highlight-layer",
-          type: "circle",
-          source: "transit-highlight",
-          paint: {
-            "circle-radius": showStopVolumeSymbology
-            ? [
-              "interpolate", ["linear"], ["get", "volume"],
-              0, 5,
-              100, 10,
-              500, 14,
-              1000, 22,
-              2000, 29
-            ]
-            : 5,
-            "circle-color": "#00ffff",
-          }
-        }, "transit-stops-layer");
-        
-        
-        setSelectedTransitStop({
-          name,
-          stop_id,
-          stop_ids: allStopIds,
-          lines: combinedLines,
-          modes_list: combinedModes
-        });
-      });
-      
-      // === Reapply filtering ===
-      const modeFilter = selectedTransitModes.includes("all")
-      ? null
-      : [
-        "any",
-        ...selectedTransitModes.map((mode) => [
-          "match",
-          ["index-of", mode, ["get", "modes_list"]],
-          -1,
-          false,
-          true
-        ])
-      ];
-      
-      ["transit-stops-layer", "transit-highlight-layer", "transit-stops-label"].forEach((id) => {
-        if (map.getLayer(id)) {
-          map.setFilter(id, modeFilter);
-        }
-      });
-      
-      setHighlightedLineId(null);
-      setHighlightedRouteIds([]);
-    })
-    .catch(err => {
-      console.error("Error loading transit data:", err);
-    });
-  }, [isGraphExpanded, searchCanton, dataURL, showStopVolumeSymbology, selectedTransitModes]);
-  
-  useEffect(() => {
+        setSelectedTransitStop(null);
+      }
+    }
+  }
+}, [searchCanton]); // only update when searchCanton updates
 
-    const map = mapRef.current;
-    if (!map) return;
-    
-    const ROUTE_LAYER_ID = "transit-line-highlight";
-    const ROUTE_SOURCE_ID = "transit-line-highlight";
-    
-    if (
-      !highlightedRouteIds || highlightedRouteIds.length === 0 ||
-      !highlightedLineId || isGraphExpanded !== "Transit"
-    ) {
-      if (map.getLayer(ROUTE_LAYER_ID)) map.removeLayer(ROUTE_LAYER_ID);
-      if (map.getSource(ROUTE_SOURCE_ID)) map.removeSource(ROUTE_SOURCE_ID);
-      return;
-    }
-    
-    fetch(`${dataURL}matsim/transit/transit_routes.geojson`)
-    .then((res) => res.json())
-    .then((geojson) => {
-      const routeIdsToShow = hoveredRouteId ? [hoveredRouteId] : highlightedRouteIds;
-      
-      const matched = geojson.features.filter(
-        (f) =>
-          f.properties.line_id === highlightedLineId &&
-        routeIdsToShow.includes(f.properties.route_id)
-      );
-
-      console.log("Matched routes:", matched);
-      
-      if (matched.length === 0) return;
-      
-      const newData = {
-        type: "FeatureCollection",
-        features: matched,
-      };
-      
-      if (map.getSource(ROUTE_SOURCE_ID)) {
-        map.getSource(ROUTE_SOURCE_ID).setData(newData);
-      } else {
-        map.addSource(ROUTE_SOURCE_ID, {
-          type: "geojson",
-          data: newData,
-        });
-        
-        map.addLayer(
-          {
-            id: ROUTE_LAYER_ID,
-            type: "line",
-            source: ROUTE_SOURCE_ID,
-            layout: {
-              "line-join": "round",
-              "line-cap": "round",
-            },
-            paint: {
-              "line-color": "#007AFF",
-              "line-width": 2,
-            },
-          },
-          "transit-stops-layer"
-        );
-      }
-    });
-  }, [highlightedRouteIds, highlightedLineId, hoveredRouteId, isGraphExpanded]);
+return (
+  <>
+  <div id="map-container" ref={mapContainerRef} />
   
-  
-  
-  // ======================= CHOROPLETH MODULE =======================
-  
-  useEffect(() => {
-    fetch(`${dataURL}mode_share.json`)
-    .then((response) => response.json())
-    .then((data) => {
-      setModeShareData(data);
-      setMaxSharePerMode(data.max_share_per_mode);
-    })
-    .catch((error) => console.error("Error loading mode share data:", error));
-  }, []);
-  
-  // Set colours for choropleth by mode (matches with plots)
-  const MODE_COLORS = {
-    car: "#636efa",
-    car_passenger: "#ef553b",
-    pt: "#00cc96",
-    bike: "#ab63fa",
-    walk: "#ffa15a",
-  };
-  
-  // Set choropleth colours for cantons
-  useEffect(() => {
-    const map = mapRef.current;
-    
-    if (!map.getLayer("canton-fill")) return; // incase canton-fill not loaded yet
-    
-    if (selectedMode === "None") {
-      // Reset to default
-      map.setPaintProperty("canton-fill", "fill-opacity", 0.15);
-      map.setPaintProperty("canton-fill", "fill-color", "#A07CC5");
-      return;
-    }
-    
-    let colorStops = {};
-    
-    if (selectedDataset === "Difference") {
-      const micro = modeShareData["Microcensus"].filter(entry => entry.mode === selectedMode);
-      const synthetic = modeShareData["Synthetic"].filter(entry => entry.mode === selectedMode);
-      
-      const microMap = Object.fromEntries(micro.map(e => [e.canton_name, e.share]));
-      const syntheticMap = Object.fromEntries(synthetic.map(e => [e.canton_name, e.share]));
-      
-      colorStops = Object.keys(microMap).reduce((acc, canton) => {
-        const diff = Math.abs((syntheticMap[canton] || 0) - (microMap[canton] || 0));
-        const clampedDiff = Math.min(diff, 0.1); // max out at 10%
-        const normalized = clampedDiff / 0.1;
-        acc[canton] = `rgb(${interpolateColor("#FFFFFF", "#ff0000", normalized)})`; // White to Red
-        return acc;
-      }, {});
-    } else {
-      const maxShare = maxSharePerMode[selectedMode] || 1;
-      colorStops = modeShareData[selectedDataset]
-      .filter(entry => entry.mode === selectedMode)
-      .reduce((acc, entry) => {
-        const normalizedShare = entry.share / maxShare;
-        acc[entry.canton_name] = `rgb(${interpolateColor("#FFFFFF", MODE_COLORS[selectedMode], normalizedShare)})`;
-        return acc;
-      }, {});
-    }
-    map.setPaintProperty("canton-fill", "fill-color", [
-      "case",
-      ...Object.entries(colorStops).flatMap(([canton, color]) => [["==", ["get", "NAME"], canton], color]),
-      "#FFFFFF"
-    ]);
-    
-    map.setPaintProperty("canton-fill", "fill-opacity", 1.0); // No transparency
-    
-  }, [modeShareData, selectedMode, selectedDataset, maxSharePerMode]);
-  
-  // Function to interpolate between two colors (White → Mode Color)
-  const interpolateColor = (color1, color2, factor) => {
-    const rgb1 = hexToRgb(color1);
-    const rgb2 = hexToRgb(color2);
-    
-    return rgb1.map((c, i) => Math.round(c + (rgb2[i] - c) * factor)).join(", ");
-  };
-  
-  // Convert HEX to RGB array (since we defined colours in HEX)
-  const hexToRgb = (hex) => {
-    const bigint = parseInt(hex.slice(1), 16);
-    return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
-  };
-  
-  //  ======================= MAP PADDING LOGIC =======================
-  // this ensures that the map stays focused on the same feature even
-  // as the width of the sidebar changes (otherwise as the sidebar)
-  // gets wider, it could hide what we are originally looking at
-  
-  useEffect(() => {
-    if (mapRef.current) {
-      const map = mapRef.current;
-      
-      // Determine the right padding based on which graph is selected
-      let rightPadding = 50; // Default for collapsed sidebar
-      
-      if (isSidebarOpen) {
-        // Widest width
-        if (isGraphExpanded === "Graph 3" || isGraphExpanded === "Graph 4") {
-          rightPadding = 950; // Adjust for 900px width
-          // Middle width
-        } else if (isGraphExpanded === "Graph 1" || isGraphExpanded === "Graph 2" || isGraphExpanded === "Volumes" || isGraphExpanded === "Transit"
-        ) {
-          rightPadding = 650; // Adjust for 600px width
-        } else {
-          // Smallest width
-          rightPadding = 350;
-        }
-      }
-      
-      // Smoothly adjust padding when sidebar changes
-      map.easeTo({
-        padding: { top: 50, bottom: 50, left: 50, right: rightPadding },
-        duration: 600,
-      });
-    }
-  }, [isSidebarOpen, isGraphExpanded]); // Re-run when sidebar size changes
-  
-  // handle search-based zooming
-  useEffect(() => {
-    if (searchCanton && mapRef.current && bboxCache[searchCanton]) {
-      const map = mapRef.current;
-      const cantonBbox = bboxCache[searchCanton]; // fetch bbox
-      
-      // Determine the correct right padding
-      let rightPadding = 50; // Default for collapsed sidebar
-      if (isSidebarOpen) {
-        if (isGraphExpanded === "Graph 3" || isGraphExpanded === "Graph 4") {
-          rightPadding = 950; // Adjust for 900px width
-        } else if (isGraphExpanded === "Graph 1" || isGraphExpanded === "Graph 2" || isGraphExpanded === "Volumes" || isGraphExpanded === "Transit"
-        ) {
-          rightPadding = 650; // Adjust for 600px width
-        } else {
-          rightPadding = 350; // Default open sidebar
-        }
-      }
-      
-      map.fitBounds(cantonBbox, {
-        padding: { top: 50, bottom: 50, left: 50, right: rightPadding },
-        maxZoom: 10,
-        duration: 1000,
-      });
-      
-      setClickedCanton(searchCanton);
-      
-      map.setFilter("selected-canton-border", ["==", "NAME", searchCanton]);
-      
-      if (graphExpandedRef.current === "Network" || graphExpandedRef.current === "Volumes") {
-        loadNetworkForCanton(searchCanton);
-      } else {
-        // Remove network-related layers and sources
-        if (map.getLayer("network-layer")) {
-          map.removeLayer("network-layer");
-          map.removeLayer("click-network-layer");
-          map.removeSource("network-source");
-        }
-        if (map.getLayer("ant-line")) {
-          map.removeLayer("ant-line");
-          map.removeSource("ant-path")
-        }
-        ["network-highlight"].forEach(id => {
-          if (map.getLayer(id)) map.removeLayer(id);
-          if (map.getSource(id)) map.removeSource(id);
-        });
-        
-        if (graphExpandedRef.current === "Transit") {
-          if (map.getLayer("transit-highlight-layer")) map.removeLayer("transit-highlight-layer");
-          if (map.getSource("transit-highlight")) map.removeSource("transit-highlight");
-          
-          setSelectedTransitStop(null);
-        }
-      }
-    }
-  }, [searchCanton]); // only update when searchCanton updates
-  
-  return (
-    <>
-    <div id="map-container" ref={mapContainerRef} />
-    
-    {isLoadingNetwork && (
-      <div className="map-loading-overlay">
-      <div className="spinner" />
-      <div className="loading-text">Loading network...</div>
-      </div>
-    )}
-    </>
-  );
+  {isLoadingNetwork && (
+    <div className="map-loading-overlay">
+    <div className="spinner" />
+    <div className="loading-text">Loading network...</div>
+    </div>
+  )}
+  </>
+);
 };
 
 export default Map;

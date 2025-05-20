@@ -36,6 +36,7 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
     // Transit module
     const [availableTransitModes, setAvailableTransitModes] = useState([]);
     const [transitModesByCanton, setTransitModesByCanton] = useState({});
+    const [filteredStopVolumes, setFilteredStopVolumes] = useState(null); // total filtered volumes per stop
     
     
     // ======================= GENERAL FEATURES (BUTTONS / DROPDOWN) =======================
@@ -353,7 +354,10 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
               </div>
               {selectedTransitStop && (
                 <TransitStopAttributesTable
-                properties={selectedTransitStop}
+                properties={{
+                  ...selectedTransitStop,
+                  ...(filteredStopVolumes ?? {}) 
+                }}
                 highlightedLineId={highlightedLineId}
                 onLineClick={(lineId, routeIds) => {
                   setHighlightedLineId(lineId);
@@ -368,6 +372,7 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
                 canton={canton}
                 dataURL={dataURL}
                 lineId={highlightedLineId}
+                onVolumeUpdate={setFilteredStopVolumes}
                 />
               )}
               </div>
