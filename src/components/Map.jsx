@@ -29,9 +29,6 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
     // Keep track of select network modes
     const selectedNetworkModesRef = useRef(selectedNetworkModes);
     
-    // Store stop volumes
-    const [stopVolumes, setStopVolumes] = useState(null);
-    
     // ======================= INITIALIZE MAP AND HANDLE CANTON SELECTION =======================
     
     useEffect(() => {
@@ -814,10 +811,35 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
         }
       }
       
-      if (map.getLayer("transit-line-highlight")) map.removeLayer("transit-line-highlight");
-      if (map.getSource("transit-line-highlight")) map.removeSource("transit-line-highlight");
-      setHighlightedLineId(null);
-      setHighlightedRouteIds([]);
+      // If choose a stop that is on the current highlighted line, keep the line selected.
+      const lineIdsAtStop = combinedLines.map(l => l.line_id);
+      
+      let currentHighlightedLineId = null;
+      if (map.getSource("transit-line-highlight")) {
+        const currentData = map.getSource("transit-line-highlight")._data;
+        const currentFeature = currentData?.features?.[0];
+        currentHighlightedLineId = currentFeature?.properties?.line_id;
+      }
+      
+      if (lineIdsAtStop.includes(currentHighlightedLineId)) {
+        const updatedRouteIds = combinedLines
+        .filter(l => l.line_id === currentHighlightedLineId)
+        .map(l => l.route_id);
+        
+        setHighlightedRouteIds(updatedRouteIds);
+        setSelectedTransitStop({
+          name,
+          stop_id,
+          stop_ids: allStopIds,
+          lines: combinedLines,
+          modes_list: combinedModes
+        });
+      } else {
+        if (map.getLayer("transit-line-highlight")) map.removeLayer("transit-line-highlight");
+        if (map.getSource("transit-line-highlight")) map.removeSource("transit-line-highlight");
+        setHighlightedLineId(null);
+        setHighlightedRouteIds([]);
+      }
       
       // Highlight clicked
       if (map.getLayer("transit-highlight-layer")) map.removeLayer("transit-highlight-layer");
