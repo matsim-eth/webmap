@@ -145,3 +145,27 @@
   color: #444;
 }
 
+.metric-card {
+  background-color: #f7f9fc;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  min-width: 100px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  margin-top: 8px;
+  margin-left: 5px;
+  margin-bottom: -6px;
+}
+
+.metric-label {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.metric-value {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #007aff;
+}
+

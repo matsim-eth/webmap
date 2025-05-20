@@ -4,7 +4,7 @@ import "./Table.css";
 const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId, onRouteHover }) => {
   if (!properties) return null;
   
-  const { name, modes_list, stop_id, lines } = properties;
+  const { name, modes_list, lines, boardings, alightings, total } = properties;
   
   const [hoveredRoute, setHoveredRoute] = useState(null);
   const [showRoutes, setShowRoutes] = useState(false); 
@@ -37,6 +37,21 @@ const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId
     <tr><td>Mode</td><td>{modes_list?.join(", ")}</td></tr>
     <tr><td>Lines</td><td>{numLines}</td></tr>
     <tr><td>Routes</td><td>{numRoutes}</td></tr>
+    <tr><td>Volumes</td><td>    
+    <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
+    <div className="metric-card">
+    <div className="metric-label">Boardings</div>
+    <div className="metric-value">{boardings}</div>
+    </div>
+    <div className="metric-card">
+    <div className="metric-label">Alightings</div>
+    <div className="metric-value">{alightings}</div>
+    </div>
+    <div className="metric-card">
+    <div className="metric-label">Total Volume</div>
+    <div className="metric-value">{total}</div>
+    </div>
+    </div></td></tr>
     <tr>
     <td>Lines</td>
     <td>
