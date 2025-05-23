@@ -157,6 +157,7 @@ function App() {
     
     <NetworkLegend
     selectedGraph={isGraphExpanded} // from sidebar
+    showStopVolumeSymbology={showStopVolumeSymbology}
     />
     </>
   );

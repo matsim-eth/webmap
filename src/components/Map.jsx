@@ -7,7 +7,7 @@ import "./Loading.css" // loading screen for network
 const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchCanton, selectedMode,
   selectedDataset, selectedNetworkModes, selectedTransitModes, setSelectedTransitStop, setSelectedNetworkFeature,
   visualizeLinkId, dataURL, setHighlightedLineId, setHighlightedRouteIds, highlightedRouteIds, highlightedLineId,
-  hoveredRouteId, showStopVolumeSymbology, timeRange}) => {
+  hoveredRouteId, showStopVolumeSymbology}) => {
     
     // ======================= INITIALIZE VARIABLES =======================
     
@@ -652,16 +652,11 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
       // === Inject volume into stop features ===
       if (showStopVolumeSymbology && volumeData) {
         const volumeByStopId = {};
-        
         volumeData.forEach(entry => {
           const stopId = entry.stop_id;
           if (!volumeByStopId[stopId]) volumeByStopId[stopId] = 0;
-          
-          entry.data.forEach((dp, idx) => {
-            // Only sum data points within selected time range
-            if (!timeRange || (idx >= timeRange[0] && idx <= timeRange[1])) {
-              volumeByStopId[stopId] += dp.boardings + dp.alightings;
-            }
+          entry.data.forEach(dp => {
+            volumeByStopId[stopId] += dp.boardings + dp.alightings;
           });
         });
         
@@ -711,10 +706,10 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
             ? [
               "interpolate", ["linear"], ["get", "volume"],
               0, 3,
-              100, 6,
+              100, 5,
               500, 10,
-              1000, 18,
-              2000, 25
+              2500, 15,
+              10000, 20
             ]
             : 3,
             "circle-color": "#ff8800",
@@ -728,13 +723,13 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
           showStopVolumeSymbology
           ? [
             "interpolate", ["linear"], ["get", "volume"],
-            0, 3,
-            100, 6,
-            500, 10,
-            1000, 18,
-            2000, 25
-          ]
-          : 3
+              0, 3,
+              100, 5,
+              500, 10,
+              2500, 15,
+              10000, 20
+            ]
+            : 3,
         );
       }
       
@@ -746,10 +741,10 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
           showStopVolumeSymbology
           ? ["interpolate", ["linear"], ["get", "volume"],
           0, 6,
-          100, 10,
-          500, 14,
-          1000, 22,
-          2000, 29
+          100, 8,
+          500, 13,
+          2500, 18,
+          10000, 23
         ]
         : 6
       );
@@ -784,11 +779,11 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
         paint: {
           "circle-radius": [
             "interpolate", ["linear"], ["get", "volume"],
-            0, 15,      // larger than visible
-            100, 15,
+            0, 10,      // larger than visible
+            100, 10,
             500, 15,
-            1000, 18,
-            2000, 25
+            2500, 18,
+            10000, 23
           ],
           "circle-opacity": 0 // invisible
         }
@@ -866,11 +861,11 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
           "circle-radius": showStopVolumeSymbology
           ? [
             "interpolate", ["linear"], ["get", "volume"],
-            0, 6,
-            100, 10,
-            500, 14,
-            1000, 22,
-            2000, 29
+          0, 6,
+          100, 8,
+          500, 13,
+          2500, 18,
+          10000, 23
           ]
           : 6,
           "circle-color": "#00ffff",
@@ -913,9 +908,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
   .catch(err => {
     console.error("Error loading transit data:", err);
   });
-}, [isGraphExpanded, searchCanton, showStopVolumeSymbology, selectedTransitModes, timeRange]);
-
-
+}, [isGraphExpanded, searchCanton, showStopVolumeSymbology, selectedTransitModes]);
 
 // ADD TRANSIT LINE ---
 
