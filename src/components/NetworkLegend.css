@@ -8,7 +8,7 @@
   padding: 12px 18px;
   border-radius: 12px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-  width: 150px; /* Increased width to fit labels */
+  width: 160px; /* Increased width to fit labels */
   display: flex;
   flex-direction: column;
   align-items: flex-start; /* Left align */
@@ -92,4 +92,24 @@
   font-size: 12px;
   font-weight: normal;
   color: #333;
+}
+
+.transit-stop-legend {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 6px;
+}
+
+.transit-stop-legend-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.transit-stop-circle {
+  border-radius: 50%;
+  background-color: #ff8800;
+  margin-bottom: 2px;
+  border: 1px solid #333; /* Dark gray outline */
 }
