@@ -3,242 +3,242 @@
         {
             "canton_name": "Aargau",
             "purpose": "education",
-            "share": 0.05456252307060715
+            "share": 0.054139436690465434
         },
         {
             "canton_name": "Aargau",
             "purpose": "home",
-            "share": 0.398441330641508
+            "share": 0.4022339987028993
         },
         {
             "canton_name": "Aargau",
             "purpose": "leisure",
-            "share": 0.15837511326526085
+            "share": 0.15754560724500843
         },
         {
             "canton_name": "Aargau",
             "purpose": "other",
-            "share": 0.08614828327789734
+            "share": 0.08548027594839201
         },
         {
             "canton_name": "Aargau",
             "purpose": "shop",
-            "share": 0.10921292023854302
+            "share": 0.10857555482735447
         },
         {
             "canton_name": "Aargau",
             "purpose": "work",
-            "share": 0.19325982950618364
+            "share": 0.19202512658588036
         },
         {
             "canton_name": "AppenzellAusserrhoden",
             "purpose": "education",
-            "share": 0.036409030880095665
+            "share": 0.037425623844243666
         },
         {
             "canton_name": "AppenzellAusserrhoden",
             "purpose": "home",
-            "share": 0.363638888326878
+            "share": 0.38134311584766
         },
         {
             "canton_name": "AppenzellAusserrhoden",
             "purpose": "leisure",
-            "share": 0.1776637559065435
+            "share": 0.17375629747805654
         },
         {
             "canton_name": "AppenzellAusserrhoden",
             "purpose": "other",
-            "share": 0.08330129248150224
+            "share": 0.06789100892699146
         },
         {
             "canton_name": "AppenzellAusserrhoden",
             "purpose": "shop",
-            "share": 0.1064358607455348
+            "share": 0.10053961614720394
         },
         {
             "canton_name": "AppenzellAusserrhoden",
             "purpose": "work",
-            "share": 0.23255117165944578
+            "share": 0.23904433775584438
         },
         {
             "canton_name": "AppenzellInnerrhoden",
             "purpose": "education",
-            "share": 0.0374801885996251
+            "share": 0.037576581077455005
         },
         {
             "canton_name": "AppenzellInnerrhoden",
             "purpose": "home",
-            "share": 0.45690913373800623
+            "share": 0.45551239918992265
         },
         {
             "canton_name": "AppenzellInnerrhoden",
             "purpose": "leisure",
-            "share": 0.11775007644339977
+            "share": 0.11805290900793906
         },
         {
             "canton_name": "AppenzellInnerrhoden",
             "purpose": "other",
-            "share": 0.028732889403684007
+            "share": 0.02880678536067665
         },
         {
             "canton_name": "AppenzellInnerrhoden",
             "purpose": "shop",
-            "share": 0.04111913417845324
+            "share": 0.0412248853866988
         },
         {
             "canton_name": "AppenzellInnerrhoden",
             "purpose": "work",
-            "share": 0.31800857763683166
+            "share": 0.3188264399773079
         },
         {
             "canton_name": "Basel-Landschaft",
             "purpose": "education",
-            "share": 0.04827139898698758
+            "share": 0.04825752446866146
         },
         {
             "canton_name": "Basel-Landschaft",
             "purpose": "home",
-            "share": 0.3750600344424485
+            "share": 0.37655535428979847
         },
         {
             "canton_name": "Basel-Landschaft",
             "purpose": "leisure",
-            "share": 0.17300795352449883
+            "share": 0.17246943514042462
         },
         {
             "canton_name": "Basel-Landschaft",
             "purpose": "other",
-            "share": 0.10686147732068883
+            "share": 0.10683076241379662
         },
         {
             "canton_name": "Basel-Landschaft",
             "purpose": "shop",
-            "share": 0.12300772348549345
+            "share": 0.12263931907279305
         },
         {
             "canton_name": "Basel-Landschaft",
             "purpose": "work",
-            "share": 0.1737914122398828
+            "share": 0.1732476046145258
         },
         {
             "canton_name": "Basel-Stadt",
             "purpose": "education",
-            "share": 0.03887263408244379
+            "share": 0.03776250250343578
         },
         {
             "canton_name": "Basel-Stadt",
             "purpose": "home",
-            "share": 0.40195658554516317
+            "share": 0.4101851422054241
         },
         {
             "canton_name": "Basel-Stadt",
             "purpose": "leisure",
-            "share": 0.18349985151961581
+            "share": 0.1795442129551568
         },
         {
             "canton_name": "Basel-Stadt",
             "purpose": "other",
-            "share": 0.09045266703716981
+            "share": 0.09077480451687953
         },
         {
             "canton_name": "Basel-Stadt",
             "purpose": "shop",
-            "share": 0.12841092404757143
+            "share": 0.12727126383272636
         },
         {
             "canton_name": "Basel-Stadt",
             "purpose": "work",
-            "share": 0.15680733776803596
+            "share": 0.15446207398637743
         },
         {
             "canton_name": "Bern",
             "purpose": "education",
-            "share": 0.04725695612048793
+            "share": 0.04723883796134062
         },
         {
             "canton_name": "Bern",
             "purpose": "home",
-            "share": 0.39482521835637985
+            "share": 0.3952091345262846
         },
         {
             "canton_name": "Bern",
             "purpose": "leisure",
-            "share": 0.17988059756051175
+            "share": 0.17984113463581197
         },
         {
             "canton_name": "Bern",
             "purpose": "other",
-            "share": 0.0913559587382288
+            "share": 0.09132093316876017
         },
         {
             "canton_name": "Bern",
             "purpose": "shop",
-            "share": 0.11385103619452626
+            "share": 0.11364978051144647
         },
         {
             "canton_name": "Bern",
             "purpose": "work",
-            "share": 0.17283023302986547
+            "share": 0.17274017919635623
         },
         {
             "canton_name": "Fribourg",
             "purpose": "education",
-            "share": 0.06488990221100134
+            "share": 0.06484417579034554
         },
         {
             "canton_name": "Fribourg",
             "purpose": "home",
-            "share": 0.380275366135356
+            "share": 0.38000739483682633
         },
         {
             "canton_name": "Fribourg",
             "purpose": "leisure",
-            "share": 0.16520193904995234
+            "share": 0.16523862201384903
         },
         {
             "canton_name": "Fribourg",
             "purpose": "other",
-            "share": 0.10913821317074249
+            "share": 0.10906130598372223
         },
         {
             "canton_name": "Fribourg",
             "purpose": "shop",
-            "share": 0.10035675950027811
+            "share": 0.10083762041844617
         },
         {
             "canton_name": "Fribourg",
             "purpose": "work",
-            "share": 0.18013781993266978
+            "share": 0.18001088095681067
         },
         {
             "canton_name": "Geneve",
             "purpose": "education",
-            "share": 0.0586773990890819
+            "share": 0.05821705167440342
         },
         {
             "canton_name": "Geneve",
             "purpose": "home",
-            "share": 0.3802815494534297
+            "share": 0.38494344406634473
         },
         {
             "canton_name": "Geneve",
             "purpose": "leisure",
-            "share": 0.1755901162196656
+            "share": 0.17426861040314057
         },
         {
             "canton_name": "Geneve",
             "purpose": "other",
-            "share": 0.10821239050665396
+            "share": 0.1076195303598819
         },
         {
             "canton_name": "Geneve",
             "purpose": "shop",
-            "share": 0.11010068824263126
+            "share": 0.10920909483499557
         },
         {
             "canton_name": "Geneve",
             "purpose": "work",
-            "share": 0.1671378564885376
+            "share": 0.16574226866123387
         },
         {
             "canton_name": "Glarus",
@@ -273,152 +273,152 @@
         {
             "canton_name": "Graubunden",
             "purpose": "education",
-            "share": 0.05092038041176063
+            "share": 0.05078805979243618
         },
         {
             "canton_name": "Graubunden",
             "purpose": "home",
-            "share": 0.39222767436285216
+            "share": 0.39155126498020587
         },
         {
             "canton_name": "Graubunden",
             "purpose": "leisure",
-            "share": 0.1757638013267071
+            "share": 0.17530706524464523
         },
         {
             "canton_name": "Graubunden",
             "purpose": "other",
-            "share": 0.07650060555693007
+            "share": 0.07747794315564265
         },
         {
             "canton_name": "Graubunden",
             "purpose": "shop",
-            "share": 0.10137188383171225
+            "share": 0.10150105231993682
         },
         {
             "canton_name": "Graubunden",
             "purpose": "work",
-            "share": 0.2032156545100377
+            "share": 0.20337461450713315
         },
         {
             "canton_name": "Jura",
             "purpose": "education",
-            "share": 0.05913171969173744
+            "share": 0.059008723324495006
         },
         {
             "canton_name": "Jura",
             "purpose": "home",
-            "share": 0.40490091046070215
+            "share": 0.40526103784685735
         },
         {
             "canton_name": "Jura",
             "purpose": "leisure",
-            "share": 0.1632050957127111
+            "share": 0.16374332529218155
         },
         {
             "canton_name": "Jura",
             "purpose": "other",
-            "share": 0.10398459323930843
+            "share": 0.10376830108199774
         },
         {
             "canton_name": "Jura",
             "purpose": "shop",
-            "share": 0.09152860272235934
+            "share": 0.09133821952883286
         },
         {
             "canton_name": "Jura",
             "purpose": "work",
-            "share": 0.1772490781731815
+            "share": 0.17688039292563545
         },
         {
             "canton_name": "Luzern",
             "purpose": "education",
-            "share": 0.052109436370498786
+            "share": 0.052140997932317176
         },
         {
             "canton_name": "Luzern",
             "purpose": "home",
-            "share": 0.39550020573049455
+            "share": 0.39555848766099855
         },
         {
             "canton_name": "Luzern",
             "purpose": "leisure",
-            "share": 0.1622745003915862
+            "share": 0.16221100652562787
         },
         {
             "canton_name": "Luzern",
             "purpose": "other",
-            "share": 0.0867841077764199
+            "share": 0.0865740366508911
         },
         {
             "canton_name": "Luzern",
             "purpose": "shop",
-            "share": 0.1064776700812195
+            "share": 0.10654216130969207
         },
         {
             "canton_name": "Luzern",
             "purpose": "work",
-            "share": 0.1968540796497811
+            "share": 0.19697330992047324
         },
         {
             "canton_name": "Neuchatel",
             "purpose": "education",
-            "share": 0.05768147223836922
+            "share": 0.05765927566741575
         },
         {
             "canton_name": "Neuchatel",
             "purpose": "home",
-            "share": 0.39226825123791853
+            "share": 0.3925205587671545
         },
         {
             "canton_name": "Neuchatel",
             "purpose": "leisure",
-            "share": 0.16341969895429387
+            "share": 0.1631947771943805
         },
         {
             "canton_name": "Neuchatel",
             "purpose": "other",
-            "share": 0.11046761142772259
+            "share": 0.11056869328372858
         },
         {
             "canton_name": "Neuchatel",
             "purpose": "shop",
-            "share": 0.10850439166103344
+            "share": 0.10846263777829074
         },
         {
             "canton_name": "Neuchatel",
             "purpose": "work",
-            "share": 0.16765857448066243
+            "share": 0.16759405730902996
         },
         {
             "canton_name": "Nidwalden",
             "purpose": "education",
-            "share": 0.058256879919974386
+            "share": 0.058120752703594354
         },
         {
             "canton_name": "Nidwalden",
             "purpose": "home",
-            "share": 0.4149450705976367
+            "share": 0.4146388794553156
         },
         {
             "canton_name": "Nidwalden",
             "purpose": "leisure",
-            "share": 0.16813755323128735
+            "share": 0.16941794350608166
         },
         {
             "canton_name": "Nidwalden",
             "purpose": "other",
-            "share": 0.07275401030870327
+            "share": 0.07258400805459334
         },
         {
             "canton_name": "Nidwalden",
             "purpose": "shop",
-            "share": 0.09104636355919464
+            "share": 0.09083361807660335
         },
         {
             "canton_name": "Nidwalden",
             "purpose": "work",
-            "share": 0.19486012238320358
+            "share": 0.19440479820381162
         },
         {
             "canton_name": "Obwalden",
@@ -453,1120 +453,1120 @@
         {
             "canton_name": "Schaffhausen",
             "purpose": "education",
-            "share": 0.04713610712719968
+            "share": 0.04568727232387133
         },
         {
             "canton_name": "Schaffhausen",
             "purpose": "home",
-            "share": 0.39698151641896967
+            "share": 0.40785556643103865
         },
         {
             "canton_name": "Schaffhausen",
             "purpose": "leisure",
-            "share": 0.18724596130821158
+            "share": 0.1847833402752452
         },
         {
             "canton_name": "Schaffhausen",
             "purpose": "other",
-            "share": 0.09721429645656239
+            "share": 0.09524114654972542
         },
         {
             "canton_name": "Schaffhausen",
             "purpose": "shop",
-            "share": 0.11016442632636601
+            "share": 0.110131601753854
         },
         {
             "canton_name": "Schaffhausen",
             "purpose": "work",
-            "share": 0.16125769236269066
+            "share": 0.15630107266626553
         },
         {
             "canton_name": "Schwyz",
             "purpose": "education",
-            "share": 0.05672186442141186
+            "share": 0.05613698215116821
         },
         {
             "canton_name": "Schwyz",
             "purpose": "home",
-            "share": 0.39332863346524244
+            "share": 0.39357251799454074
         },
         {
             "canton_name": "Schwyz",
             "purpose": "leisure",
-            "share": 0.1801464192785438
+            "share": 0.18025811957425697
         },
         {
             "canton_name": "Schwyz",
             "purpose": "other",
-            "share": 0.077438067603496
+            "share": 0.07748608329587228
         },
         {
             "canton_name": "Schwyz",
             "purpose": "shop",
-            "share": 0.09395847516426094
+            "share": 0.09401673438197194
         },
         {
             "canton_name": "Schwyz",
             "purpose": "work",
-            "share": 0.19840654006704497
+            "share": 0.19852956260218982
         },
         {
             "canton_name": "Solothurn",
             "purpose": "education",
-            "share": 0.056069145564677
+            "share": 0.0560777141091985
         },
         {
             "canton_name": "Solothurn",
             "purpose": "home",
-            "share": 0.39896755856173294
+            "share": 0.39993371357239327
         },
         {
             "canton_name": "Solothurn",
             "purpose": "leisure",
-            "share": 0.15448854469116455
+            "share": 0.15397518114052355
         },
         {
             "canton_name": "Solothurn",
             "purpose": "other",
-            "share": 0.0796745595512114
+            "share": 0.07968673549938879
         },
         {
             "canton_name": "Solothurn",
             "purpose": "shop",
-            "share": 0.11707222209189586
+            "share": 0.11709011318934567
         },
         {
             "canton_name": "Solothurn",
             "purpose": "work",
-            "share": 0.19372796953931828
+            "share": 0.19323654248915015
         },
         {
             "canton_name": "StGallen",
             "purpose": "education",
-            "share": 0.05854002678923836
+            "share": 0.057863110519929
         },
         {
             "canton_name": "StGallen",
             "purpose": "home",
-            "share": 0.40875231409221624
+            "share": 0.40905145510361385
         },
         {
             "canton_name": "StGallen",
             "purpose": "leisure",
-            "share": 0.16701791777835528
+            "share": 0.16689433100475712
         },
         {
             "canton_name": "StGallen",
             "purpose": "other",
-            "share": 0.07887840168313762
+            "share": 0.08018546051687779
         },
         {
             "canton_name": "StGallen",
             "purpose": "shop",
-            "share": 0.1066607246871193
+            "share": 0.1065687031934498
         },
         {
             "canton_name": "StGallen",
             "purpose": "work",
-            "share": 0.18015061496993315
+            "share": 0.1794369396613725
         },
         {
             "canton_name": "Thurgau",
             "purpose": "education",
-            "share": 0.05408116009137733
+            "share": 0.053463420349498816
         },
         {
             "canton_name": "Thurgau",
             "purpose": "home",
-            "share": 0.3904294330818042
+            "share": 0.40079158032583234
         },
         {
             "canton_name": "Thurgau",
             "purpose": "leisure",
-            "share": 0.16384614754974178
+            "share": 0.16195438427684572
         },
         {
             "canton_name": "Thurgau",
             "purpose": "other",
-            "share": 0.08663149452207683
+            "share": 0.08515898672124655
         },
         {
             "canton_name": "Thurgau",
             "purpose": "shop",
-            "share": 0.09794461118447606
+            "share": 0.09633107241655955
         },
         {
             "canton_name": "Thurgau",
             "purpose": "work",
-            "share": 0.20706715357052377
+            "share": 0.20230055591001708
         },
         {
             "canton_name": "Ticino",
             "purpose": "education",
-            "share": 0.044401938989470244
+            "share": 0.04417445474580021
         },
         {
             "canton_name": "Ticino",
             "purpose": "home",
-            "share": 0.3705669458245009
+            "share": 0.3720129404596947
         },
         {
             "canton_name": "Ticino",
             "purpose": "leisure",
-            "share": 0.18043323449933998
+            "share": 0.17999544522048125
         },
         {
             "canton_name": "Ticino",
             "purpose": "other",
-            "share": 0.13804330265940729
+            "share": 0.13788604373455207
         },
         {
             "canton_name": "Ticino",
             "purpose": "shop",
-            "share": 0.09699501608267293
+            "share": 0.09686372120328471
         },
         {
             "canton_name": "Ticino",
             "purpose": "work",
-            "share": 0.16955956194460875
+            "share": 0.16906739463618708
         },
         {
             "canton_name": "Uri",
             "purpose": "education",
-            "share": 0.0557769971837731
+            "share": 0.05588022512657518
         },
         {
             "canton_name": "Uri",
             "purpose": "home",
-            "share": 0.415456808485212
+            "share": 0.4162257052316923
         },
         {
             "canton_name": "Uri",
             "purpose": "leisure",
-            "share": 0.1730512116499182
+            "share": 0.17337148203878786
         },
         {
             "canton_name": "Uri",
             "purpose": "other",
-            "share": 0.061182343668323924
+            "share": 0.06129557542678309
         },
         {
             "canton_name": "Uri",
             "purpose": "shop",
-            "share": 0.08306441644133462
+            "share": 0.08321814592234349
         },
         {
             "canton_name": "Uri",
             "purpose": "work",
-            "share": 0.21146822257143813
+            "share": 0.21000886625381812
         },
         {
             "canton_name": "Valais",
             "purpose": "education",
-            "share": 0.050230555666351616
+            "share": 0.050301253016825934
         },
         {
             "canton_name": "Valais",
             "purpose": "home",
-            "share": 0.386287669041462
+            "share": 0.3854238952850976
         },
         {
             "canton_name": "Valais",
             "purpose": "leisure",
-            "share": 0.17171174827348717
+            "share": 0.17195342518681625
         },
         {
             "canton_name": "Valais",
             "purpose": "other",
-            "share": 0.10498258290519369
+            "share": 0.10513034138325328
         },
         {
             "canton_name": "Valais",
             "purpose": "shop",
-            "share": 0.09437949417897097
+            "share": 0.09451232926488719
         },
         {
             "canton_name": "Valais",
             "purpose": "work",
-            "share": 0.19240794993453464
+            "share": 0.19267875586311964
         },
         {
             "canton_name": "Vaud",
             "purpose": "education",
-            "share": 0.05319410186941036
+            "share": 0.053151601690583535
         },
         {
             "canton_name": "Vaud",
             "purpose": "home",
-            "share": 0.3811487218049904
+            "share": 0.3817362739358995
         },
         {
             "canton_name": "Vaud",
             "purpose": "leisure",
-            "share": 0.16482869268430125
+            "share": 0.16480644723115975
         },
         {
             "canton_name": "Vaud",
             "purpose": "other",
-            "share": 0.11101171921580726
+            "share": 0.11083778252085345
         },
         {
             "canton_name": "Vaud",
             "purpose": "shop",
-            "share": 0.10922362467404141
+            "share": 0.10915771394934443
         },
         {
             "canton_name": "Vaud",
             "purpose": "work",
-            "share": 0.18059313975144933
+            "share": 0.1803101806721594
         },
         {
             "canton_name": "Zug",
             "purpose": "education",
-            "share": 0.04411654811714893
+            "share": 0.04400790776282635
         },
         {
             "canton_name": "Zug",
             "purpose": "home",
-            "share": 0.4049120750651585
+            "share": 0.4049428877538172
         },
         {
             "canton_name": "Zug",
             "purpose": "leisure",
-            "share": 0.15940125328639423
+            "share": 0.15900871557944327
         },
         {
             "canton_name": "Zug",
             "purpose": "other",
-            "share": 0.07283577736936948
+            "share": 0.07339046572542787
         },
         {
             "canton_name": "Zug",
             "purpose": "shop",
-            "share": 0.12125326411444852
+            "share": 0.12165525331183745
         },
         {
             "canton_name": "Zug",
             "purpose": "work",
-            "share": 0.19748108204748027
+            "share": 0.19699476986664793
         },
         {
             "canton_name": "Zurich",
             "purpose": "education",
-            "share": 0.05435693348364538
+            "share": 0.05440727556361381
         },
         {
             "canton_name": "Zurich",
             "purpose": "home",
-            "share": 0.3896003852929444
+            "share": 0.3896610759179674
         },
         {
             "canton_name": "Zurich",
             "purpose": "leisure",
-            "share": 0.16608322827028257
+            "share": 0.16605888311595293
         },
         {
             "canton_name": "Zurich",
             "purpose": "other",
-            "share": 0.08332869941798504
+            "share": 0.08335151279799304
         },
         {
             "canton_name": "Zurich",
             "purpose": "shop",
-            "share": 0.11718724146100463
+            "share": 0.11710550992996799
         },
         {
             "canton_name": "Zurich",
             "purpose": "work",
-            "share": 0.18944351207413798
+            "share": 0.18941574267450487
         }
     ],
     "Synthetic": [
         {
             "canton_name": "Aargau",
             "purpose": "education",
-            "share": 0.04677583640209982
+            "share": 0.05435659061803349
         },
         {
             "canton_name": "Aargau",
             "purpose": "home",
-            "share": 0.42308234741048345
+            "share": 0.39396670303087794
         },
         {
             "canton_name": "Aargau",
             "purpose": "leisure",
-            "share": 0.1733604951813837
+            "share": 0.17018450884598965
         },
         {
             "canton_name": "Aargau",
             "purpose": "other",
-            "share": 0.10024288960275797
+            "share": 0.10268937058293412
         },
         {
             "canton_name": "Aargau",
             "purpose": "shop",
-            "share": 0.11093003212410875
+            "share": 0.10895033913579662
         },
         {
             "canton_name": "Aargau",
             "purpose": "work",
-            "share": 0.14560839927916633
+            "share": 0.16985248778636816
         },
         {
             "canton_name": "AppenzellAusserrhoden",
             "purpose": "education",
-            "share": 0.03642921550946799
+            "share": 0.047123287671232875
         },
         {
             "canton_name": "AppenzellAusserrhoden",
             "purpose": "home",
-            "share": 0.39621280432822364
+            "share": 0.41863013698630136
         },
         {
             "canton_name": "AppenzellAusserrhoden",
             "purpose": "leisure",
-            "share": 0.19188458070333633
+            "share": 0.16164383561643836
         },
         {
             "canton_name": "AppenzellAusserrhoden",
             "purpose": "other",
-            "share": 0.12768259693417494
+            "share": 0.10684931506849316
         },
         {
             "canton_name": "AppenzellAusserrhoden",
             "purpose": "shop",
-            "share": 0.10892696122633003
+            "share": 0.1073972602739726
         },
         {
             "canton_name": "AppenzellAusserrhoden",
             "purpose": "work",
-            "share": 0.1388638412984671
+            "share": 0.15835616438356165
         },
         {
             "canton_name": "AppenzellInnerrhoden",
             "purpose": "education",
-            "share": 0.02617801047120419
+            "share": 0.03571428571428571
         },
         {
             "canton_name": "AppenzellInnerrhoden",
             "purpose": "home",
-            "share": 0.3658376963350785
+            "share": 0.42857142857142855
         },
         {
             "canton_name": "AppenzellInnerrhoden",
             "purpose": "leisure",
-            "share": 0.24083769633507854
+            "share": 0.16596638655462184
         },
         {
             "canton_name": "AppenzellInnerrhoden",
             "purpose": "other",
-            "share": 0.14201570680628273
+            "share": 0.09663865546218488
         },
         {
             "canton_name": "AppenzellInnerrhoden",
             "purpose": "shop",
-            "share": 0.09489528795811518
+            "share": 0.08823529411764706
         },
         {
             "canton_name": "AppenzellInnerrhoden",
             "purpose": "work",
-            "share": 0.13023560209424084
+            "share": 0.18487394957983194
         },
         {
             "canton_name": "Basel-Landschaft",
             "purpose": "education",
-            "share": 0.04323720930232558
+            "share": 0.0495813133539004
         },
         {
             "canton_name": "Basel-Landschaft",
             "purpose": "home",
-            "share": 0.41529302325581396
+            "share": 0.39852357866901716
         },
         {
             "canton_name": "Basel-Landschaft",
             "purpose": "leisure",
-            "share": 0.17451162790697675
+            "share": 0.1755178492728074
         },
         {
             "canton_name": "Basel-Landschaft",
             "purpose": "other",
-            "share": 0.10533953488372093
+            "share": 0.09684883208461878
         },
         {
             "canton_name": "Basel-Landschaft",
             "purpose": "shop",
-            "share": 0.11683720930232558
+            "share": 0.1119435874834729
         },
         {
             "canton_name": "Basel-Landschaft",
             "purpose": "work",
-            "share": 0.14478139534883722
+            "share": 0.16758483913618333
         },
         {
             "canton_name": "Basel-Stadt",
             "purpose": "education",
-            "share": 0.06910549224825158
+            "share": 0.042909873884958476
         },
         {
             "canton_name": "Basel-Stadt",
             "purpose": "home",
-            "share": 0.37702352423338387
+            "share": 0.4060289141802522
         },
         {
             "canton_name": "Basel-Stadt",
             "purpose": "leisure",
-            "share": 0.15831173277253388
+            "share": 0.17210089203322054
         },
         {
             "canton_name": "Basel-Stadt",
             "purpose": "other",
-            "share": 0.07541448623269917
+            "share": 0.09350968932636113
         },
         {
             "canton_name": "Basel-Stadt",
             "purpose": "shop",
-            "share": 0.11654521445688854
+            "share": 0.11996308828052907
         },
         {
             "canton_name": "Basel-Stadt",
             "purpose": "work",
-            "share": 0.20359955005624297
+            "share": 0.16548754229467855
         },
         {
             "canton_name": "Bern",
             "purpose": "education",
-            "share": 0.05040251660820712
+            "share": 0.05250864796144635
         },
         {
             "canton_name": "Bern",
             "purpose": "home",
-            "share": 0.39698891446145185
+            "share": 0.4086863968305591
         },
         {
             "canton_name": "Bern",
             "purpose": "leisure",
-            "share": 0.17159971456999568
+            "share": 0.17100789403660233
         },
         {
             "canton_name": "Bern",
             "purpose": "other",
-            "share": 0.09876481170665032
+            "share": 0.09685716819915442
         },
         {
             "canton_name": "Bern",
             "purpose": "shop",
-            "share": 0.11349862812691584
+            "share": 0.11294089820536321
         },
         {
             "canton_name": "Bern",
             "purpose": "work",
-            "share": 0.16874541452677916
+            "share": 0.15799899476687462
         },
         {
             "canton_name": "Fribourg",
             "purpose": "education",
-            "share": 0.056775469831849654
+            "share": 0.05889363392591121
         },
         {
             "canton_name": "Fribourg",
             "purpose": "home",
-            "share": 0.42311242993735576
+            "share": 0.3962657662131294
         },
         {
             "canton_name": "Fribourg",
             "purpose": "leisure",
-            "share": 0.16676557863501484
+            "share": 0.16605422584169233
         },
         {
             "canton_name": "Fribourg",
             "purpose": "other",
-            "share": 0.1022749752720079
+            "share": 0.1037838911510577
         },
         {
             "canton_name": "Fribourg",
             "purpose": "shop",
-            "share": 0.10692383778437191
+            "share": 0.10795510974277485
         },
         {
             "canton_name": "Fribourg",
             "purpose": "work",
-            "share": 0.14414770853939993
+            "share": 0.1670473731254345
         },
         {
             "canton_name": "Geneve",
             "purpose": "education",
-            "share": 0.062285984177588856
+            "share": 0.06025512903415437
         },
         {
             "canton_name": "Geneve",
             "purpose": "home",
-            "share": 0.39345455976699334
+            "share": 0.40138733760507905
         },
         {
             "canton_name": "Geneve",
             "purpose": "leisure",
-            "share": 0.16019207305073405
+            "share": 0.16648051260948799
         },
         {
             "canton_name": "Geneve",
             "purpose": "other",
-            "share": 0.09576101074507026
+            "share": 0.09540885309505615
         },
         {
             "canton_name": "Geneve",
             "purpose": "shop",
-            "share": 0.10660447908056835
+            "share": 0.11169243430721298
         },
         {
             "canton_name": "Geneve",
             "purpose": "work",
-            "share": 0.18170189317904514
+            "share": 0.16477573334900947
         },
         {
             "canton_name": "Glarus",
             "purpose": "education",
-            "share": 0.03625795737614171
+            "share": 0.06570512820512821
         },
         {
             "canton_name": "Glarus",
             "purpose": "home",
-            "share": 0.43454193191253804
+            "share": 0.39903846153846156
         },
         {
             "canton_name": "Glarus",
             "purpose": "leisure",
-            "share": 0.17187932466094658
+            "share": 0.16506410256410256
         },
         {
             "canton_name": "Glarus",
             "purpose": "other",
-            "share": 0.09382784389703847
+            "share": 0.09615384615384616
         },
         {
             "canton_name": "Glarus",
             "purpose": "shop",
-            "share": 0.10240797121505674
+            "share": 0.10576923076923077
         },
         {
             "canton_name": "Glarus",
             "purpose": "work",
-            "share": 0.16108497093827845
+            "share": 0.16826923076923078
         },
         {
             "canton_name": "Graubunden",
             "purpose": "education",
-            "share": 0.04956884863604317
+            "share": 0.05457413249211356
         },
         {
             "canton_name": "Graubunden",
             "purpose": "home",
-            "share": 0.4038179944682467
+            "share": 0.40709779179810723
         },
         {
             "canton_name": "Graubunden",
             "purpose": "leisure",
-            "share": 0.171375888063344
+            "share": 0.17160883280757097
         },
         {
             "canton_name": "Graubunden",
             "purpose": "other",
-            "share": 0.09707684798524865
+            "share": 0.09621451104100946
         },
         {
             "canton_name": "Graubunden",
             "purpose": "shop",
-            "share": 0.11356364227995011
+            "share": 0.10993690851735016
         },
         {
             "canton_name": "Graubunden",
             "purpose": "work",
-            "share": 0.16459677856716742
+            "share": 0.1605678233438486
         },
         {
             "canton_name": "Jura",
             "purpose": "education",
-            "share": 0.05108238592119608
+            "share": 0.05720430107526882
         },
         {
             "canton_name": "Jura",
             "purpose": "home",
-            "share": 0.40398691792555674
+            "share": 0.40946236559139787
         },
         {
             "canton_name": "Jura",
             "purpose": "leisure",
-            "share": 0.17629652702071327
+            "share": 0.1724731182795699
         },
         {
             "canton_name": "Jura",
             "purpose": "other",
-            "share": 0.10138607693505684
+            "share": 0.09118279569892473
         },
         {
             "canton_name": "Jura",
             "purpose": "shop",
-            "share": 0.11213206665628407
+            "share": 0.1032258064516129
         },
         {
             "canton_name": "Jura",
             "purpose": "work",
-            "share": 0.15511602554119297
+            "share": 0.1664516129032258
         },
         {
             "canton_name": "Luzern",
             "purpose": "education",
-            "share": 0.06410382702063734
+            "share": 0.04929106970529285
         },
         {
             "canton_name": "Luzern",
             "purpose": "home",
-            "share": 0.4011229867507265
+            "share": 0.40887833123004974
         },
         {
             "canton_name": "Luzern",
             "purpose": "leisure",
-            "share": 0.17162488302221346
+            "share": 0.17296414520080172
         },
         {
             "canton_name": "Luzern",
             "purpose": "other",
-            "share": 0.09646357681130867
+            "share": 0.093163091084552
         },
         {
             "canton_name": "Luzern",
             "purpose": "shop",
-            "share": 0.10774269812343004
+            "share": 0.11090490683690891
         },
         {
             "canton_name": "Luzern",
             "purpose": "work",
-            "share": 0.158942028271684
+            "share": 0.16479845594239478
         },
         {
             "canton_name": "Neuchatel",
             "purpose": "education",
-            "share": 0.059950336998935795
+            "share": 0.05976896032144651
         },
         {
             "canton_name": "Neuchatel",
             "purpose": "home",
-            "share": 0.4065862599030389
+            "share": 0.40415201741168594
         },
         {
             "canton_name": "Neuchatel",
             "purpose": "leisure",
-            "share": 0.16755350597138466
+            "share": 0.17261007868742675
         },
         {
             "canton_name": "Neuchatel",
             "purpose": "other",
-            "share": 0.09128532576563793
+            "share": 0.0934203917629332
         },
         {
             "canton_name": "Neuchatel",
             "purpose": "shop",
-            "share": 0.10866737613811044
+            "share": 0.10882303699983258
         },
         {
             "canton_name": "Neuchatel",
             "purpose": "work",
-            "share": 0.1659571952228923
+            "share": 0.16122551481667505
         },
         {
             "canton_name": "Nidwalden",
             "purpose": "education",
-            "share": 0.04051411008661637
+            "share": 0.05476529160739687
         },
         {
             "canton_name": "Nidwalden",
             "purpose": "home",
-            "share": 0.4124056999161777
+            "share": 0.41251778093883357
         },
         {
             "canton_name": "Nidwalden",
             "purpose": "leisure",
-            "share": 0.19223246716960044
+            "share": 0.1728307254623044
         },
         {
             "canton_name": "Nidwalden",
             "purpose": "other",
-            "share": 0.10058675607711651
+            "share": 0.09388335704125178
         },
         {
             "canton_name": "Nidwalden",
             "purpose": "shop",
-            "share": 0.1033808326348142
+            "share": 0.1073968705547653
         },
         {
             "canton_name": "Nidwalden",
             "purpose": "work",
-            "share": 0.15088013411567477
+            "share": 0.15860597439544807
         },
         {
             "canton_name": "Obwalden",
             "purpose": "education",
-            "share": 0.050764349581770986
+            "share": 0.05650684931506849
         },
         {
             "canton_name": "Obwalden",
             "purpose": "home",
-            "share": 0.4329391404672628
+            "share": 0.386986301369863
         },
         {
             "canton_name": "Obwalden",
             "purpose": "leisure",
-            "share": 0.1736371502740121
+            "share": 0.17636986301369864
         },
         {
             "canton_name": "Obwalden",
             "purpose": "other",
-            "share": 0.10354773579463514
+            "share": 0.10273972602739725
         },
         {
             "canton_name": "Obwalden",
             "purpose": "shop",
-            "share": 0.09431785405249495
+            "share": 0.1035958904109589
         },
         {
             "canton_name": "Obwalden",
             "purpose": "work",
-            "share": 0.14479376982982406
+            "share": 0.1738013698630137
         },
         {
             "canton_name": "Schaffhausen",
             "purpose": "education",
-            "share": 0.040196338551339875
+            "share": 0.053217821782178217
         },
         {
             "canton_name": "Schaffhausen",
             "purpose": "home",
-            "share": 0.42942425046431415
+            "share": 0.3956270627062706
         },
         {
             "canton_name": "Schaffhausen",
             "purpose": "leisure",
-            "share": 0.1652958344388432
+            "share": 0.1782178217821782
         },
         {
             "canton_name": "Schaffhausen",
             "purpose": "other",
-            "share": 0.1040063677368002
+            "share": 0.10396039603960396
         },
         {
             "canton_name": "Schaffhausen",
             "purpose": "shop",
-            "share": 0.10798620323693288
+            "share": 0.1150990099009901
         },
         {
             "canton_name": "Schaffhausen",
             "purpose": "work",
-            "share": 0.1530910055717697
+            "share": 0.15387788778877887
         },
         {
             "canton_name": "Schwyz",
             "purpose": "education",
-            "share": 0.03962900505902192
+            "share": 0.05685869769187465
         },
         {
             "canton_name": "Schwyz",
             "purpose": "home",
-            "share": 0.4298060708263069
+            "share": 0.3910677425408144
         },
         {
             "canton_name": "Schwyz",
             "purpose": "leisure",
-            "share": 0.17327150084317033
+            "share": 0.17714392944267218
         },
         {
             "canton_name": "Schwyz",
             "purpose": "other",
-            "share": 0.10483417650365374
+            "share": 0.10320885719647213
         },
         {
             "canton_name": "Schwyz",
             "purpose": "shop",
-            "share": 0.1045531197301855
+            "share": 0.10395946706699193
         },
         {
             "canton_name": "Schwyz",
             "purpose": "work",
-            "share": 0.1479061270376616
+            "share": 0.1677613060611747
         },
         {
             "canton_name": "Solothurn",
             "purpose": "education",
-            "share": 0.051437097534160515
+            "share": 0.053833806642795405
         },
         {
             "canton_name": "Solothurn",
             "purpose": "home",
-            "share": 0.4121642845924297
+            "share": 0.4081985430300037
         },
         {
             "canton_name": "Solothurn",
             "purpose": "leisure",
-            "share": 0.1823464740065965
+            "share": 0.16878626990986542
         },
         {
             "canton_name": "Solothurn",
             "purpose": "other",
-            "share": 0.09710224595570913
+            "share": 0.09692554636374862
         },
         {
             "canton_name": "Solothurn",
             "purpose": "shop",
-            "share": 0.1089995288204806
+            "share": 0.1060624768489937
         },
         {
             "canton_name": "Solothurn",
             "purpose": "work",
-            "share": 0.14795036909062353
+            "share": 0.16619335720459316
         },
         {
             "canton_name": "StGallen",
             "purpose": "education",
-            "share": 0.06166917354363999
+            "share": 0.0603931718740371
         },
         {
             "canton_name": "StGallen",
             "purpose": "home",
-            "share": 0.4075572177730802
+            "share": 0.4054970111542491
         },
         {
             "canton_name": "StGallen",
             "purpose": "leisure",
-            "share": 0.1630757347859669
+            "share": 0.1623836815184569
         },
         {
             "canton_name": "StGallen",
             "purpose": "other",
-            "share": 0.09347940973210293
+            "share": 0.09749183459665989
         },
         {
             "canton_name": "StGallen",
             "purpose": "shop",
-            "share": 0.10911012642790358
+            "share": 0.11123436248228262
         },
         {
             "canton_name": "StGallen",
             "purpose": "work",
-            "share": 0.1651083377373064
+            "share": 0.16299993837431442
         },
         {
             "canton_name": "Thurgau",
             "purpose": "education",
-            "share": 0.04113548182753979
+            "share": 0.05642709473428189
         },
         {
             "canton_name": "Thurgau",
             "purpose": "home",
-            "share": 0.4309129780663552
+            "share": 0.39766508573513315
         },
         {
             "canton_name": "Thurgau",
             "purpose": "leisure",
-            "share": 0.16972840288225513
+            "share": 0.17511856986501276
         },
         {
             "canton_name": "Thurgau",
             "purpose": "other",
-            "share": 0.10650091060258136
+            "share": 0.09984190684664965
         },
         {
             "canton_name": "Thurgau",
             "purpose": "shop",
-            "share": 0.10642172776941959
+            "share": 0.10847622522193846
         },
         {
             "canton_name": "Thurgau",
             "purpose": "work",
-            "share": 0.14530049885184892
+            "share": 0.16247111759698407
         },
         {
             "canton_name": "Ticino",
             "purpose": "education",
-            "share": 0.05250774704464593
+            "share": 0.05090270812437312
         },
         {
             "canton_name": "Ticino",
             "purpose": "home",
-            "share": 0.4071789280385631
+            "share": 0.40195586760280844
         },
         {
             "canton_name": "Ticino",
             "purpose": "leisure",
-            "share": 0.1698611270515322
+            "share": 0.1698428619190906
         },
         {
             "canton_name": "Ticino",
             "purpose": "other",
-            "share": 0.09830138872948468
+            "share": 0.10397860247408894
         },
         {
             "canton_name": "Ticino",
             "purpose": "shop",
-            "share": 0.11069666016297487
+            "share": 0.1078234704112337
         },
         {
             "canton_name": "Ticino",
             "purpose": "work",
-            "share": 0.16145414897279928
+            "share": 0.16549648946840523
         },
         {
             "canton_name": "Uri",
             "purpose": "education",
-            "share": 0.03721454750493375
+            "share": 0.05841121495327103
         },
         {
             "canton_name": "Uri",
             "purpose": "home",
-            "share": 0.4240202988440936
+            "share": 0.39953271028037385
         },
         {
             "canton_name": "Uri",
             "purpose": "leisure",
-            "share": 0.17535945869749084
+            "share": 0.1939252336448598
         },
         {
             "canton_name": "Uri",
             "purpose": "other",
-            "share": 0.11587256836763463
+            "share": 0.09579439252336448
         },
         {
             "canton_name": "Uri",
             "purpose": "shop",
-            "share": 0.09811107978573443
+            "share": 0.1059190031152648
         },
         {
             "canton_name": "Uri",
             "purpose": "work",
-            "share": 0.14942204680011278
+            "share": 0.14641744548286603
         },
         {
             "canton_name": "Valais",
             "purpose": "education",
-            "share": 0.05409573155687145
+            "share": 0.05651419702364649
         },
         {
             "canton_name": "Valais",
             "purpose": "home",
-            "share": 0.4184863064396743
+            "share": 0.3978818588514562
         },
         {
             "canton_name": "Valais",
             "purpose": "leisure",
-            "share": 0.16830125832716505
+            "share": 0.16954259107093947
         },
         {
             "canton_name": "Valais",
             "purpose": "other",
-            "share": 0.10057364914877868
+            "share": 0.10079430293070392
         },
         {
             "canton_name": "Valais",
             "purpose": "shop",
-            "share": 0.10563163089069824
+            "share": 0.10572445905231444
         },
         {
             "canton_name": "Valais",
             "purpose": "work",
-            "share": 0.15291142363681223
+            "share": 0.16954259107093947
         },
         {
             "canton_name": "Vaud",
             "purpose": "education",
-            "share": 0.05782067358234855
+            "share": 0.05719402530102118
         },
         {
             "canton_name": "Vaud",
             "purpose": "home",
-            "share": 0.4035667692619473
+            "share": 0.4034064929126657
         },
         {
             "canton_name": "Vaud",
             "purpose": "leisure",
-            "share": 0.169738192043166
+            "share": 0.1691434232586496
         },
         {
             "canton_name": "Vaud",
             "purpose": "other",
-            "share": 0.09727552532583501
+            "share": 0.09579332418838592
         },
         {
             "canton_name": "Vaud",
             "purpose": "shop",
-            "share": 0.10982761459639523
+            "share": 0.11012040847431794
         },
         {
             "canton_name": "Vaud",
             "purpose": "work",
-            "share": 0.1617712251903079
+            "share": 0.16434232586495962
         },
         {
             "canton_name": "Zug",
             "purpose": "education",
-            "share": 0.06156190476190476
+            "share": 0.04682352941176471
         },
         {
             "canton_name": "Zug",
             "purpose": "home",
-            "share": 0.38064761904761907
+            "share": 0.40847058823529414
         },
         {
             "canton_name": "Zug",
             "purpose": "leisure",
-            "share": 0.15923809523809523
+            "share": 0.17176470588235293
         },
         {
             "canton_name": "Zug",
             "purpose": "other",
-            "share": 0.09158095238095239
+            "share": 0.08941176470588236
         },
         {
             "canton_name": "Zug",
             "purpose": "shop",
-            "share": 0.10735238095238095
+            "share": 0.12164705882352941
         },
         {
             "canton_name": "Zug",
             "purpose": "work",
-            "share": 0.1996190476190476
+            "share": 0.16188235294117648
         },
         {
             "canton_name": "Zurich",
             "purpose": "education",
-            "share": 0.05853836768515075
+            "share": 0.05150568684070953
         },
         {
             "canton_name": "Zurich",
             "purpose": "home",
-            "share": 0.3883875850639733
+            "share": 0.4054059363152415
         },
         {
             "canton_name": "Zurich",
             "purpose": "leisure",
-            "share": 0.1694232939902262
+            "share": 0.1693087394660852
         },
         {
             "canton_name": "Zurich",
             "purpose": "other",
-            "share": 0.09227035173912193
+            "share": 0.09529141375449349
         },
         {
             "canton_name": "Zurich",
             "purpose": "shop",
-            "share": 0.11110023684159016
+            "share": 0.11187066611664408
         },
         {
             "canton_name": "Zurich",
             "purpose": "work",
-            "share": 0.18028016467993763
+            "share": 0.16661755750682616
         }
     ],
     "max_share_per_purpose": {
         "education": 0.1,
         "home": 0.5,
-        "leisure": 0.25,
+        "leisure": 0.2,
         "other": 0.15,
         "shop": 0.15,
         "work": 0.35

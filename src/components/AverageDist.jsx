@@ -1,29 +1,28 @@
 import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
 import cantonAlias from "../utils/canton_alias.json";
+import { useLoadWithFallback } from "../utils/useLoadWithFallback";
 
 const DATASET_COLORS = {
   Microcensus: "#4A90E2",
   Synthetic: "#E07A5F",
 };
 
-const AverageDist = ({ canton, aggCol, dataURL }) => {
+const AverageDist = ({ canton, aggCol }) => {
   const [data, setData] = useState(null);
+  const loadWithFallback = useLoadWithFallback();
 
-  useEffect(() => {
-    // Use a default aggregation if none is supplied
+ useEffect(() => {
     const aggregation = aggCol || "mode";
     const selectedCanton = canton || "All";
-    // Build the URL using the aggregation choice
-    const url = `${dataURL}avg_dist_data_${aggregation}.json`;
-    
-    fetch(url)
-      .then((response) => response.json())
+    const path = `avg_dist_data_${aggregation}.json`;
+
+    loadWithFallback(path)
       .then((jsonData) => {
         if (jsonData[selectedCanton]) {
           setData(jsonData[selectedCanton]);
         } else {
-          console.error(`No data found for canton: ${selectedCanton} in ${url}`);
+          console.error(`No data found for canton: ${selectedCanton} in ${path}`);
         }
       })
       .catch((error) => console.error("Error loading JSON:", error));

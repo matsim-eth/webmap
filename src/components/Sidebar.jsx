@@ -1,7 +1,8 @@
-import React, { useState, useEffect  } from "react";
+import React, { useState, useEffect, useRef  } from "react";
 import "./Sidebar.css";
 import Slider from "rc-slider"; 
 import "rc-slider/assets/index.css";
+import { useFileContext } from "../FileContext";
 
 // Sidebar Modules / Graphs
 import ActivityDist from "./ActivityDist";
@@ -19,11 +20,13 @@ import SegmentVolumeHistogram from "./SegmentVolumeHistogram";
 import TransitStopAttributesTable from "./TransitStopAttributesTable";
 import Demographics from "./Demographics";
 import TransitStopHistogram from "./TransitStopHistogram";
+import { useLoadWithFallback } from "../utils/useLoadWithFallback";
 
 const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, resetMapView, updateMapSymbology,
   selectedNetworkModes, setSelectedNetworkModes, selectedNetworkFeature, setVisualizeLinkId, dataURL, setDataURL,
   selectedTransitModes, setSelectedTransitModes, selectedTransitStop, highlightedLineId, setHighlightedLineId,
-  setHighlightedRouteIds, setHoveredRouteId,showStopVolumeSymbology, setShowStopVolumeSymbology, timeRange, setTimeRange }) => {
+  setHighlightedRouteIds, setHoveredRouteId,showStopVolumeSymbology, setShowStopVolumeSymbology, timeRange, setTimeRange,
+  selectedAggCol, setSelectedAggCol}) => {
     
     // ======================= INITIALIZE VARIABLES =======================
     
@@ -31,7 +34,6 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
     const [selectedMode, setSelectedMode] = useState("None"); // Choropleth mode
     const [selectedDataset, setSelectedDataset] = useState("Microcensus"); // Choropleth dataset
     const [availableModes, setAvailableModes] = useState([]); // Available modes for network filter
-    const [selectedAggCol, setSelectedAggCol] = useState("mode"); // For graphs
     const [modesByCanton, setModesByCanton] = useState({}); // For mode filter (only show modes available in each canton)
     const [inputURL, setInputURL] = useState("");
     
@@ -39,6 +41,11 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
     const [availableTransitModes, setAvailableTransitModes] = useState([]);
     const [transitModesByCanton, setTransitModesByCanton] = useState({});
     const [filteredStopVolumes, setFilteredStopVolumes] = useState(null); // total filtered volumes per stop
+    
+    // Data upload
+    const { handleFolderUpload, fileMap, clearFileMap } = useFileContext();
+    const loadWithFallback = useLoadWithFallback(dataURL);
+    const fileInputRef = useRef();
     
     const formatTimeLabel = (index) => {
       const hours = Math.floor(index / 4);
@@ -57,20 +64,17 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
     
     // Get modes per canton from JSON file
     useEffect(() => {
-      const dataPath = `${dataURL}modes_by_canton.json`;
-      fetch(dataPath)
-      .then(res => res.json())
+      loadWithFallback("modes_by_canton.json")
       .then(data => setModesByCanton(data))
       .catch(err => console.error("Failed to load modes_by_canton.json", err));
-    }, []);
+    }, [dataURL]);
     
     // Get transit modes per stops
     useEffect(() => {
-      fetch(`${dataURL}/matsim/transit/transit_stop_modes_by_canton.json`)
-      .then((res) => res.json())
-      .then((data) => setTransitModesByCanton(data))
-      .catch((err) => console.error("Failed to load transit modes:", err));
-    }, []);
+      loadWithFallback("matsim/transit/transit_modes_by_canton.json")
+      .then(data => setTransitModesByCanton(data))
+      .catch(err => console.error("Failed to load transit modes:", err));
+    }, [dataURL]);
     
     // Push current module to Map
     const handleGraphSelection = (event) => {
@@ -110,6 +114,14 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
       
       setHighlightedLineId(null);
       setHighlightedRouteIds([]);
+
+      setSelectedGraph(null);
+      onExpandGraph(null);
+
+      clearFileMap();
+      setDataURL("https://matsim-eth.github.io/webmap/data/");
+      setInputURL(""); // clears the text field if you’re using it
+
     };
     
     
@@ -161,12 +173,15 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
     };
     
     return (
+      
+      
       <div className={`floating-panel ${isOpen ?  // Sets the css for sidebar width
         (selectedGraph === "Graph 3" || selectedGraph === "Graph 4" ? "expanded-graph3" : 
           selectedGraph === "Choropleth"  || selectedGraph === "Network" ? "open" : 
           selectedGraph ? "expanded" : "open") 
           : "collapsed"}`}>
           <button className="toggle-button" onClick={toggleSidebar}>{isOpen ? "✕" : "☰"}</button>          
+          
           
           {isOpen && (
             <div className="floating-content">
@@ -245,206 +260,234 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
               Set
               </button>
               </div>
-              </div>
-              
-              <div className="mode-filter-container">
-              <label className="mode-filter-label">Group Graphs By:</label>
-              <select
-              multiple
-              value={[selectedAggCol]} // Wrap as array so it works with multiple
-              onChange={(e) => {
-                const selected = Array.from(e.target.selectedOptions).map(opt => opt.value);
-                if (selected.length > 0) {
-                  setSelectedAggCol(selected[selected.length - 1]); // always use the last clicked one
-                }
-              }}
-              className="mode-filter-select"
-              >
-              <option value="mode">Mode</option>
-              <option value="purpose">Purpose</option>
-              </select>
-              </div>
-              </div>
-            )}
-            {/* Rendering for graphs */}
-            {selectedGraph === "Graph 1" && <div className="plot-container"><AverageDist canton={canton || "All"} aggCol={selectedAggCol} dataURL={dataURL}/></div>}
-            {selectedGraph === "Graph 2" && <div className="plot-container"><Histogram canton={canton || "All"} aggCol={selectedAggCol} dataURL={dataURL}/></div>}
-            {selectedGraph === "Graph 3" && <div className="plot-container"><StackedBarPlot canton={canton || "All"} aggCol={selectedAggCol} dataURL={dataURL}/></div>}
-            {selectedGraph === "Graph 4" && <div className="plot-container"><ModeShareLinePlot canton={canton || "All"} aggCol={selectedAggCol} dataURL={dataURL}/></div>}
-            {selectedGraph === "Graph 5" && <div className="plot-container"><ActivityDist canton={canton || "All"} dataURL={dataURL} /></div>}
-            {selectedGraph === "Graph 6" && <div className="plot-container"><PtSubscription canton={canton || "All"} dataURL={dataURL} /></div>}
-            {selectedGraph === "Graph 7" && <div className="plot-container"><CarAvailability canton={canton || "All"} dataURL={dataURL} /></div>}
-            {selectedGraph === "Graph 8" && <div className="plot-container"><DepartureTimes canton={canton || "All"} dataURL={dataURL} /></div>}
-            {selectedGraph === "Graph 9" && <div className="plot-container"><Demographics canton={canton || "All"} dataURL={dataURL} /></div>}
-            
-            {/* Mode Share Choropleth Selection */}
-            {selectedGraph === "Choropleth" && (
-              <div>
-              <ChoroplethControls
-              selectedMode={selectedMode}
-              setSelectedMode={setSelectedMode}
-              selectedDataset={selectedDataset}
-              setSelectedDataset={setSelectedDataset}
-              updateMapSymbology={updateMapSymbology}
-              dataURL={dataURL}
-              />
-              <CantonModeShareTable canton={canton} selectedDataset={selectedDataset} selectedMode={selectedMode} dataURL={dataURL} />
-              </div>
-            )}
-            
-            {/* Network Module */}
-            {selectedGraph === "Network" && (
-              
-              <div className="plot-container">
-              <div className="mode-filter-container">
-              <label className="mode-filter-label">Filter by Mode:</label>
-              <select
-              multiple
-              value={selectedNetworkModes}
-              onChange={handleModeChange}
-              className="mode-filter-select"
-              >
-              <option value="all">All</option>
-              {availableModes.map((mode) => (
-                <option key={mode} value={mode}>
-                {mode.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
-                </option>
-              ))}
-              </select>
               </div>  
-              {selectedNetworkFeature && (
-                <SegmentAttributesTable propertiesList={selectedNetworkFeature} />
-              )}
-              </div>
-            )}
-            
-            {selectedGraph === "Volumes" && (
-              <div className="plot-container">
-              {selectedNetworkFeature && (
-                <SegmentAttributesTable propertiesList={selectedNetworkFeature} selectedGraph={selectedGraph}/>
-              )}
               
-              {selectedNetworkFeature ? (
-                <SegmentVolumeHistogram
-                linkId={selectedNetworkFeature.map(f => f.id)}
-                setVisualizeLinkId={setVisualizeLinkId}
-                canton={canton}
-                dataURL={dataURL}
-                />
-              ) : (
-                <p style={{ padding: "1rem", fontStyle: "italic", color: "#555" }}>
-                Click a canton and/or segment to see hourly volumes.
-                </p>
-              )}
-              </div>
-            )}
-            
-            {selectedGraph === "Transit" && (
-              <div style={{ overflowY: "auto", overflowX: "hidden", width: "100%" }}>
-              
-              <div className="mode-filter-container">
-              <label className="mode-filter-label">Filter by Mode:</label>
-              <select
+              {/* Upload Section */}
+              <input
+              type="file"
+              webkitdirectory="true"
+              directory=""
               multiple
-              value={selectedTransitModes}
-              onChange={handleTransitModeChange}
-              className="mode-filter-select"
-              >
-              <option value="all">All</option>
-              {availableTransitModes.map((mode) => (
-                <option key={mode} value={mode}>
-                {mode.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
-                </option>
-              ))}
-              </select>
-
-
-{/* Time Range + Checkbox Row */}
-<div style={{
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: "0.5rem 2rem 2rem 0.5rem",
-  gap: "1rem",
-}}>
-
-
-  {/* Slider and label */}
-  <div style={{ flex: 1 }}>
-    <label style={{
-      fontWeight: "bold",
-      fontSize: "10pt",
-      display: "block",
-      marginBottom: "0.25rem",
-      marginLeft: "7%"
-    }}>
-      Time: {formatTimeLabel(timeRange[0])} – {formatTimeLabel(timeRange[1])}
-    </label>
-    <Slider
-      range
-      min={0}
-      max={96}
-      step={1}
-      marks={marks}
-      value={timeRange}
-      onChange={(val) => setTimeRange(val)}
-      allowCross={false}
-      style={{ marginLeft: "10%", width: "80%" }}
-    />
-  </div>
-
-    {/* Checkbox */}
-  <label style={{ fontWeight: "bold", fontSize: "10pt", whiteSpace: "nowrap" }}>
-    <input
-      type="checkbox"
-      checked={showStopVolumeSymbology}
-      onChange={(e) => setShowStopVolumeSymbology(e.target.checked)}
-      style={{ marginRight: "0.5rem" }}
-    />
-    Show stop volumes
-  </label>
-
-</div>
-
+              ref={fileInputRef}
+              onChange={(e) => handleFolderUpload(e.target.files)}
+              style={{ display: "none" }}
+              />
               
-             
-              </div>
-              {selectedTransitStop && (
-                <>
-                <TransitStopAttributesTable
-                properties={{
-                  ...selectedTransitStop,
-                  ...(filteredStopVolumes ?? {}) 
-                }}
-                highlightedLineId={highlightedLineId}
-                onLineClick={(lineId, routeIds) => {
-                  setHighlightedLineId(lineId);
-                  setHighlightedRouteIds(routeIds);
-                }}
-                onRouteHover={setHoveredRouteId}
-                />
+              {!selectedGraph && (
+                <div className="mode-filter-container">
+                <label className="mode-filter-label">Upload Local Folder</label>
+                <button
+                className="graph-button"
+                onClick={() => fileInputRef.current?.click()}
+                >
+                📁 Select Folder
+                </button>
+                <p style={{ fontSize: "12px", color: "#555", marginTop: "6px", marginLeft: "6px" }}>
+                {fileMap.size > 0
+                  ? `${fileMap.size} files uploaded`
+                  : "Upload files to override default data"}
+                  </p>
+                  </div>
+                )}
                 
-                </>
-                
+                <div className="mode-filter-container">
+                <label className="mode-filter-label">Group Graphs By:</label>
+                <select
+                multiple
+                value={[selectedAggCol]} // Wrap as array so it works with multiple
+                onChange={(e) => {
+                  const selected = Array.from(e.target.selectedOptions).map(opt => opt.value);
+                  if (selected.length > 0) {
+                    setSelectedAggCol(selected[selected.length - 1]); // always use the last clicked one
+                  }
+                }}
+                className="mode-filter-select"
+                >
+                <option value="mode">Mode</option>
+                <option value="purpose">Purpose</option>
+                </select>
+                </div>
+                </div>
               )}
-              {selectedTransitStop && (
-                <TransitStopHistogram
-                stopIds={selectedTransitStop.stop_ids}
-                canton={canton}
-                dataURL={dataURL}
-                lineId={highlightedLineId}
-                onVolumeUpdate={setFilteredStopVolumes}
-                timeRange={timeRange}
+              
+              
+              {/* Rendering for graphs */}
+              {selectedGraph === "Graph 1" && <div className="plot-container"><AverageDist canton={canton || "All"} aggCol={selectedAggCol}/></div>}
+              {selectedGraph === "Graph 2" && <div className="plot-container"><Histogram canton={canton || "All"} aggCol={selectedAggCol}/></div>}
+              {selectedGraph === "Graph 3" && <div className="plot-container"><StackedBarPlot canton={canton || "All"} aggCol={selectedAggCol}/></div>}
+              {selectedGraph === "Graph 4" && <div className="plot-container"><ModeShareLinePlot canton={canton || "All"} aggCol={selectedAggCol}/></div>}
+              {selectedGraph === "Graph 5" && <div className="plot-container"><ActivityDist canton={canton || "All"} dataURL={dataURL} /></div>}
+              {selectedGraph === "Graph 6" && <div className="plot-container"><PtSubscription canton={canton || "All"} dataURL={dataURL} /></div>}
+              {selectedGraph === "Graph 7" && <div className="plot-container"><CarAvailability canton={canton || "All"} dataURL={dataURL} /></div>}
+              {selectedGraph === "Graph 8" && <div className="plot-container"><DepartureTimes canton={canton || "All"} dataURL={dataURL} /></div>}
+              {selectedGraph === "Graph 9" && <div className="plot-container"><Demographics canton={canton || "All"} dataURL={dataURL} /></div>}
+              
+              {/* Mode Share Choropleth Selection */}
+              {selectedGraph === "Choropleth" && (
+                <div>
+                <ChoroplethControls
+                selectedMode={selectedMode}
+                setSelectedMode={setSelectedMode}
+                selectedDataset={selectedDataset}
+                setSelectedDataset={setSelectedDataset}
+                updateMapSymbology={updateMapSymbology}
+                aggCol={selectedAggCol}
                 />
+                <CantonModeShareTable canton={canton} selectedDataset={selectedDataset} selectedMode={selectedMode} aggCol={selectedAggCol} />
+                </div>
               )}
+              
+              {/* Network Module */}
+              {selectedGraph === "Network" && (
+                
+                <div className="plot-container">
+                <div className="mode-filter-container">
+                <label className="mode-filter-label">Filter by Mode:</label>
+                <select
+                multiple
+                value={selectedNetworkModes}
+                onChange={handleModeChange}
+                className="mode-filter-select"
+                >
+                <option value="all">All</option>
+                {availableModes.map((mode) => (
+                  <option key={mode} value={mode}>
+                  {mode.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
+                  </option>
+                ))}
+                </select>
+                </div>  
+                {selectedNetworkFeature && (
+                  <SegmentAttributesTable propertiesList={selectedNetworkFeature} />
+                )}
+                </div>
+              )}
+              
+              {selectedGraph === "Volumes" && (
+                <div className="plot-container">
+                {selectedNetworkFeature && (
+                  <SegmentAttributesTable propertiesList={selectedNetworkFeature} selectedGraph={selectedGraph}/>
+                )}
+                
+                {selectedNetworkFeature ? (
+                  <SegmentVolumeHistogram
+                  linkId={selectedNetworkFeature.map(f => f.id)}
+                  setVisualizeLinkId={setVisualizeLinkId}
+                  canton={canton}
+                  />
+                ) : (
+                  <p style={{ padding: "1rem", fontStyle: "italic", color: "#555" }}>
+                  Click a canton and/or segment to see hourly volumes.
+                  </p>
+                )}
+                </div>
+              )}
+              
+              {selectedGraph === "Transit" && (
+                <div style={{ overflowY: "auto", overflowX: "hidden", width: "100%" }}>
+                
+                <div className="mode-filter-container">
+                <label className="mode-filter-label">Filter by Mode:</label>
+                <select
+                multiple
+                value={selectedTransitModes}
+                onChange={handleTransitModeChange}
+                className="mode-filter-select"
+                >
+                <option value="all">All</option>
+                {availableTransitModes.map((mode) => (
+                  <option key={mode} value={mode}>
+                  {mode.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
+                  </option>
+                ))}
+                </select>
+                
+                
+                {/* Time Range + Checkbox Row */}
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "0.5rem 2rem 2rem 0.5rem",
+                  gap: "1rem",
+                }}>
+                
+                
+                {/* Slider and label */}
+                <div style={{ flex: 1 }}>
+                <label style={{
+                  fontWeight: "bold",
+                  fontSize: "10pt",
+                  display: "block",
+                  marginBottom: "0.25rem",
+                  marginLeft: "7%"
+                }}>
+                Time: {formatTimeLabel(timeRange[0])} – {formatTimeLabel(timeRange[1])}
+                </label>
+                <Slider
+                range
+                min={0}
+                max={96}
+                step={1}
+                marks={marks}
+                value={timeRange}
+                onChange={(val) => setTimeRange(val)}
+                allowCross={false}
+                style={{ marginLeft: "10%", width: "80%" }}
+                />
+                </div>
+                
+                {/* Checkbox */}
+                <label style={{ fontWeight: "bold", fontSize: "10pt", whiteSpace: "nowrap" }}>
+                <input
+                type="checkbox"
+                checked={showStopVolumeSymbology}
+                onChange={(e) => setShowStopVolumeSymbology(e.target.checked)}
+                style={{ marginRight: "0.5rem" }}
+                />
+                Show stop volumes
+                </label>
+                
+                </div>
+                
+                
+                
+                </div>
+                {selectedTransitStop && (
+                  <>
+                  <TransitStopAttributesTable
+                  properties={{
+                    ...selectedTransitStop,
+                    ...(filteredStopVolumes ?? {}) 
+                  }}
+                  highlightedLineId={highlightedLineId}
+                  onLineClick={(lineId, routeIds) => {
+                    setHighlightedLineId(lineId);
+                    setHighlightedRouteIds(routeIds);
+                  }}
+                  onRouteHover={setHoveredRouteId}
+                  />
+                  
+                  </>
+                  
+                )}
+                {selectedTransitStop && (
+                  <TransitStopHistogram
+                  stopIds={selectedTransitStop.stop_ids}
+                  canton={canton}
+                  lineId={highlightedLineId}
+                  onVolumeUpdate={setFilteredStopVolumes}
+                  timeRange={timeRange}
+                  />
+                )}
+                </div>
+              )}
+              
               </div>
             )}
-            
             </div>
-          )}
-          </div>
-        );
-      };
-      
-      export default Sidebar;
-      
+          );
+        };
+        
+        export default Sidebar;
+        

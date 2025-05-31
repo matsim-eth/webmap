@@ -1,43 +1,42 @@
 import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
 import cantonAlias from "../utils/canton_alias.json";
+import { useLoadWithFallback } from "../utils/useLoadWithFallback";
 
 const DATASET_COLORS = {
   Microcensus: "#4A90E2",
   Synthetic: "#E07A5F",
 };
 
-const Histogram = ({ canton, aggCol, dataURL }) => {
+const Histogram = ({ canton, aggCol }) => {
   const [euclideanData, setEuclideanData] = useState(null);
   const [networkData, setNetworkData] = useState(null);
   const [selectedKey, setSelectedKey] = useState(null);
+  const loadWithFallback = useLoadWithFallback();
 
   useEffect(() => {
-    const selectedCanton = canton || "All";
-    const aggregation = aggCol || "mode";
+  const selectedCanton = canton || "All";
+  const aggregation = aggCol || "mode";
 
-    // Fetch Euclidean histogram data based on aggregation
-    fetch(`${dataURL}histogram_euclidean_distance_${aggregation}.json`)
-      .then((response) => response.json())
-      .then((jsonData) => {
-        if (jsonData[selectedCanton]) {
-          setEuclideanData(jsonData[selectedCanton]);
-          // Default to the first aggregation key
-          setSelectedKey(Object.keys(jsonData[selectedCanton])[0]);
-        }
-      })
-      .catch((error) => console.error("Error loading Euclidean JSON:", error));
+  // Load Euclidean distance data
+  loadWithFallback(`histogram_euclidean_distance_${aggregation}.json`)
+    .then((jsonData) => {
+      if (jsonData[selectedCanton]) {
+        setEuclideanData(jsonData[selectedCanton]);
+        setSelectedKey(Object.keys(jsonData[selectedCanton])[0]);
+      }
+    })
+    .catch((error) => console.error("Error loading Euclidean JSON:", error));
 
-    // Fetch Network histogram data
-    fetch(`${dataURL}histogram_network_distance_${aggregation}.json`)
-      .then((response) => response.json())
-      .then((jsonData) => {
-        if (jsonData[selectedCanton]) {
-          setNetworkData(jsonData[selectedCanton]);
-        }
-      })
-      .catch((error) => console.error("Error loading Network JSON:", error));
-  }, [canton, aggCol]);
+  // Load Network distance data
+  loadWithFallback(`histogram_network_distance_${aggregation}.json`)
+    .then((jsonData) => {
+      if (jsonData[selectedCanton]) {
+        setNetworkData(jsonData[selectedCanton]);
+      }
+    })
+    .catch((error) => console.error("Error loading Network JSON:", error));
+}, [canton, aggCol]);
 
   if (!euclideanData || !networkData || !selectedKey) return <p>Loading...</p>;
 

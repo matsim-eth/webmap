@@ -1,53 +1,95 @@
 import React, { useEffect, useState } from "react";
-import "./Table.css"; // Import styles
+import "./Table.css";
 import cantonAlias from "../utils/canton_alias.json";
+import { useLoadWithFallback } from "../utils/useLoadWithFallback";
 
-// Define mode colors for the legend
-const MODE_COLORS = {
-  car: "#636efa",
-  car_passenger: "#ef553b",
-  pt: "#00cc96",
-  bike: "#ab63fa",
-  walk: "#ffa15a",
+// --- Color & label maps ---
+const COLOR_MAPS = {
+  mode: {
+    car: "#636efa",
+    car_passenger: "#ef553b",
+    pt: "#00cc96",
+    bike: "#ab63fa",
+    walk: "#ffa15a",
+  },
+  purpose: {
+    education: "#636efa",
+    home: "#ef553b",
+    leisure: "#00cc96",
+    other: "#ab63fa",
+    shop: "#ffa15a",
+    work: "#FFEE8C",
+  },
 };
 
-const MODE_LABELS = {
-  car: "Car",
-  car_passenger: "Car Passenger",
-  pt: "Public Transport",
-  bike: "Bike",
-  walk: "Walking",
+const LABEL_MAPS = {
+  mode: {
+    car: "Car",
+    car_passenger: "Car Passenger",
+    pt: "Public Transport",
+    bike: "Bike",
+    walk: "Walking",
+  },
+  purpose: {
+    education: "Education",
+    home: "Home",
+    leisure: "Leisure",
+    other: "Other",
+    shop: "Shop",
+    work: "Work",
+  },
 };
 
-const CantonModeShareTable = ({ canton, selectedDataset, selectedMode, dataURL }) => {
-  const [modeShareData, setModeShareData] = useState(null);
+const CantonModeShareTable = ({
+  canton,
+  selectedDataset,
+  selectedMode,
+  aggCol = "mode", // "mode" or "purpose"
+}) => {
+  const [shareData, setShareData] = useState(null);
+  const loadWithFallback = useLoadWithFallback();
+
+  const COLORS = COLOR_MAPS[aggCol] || {};
+  const LABELS = LABEL_MAPS[aggCol] || {};
 
   useEffect(() => {
-    fetch(`${dataURL}mode_share.json`)
-      .then((response) => response.json())
-      .then((data) => setModeShareData(data))
-      .catch((error) => console.error("Error loading mode share data:", error));
-  }, []);
+    loadWithFallback(`${aggCol}_share.json`)
+      .then((data) => setShareData(data))
+      .catch((error) =>
+        console.error(`Error loading ${aggCol}_share data:`, error)
+      );
+  }, [aggCol]);
 
-  if (!canton || !modeShareData) return null;
+  if (!canton || !shareData) return null;
 
-  let modeShares = [];
+  let items = [];
 
   if (selectedDataset === "Difference") {
-    const micro = modeShareData["Microcensus"].filter(e => e.canton_name === canton);
-    const synthetic = modeShareData["Synthetic"].filter(e => e.canton_name === canton);
+    const micro = shareData["Microcensus"].filter(
+      (e) => e.canton_name === canton
+    );
+    const synthetic = shareData["Synthetic"].filter(
+      (e) => e.canton_name === canton
+    );
 
-    const microMap = Object.fromEntries(micro.map(e => [e.mode, e.share]));
-    const syntheticMap = Object.fromEntries(synthetic.map(e => [e.mode, e.share]));
+    const microMap = Object.fromEntries(micro.map((e) => [e[aggCol], e.share]));
+    const syntheticMap = Object.fromEntries(
+      synthetic.map((e) => [e[aggCol], e.share])
+    );
 
-    const allModes = new Set([...Object.keys(microMap), ...Object.keys(syntheticMap)]);
+    const allKeys = new Set([
+      ...Object.keys(microMap),
+      ...Object.keys(syntheticMap),
+    ]);
 
-    modeShares = Array.from(allModes).map(mode => ({
-      mode,
-      share: Math.abs((syntheticMap[mode] || 0) - (microMap[mode] || 0))
+    items = Array.from(allKeys).map((key) => ({
+      key,
+      share: Math.abs((syntheticMap[key] || 0) - (microMap[key] || 0)),
     }));
   } else {
-    modeShares = modeShareData[selectedDataset]?.filter(entry => entry.canton_name === canton);
+    items = shareData[selectedDataset]?.filter(
+      (entry) => entry.canton_name === canton
+    ).map((e) => ({ key: e[aggCol], share: e.share })) || [];
   }
 
   return (
@@ -56,23 +98,26 @@ const CantonModeShareTable = ({ canton, selectedDataset, selectedMode, dataURL }
       <table>
         <thead>
           <tr>
-            <th>Mode</th>
+            <th>{aggCol === "mode" ? "Mode" : "Purpose"}</th>
             <th>{selectedDataset === "Difference" ? "Abs. Diff (%)" : "Share (%)"}</th>
           </tr>
         </thead>
         <tbody>
-          {modeShares.length > 0 ? (
-            modeShares.map(({ mode, share }) => (
+          {items.length > 0 ? (
+            items.map(({ key, share }) => (
               <tr
-                key={mode}
-                className={mode === selectedMode ? "highlight" : ""}
+                key={key}
+                className={key === selectedMode ? "highlight" : ""}
                 style={
-                  mode === selectedMode
-                    ? { backgroundColor: MODE_COLORS[mode], color: "white" }
+                  key === selectedMode
+                    ? {
+                        backgroundColor: COLORS[key] || "#888",
+                        color: "white",
+                      }
                     : {}
                 }
               >
-                <td>{MODE_LABELS[mode]}</td>
+                <td>{LABELS[key] || key}</td>
                 <td>{(share * 100).toFixed(1)}%</td>
               </tr>
             ))
@@ -86,6 +131,5 @@ const CantonModeShareTable = ({ canton, selectedDataset, selectedMode, dataURL }
     </div>
   );
 };
-
 
 export default CantonModeShareTable;
