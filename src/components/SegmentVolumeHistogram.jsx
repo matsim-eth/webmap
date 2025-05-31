@@ -1,28 +1,29 @@
 import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
+import { useLoadWithFallback } from "../utils/useLoadWithFallback";
 
-const SegmentVolumeHistogram = ({ linkId, setVisualizeLinkId, canton, dataURL}) => {
+const SegmentVolumeHistogram = ({ linkId, setVisualizeLinkId, canton}) => {
   const [volumeData, setVolumeData] = useState(null);
+  const loadWithFallback = useLoadWithFallback();
 
   // Normalize to always handle as array
   const linkIds = Array.isArray(linkId) ? linkId : [linkId];
 
-  useEffect(() => {
-    if (!linkIds || linkIds.length === 0) return;
+useEffect(() => {
+  if (!linkIds || linkIds.length === 0) return;
 
-    fetch(`${dataURL}matsim/${canton}_link_traffic_volumes.json`)
-      .then((res) => res.json())
-      .then((data) => {
-        const filtered = data.filter((entry) =>
-          linkIds.includes(entry.link_id.toString())
-        );
-        const mapped = Object.fromEntries(
-          filtered.map((entry) => [entry.link_id.toString(), entry.hourly_avg_volumes])
-        );
-        setVolumeData(mapped);
-      })
-      .catch((err) => console.error("Error loading volume data:", err));
-  }, [linkId, canton]);
+  loadWithFallback(`matsim/${canton}_link_traffic_volumes.json`)
+    .then((data) => {
+      const filtered = data.filter((entry) =>
+        linkIds.includes(entry.link_id.toString())
+      );
+      const mapped = Object.fromEntries(
+        filtered.map((entry) => [entry.link_id.toString(), entry.hourly_avg_volumes])
+      );
+      setVolumeData(mapped);
+    })
+    .catch((err) => console.error("Error loading volume data:", err));
+}, [linkId, canton]);
 
   if (!volumeData) return <p>Loading volume data...</p>;
 

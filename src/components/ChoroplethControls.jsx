@@ -1,90 +1,127 @@
 import React, { useState, useEffect } from "react";
 import "./ChoroplethControls.css";
+import { useLoadWithFallback } from "../utils/useLoadWithFallback";
 
-// Define mode colors for the legend
-const MODE_COLORS = {
-  car: "#636efa",
-  car_passenger: "#ef553b",
-  pt: "#00cc96",
-  bike: "#ab63fa",
-  walk: "#ffa15a",
+const COLOR_MAPS = {
+  mode: {
+    car: "#636efa",
+    car_passenger: "#ef553b",
+    pt: "#00cc96",
+    bike: "#ab63fa",
+    walk: "#ffa15a",
+  },
+  purpose: {
+    education: "#636efa",
+    home: "#ef553b",
+    leisure: "#00cc96",
+    other: "#ab63fa",
+    shop: "#ffa15a",
+    work: "#FFEE8C",
+  },
 };
 
-const ChoroplethControls = ({ selectedMode, setSelectedMode, selectedDataset, setSelectedDataset, updateMapSymbology, dataURL }) => {
+const LABEL_MAPS = {
+  mode: {
+    car: "Car",
+    car_passenger: "Car Passenger",
+    pt: "Public Transport",
+    bike: "Bike",
+    walk: "Walking",
+  },
+  purpose: {
+    education: "Education",
+    home: "Home",
+    leisure: "Leisure",
+    other: "Other",
+    shop: "Shop",
+    work: "Work",
+  },
+};
+
+const ChoroplethControls = ({
+  selectedMode,
+  setSelectedMode,
+  selectedDataset,
+  setSelectedDataset,
+  updateMapSymbology,
+  aggCol = "mode",
+}) => {
   const [maxSharePerMode, setMaxSharePerMode] = useState(null);
+  const loadWithFallback = useLoadWithFallback();
 
-  // Fetch max shares per mode for legend scaling
-  useEffect(() => {
-    fetch(`${dataURL}mode_share.json`)
-      .then((response) => response.json())
-      .then((data) => setMaxSharePerMode(data.max_share_per_mode))
-      .catch((error) => console.error("Error loading max share per mode:", error));
-  }, []);
+  const COLORS = COLOR_MAPS[aggCol] || {};
+  const LABELS = LABEL_MAPS[aggCol] || {};
 
-  // Handle mode selection
+useEffect(() => {
+  loadWithFallback(`${aggCol}_share.json`)
+    .then((data) => {
+      // Dynamically extract the max shares for the current aggregation column
+      const maxKey = `max_share_per_${aggCol}`;
+      setMaxSharePerMode(data[maxKey]);
+    })
+    .catch((error) =>
+      console.error("Error loading max share per mode:", error)
+    );
+}, [aggCol]);
+
   const handleModeChange = (e) => {
     const newMode = e.target.value;
     setSelectedMode(newMode);
     updateMapSymbology(newMode, selectedDataset);
   };
 
-  // Handle dataset toggle
-  const handleDatasetChange = () => {
-    const newDataset = selectedDataset === "Microcensus" ? "Synthetic" : "Microcensus";
-    setSelectedDataset(newDataset);
-    updateMapSymbology(selectedMode, newDataset);
-  };
-
   return (
     <div className="choropleth-controls">
-      <label>Select Mode:</label>
+      <label>Select {aggCol === "mode" ? "Mode" : "Purpose"}:</label>
       <select value={selectedMode} onChange={handleModeChange}>
         <option value="None">None</option>
-        <option value="car">Car</option>
-        <option value="car_passenger">Car Passenger</option>
-        <option value="bike">Bike</option>
-        <option value="pt">Public Transport</option>
-        <option value="walk">Walking</option>
+        {Object.keys(LABELS).map((key) => (
+          <option key={key} value={key}>
+            {LABELS[key]}
+          </option>
+        ))}
       </select>
 
       <div className="dataset-selector">
-  {["Microcensus", "Synthetic", "Difference"].map((option) => (
-    <button
-      key={option}
-      className={`dataset-option ${selectedDataset === option ? "active" : ""}`}
-      onClick={() => {
-        setSelectedDataset(option);
-        updateMapSymbology(selectedMode, option);
-      }}
-    >
-      {option}
-    </button>
-  ))}
-</div>
+        {["Microcensus", "Synthetic", "Difference"].map((option) => (
+          <button
+            key={option}
+            className={`dataset-option ${selectedDataset === option ? "active" : ""}`}
+            onClick={() => {
+              setSelectedDataset(option);
+              updateMapSymbology(selectedMode, option);
+            }}
+          >
+            {option}
+          </button>
+        ))}
+      </div>
 
       {/* Legend */}
       {selectedMode !== "None" && (
-  <div className="legend">
-    <h4>Legend</h4>
-    <div className="legend-container">
-      <span className="legend-label">0%</span>
-      <div
-        className="legend-gradient"
-        style={{
-          background:
-            selectedDataset === "Difference"
-              ? "linear-gradient(to left, red 0%, white 100%)"
-              : `linear-gradient(to left, ${MODE_COLORS[selectedMode]} 0%, #FFFFFF 100%)`
-        }}
-      ></div>
-      <span className="legend-label">
-        {selectedDataset === "Difference"
-          ? "10%"
-          : `${Math.round(maxSharePerMode[selectedMode] * 100)}%`}
-      </span>
-    </div>
-  </div>
-)}
+        <div className="legend">
+          <h4>Legend</h4>
+          <div className="legend-container">
+            <span className="legend-label">0%</span>
+            <div
+              className="legend-gradient"
+              style={{
+                background:
+                  selectedDataset === "Difference"
+                    ? "linear-gradient(to left, red 0%, white 100%)"
+                    : `linear-gradient(to left, ${COLORS[selectedMode] || "#888"} 0%, #FFFFFF 100%)`,
+              }}
+            ></div>
+            <span className="legend-label">
+              {selectedDataset === "Difference"
+                ? "10%"
+                : maxSharePerMode?.[selectedMode]
+                  ? `${Math.round(maxSharePerMode[selectedMode] * 100)}%`
+                  : ""}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

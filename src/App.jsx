@@ -4,6 +4,7 @@ import Sidebar from "./components/Sidebar";
 import CantonSearch from "./components/CantonSearch";
 import "./App.css";
 import NetworkLegend from "./components/NetworkLegend";
+import { FileProvider } from "./FileContext";
 
 function App() {
   
@@ -18,6 +19,7 @@ function App() {
   const [cantonList, setCantonList] = useState([]);
   
   // Choropleth Symbology
+  const [aggCol, setAggCol] = useState("mode");
   const [selectedMode, setSelectedMode] = useState("None"); // by default, show no mode (transparent purple background)
   const [selectedDataset, setSelectedDataset] = useState("Microcensus"); // by default, show Microcensus
   
@@ -45,16 +47,6 @@ function App() {
   
   // time range for filtering volumes
   const [timeRange, setTimeRange] = useState([0, 96]);
-  
-  // Read cantons
-  useEffect(() => {
-    fetch('/data/TLM_KANTONSGEBIET.geojson')
-    .then(response => response.json())
-    .then(data => {
-      setCantonList(data.features.map(f => f.properties.NAME));
-    })
-    .catch(error => console.error("Error fetching cantons:", error));
-  }, []);
   
   // Pass selected mode/dataset from sidebar to map
   const updateMapSymbology = (mode, dataset) => {
@@ -96,6 +88,7 @@ function App() {
   };
   
   return (
+    <FileProvider dataURL={dataURL}>
     <>
     <CantonSearch
     map={mapRef.current}
@@ -125,6 +118,7 @@ function App() {
     hoveredRouteId={hoveredRouteId}
     showStopVolumeSymbology={showStopVolumeSymbology}
     timeRange={timeRange}
+    aggCol={aggCol}
     />
     
     <Sidebar
@@ -136,6 +130,8 @@ function App() {
     setCanton={setClickedCanton} // from map
     resetMapView={resetMapView} // to app
     updateMapSymbology={updateMapSymbology} // to map
+    selectedAggCol={aggCol}
+    setSelectedAggCol={setAggCol}
     selectedNetworkModes={selectedNetworkModes} // to map
     setSelectedNetworkModes={setSelectedNetworkModes} // to change value
     selectedNetworkFeature={selectedNetworkFeature} // from map
@@ -160,6 +156,7 @@ function App() {
     showStopVolumeSymbology={showStopVolumeSymbology}
     />
     </>
+    </FileProvider>
   );
 }
 

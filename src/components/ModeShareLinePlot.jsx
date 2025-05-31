@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
 import cantonAlias from "../utils/canton_alias.json";
+import { useLoadWithFallback } from "../utils/useLoadWithFallback";
 
 const MODE_COLORS = {
   car: "#636efa",
@@ -25,27 +26,27 @@ const VARIABLES = {
   "Network Distance": "network_distance",
 };
 
-const ModeShareLinePlot = ({ canton, aggCol = "mode", dataURL }) => {
+const ModeShareLinePlot = ({ canton, aggCol = "mode" }) => {
   const [selectedVariable, setSelectedVariable] = useState("departure_time");
   const [plotData, setPlotData] = useState(null);
+  const loadWithFallback = useLoadWithFallback();
 
-  useEffect(() => {
-    const filename = `${dataURL}lineplot_${selectedVariable}_data_${aggCol}.json`;
+useEffect(() => {
+  const filename = `lineplot_${selectedVariable}_data_${aggCol}.json`;
 
-    fetch(filename)
-      .then((response) => response.json())
-      .then((jsonData) => {
-        const selectedCanton = canton || "All";
-        const cantonData = jsonData[selectedCanton];
-        if (cantonData && cantonData.microcensus && cantonData.synthetic) {
-          setPlotData(cantonData);
-        } else {
-          console.error(`No data found for canton: ${selectedCanton}`);
-          setPlotData(null);
-        }
-      })
-      .catch((error) => console.error(`Error loading ${selectedVariable} data:`, error));
-  }, [selectedVariable, canton, aggCol]);
+  loadWithFallback(filename)
+    .then((jsonData) => {
+      const selectedCanton = canton || "All";
+      const cantonData = jsonData[selectedCanton];
+      if (cantonData && cantonData.microcensus && cantonData.synthetic) {
+        setPlotData(cantonData);
+      } else {
+        console.error(`No data found for canton: ${selectedCanton}`);
+        setPlotData(null);
+      }
+    })
+    .catch((error) => console.error(`Error loading ${selectedVariable} data:`, error));
+}, [selectedVariable, canton, aggCol]);
 
   if (!plotData) return <p>Loading...</p>;
 

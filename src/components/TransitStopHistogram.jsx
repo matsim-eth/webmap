@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
+import { useLoadWithFallback } from "../utils/useLoadWithFallback";
 
-const TransitStopHistogram = ({ stopIds, canton, dataURL, lineId, onVolumeUpdate, timeRange }) => {
+const TransitStopHistogram = ({ stopIds, canton, lineId, onVolumeUpdate, timeRange }) => {
   const [hourlyCounts, setHourlyCounts] = useState(null);
+  const loadWithFallback = useLoadWithFallback();
 
   // Fetch and process passenger data
   useEffect(() => {
     if (!stopIds || stopIds.length === 0 || !canton) return;
 
-    fetch(`${dataURL}/matsim/transit/${canton}_pt_passenger_counts.json`)
-      .then(res => res.json())
+    loadWithFallback(`matsim/transit/per_canton_counts/${canton}_counts.json`)
       .then(data => {
+        // data is already parsed JSON
         const cleanedIds = stopIds.flatMap(s => {
           if (Array.isArray(s)) return s;
           try {
