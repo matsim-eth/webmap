@@ -7,14 +7,14 @@
                 "sample_size": 581
             },
             "home": {
-                "euclidean_distance": 5945.643162461253,
-                "network_distance": 8557.690273269645,
-                "sample_size": 3609
+                "euclidean_distance": 6192.360943143957,
+                "network_distance": 9428.191748920288,
+                "sample_size": 3658
             },
             "leisure": {
-                "euclidean_distance": 7463.749291165651,
-                "network_distance": 11593.976068564782,
-                "sample_size": 1403
+                "euclidean_distance": 7474.752378543962,
+                "network_distance": 11624.80592012717,
+                "sample_size": 1406
             },
             "other": {
                 "euclidean_distance": 5188.003091929212,
@@ -22,75 +22,75 @@
                 "sample_size": 766
             },
             "shop": {
-                "euclidean_distance": 4567.799394857725,
-                "network_distance": 6685.399541460142,
-                "sample_size": 976
+                "euclidean_distance": 4574.219161986919,
+                "network_distance": 6682.572158242453,
+                "sample_size": 977
             },
             "work": {
-                "euclidean_distance": 11161.863424213554,
-                "network_distance": 16004.874427942255,
-                "sample_size": 1607
+                "euclidean_distance": 11149.144068619571,
+                "network_distance": 15990.148234155557,
+                "sample_size": 1609
             }
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 3516.7534502168746,
-                "network_distance": 5507.612109318981,
-                "sample_size": 2985
+                "euclidean_distance": 4800.74357932036,
+                "network_distance": 7663.495251583345,
+                "sample_size": 1146
             },
             "home": {
-                "euclidean_distance": 7312.986288304313,
-                "network_distance": 11095.192544608608,
-                "sample_size": 26999
+                "euclidean_distance": 6570.150871584802,
+                "network_distance": 10199.345823481699,
+                "sample_size": 8306
             },
             "leisure": {
-                "euclidean_distance": 6217.934348676719,
-                "network_distance": 9731.44914401754,
-                "sample_size": 11063
+                "euclidean_distance": 6111.52218558827,
+                "network_distance": 9736.404547838865,
+                "sample_size": 3588
             },
             "other": {
-                "euclidean_distance": 5252.407492000723,
-                "network_distance": 8408.79566133262,
-                "sample_size": 6397
+                "euclidean_distance": 5299.903715302014,
+                "network_distance": 8741.533187256076,
+                "sample_size": 2165
             },
             "shop": {
-                "euclidean_distance": 5284.593475862045,
-                "network_distance": 8170.41156843129,
-                "sample_size": 7079
+                "euclidean_distance": 4349.6828001013955,
+                "network_distance": 6951.983026719253,
+                "sample_size": 2297
             },
             "work": {
-                "euclidean_distance": 9439.698295807078,
-                "network_distance": 13746.546334612065,
-                "sample_size": 9292
+                "euclidean_distance": 11222.296469329369,
+                "network_distance": 16516.610826537002,
+                "sample_size": 3581
             }
         }
     },
     "AppenzellAusserrhoden": {
         "Microcensus": {
             "education": {
-                "euclidean_distance": 3657.3878284851867,
+                "euclidean_distance": 3657.387828485187,
                 "network_distance": 5314.553657585834,
                 "sample_size": 16
             },
             "home": {
-                "euclidean_distance": 4667.755807980255,
-                "network_distance": 7429.091857223154,
-                "sample_size": 166
+                "euclidean_distance": 4619.497755178406,
+                "network_distance": 7359.8664132040185,
+                "sample_size": 169
             },
             "leisure": {
-                "euclidean_distance": 8140.331243985061,
-                "network_distance": 13451.834511478733,
-                "sample_size": 77
+                "euclidean_distance": 8536.258688423415,
+                "network_distance": 14106.075867438385,
+                "sample_size": 76
             },
             "other": {
-                "euclidean_distance": 5931.721205777345,
-                "network_distance": 8802.492697256323,
-                "sample_size": 31
+                "euclidean_distance": 7071.100364708095,
+                "network_distance": 10615.268808719227,
+                "sample_size": 29
             },
             "shop": {
-                "euclidean_distance": 4284.337540436638,
-                "network_distance": 7377.973868909711,
-                "sample_size": 43
+                "euclidean_distance": 4476.41262641363,
+                "network_distance": 7735.907107086204,
+                "sample_size": 42
             },
             "work": {
                 "euclidean_distance": 7300.344983013196,
@@ -100,34 +100,34 @@
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 2101.9897058110596,
-                "network_distance": 3549.0599296865207,
-                "sample_size": 202
+                "euclidean_distance": 3510.733257577605,
+                "network_distance": 5193.302965583687,
+                "sample_size": 86
             },
             "home": {
-                "euclidean_distance": 5796.97849641989,
-                "network_distance": 9518.668055494545,
-                "sample_size": 2197
+                "euclidean_distance": 6758.120719235745,
+                "network_distance": 11350.15301946084,
+                "sample_size": 764
             },
             "leisure": {
-                "euclidean_distance": 7280.510314591235,
-                "network_distance": 12805.40351484065,
-                "sample_size": 1064
+                "euclidean_distance": 4165.661361493716,
+                "network_distance": 7478.007217691905,
+                "sample_size": 295
             },
             "other": {
-                "euclidean_distance": 5762.623071401952,
-                "network_distance": 10762.28001823672,
-                "sample_size": 708
+                "euclidean_distance": 4285.083850753128,
+                "network_distance": 7494.063549191748,
+                "sample_size": 195
             },
             "shop": {
-                "euclidean_distance": 4599.253464052479,
-                "network_distance": 8126.5358285604625,
-                "sample_size": 604
+                "euclidean_distance": 3727.568992909492,
+                "network_distance": 6653.740414977583,
+                "sample_size": 196
             },
             "work": {
-                "euclidean_distance": 8221.381999697054,
-                "network_distance": 12664.918213887626,
-                "sample_size": 770
+                "euclidean_distance": 8785.105041594397,
+                "network_distance": 13947.415446270219,
+                "sample_size": 289
             }
         }
     },
@@ -139,9 +139,9 @@
                 "sample_size": 6
             },
             "home": {
-                "euclidean_distance": 12529.954129771213,
-                "network_distance": 18318.904671096738,
-                "sample_size": 54
+                "euclidean_distance": 12579.64430263185,
+                "network_distance": 18374.8616774893,
+                "sample_size": 53
             },
             "leisure": {
                 "euclidean_distance": 9220.41165213962,
@@ -149,7 +149,7 @@
                 "sample_size": 15
             },
             "other": {
-                "euclidean_distance": 8368.04681985093,
+                "euclidean_distance": 8368.046819850928,
                 "network_distance": 11938.800369120108,
                 "sample_size": 4
             },
@@ -166,34 +166,34 @@
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 2162.4407700581614,
-                "network_distance": 3300.144402476812,
-                "sample_size": 40
+                "euclidean_distance": 7533.8595165474435,
+                "network_distance": 14872.304870641876,
+                "sample_size": 17
             },
             "home": {
-                "euclidean_distance": 7471.89942881232,
-                "network_distance": 12421.845768618743,
-                "sample_size": 559
+                "euclidean_distance": 7131.917654205426,
+                "network_distance": 12749.574756120526,
+                "sample_size": 204
             },
             "leisure": {
-                "euclidean_distance": 8963.167394989177,
-                "network_distance": 16415.814593053245,
-                "sample_size": 368
+                "euclidean_distance": 7965.126985992856,
+                "network_distance": 14105.92637055379,
+                "sample_size": 79
             },
             "other": {
-                "euclidean_distance": 7684.532093996279,
-                "network_distance": 15215.209635249657,
-                "sample_size": 217
+                "euclidean_distance": 4762.5778857893665,
+                "network_distance": 8137.315157197008,
+                "sample_size": 46
             },
             "shop": {
-                "euclidean_distance": 4851.4349533479235,
-                "network_distance": 8070.919472230386,
-                "sample_size": 145
+                "euclidean_distance": 10525.00177953963,
+                "network_distance": 15749.174038968436,
+                "sample_size": 42
             },
             "work": {
-                "euclidean_distance": 7130.820499187258,
-                "network_distance": 11344.979446600617,
-                "sample_size": 199
+                "euclidean_distance": 13631.044395533949,
+                "network_distance": 21763.525290222424,
+                "sample_size": 88
             }
         }
     },
@@ -205,14 +205,14 @@
                 "sample_size": 188
             },
             "home": {
-                "euclidean_distance": 5105.754430756715,
-                "network_distance": 7364.044093302443,
-                "sample_size": 1309
+                "euclidean_distance": 5098.602974230886,
+                "network_distance": 7350.27209306093,
+                "sample_size": 1313
             },
             "leisure": {
-                "euclidean_distance": 6386.75589686783,
-                "network_distance": 9719.164010747798,
-                "sample_size": 604
+                "euclidean_distance": 6377.580000104402,
+                "network_distance": 9722.447470174717,
+                "sample_size": 602
             },
             "other": {
                 "euclidean_distance": 3983.8252603170463,
@@ -220,46 +220,46 @@
                 "sample_size": 369
             },
             "shop": {
-                "euclidean_distance": 3734.2570176606164,
-                "network_distance": 5977.007474779531,
-                "sample_size": 425
+                "euclidean_distance": 3742.9420492476634,
+                "network_distance": 5990.523413648173,
+                "sample_size": 424
             },
             "work": {
-                "euclidean_distance": 9073.519264937742,
-                "network_distance": 14385.126713481293,
-                "sample_size": 558
+                "euclidean_distance": 9102.713179259703,
+                "network_distance": 14429.126431973598,
+                "sample_size": 557
             }
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 3134.769309008703,
-                "network_distance": 4909.786327607171,
-                "sample_size": 1162
+                "euclidean_distance": 2413.5914567643736,
+                "network_distance": 3756.2414000006834,
+                "sample_size": 450
             },
             "home": {
-                "euclidean_distance": 6347.119447171309,
-                "network_distance": 9858.11695407381,
-                "sample_size": 11161
+                "euclidean_distance": 6032.566958482945,
+                "network_distance": 9574.152435770584,
+                "sample_size": 3617
             },
             "leisure": {
-                "euclidean_distance": 5069.9098299904645,
-                "network_distance": 8227.728188585972,
-                "sample_size": 4690
+                "euclidean_distance": 5757.256321584127,
+                "network_distance": 9462.736069491893,
+                "sample_size": 1593
             },
             "other": {
-                "euclidean_distance": 4668.902990087147,
-                "network_distance": 7679.464151714777,
-                "sample_size": 2831
+                "euclidean_distance": 5280.701393410909,
+                "network_distance": 9038.015398392356,
+                "sample_size": 879
             },
             "shop": {
-                "euclidean_distance": 4028.8792267346867,
-                "network_distance": 6438.62289516168,
-                "sample_size": 3140
+                "euclidean_distance": 3858.6954716685605,
+                "network_distance": 6144.983632028487,
+                "sample_size": 1016
             },
             "work": {
-                "euclidean_distance": 10032.183711969887,
-                "network_distance": 14791.681526093944,
-                "sample_size": 3891
+                "euclidean_distance": 11029.705833563026,
+                "network_distance": 16179.186278497034,
+                "sample_size": 1521
             }
         }
     },
@@ -271,127 +271,127 @@
                 "sample_size": 140
             },
             "home": {
-                "euclidean_distance": 6202.538754654907,
-                "network_distance": 8706.955972671576,
-                "sample_size": 1304
+                "euclidean_distance": 6751.455371132326,
+                "network_distance": 10044.351678722389,
+                "sample_size": 1372
             },
             "leisure": {
-                "euclidean_distance": 5361.102003821828,
-                "network_distance": 10067.21134398706,
-                "sample_size": 601
+                "euclidean_distance": 5429.519173307825,
+                "network_distance": 10062.731871898088,
+                "sample_size": 607
             },
             "other": {
-                "euclidean_distance": 3167.4197268376765,
-                "network_distance": 4631.157102100749,
-                "sample_size": 289
+                "euclidean_distance": 3296.9639058447206,
+                "network_distance": 4932.701875841154,
+                "sample_size": 298
             },
             "shop": {
-                "euclidean_distance": 3588.7561236100964,
-                "network_distance": 5624.422958156327,
-                "sample_size": 401
+                "euclidean_distance": 4112.95392773822,
+                "network_distance": 6569.380849811611,
+                "sample_size": 408
             },
             "work": {
-                "euclidean_distance": 7982.790215726924,
-                "network_distance": 11091.224496502797,
-                "sample_size": 489
+                "euclidean_distance": 7977.410311628206,
+                "network_distance": 11195.391902415417,
+                "sample_size": 494
             }
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 2896.147157847358,
-                "network_distance": 4418.442177196057,
-                "sample_size": 1413
+                "euclidean_distance": 842.7782893010382,
+                "network_distance": 1253.927980222185,
+                "sample_size": 279
             },
             "home": {
-                "euclidean_distance": 4489.009376921324,
-                "network_distance": 6582.624435271938,
-                "sample_size": 7709
+                "euclidean_distance": 5511.771657724789,
+                "network_distance": 7945.161790343,
+                "sample_size": 2640
             },
             "leisure": {
-                "euclidean_distance": 2373.335271641226,
-                "network_distance": 3580.0092100935453,
-                "sample_size": 3237
+                "euclidean_distance": 3864.9539077042987,
+                "network_distance": 5820.757370476147,
+                "sample_size": 1119
             },
             "other": {
-                "euclidean_distance": 2473.70883159993,
-                "network_distance": 3708.0408420491904,
-                "sample_size": 1542
+                "euclidean_distance": 4026.7070473159233,
+                "network_distance": 6282.232335489149,
+                "sample_size": 608
             },
             "shop": {
-                "euclidean_distance": 2081.1662218301453,
-                "network_distance": 3031.093573624992,
-                "sample_size": 2383
+                "euclidean_distance": 2783.318759299988,
+                "network_distance": 4203.871750629124,
+                "sample_size": 780
             },
             "work": {
-                "euclidean_distance": 9821.936954651688,
-                "network_distance": 13788.70074634954,
-                "sample_size": 4163
+                "euclidean_distance": 7502.27083539057,
+                "network_distance": 10677.130063978266,
+                "sample_size": 1076
             }
         }
     },
     "Bern": {
         "Microcensus": {
             "education": {
-                "euclidean_distance": 5471.8125825968245,
+                "euclidean_distance": 5471.812582596824,
                 "network_distance": 7955.28482800927,
                 "sample_size": 531
             },
             "home": {
-                "euclidean_distance": 7236.424699571047,
-                "network_distance": 10536.156229323084,
-                "sample_size": 4167
+                "euclidean_distance": 7241.621516960826,
+                "network_distance": 10546.042145086594,
+                "sample_size": 4169
             },
             "leisure": {
-                "euclidean_distance": 7639.710162800225,
-                "network_distance": 11512.871168054313,
-                "sample_size": 1843
+                "euclidean_distance": 7646.043052197126,
+                "network_distance": 11520.97273184788,
+                "sample_size": 1844
             },
             "other": {
-                "euclidean_distance": 5175.312854038166,
+                "euclidean_distance": 5175.312854038167,
                 "network_distance": 7484.245172751978,
                 "sample_size": 922
             },
             "shop": {
-                "euclidean_distance": 4278.9616259141685,
-                "network_distance": 6347.537364797983,
-                "sample_size": 1134
+                "euclidean_distance": 4283.095469951119,
+                "network_distance": 6350.855252680283,
+                "sample_size": 1133
             },
             "work": {
-                "euclidean_distance": 9656.235908456878,
-                "network_distance": 13605.034066635235,
-                "sample_size": 1697
+                "euclidean_distance": 9656.208112400658,
+                "network_distance": 13604.180152702824,
+                "sample_size": 1696
             }
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 4384.810043016209,
-                "network_distance": 7093.318667965044,
-                "sample_size": 5015
+                "euclidean_distance": 4706.113440888388,
+                "network_distance": 8049.831508423099,
+                "sample_size": 1776
             },
             "home": {
-                "euclidean_distance": 7091.641375893279,
-                "network_distance": 11099.090486360781,
-                "sample_size": 39500
+                "euclidean_distance": 7800.501370587196,
+                "network_distance": 12422.480051218745,
+                "sample_size": 13823
             },
             "leisure": {
-                "euclidean_distance": 6627.11062190041,
-                "network_distance": 10962.26632067246,
-                "sample_size": 17074
+                "euclidean_distance": 6311.50834426824,
+                "network_distance": 10471.260163851699,
+                "sample_size": 5784
             },
             "other": {
-                "euclidean_distance": 5652.261687725421,
-                "network_distance": 9568.404737499297,
-                "sample_size": 9827
+                "euclidean_distance": 5286.639774517547,
+                "network_distance": 8881.084402057832,
+                "sample_size": 3276
             },
             "shop": {
-                "euclidean_distance": 4883.411645670624,
-                "network_distance": 8105.506076957307,
-                "sample_size": 11293
+                "euclidean_distance": 4939.291205089891,
+                "network_distance": 8170.828507879191,
+                "sample_size": 3820
             },
             "work": {
-                "euclidean_distance": 12891.79940478215,
-                "network_distance": 19076.450846935935,
-                "sample_size": 16790
+                "euclidean_distance": 10467.442150693245,
+                "network_distance": 15568.384474988885,
+                "sample_size": 5344
             }
         }
     },
@@ -408,9 +408,9 @@
                 "sample_size": 2018
             },
             "leisure": {
-                "euclidean_distance": 7911.348303657367,
-                "network_distance": 12230.29730181612,
-                "sample_size": 861
+                "euclidean_distance": 7913.234011330038,
+                "network_distance": 12230.34613194561,
+                "sample_size": 862
             },
             "other": {
                 "euclidean_distance": 6648.524083236869,
@@ -418,9 +418,9 @@
                 "sample_size": 548
             },
             "shop": {
-                "euclidean_distance": 4802.820340906181,
-                "network_distance": 6911.5147142426595,
-                "sample_size": 549
+                "euclidean_distance": 4783.6492331130285,
+                "network_distance": 6895.342630557499,
+                "sample_size": 550
             },
             "work": {
                 "euclidean_distance": 11589.703935042045,
@@ -430,100 +430,100 @@
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 4113.192960205463,
-                "network_distance": 6508.967906702653,
-                "sample_size": 1722
+                "euclidean_distance": 4421.96266086766,
+                "network_distance": 7733.099438569604,
+                "sample_size": 593
             },
             "home": {
-                "euclidean_distance": 7937.6747884174,
-                "network_distance": 12430.485419260016,
-                "sample_size": 12833
+                "euclidean_distance": 7076.529131456212,
+                "network_distance": 11473.613300734643,
+                "sample_size": 3990
             },
             "leisure": {
-                "euclidean_distance": 7145.408722244894,
-                "network_distance": 11987.263711876534,
-                "sample_size": 5058
+                "euclidean_distance": 6898.476970350576,
+                "network_distance": 11670.736603268691,
+                "sample_size": 1672
             },
             "other": {
-                "euclidean_distance": 5793.410511239159,
-                "network_distance": 9686.520889618834,
-                "sample_size": 3102
+                "euclidean_distance": 5372.479608978253,
+                "network_distance": 9123.163117472252,
+                "sample_size": 1045
             },
             "shop": {
-                "euclidean_distance": 5788.647886692741,
-                "network_distance": 9487.375758771439,
-                "sample_size": 3243
+                "euclidean_distance": 5152.822706578964,
+                "network_distance": 8700.471593133685,
+                "sample_size": 1087
             },
             "work": {
-                "euclidean_distance": 9460.438041543022,
-                "network_distance": 14469.365862129613,
-                "sample_size": 4372
+                "euclidean_distance": 12653.823692196773,
+                "network_distance": 19184.227853823915,
+                "sample_size": 1682
             }
         }
     },
     "Geneve": {
         "Microcensus": {
             "education": {
-                "euclidean_distance": 2638.6904679362065,
-                "network_distance": 3673.7337601863833,
-                "sample_size": 688
+                "euclidean_distance": 2661.2745103625466,
+                "network_distance": 3724.0567608368647,
+                "sample_size": 691
             },
             "home": {
-                "euclidean_distance": 4974.928632312898,
-                "network_distance": 6759.126379082456,
-                "sample_size": 3969
+                "euclidean_distance": 5048.604003327298,
+                "network_distance": 7291.083347388486,
+                "sample_size": 4061
             },
             "leisure": {
-                "euclidean_distance": 3581.107898275395,
-                "network_distance": 5679.051669548216,
-                "sample_size": 1831
+                "euclidean_distance": 3582.1058280424695,
+                "network_distance": 5710.926811588509,
+                "sample_size": 1838
             },
             "other": {
-                "euclidean_distance": 2541.592246290975,
-                "network_distance": 4231.564642675411,
-                "sample_size": 1140
-            },
-            "shop": {
-                "euclidean_distance": 3021.2979203704053,
-                "network_distance": 4554.082465655801,
+                "euclidean_distance": 2566.6098757459035,
+                "network_distance": 4301.40312980385,
                 "sample_size": 1146
             },
+            "shop": {
+                "euclidean_distance": 3061.9144761954835,
+                "network_distance": 4581.871408049435,
+                "sample_size": 1149
+            },
             "work": {
-                "euclidean_distance": 4342.922325421931,
-                "network_distance": 6404.498713054269,
-                "sample_size": 1655
+                "euclidean_distance": 4348.116900739329,
+                "network_distance": 6488.336529740559,
+                "sample_size": 1660
             }
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 2031.0503931110957,
-                "network_distance": 3004.4293469103613,
-                "sample_size": 3165
+                "euclidean_distance": 1648.339489798032,
+                "network_distance": 2525.898707316316,
+                "sample_size": 1025
             },
             "home": {
-                "euclidean_distance": 3978.26055615915,
-                "network_distance": 5909.598620181763,
-                "sample_size": 19993
+                "euclidean_distance": 4379.033471802781,
+                "network_distance": 6503.817106004668,
+                "sample_size": 6828
             },
             "leisure": {
-                "euclidean_distance": 2812.372006484932,
-                "network_distance": 4375.152527988186,
-                "sample_size": 8140
+                "euclidean_distance": 3553.6913701519607,
+                "network_distance": 5429.513285127679,
+                "sample_size": 2832
             },
             "other": {
-                "euclidean_distance": 2949.853531874749,
-                "network_distance": 4635.9375849575845,
-                "sample_size": 4866
+                "euclidean_distance": 3205.9881269631705,
+                "network_distance": 4936.577301036975,
+                "sample_size": 1623
             },
             "shop": {
-                "euclidean_distance": 2386.7933592699846,
-                "network_distance": 3655.198067104834,
-                "sample_size": 5417
+                "euclidean_distance": 2982.477964773615,
+                "network_distance": 4419.542448471271,
+                "sample_size": 1900
             },
             "work": {
-                "euclidean_distance": 8856.889590428747,
-                "network_distance": 12538.265491799306,
-                "sample_size": 9233
+                "euclidean_distance": 6038.071790396583,
+                "network_distance": 8571.665494375357,
+                "sample_size": 2803
             }
         }
     },
@@ -555,41 +555,41 @@
                 "sample_size": 52
             },
             "work": {
-                "euclidean_distance": 12394.647643777456,
+                "euclidean_distance": 12394.647643777458,
                 "network_distance": 18461.19894628328,
                 "sample_size": 110
             }
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 1113.3828027308687,
-                "network_distance": 1549.6399434731914,
-                "sample_size": 131
+                "euclidean_distance": 9510.487619792411,
+                "network_distance": 14940.326628484961,
+                "sample_size": 82
             },
             "home": {
-                "euclidean_distance": 8541.96695196562,
-                "network_distance": 13335.058751403369,
-                "sample_size": 1570
+                "euclidean_distance": 6962.2846580253,
+                "network_distance": 11267.217030725922,
+                "sample_size": 498
             },
             "leisure": {
-                "euclidean_distance": 8480.08993752859,
-                "network_distance": 14366.875009984135,
-                "sample_size": 621
+                "euclidean_distance": 6627.550255567767,
+                "network_distance": 12441.729858626975,
+                "sample_size": 206
             },
             "other": {
-                "euclidean_distance": 5802.803678228927,
-                "network_distance": 9765.767755633642,
-                "sample_size": 339
+                "euclidean_distance": 4333.970163475938,
+                "network_distance": 7132.510927164339,
+                "sample_size": 120
             },
             "shop": {
-                "euclidean_distance": 6890.16484822413,
-                "network_distance": 10699.33451876018,
-                "sample_size": 370
+                "euclidean_distance": 5425.964154014815,
+                "network_distance": 8772.872761768838,
+                "sample_size": 132
             },
             "work": {
-                "euclidean_distance": 8160.249266383282,
-                "network_distance": 11797.043863975785,
-                "sample_size": 582
+                "euclidean_distance": 13450.601042541766,
+                "network_distance": 19128.547064672184,
+                "sample_size": 210
             }
         }
     },
@@ -601,9 +601,9 @@
                 "sample_size": 195
             },
             "home": {
-                "euclidean_distance": 6290.817576581274,
-                "network_distance": 9343.64471364658,
-                "sample_size": 1376
+                "euclidean_distance": 6325.513422297493,
+                "network_distance": 9403.357009689746,
+                "sample_size": 1378
             },
             "leisure": {
                 "euclidean_distance": 7502.107098181858,
@@ -611,70 +611,70 @@
                 "sample_size": 596
             },
             "other": {
-                "euclidean_distance": 6165.823987913066,
-                "network_distance": 9265.524168317212,
-                "sample_size": 284
+                "euclidean_distance": 6244.919688689937,
+                "network_distance": 9339.033905890296,
+                "sample_size": 285
             },
             "shop": {
-                "euclidean_distance": 7087.9031204446865,
-                "network_distance": 9975.700941552679,
-                "sample_size": 358
+                "euclidean_distance": 7084.2553655236225,
+                "network_distance": 9976.603308391272,
+                "sample_size": 359
             },
             "work": {
-                "euclidean_distance": 8486.77800202784,
-                "network_distance": 12420.334314665142,
-                "sample_size": 671
+                "euclidean_distance": 8574.86082330755,
+                "network_distance": 12535.285801227545,
+                "sample_size": 674
             }
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 10423.316735473376,
-                "network_distance": 16551.577278455246,
-                "sample_size": 914
+                "euclidean_distance": 9847.02742691544,
+                "network_distance": 16482.183229215607,
+                "sample_size": 346
             },
             "home": {
-                "euclidean_distance": 8413.098592456763,
-                "network_distance": 13876.104060058233,
-                "sample_size": 7446
+                "euclidean_distance": 8361.176122174687,
+                "network_distance": 13837.626839331786,
+                "sample_size": 2581
             },
             "leisure": {
-                "euclidean_distance": 7385.024304203461,
-                "network_distance": 13361.013759325977,
-                "sample_size": 3160
+                "euclidean_distance": 6294.69221077224,
+                "network_distance": 11554.541688990095,
+                "sample_size": 1088
             },
             "other": {
-                "euclidean_distance": 4895.80360634716,
-                "network_distance": 9159.798363253001,
-                "sample_size": 1790
+                "euclidean_distance": 5623.714171714754,
+                "network_distance": 10039.154884777789,
+                "sample_size": 610
             },
             "shop": {
-                "euclidean_distance": 5181.872488164564,
-                "network_distance": 9139.49218610898,
-                "sample_size": 2094
+                "euclidean_distance": 6034.444643730953,
+                "network_distance": 10671.289474728721,
+                "sample_size": 697
             },
             "work": {
-                "euclidean_distance": 12734.418141098908,
-                "network_distance": 18920.596990068385,
-                "sample_size": 3035
+                "euclidean_distance": 13349.979112861003,
+                "network_distance": 20243.880164860348,
+                "sample_size": 1018
             }
         }
     },
     "Jura": {
         "Microcensus": {
             "education": {
-                "euclidean_distance": 7383.95437289782,
+                "euclidean_distance": 7383.954372897821,
                 "network_distance": 10984.063264005514,
                 "sample_size": 136
             },
             "home": {
-                "euclidean_distance": 5368.208710115025,
-                "network_distance": 8254.603384466138,
-                "sample_size": 770
+                "euclidean_distance": 5426.2167399972695,
+                "network_distance": 8423.002492315627,
+                "sample_size": 773
             },
             "leisure": {
-                "euclidean_distance": 6563.338932380441,
-                "network_distance": 9846.925735807334,
-                "sample_size": 325
+                "euclidean_distance": 6590.353696638212,
+                "network_distance": 9951.73481749936,
+                "sample_size": 326
             },
             "other": {
                 "euclidean_distance": 4460.545792634795,
@@ -694,34 +694,34 @@
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 6327.742586580619,
-                "network_distance": 11396.727830332888,
-                "sample_size": 328
+                "euclidean_distance": 7762.762187260938,
+                "network_distance": 13680.68856678086,
+                "sample_size": 133
             },
             "home": {
-                "euclidean_distance": 7914.077300302071,
-                "network_distance": 12984.56142051362,
-                "sample_size": 2594
+                "euclidean_distance": 6427.84161490015,
+                "network_distance": 10548.925759705724,
+                "sample_size": 952
             },
             "leisure": {
-                "euclidean_distance": 8562.0412179719,
-                "network_distance": 14831.963474353768,
-                "sample_size": 1132
+                "euclidean_distance": 7756.164974809915,
+                "network_distance": 13542.61203852396,
+                "sample_size": 401
             },
             "other": {
-                "euclidean_distance": 6197.7092361633395,
-                "network_distance": 10760.819257436895,
-                "sample_size": 651
+                "euclidean_distance": 5149.425574585442,
+                "network_distance": 9203.28216592729,
+                "sample_size": 212
             },
             "shop": {
-                "euclidean_distance": 5866.8334690747915,
-                "network_distance": 9985.028392119488,
-                "sample_size": 720
+                "euclidean_distance": 5598.97993578302,
+                "network_distance": 10258.764657177004,
+                "sample_size": 240
             },
             "work": {
-                "euclidean_distance": 7327.179346769683,
-                "network_distance": 11156.462809353905,
-                "sample_size": 996
+                "euclidean_distance": 12205.637869973198,
+                "network_distance": 18887.272797226364,
+                "sample_size": 387
             }
         }
     },
@@ -733,19 +733,19 @@
                 "sample_size": 418
             },
             "home": {
-                "euclidean_distance": 6695.034124339532,
-                "network_distance": 9958.097048794813,
-                "sample_size": 2646
+                "euclidean_distance": 6695.66429416125,
+                "network_distance": 9959.702662853872,
+                "sample_size": 2644
             },
             "leisure": {
-                "euclidean_distance": 6372.742669008513,
-                "network_distance": 10328.631636923139,
-                "sample_size": 1069
+                "euclidean_distance": 6372.210807610412,
+                "network_distance": 10326.083057868895,
+                "sample_size": 1068
             },
             "other": {
-                "euclidean_distance": 4984.976160873071,
-                "network_distance": 7652.161000185734,
-                "sample_size": 561
+                "euclidean_distance": 4970.797054390382,
+                "network_distance": 7627.559946551103,
+                "sample_size": 559
             },
             "shop": {
                 "euclidean_distance": 3644.831072745091,
@@ -760,34 +760,34 @@
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 5262.623023957784,
-                "network_distance": 8411.728919433323,
-                "sample_size": 2603
+                "euclidean_distance": 3765.933826370262,
+                "network_distance": 6036.39425390065,
+                "sample_size": 664
             },
             "home": {
-                "euclidean_distance": 6607.014638966885,
-                "network_distance": 10448.72470466049,
-                "sample_size": 16288
+                "euclidean_distance": 6921.412132155719,
+                "network_distance": 11092.585793437647,
+                "sample_size": 5508
             },
             "leisure": {
-                "euclidean_distance": 6219.70894813463,
-                "network_distance": 10157.275220211724,
-                "sample_size": 6969
+                "euclidean_distance": 6078.232953918674,
+                "network_distance": 10125.406126731852,
+                "sample_size": 2330
             },
             "other": {
-                "euclidean_distance": 5469.2330727804,
-                "network_distance": 9109.027130151857,
-                "sample_size": 3917
+                "euclidean_distance": 5151.482504542493,
+                "network_distance": 8881.996098258125,
+                "sample_size": 1255
             },
             "shop": {
-                "euclidean_distance": 4797.098121277815,
-                "network_distance": 7794.6292710923635,
-                "sample_size": 4375
+                "euclidean_distance": 4826.105508308763,
+                "network_distance": 8007.093154885548,
+                "sample_size": 1494
             },
             "work": {
-                "euclidean_distance": 8804.151094330919,
-                "network_distance": 13368.074480764513,
-                "sample_size": 6454
+                "euclidean_distance": 9614.710292610156,
+                "network_distance": 14716.927723920633,
+                "sample_size": 2220
             }
         }
     },
@@ -795,23 +795,23 @@
         "Microcensus": {
             "education": {
                 "euclidean_distance": 2857.066261935915,
-                "network_distance": 4645.1385771286605,
+                "network_distance": 4645.138577128661,
                 "sample_size": 405
             },
             "home": {
-                "euclidean_distance": 6225.743446068141,
-                "network_distance": 9238.877643825606,
-                "sample_size": 2459
+                "euclidean_distance": 6225.60034810809,
+                "network_distance": 9248.378165381735,
+                "sample_size": 2462
             },
             "leisure": {
-                "euclidean_distance": 5930.156606463409,
-                "network_distance": 8887.700491799873,
-                "sample_size": 1022
+                "euclidean_distance": 5890.129632061973,
+                "network_distance": 8836.059571316051,
+                "sample_size": 1021
             },
             "other": {
-                "euclidean_distance": 5235.625930192204,
-                "network_distance": 7620.1073009105585,
-                "sample_size": 710
+                "euclidean_distance": 5236.658826326687,
+                "network_distance": 7616.317477589191,
+                "sample_size": 711
             },
             "shop": {
                 "euclidean_distance": 4052.1742043562335,
@@ -826,34 +826,34 @@
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 4765.261264602739,
-                "network_distance": 8486.328560799773,
-                "sample_size": 1014
+                "euclidean_distance": 3011.814178587203,
+                "network_distance": 5028.5925657886655,
+                "sample_size": 357
             },
             "home": {
-                "euclidean_distance": 6778.321942468589,
-                "network_distance": 10606.584544431287,
-                "sample_size": 6877
+                "euclidean_distance": 6283.2906075872925,
+                "network_distance": 10026.026258738762,
+                "sample_size": 2414
             },
             "leisure": {
-                "euclidean_distance": 5178.964853170565,
-                "network_distance": 8885.682036519382,
-                "sample_size": 2834
+                "euclidean_distance": 5434.057654067065,
+                "network_distance": 9476.073371826778,
+                "sample_size": 1031
             },
             "other": {
-                "euclidean_distance": 4336.034371454171,
-                "network_distance": 7448.1808971159735,
-                "sample_size": 1544
+                "euclidean_distance": 5056.564193420328,
+                "network_distance": 8711.761332382179,
+                "sample_size": 558
             },
             "shop": {
-                "euclidean_distance": 4037.1588164191276,
-                "network_distance": 6510.901729154853,
-                "sample_size": 1838
+                "euclidean_distance": 5274.862917440152,
+                "network_distance": 8646.312860905002,
+                "sample_size": 650
             },
             "work": {
-                "euclidean_distance": 9655.697286314631,
-                "network_distance": 14316.8384589609,
-                "sample_size": 2807
+                "euclidean_distance": 8790.818171996918,
+                "network_distance": 12648.496939620687,
+                "sample_size": 963
             }
         }
     },
@@ -861,18 +861,18 @@
         "Microcensus": {
             "education": {
                 "euclidean_distance": 2420.8507557327994,
-                "network_distance": 3503.2382778865626,
+                "network_distance": 3503.238277886562,
                 "sample_size": 78
             },
             "home": {
-                "euclidean_distance": 4993.192026059542,
-                "network_distance": 8331.987500321775,
-                "sample_size": 454
+                "euclidean_distance": 4991.688920841856,
+                "network_distance": 8328.443642374852,
+                "sample_size": 455
             },
             "leisure": {
-                "euclidean_distance": 6604.0575743498075,
-                "network_distance": 10343.385238212875,
-                "sample_size": 191
+                "euclidean_distance": 6607.039944347821,
+                "network_distance": 10368.477863711221,
+                "sample_size": 192
             },
             "other": {
                 "euclidean_distance": 4118.465061067795,
@@ -880,7 +880,7 @@
                 "sample_size": 86
             },
             "shop": {
-                "euclidean_distance": 3284.126157594461,
+                "euclidean_distance": 3284.1261575944604,
                 "network_distance": 4860.368809960125,
                 "sample_size": 95
             },
@@ -892,34 +892,34 @@
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 7091.917937435715,
-                "network_distance": 11773.638510242934,
-                "sample_size": 145
+                "euclidean_distance": 3476.2152053656505,
+                "network_distance": 5746.603686873271,
+                "sample_size": 77
             },
             "home": {
-                "euclidean_distance": 7026.459163623988,
-                "network_distance": 11822.037926799097,
-                "sample_size": 1476
+                "euclidean_distance": 7554.593323342592,
+                "network_distance": 13198.964841964049,
+                "sample_size": 580
             },
             "leisure": {
-                "euclidean_distance": 7415.4235483133425,
-                "network_distance": 13187.012153536225,
-                "sample_size": 688
+                "euclidean_distance": 6769.0802917126575,
+                "network_distance": 12996.732338515732,
+                "sample_size": 243
             },
             "other": {
-                "euclidean_distance": 6446.76078823188,
-                "network_distance": 12300.961118262941,
-                "sample_size": 360
+                "euclidean_distance": 5777.895997812525,
+                "network_distance": 10828.544669640087,
+                "sample_size": 132
             },
             "shop": {
-                "euclidean_distance": 5733.622527993788,
-                "network_distance": 10609.490506973847,
-                "sample_size": 370
+                "euclidean_distance": 5996.864347169244,
+                "network_distance": 10727.407820971279,
+                "sample_size": 151
             },
             "work": {
-                "euclidean_distance": 10135.193425684967,
-                "network_distance": 15878.599844011313,
-                "sample_size": 540
+                "euclidean_distance": 10374.827067000373,
+                "network_distance": 16816.26467864277,
+                "sample_size": 223
             }
         }
     },
@@ -942,7 +942,7 @@
             },
             "other": {
                 "euclidean_distance": 5914.930273090437,
-                "network_distance": 8383.691558071774,
+                "network_distance": 8383.691558071772,
                 "sample_size": 101
             },
             "shop": {
@@ -958,34 +958,34 @@
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 8058.22412352102,
-                "network_distance": 15666.741679377837,
-                "sample_size": 176
+                "euclidean_distance": 7076.171769878485,
+                "network_distance": 10276.87939474383,
+                "sample_size": 66
             },
             "home": {
-                "euclidean_distance": 8165.195528488904,
-                "network_distance": 13224.681492639173,
-                "sample_size": 1501
+                "euclidean_distance": 7328.654614645304,
+                "network_distance": 12541.692470489317,
+                "sample_size": 452
             },
             "leisure": {
-                "euclidean_distance": 8226.439496863273,
-                "network_distance": 14637.713751332998,
-                "sample_size": 602
+                "euclidean_distance": 9496.432992232962,
+                "network_distance": 18538.1717741164,
+                "sample_size": 206
             },
             "other": {
-                "euclidean_distance": 6009.947836775165,
-                "network_distance": 10991.41013269227,
-                "sample_size": 359
+                "euclidean_distance": 4542.385205699361,
+                "network_distance": 9626.067280047304,
+                "sample_size": 120
             },
             "shop": {
-                "euclidean_distance": 5322.699388458385,
-                "network_distance": 9472.28308697883,
-                "sample_size": 327
+                "euclidean_distance": 7140.084772441999,
+                "network_distance": 13382.900786387841,
+                "sample_size": 121
             },
             "work": {
-                "euclidean_distance": 8809.854305339091,
-                "network_distance": 13202.43328042891,
-                "sample_size": 502
+                "euclidean_distance": 10818.541401266824,
+                "network_distance": 16365.744025231033,
+                "sample_size": 203
             }
         }
     },
@@ -997,73 +997,73 @@
                 "sample_size": 86
             },
             "home": {
-                "euclidean_distance": 4243.740446703901,
-                "network_distance": 6650.062668023771,
-                "sample_size": 601
+                "euclidean_distance": 4814.223358659729,
+                "network_distance": 7957.132252638918,
+                "sample_size": 624
             },
             "leisure": {
-                "euclidean_distance": 9818.493630488676,
-                "network_distance": 13216.798431392785,
-                "sample_size": 283
+                "euclidean_distance": 10136.76251290679,
+                "network_distance": 13934.24272524576,
+                "sample_size": 286
             },
             "other": {
-                "euclidean_distance": 4873.279777224534,
-                "network_distance": 6889.1282701040645,
-                "sample_size": 148
+                "euclidean_distance": 4914.800570272217,
+                "network_distance": 6989.585825243119,
+                "sample_size": 150
             },
             "shop": {
-                "euclidean_distance": 3599.059304502894,
-                "network_distance": 5503.279925703789,
-                "sample_size": 173
+                "euclidean_distance": 3934.9541004308194,
+                "network_distance": 5978.381550280243,
+                "sample_size": 176
             },
             "work": {
-                "euclidean_distance": 7863.223058737629,
+                "euclidean_distance": 7863.223058737632,
                 "network_distance": 12719.872434072735,
                 "sample_size": 226
             }
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 3707.995278033173,
-                "network_distance": 5707.3787622800455,
-                "sample_size": 303
+                "euclidean_distance": 6958.8279117096645,
+                "network_distance": 10601.342305827162,
+                "sample_size": 129
             },
             "home": {
-                "euclidean_distance": 7286.4159542174275,
-                "network_distance": 12083.311125820668,
-                "sample_size": 3237
+                "euclidean_distance": 5548.307762681983,
+                "network_distance": 8959.37157465736,
+                "sample_size": 959
             },
             "leisure": {
-                "euclidean_distance": 6013.734505413705,
-                "network_distance": 10487.815416701362,
-                "sample_size": 1246
+                "euclidean_distance": 6478.395428801629,
+                "network_distance": 11267.06495236439,
+                "sample_size": 432
             },
             "other": {
-                "euclidean_distance": 4935.178768821811,
-                "network_distance": 8640.188479399823,
-                "sample_size": 784
+                "euclidean_distance": 6155.254397151338,
+                "network_distance": 11322.136607040908,
+                "sample_size": 252
             },
             "shop": {
-                "euclidean_distance": 4521.127937177074,
-                "network_distance": 7371.7378500795185,
-                "sample_size": 814
+                "euclidean_distance": 4029.139453347039,
+                "network_distance": 6504.6633381769425,
+                "sample_size": 279
             },
             "work": {
-                "euclidean_distance": 8272.812634524404,
-                "network_distance": 12587.590841747886,
-                "sample_size": 1154
+                "euclidean_distance": 10024.874410282511,
+                "network_distance": 15640.980137927758,
+                "sample_size": 373
             }
         }
     },
     "Schwyz": {
         "Microcensus": {
             "education": {
-                "euclidean_distance": 5790.493741682264,
-                "network_distance": 8699.339920391572,
-                "sample_size": 210
+                "euclidean_distance": 5699.367702922412,
+                "network_distance": 8598.168235226885,
+                "sample_size": 209
             },
             "home": {
-                "euclidean_distance": 5576.125536225582,
+                "euclidean_distance": 5576.125536225583,
                 "network_distance": 8820.484988239445,
                 "sample_size": 1206
             },
@@ -1090,34 +1090,34 @@
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 2867.386509655612,
-                "network_distance": 4370.612361640706,
-                "sample_size": 564
+                "euclidean_distance": 7307.887941128182,
+                "network_distance": 12068.585347554214,
+                "sample_size": 303
             },
             "home": {
-                "euclidean_distance": 7939.211639375665,
-                "network_distance": 12738.767333320384,
-                "sample_size": 6117
+                "euclidean_distance": 6676.170530643299,
+                "network_distance": 11088.334645692546,
+                "sample_size": 2084
             },
             "leisure": {
-                "euclidean_distance": 7746.93433753178,
-                "network_distance": 13468.839240273872,
-                "sample_size": 2466
+                "euclidean_distance": 7071.495806822283,
+                "network_distance": 12205.72332488054,
+                "sample_size": 944
             },
             "other": {
-                "euclidean_distance": 5761.908984841758,
-                "network_distance": 10084.80346257238,
-                "sample_size": 1492
+                "euclidean_distance": 5774.160954277317,
+                "network_distance": 10699.987151576475,
+                "sample_size": 550
             },
             "shop": {
-                "euclidean_distance": 5373.455068538453,
-                "network_distance": 9105.71959175052,
-                "sample_size": 1488
+                "euclidean_distance": 4797.593528770646,
+                "network_distance": 8408.691091721601,
+                "sample_size": 554
             },
             "work": {
-                "euclidean_distance": 8612.772078736825,
-                "network_distance": 13109.95945023406,
-                "sample_size": 2105
+                "euclidean_distance": 12455.705528590559,
+                "network_distance": 18526.694269293163,
+                "sample_size": 894
             }
         }
     },
@@ -1129,14 +1129,14 @@
                 "sample_size": 289
             },
             "home": {
-                "euclidean_distance": 5884.828441597275,
-                "network_distance": 8240.01889116485,
-                "sample_size": 1832
+                "euclidean_distance": 5864.197847888276,
+                "network_distance": 8210.272919160685,
+                "sample_size": 1835
             },
             "leisure": {
-                "euclidean_distance": 6890.2500723312505,
-                "network_distance": 10853.370724165348,
-                "sample_size": 715
+                "euclidean_distance": 6911.134501306374,
+                "network_distance": 10883.48757801165,
+                "sample_size": 713
             },
             "other": {
                 "euclidean_distance": 5985.685188344206,
@@ -1149,41 +1149,41 @@
                 "sample_size": 517
             },
             "work": {
-                "euclidean_distance": 11595.846770422058,
-                "network_distance": 16473.559344507386,
-                "sample_size": 825
+                "euclidean_distance": 11626.006318801825,
+                "network_distance": 16511.077617315623,
+                "sample_size": 824
             }
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 4598.877689633484,
-                "network_distance": 7025.703478275551,
-                "sample_size": 1310
+                "euclidean_distance": 6000.682929991749,
+                "network_distance": 9347.310299254796,
+                "sample_size": 436
             },
             "home": {
-                "euclidean_distance": 6969.754279717557,
-                "network_distance": 10660.66661692959,
-                "sample_size": 10497
+                "euclidean_distance": 7683.720955199792,
+                "network_distance": 11825.927058922416,
+                "sample_size": 3306
             },
             "leisure": {
-                "euclidean_distance": 6437.900190951575,
-                "network_distance": 10618.85448792967,
-                "sample_size": 4644
+                "euclidean_distance": 6175.252471502146,
+                "network_distance": 10144.019148680376,
+                "sample_size": 1367
             },
             "other": {
-                "euclidean_distance": 5843.817415739602,
-                "network_distance": 9669.814265057414,
-                "sample_size": 2473
+                "euclidean_distance": 5800.167350351806,
+                "network_distance": 9476.28880702529,
+                "sample_size": 785
             },
             "shop": {
-                "euclidean_distance": 5369.74761088683,
-                "network_distance": 8519.012330821835,
-                "sample_size": 2776
+                "euclidean_distance": 4680.064726342359,
+                "network_distance": 7553.407489339631,
+                "sample_size": 859
             },
             "work": {
-                "euclidean_distance": 9930.449580602755,
-                "network_distance": 14192.242910274572,
-                "sample_size": 3768
+                "euclidean_distance": 10695.024539853881,
+                "network_distance": 15413.153257291755,
+                "sample_size": 1346
             }
         }
     },
@@ -1195,127 +1195,127 @@
                 "sample_size": 486
             },
             "home": {
-                "euclidean_distance": 6219.97915977373,
-                "network_distance": 9456.948861576997,
-                "sample_size": 2962
+                "euclidean_distance": 6299.138351212631,
+                "network_distance": 9605.425056873873,
+                "sample_size": 3014
             },
             "leisure": {
-                "euclidean_distance": 6171.530054584245,
-                "network_distance": 9616.106576494556,
-                "sample_size": 1177
+                "euclidean_distance": 6171.201230761276,
+                "network_distance": 9622.330090778898,
+                "sample_size": 1185
             },
             "other": {
-                "euclidean_distance": 5021.566149845812,
-                "network_distance": 7095.813278873847,
-                "sample_size": 558
+                "euclidean_distance": 5406.843394014707,
+                "network_distance": 7630.607649216755,
+                "sample_size": 564
             },
             "shop": {
-                "euclidean_distance": 3908.4599646111647,
-                "network_distance": 6107.056029440189,
-                "sample_size": 712
+                "euclidean_distance": 4026.2533837629367,
+                "network_distance": 6284.826843536076,
+                "sample_size": 718
             },
             "work": {
-                "euclidean_distance": 9793.515022582438,
-                "network_distance": 14380.30253691214,
-                "sample_size": 1209
+                "euclidean_distance": 9948.861403594836,
+                "network_distance": 14588.028658978656,
+                "sample_size": 1215
             }
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 6100.528466686632,
-                "network_distance": 9993.474783493766,
-                "sample_size": 3034
+                "euclidean_distance": 4953.887425037566,
+                "network_distance": 8346.196425514783,
+                "sample_size": 980
             },
             "home": {
-                "euclidean_distance": 6892.513716341522,
-                "network_distance": 10909.480458056638,
-                "sample_size": 20051
+                "euclidean_distance": 6558.467310588091,
+                "network_distance": 10472.010529725896,
+                "sample_size": 6580
             },
             "leisure": {
-                "euclidean_distance": 5570.627705527049,
-                "network_distance": 9207.740434196367,
-                "sample_size": 8023
+                "euclidean_distance": 5963.462096286326,
+                "network_distance": 10016.355075625283,
+                "sample_size": 2635
             },
             "other": {
-                "euclidean_distance": 5064.897912419558,
-                "network_distance": 8458.11842122847,
-                "sample_size": 4599
+                "euclidean_distance": 5087.22109228992,
+                "network_distance": 8811.681707086893,
+                "sample_size": 1582
             },
             "shop": {
-                "euclidean_distance": 4642.611664507311,
-                "network_distance": 7456.991490751173,
-                "sample_size": 5368
+                "euclidean_distance": 4286.87261610562,
+                "network_distance": 7053.80025449983,
+                "sample_size": 1805
             },
             "work": {
-                "euclidean_distance": 8999.511795886478,
-                "network_distance": 13455.03132679304,
-                "sample_size": 8123
+                "euclidean_distance": 10281.775996950648,
+                "network_distance": 15201.955304830659,
+                "sample_size": 2645
             }
         }
     },
     "Thurgau": {
         "Microcensus": {
             "education": {
-                "euclidean_distance": 5096.923911687489,
-                "network_distance": 6720.34151612414,
-                "sample_size": 404
+                "euclidean_distance": 5158.790977726307,
+                "network_distance": 6804.917688979589,
+                "sample_size": 410
             },
             "home": {
-                "euclidean_distance": 5824.3467657693545,
-                "network_distance": 7822.6182755155305,
-                "sample_size": 2364
+                "euclidean_distance": 6689.3023871734995,
+                "network_distance": 9531.944837876603,
+                "sample_size": 2482
             },
             "leisure": {
-                "euclidean_distance": 6367.507119026274,
-                "network_distance": 9578.128436460156,
-                "sample_size": 996
+                "euclidean_distance": 6360.8220664300015,
+                "network_distance": 9746.733538842258,
+                "sample_size": 1003
             },
             "other": {
-                "euclidean_distance": 5280.290195888202,
-                "network_distance": 7226.292872955588,
-                "sample_size": 533
+                "euclidean_distance": 5354.372528384199,
+                "network_distance": 7647.714728338275,
+                "sample_size": 537
             },
             "shop": {
-                "euclidean_distance": 4083.601877556492,
-                "network_distance": 6480.20953261539,
-                "sample_size": 618
+                "euclidean_distance": 4097.737917412662,
+                "network_distance": 6630.639509468045,
+                "sample_size": 623
             },
             "work": {
-                "euclidean_distance": 12131.02929878222,
-                "network_distance": 16846.095969163423,
-                "sample_size": 1130
+                "euclidean_distance": 12118.40742957659,
+                "network_distance": 16813.915226173496,
+                "sample_size": 1134
             }
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 1690.0204970510374,
-                "network_distance": 2583.9599157425278,
-                "sample_size": 1039
+                "euclidean_distance": 5786.365107628864,
+                "network_distance": 9401.026651656597,
+                "sample_size": 464
             },
             "home": {
-                "euclidean_distance": 7936.8697991679555,
-                "network_distance": 11644.22517052283,
-                "sample_size": 10884
+                "euclidean_distance": 5980.0027087297685,
+                "network_distance": 8955.14340244272,
+                "sample_size": 3270
             },
             "leisure": {
-                "euclidean_distance": 6001.13124896665,
-                "network_distance": 9172.40569532866,
-                "sample_size": 4287
+                "euclidean_distance": 6271.801256392967,
+                "network_distance": 9642.831045410163,
+                "sample_size": 1440
             },
             "other": {
-                "euclidean_distance": 5435.199688374367,
-                "network_distance": 8365.604698056317,
-                "sample_size": 2690
+                "euclidean_distance": 5634.65164688076,
+                "network_distance": 8661.790816909219,
+                "sample_size": 821
             },
             "shop": {
-                "euclidean_distance": 5643.897584863078,
-                "network_distance": 8471.930917084892,
-                "sample_size": 2688
+                "euclidean_distance": 5444.258148773829,
+                "network_distance": 8317.98723106391,
+                "sample_size": 892
             },
             "work": {
-                "euclidean_distance": 8780.511970870335,
-                "network_distance": 12529.842446427978,
-                "sample_size": 3670
+                "euclidean_distance": 12342.745931296946,
+                "network_distance": 17629.212605534532,
+                "sample_size": 1336
             }
         }
     },
@@ -1327,61 +1327,61 @@
                 "sample_size": 304
             },
             "home": {
-                "euclidean_distance": 4849.259217900234,
-                "network_distance": 7588.056815431125,
-                "sample_size": 2275
+                "euclidean_distance": 4910.460602401761,
+                "network_distance": 7707.236317538736,
+                "sample_size": 2295
             },
             "leisure": {
-                "euclidean_distance": 4437.253456041686,
-                "network_distance": 6868.851090956579,
-                "sample_size": 1081
+                "euclidean_distance": 4445.826839589994,
+                "network_distance": 6883.108367153907,
+                "sample_size": 1084
             },
             "other": {
-                "euclidean_distance": 3697.5896325401955,
-                "network_distance": 5876.253949659894,
-                "sample_size": 818
+                "euclidean_distance": 3724.616785838413,
+                "network_distance": 6052.5559143428245,
+                "sample_size": 821
             },
             "shop": {
-                "euclidean_distance": 3050.4881641022525,
-                "network_distance": 4609.81158676569,
-                "sample_size": 586
+                "euclidean_distance": 3057.6555528167846,
+                "network_distance": 4619.4612921980015,
+                "sample_size": 587
             },
             "work": {
-                "euclidean_distance": 6308.0414578625905,
-                "network_distance": 10461.04480681488,
-                "sample_size": 989
+                "euclidean_distance": 6318.948285986744,
+                "network_distance": 10499.034013808245,
+                "sample_size": 991
             }
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 4311.706432843651,
-                "network_distance": 6730.648940138364,
-                "sample_size": 1830
+                "euclidean_distance": 3382.8408628683806,
+                "network_distance": 5598.160987880372,
+                "sample_size": 609
             },
             "home": {
-                "euclidean_distance": 6434.469736985865,
-                "network_distance": 10654.682410401847,
-                "sample_size": 14191
+                "euclidean_distance": 5369.492332419242,
+                "network_distance": 9319.530880238159,
+                "sample_size": 4809
             },
             "leisure": {
-                "euclidean_distance": 4954.783551215546,
-                "network_distance": 9153.798656203293,
-                "sample_size": 5920
+                "euclidean_distance": 4667.190688648724,
+                "network_distance": 8692.724465764872,
+                "sample_size": 2032
             },
             "other": {
-                "euclidean_distance": 4215.711766058261,
-                "network_distance": 7783.679241203585,
-                "sample_size": 3426
+                "euclidean_distance": 5103.515196905596,
+                "network_distance": 9472.889282892324,
+                "sample_size": 1244
             },
             "shop": {
-                "euclidean_distance": 4125.26880213681,
-                "network_distance": 7282.12456322651,
-                "sample_size": 3858
+                "euclidean_distance": 3724.9804955332834,
+                "network_distance": 6627.803885712777,
+                "sample_size": 1290
             },
             "work": {
-                "euclidean_distance": 7781.345260149374,
-                "network_distance": 12062.885497101646,
-                "sample_size": 5627
+                "euclidean_distance": 11592.067353948467,
+                "network_distance": 18374.42814678229,
+                "sample_size": 1980
             }
         }
     },
@@ -1403,7 +1403,7 @@
                 "sample_size": 105
             },
             "other": {
-                "euclidean_distance": 5003.286828969122,
+                "euclidean_distance": 5003.286828969123,
                 "network_distance": 7129.008900260243,
                 "sample_size": 38
             },
@@ -1413,41 +1413,41 @@
                 "sample_size": 52
             },
             "work": {
-                "euclidean_distance": 10963.212695077596,
-                "network_distance": 15582.859256712398,
-                "sample_size": 118
+                "euclidean_distance": 10766.254573674729,
+                "network_distance": 15264.960764156822,
+                "sample_size": 117
             }
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 2476.4878508924203,
-                "network_distance": 3805.0208562755743,
-                "sample_size": 132
+                "euclidean_distance": 9228.779399512448,
+                "network_distance": 14537.840756188914,
+                "sample_size": 75
             },
             "home": {
-                "euclidean_distance": 7774.723682308536,
-                "network_distance": 12941.218274436014,
-                "sample_size": 1504
+                "euclidean_distance": 6889.250570516994,
+                "network_distance": 11508.08737670646,
+                "sample_size": 513
             },
             "leisure": {
-                "euclidean_distance": 9049.892750847823,
-                "network_distance": 15899.101284882614,
-                "sample_size": 622
+                "euclidean_distance": 8213.228426483838,
+                "network_distance": 14579.47059956777,
+                "sample_size": 249
             },
             "other": {
-                "euclidean_distance": 6435.423114022454,
-                "network_distance": 11568.042246423787,
-                "sample_size": 411
+                "euclidean_distance": 4863.139949428308,
+                "network_distance": 9059.68938311952,
+                "sample_size": 123
             },
             "shop": {
-                "euclidean_distance": 4441.900434669366,
-                "network_distance": 7310.787730854854,
-                "sample_size": 348
+                "euclidean_distance": 4814.817164760825,
+                "network_distance": 8519.965178179513,
+                "sample_size": 136
             },
             "work": {
-                "euclidean_distance": 7771.333898469391,
-                "network_distance": 11953.804068293974,
-                "sample_size": 530
+                "euclidean_distance": 13137.207612892935,
+                "network_distance": 19475.34276675753,
+                "sample_size": 188
             }
         }
     },
@@ -1459,8 +1459,8 @@
                 "sample_size": 235
             },
             "home": {
-                "euclidean_distance": 5619.907213727696,
-                "network_distance": 8616.262790780733,
+                "euclidean_distance": 5600.75228310126,
+                "network_distance": 8604.786855394974,
                 "sample_size": 1705
             },
             "leisure": {
@@ -1470,7 +1470,7 @@
             },
             "other": {
                 "euclidean_distance": 5478.404812929885,
-                "network_distance": 8875.170395549801,
+                "network_distance": 8875.1703955498,
                 "sample_size": 466
             },
             "shop": {
@@ -1486,63 +1486,63 @@
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 6584.579442149844,
-                "network_distance": 10991.947540386054,
-                "sample_size": 1754
+                "euclidean_distance": 6970.888407318287,
+                "network_distance": 11061.864470792505,
+                "sample_size": 619
             },
             "home": {
-                "euclidean_distance": 8325.484590339198,
-                "network_distance": 14680.82647943693,
-                "sample_size": 13569
+                "euclidean_distance": 6659.966148167909,
+                "network_distance": 12180.882951906236,
+                "sample_size": 4358
             },
             "leisure": {
-                "euclidean_distance": 6391.016314261692,
-                "network_distance": 12659.067415765297,
-                "sample_size": 5457
+                "euclidean_distance": 6135.956993768919,
+                "network_distance": 13118.411551510004,
+                "sample_size": 1857
             },
             "other": {
-                "euclidean_distance": 5046.173361729292,
-                "network_distance": 10204.976456014747,
-                "sample_size": 3261
+                "euclidean_distance": 5319.022477022286,
+                "network_distance": 11021.563162232986,
+                "sample_size": 1104
             },
             "shop": {
-                "euclidean_distance": 5340.709696906704,
-                "network_distance": 10684.042074214438,
-                "sample_size": 3425
+                "euclidean_distance": 4620.355817210297,
+                "network_distance": 9609.0686783132,
+                "sample_size": 1158
             },
             "work": {
-                "euclidean_distance": 8775.286786633393,
-                "network_distance": 14067.726882318444,
-                "sample_size": 4958
+                "euclidean_distance": 12716.044098340046,
+                "network_distance": 20567.287630274182,
+                "sample_size": 1857
             }
         }
     },
     "Vaud": {
         "Microcensus": {
             "education": {
-                "euclidean_distance": 4676.604876446735,
-                "network_distance": 6895.715922269808,
-                "sample_size": 749
+                "euclidean_distance": 4687.019109820006,
+                "network_distance": 6954.195292248074,
+                "sample_size": 750
             },
             "home": {
-                "euclidean_distance": 6656.685179302687,
-                "network_distance": 9553.543391888441,
-                "sample_size": 4661
+                "euclidean_distance": 6696.3098439320565,
+                "network_distance": 9708.604608621434,
+                "sample_size": 4680
             },
             "leisure": {
-                "euclidean_distance": 6058.168645013692,
-                "network_distance": 9251.329420097118,
-                "sample_size": 2041
+                "euclidean_distance": 6063.265199384783,
+                "network_distance": 9255.786705345854,
+                "sample_size": 2043
             },
             "other": {
-                "euclidean_distance": 5230.166096413443,
+                "euclidean_distance": 5230.1660964134435,
                 "network_distance": 7587.107090308781,
                 "sample_size": 1340
             },
             "shop": {
-                "euclidean_distance": 4658.644158822229,
-                "network_distance": 6930.724409210153,
-                "sample_size": 1314
+                "euclidean_distance": 4663.245398331406,
+                "network_distance": 6945.0940627296395,
+                "sample_size": 1316
             },
             "work": {
                 "euclidean_distance": 10468.789323694205,
@@ -1552,34 +1552,34 @@
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 4152.087711689885,
-                "network_distance": 6516.106853151885,
-                "sample_size": 4565
+                "euclidean_distance": 4420.693224455965,
+                "network_distance": 7015.589138007487,
+                "sample_size": 1501
             },
             "home": {
-                "euclidean_distance": 7153.661343513143,
-                "network_distance": 10720.643882661045,
-                "sample_size": 31862
+                "euclidean_distance": 7025.983711645635,
+                "network_distance": 10833.608688779725,
+                "sample_size": 10587
             },
             "leisure": {
-                "euclidean_distance": 5392.187013355958,
-                "network_distance": 8656.66823628113,
-                "sample_size": 13401
+                "euclidean_distance": 5254.667661336503,
+                "network_distance": 8477.527765825489,
+                "sample_size": 4439
             },
             "other": {
-                "euclidean_distance": 5026.976615670035,
-                "network_distance": 8004.633167416231,
-                "sample_size": 7680
+                "euclidean_distance": 5075.597769035808,
+                "network_distance": 8258.04350865448,
+                "sample_size": 2514
             },
             "shop": {
-                "euclidean_distance": 4366.584924413411,
-                "network_distance": 6874.257803617115,
-                "sample_size": 8671
+                "euclidean_distance": 4285.412347193892,
+                "network_distance": 6849.114523444489,
+                "sample_size": 2890
             },
             "work": {
-                "euclidean_distance": 11076.411836104682,
-                "network_distance": 15993.565398939341,
-                "sample_size": 12772
+                "euclidean_distance": 12086.497019934823,
+                "network_distance": 17289.617927324052,
+                "sample_size": 4313
             }
         }
     },
@@ -1591,9 +1591,9 @@
                 "sample_size": 79
             },
             "home": {
-                "euclidean_distance": 6134.809095061664,
-                "network_distance": 9686.548973497405,
-                "sample_size": 658
+                "euclidean_distance": 6136.925416057156,
+                "network_distance": 9686.20720342954,
+                "sample_size": 660
             },
             "leisure": {
                 "euclidean_distance": 5458.360572999172,
@@ -1601,65 +1601,65 @@
                 "sample_size": 255
             },
             "other": {
-                "euclidean_distance": 5638.240379589606,
-                "network_distance": 8803.413863243786,
-                "sample_size": 108
+                "euclidean_distance": 5678.455404035365,
+                "network_distance": 8873.009502332729,
+                "sample_size": 110
             },
             "shop": {
-                "euclidean_distance": 3261.1222613458312,
-                "network_distance": 5259.392426745917,
-                "sample_size": 187
+                "euclidean_distance": 3285.721025505401,
+                "network_distance": 5290.786978970323,
+                "sample_size": 188
             },
             "work": {
-                "euclidean_distance": 7976.168593819302,
+                "euclidean_distance": 7976.168593819301,
                 "network_distance": 12206.24660900685,
                 "sample_size": 304
             }
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 5312.627867176718,
-                "network_distance": 9124.254503717908,
-                "sample_size": 808
+                "euclidean_distance": 4718.694100208404,
+                "network_distance": 7645.706603159569,
+                "sample_size": 199
             },
             "home": {
-                "euclidean_distance": 6314.8285997724115,
-                "network_distance": 10440.63870748613,
-                "sample_size": 4996
+                "euclidean_distance": 8436.097004253274,
+                "network_distance": 13718.770191001955,
+                "sample_size": 1736
             },
             "leisure": {
-                "euclidean_distance": 5645.222378469313,
-                "network_distance": 9627.942677131334,
-                "sample_size": 2090
+                "euclidean_distance": 6645.162971905448,
+                "network_distance": 11701.53098791049,
+                "sample_size": 730
             },
             "other": {
-                "euclidean_distance": 5017.272809486124,
-                "network_distance": 8828.314111339372,
-                "sample_size": 1202
+                "euclidean_distance": 4687.586555753961,
+                "network_distance": 8486.747552461413,
+                "sample_size": 380
             },
             "shop": {
-                "euclidean_distance": 4343.154620650455,
-                "network_distance": 7276.666324002009,
-                "sample_size": 1409
+                "euclidean_distance": 5181.330060768709,
+                "network_distance": 9032.177156783355,
+                "sample_size": 517
             },
             "work": {
-                "euclidean_distance": 11318.502541771846,
-                "network_distance": 17754.50888604106,
-                "sample_size": 2620
+                "euclidean_distance": 8552.844775395175,
+                "network_distance": 13620.416348171619,
+                "sample_size": 688
             }
         }
     },
     "Zurich": {
         "Microcensus": {
             "education": {
-                "euclidean_distance": 3581.674098115867,
-                "network_distance": 5406.015859130818,
-                "sample_size": 923
+                "euclidean_distance": 3592.8833163217355,
+                "network_distance": 5419.362102843813,
+                "sample_size": 924
             },
             "home": {
-                "euclidean_distance": 7459.928929653729,
-                "network_distance": 10767.255162168807,
-                "sample_size": 6061
+                "euclidean_distance": 7460.739180228709,
+                "network_distance": 10771.380425238058,
+                "sample_size": 6064
             },
             "leisure": {
                 "euclidean_distance": 5685.356134369888,
@@ -1667,14 +1667,14 @@
                 "sample_size": 2549
             },
             "other": {
-                "euclidean_distance": 4330.540794928982,
-                "network_distance": 6504.323056691934,
-                "sample_size": 1233
+                "euclidean_distance": 4329.932928225234,
+                "network_distance": 6506.222847641332,
+                "sample_size": 1234
             },
             "shop": {
-                "euclidean_distance": 3915.202604709892,
-                "network_distance": 5730.553622383908,
-                "sample_size": 1726
+                "euclidean_distance": 3913.208505419502,
+                "network_distance": 5727.808179526004,
+                "sample_size": 1725
             },
             "work": {
                 "euclidean_distance": 9079.844158860826,
@@ -1684,100 +1684,100 @@
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 4031.677641103338,
-                "network_distance": 6446.3202067383545,
-                "sample_size": 8972
+                "euclidean_distance": 2661.3194225731486,
+                "network_distance": 4256.11881140123,
+                "sample_size": 2622
             },
             "home": {
-                "euclidean_distance": 6112.17298956863,
-                "network_distance": 9506.85001028276,
-                "sample_size": 59527
+                "euclidean_distance": 7227.636747314583,
+                "network_distance": 11254.956320039508,
+                "sample_size": 20638
             },
             "leisure": {
-                "euclidean_distance": 4902.214040128551,
-                "network_distance": 7950.508001404972,
-                "sample_size": 25967
+                "euclidean_distance": 5357.987104676856,
+                "network_distance": 8867.36717222888,
+                "sample_size": 8619
             },
             "other": {
-                "euclidean_distance": 4606.813522825437,
-                "network_distance": 7559.575884765953,
-                "sample_size": 14142
+                "euclidean_distance": 5041.424478198983,
+                "network_distance": 8351.507245853732,
+                "sample_size": 4851
             },
             "shop": {
-                "euclidean_distance": 3891.5929502612175,
-                "network_distance": 6242.356535730888,
-                "sample_size": 17028
+                "euclidean_distance": 4289.954522084669,
+                "network_distance": 6891.343594419416,
+                "sample_size": 5695
             },
             "work": {
-                "euclidean_distance": 11877.709201670958,
-                "network_distance": 17399.240318548877,
-                "sample_size": 27631
+                "euclidean_distance": 9177.308232559144,
+                "network_distance": 13746.213314856586,
+                "sample_size": 8482
             }
         }
     },
     "All": {
         "Microcensus": {
             "education": {
-                "euclidean_distance": 4290.647056723857,
-                "network_distance": 6486.315535925477,
-                "sample_size": 7642.0
+                "euclidean_distance": 4295.633027775015,
+                "network_distance": 6498.67550530268,
+                "sample_size": 7652.0
             },
             "home": {
-                "euclidean_distance": 6231.516944334937,
-                "network_distance": 9115.555636886322,
-                "sample_size": 49642.0
+                "euclidean_distance": 6327.248343803237,
+                "network_distance": 9382.649868052113,
+                "sample_size": 50106.0
             },
             "leisure": {
-                "euclidean_distance": 6223.919427592613,
-                "network_distance": 9650.974149384236,
-                "sample_size": 21314.0
+                "euclidean_distance": 6231.848616384217,
+                "network_distance": 9677.086620823375,
+                "sample_size": 21350.0
             },
             "other": {
-                "euclidean_distance": 4770.482360678779,
-                "network_distance": 7061.38600288393,
-                "sample_size": 11898.0
+                "euclidean_distance": 4802.167563430284,
+                "network_distance": 7135.478619852616,
+                "sample_size": 11929.0
             },
             "shop": {
-                "euclidean_distance": 4094.457293393818,
-                "network_distance": 6117.041944255077,
-                "sample_size": 13422.0
+                "euclidean_distance": 4126.393900906048,
+                "network_distance": 6173.304507633997,
+                "sample_size": 13449.0
             },
             "work": {
-                "euclidean_distance": 9265.763073636264,
-                "network_distance": 13569.522717120595,
-                "sample_size": 21701.0
+                "euclidean_distance": 9276.030188579032,
+                "network_distance": 13591.338520069921,
+                "sample_size": 21724.0
             }
         },
         "Synthetic": {
             "education": {
-                "euclidean_distance": 4306.267132459084,
-                "network_distance": 6905.963294428006,
-                "sample_size": 45326.0
+                "euclidean_distance": 4279.653600553596,
+                "network_distance": 6975.145613905032,
+                "sample_size": 15034.0
             },
             "home": {
-                "euclidean_distance": 6755.288368795716,
-                "network_distance": 10582.477724736838,
-                "sample_size": 335138.0
+                "euclidean_distance": 6782.264867198237,
+                "network_distance": 10777.724360532588,
+                "sample_size": 111997.0
             },
             "leisure": {
-                "euclidean_distance": 5666.390089434904,
-                "network_distance": 9424.84461362965,
-                "sample_size": 140823.0
+                "euclidean_distance": 5719.38031935728,
+                "network_distance": 9637.447358869606,
+                "sample_size": 47211.0
             },
             "other": {
-                "euclidean_distance": 4959.355814314774,
-                "network_distance": 8335.2264247605,
-                "sample_size": 80610.0
+                "euclidean_distance": 5070.709515268477,
+                "network_distance": 8631.514866799944,
+                "sample_size": 27050.0
             },
             "shop": {
-                "euclidean_distance": 4469.339717633605,
-                "network_distance": 7299.409360037578,
-                "sample_size": 91271.0
+                "euclidean_distance": 4455.244469008929,
+                "network_distance": 7364.083188692582,
+                "sample_size": 30698.0
             },
             "work": {
-                "euclidean_distance": 10401.248836396457,
-                "network_distance": 15356.64788422387,
-                "sample_size": 136584.0
+                "euclidean_distance": 10418.410061550678,
+                "network_distance": 15537.457698687793,
+                "sample_size": 45710.0
             }
         }
     }
