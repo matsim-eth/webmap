@@ -6,7 +6,6 @@ import "./App.css";
 import NetworkLegend from "./components/NetworkLegend";
 
 function App() {
-  
   const [dataURL, setDataURL] = useState("https://matsim-eth.github.io/webmap/data/");
   
   const [clickedCanton, setClickedCanton] = useState(null); // Store clicked canton
@@ -45,6 +44,9 @@ function App() {
   
   // time range for filtering volumes
   const [timeRange, setTimeRange] = useState([0, 96]);
+  
+  // state for destination data (from Sidebar to Map)
+  const [destinationData, setDestinationData] = useState(null);
   
   // Read cantons
   useEffect(() => {
@@ -121,6 +123,7 @@ function App() {
     highlightedLineId={highlightedLineId}
     setHighlightedLineId={setHighlightedLineId}
     highlightedRouteIds={highlightedRouteIds}
+    selectedDestinationData={destinationData} // from sidebar
     setHighlightedRouteIds = {setHighlightedRouteIds}
     hoveredRouteId={hoveredRouteId}
     showStopVolumeSymbology={showStopVolumeSymbology}
@@ -140,6 +143,7 @@ function App() {
     setSelectedNetworkModes={setSelectedNetworkModes} // to change value
     selectedNetworkFeature={selectedNetworkFeature} // from map
     setVisualizeLinkId={setVisualizeLinkId} // to map
+    setDestinationData={setDestinationData} // to map
     dataURL={dataURL}
     setDataURL={setDataURL}
     selectedTransitModes={selectedTransitModes}

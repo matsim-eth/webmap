@@ -19,11 +19,13 @@ import SegmentVolumeHistogram from "./SegmentVolumeHistogram";
 import TransitStopAttributesTable from "./TransitStopAttributesTable";
 import Demographics from "./Demographics";
 import TransitStopHistogram from "./TransitStopHistogram";
+import DestinationZones from "./DestinationZones";
 
 const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, resetMapView, updateMapSymbology,
   selectedNetworkModes, setSelectedNetworkModes, selectedNetworkFeature, setVisualizeLinkId, dataURL, setDataURL,
   selectedTransitModes, setSelectedTransitModes, selectedTransitStop, highlightedLineId, setHighlightedLineId,
-  setHighlightedRouteIds, setHoveredRouteId,showStopVolumeSymbology, setShowStopVolumeSymbology, timeRange, setTimeRange }) => {
+  setHighlightedRouteIds, setHoveredRouteId, showStopVolumeSymbology, setShowStopVolumeSymbology, timeRange, setTimeRange,
+  setDestinationData }) => {
     
     // ======================= INITIALIZE VARIABLES =======================
     
@@ -40,6 +42,9 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
     const [transitModesByCanton, setTransitModesByCanton] = useState({});
     const [filteredStopVolumes, setFilteredStopVolumes] = useState(null); // total filtered volumes per stop
     
+    // Add state for destination outflow data
+    const [destinationOutflowData, setDestinationOutflowData] = useState(null);
+
     const formatTimeLabel = (index) => {
       const hours = Math.floor(index / 4);
       const minutes = (index % 4) * 15;
@@ -160,6 +165,18 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
       }
     };
     
+    // Handle outflow data from DestinationZones and pass to Map
+    const handleTotalOutflowChange = (outflowData) => {
+      setDestinationOutflowData(outflowData);
+      // Pass to Map component via setDestinationData prop
+      if (setDestinationData) {
+        console.log('Sidebar - calling setDestinationData with:', outflowData);
+        setDestinationData(outflowData);
+      } else {
+        console.log('Sidebar - setDestinationData is not available');
+      }
+    };
+
     return (
       <div className={`floating-panel ${isOpen ?  // Sets the css for sidebar width
         (selectedGraph === "Graph 3" || selectedGraph === "Graph 4" ? "expanded-graph3" : 
@@ -187,6 +204,7 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
             <option value="Network">MATSim Network</option>
             <option value="Volumes">Road Volumes</option>
             <option value="Transit">Transit Stops/Lines</option>
+            <option value="Destination">Destination Zones</option>
             <option value="Graph 1">Average Distance by {selectedAggCol.charAt(0).toUpperCase() + selectedAggCol.slice(1)}</option>
             <option value="Graph 2">Distance Distribution by {selectedAggCol.charAt(0).toUpperCase() + selectedAggCol.slice(1)}</option>
             <option value="Graph 3">{selectedAggCol.charAt(0).toUpperCase() + selectedAggCol.slice(1)} by Distance (Stacked)</option>
@@ -293,6 +311,16 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
             )}
             
             {/* Network Module */}
+            {selectedGraph === "Destination" && (
+              <div className="plot-container">
+                <DestinationZones
+                  canton={canton}
+                  dataURL={dataURL}
+                  onTotalOutflowChange={handleTotalOutflowChange}
+                />
+              </div>
+            )}
+
             {selectedGraph === "Network" && (
               
               <div className="plot-container">
@@ -447,4 +475,3 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
       };
       
       export default Sidebar;
-      
