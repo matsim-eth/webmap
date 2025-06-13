@@ -3,202 +3,202 @@
         {
             "canton_name": "Aargau",
             "mode": "bike",
-            "share": 0.10881899457408678
+            "share": 0.10823194296992109
         },
         {
             "canton_name": "Aargau",
             "mode": "car",
-            "share": 0.4741611250518775
+            "share": 0.47490043841057666
         },
         {
             "canton_name": "Aargau",
             "mode": "car_passenger",
-            "share": 0.08946604747701711
+            "share": 0.0910054253069471
         },
         {
             "canton_name": "Aargau",
             "mode": "pt",
-            "share": 0.10201275157584781
+            "share": 0.10170915447085548
         },
         {
             "canton_name": "Aargau",
             "mode": "walk",
-            "share": 0.22554108132117082
+            "share": 0.22415303884169963
         },
         {
             "canton_name": "AppenzellAusserrhoden",
             "mode": "bike",
-            "share": 0.07928610072551885
+            "share": 0.08149988368551397
         },
         {
             "canton_name": "AppenzellAusserrhoden",
             "mode": "car",
-            "share": 0.47464836629972107
+            "share": 0.45921306525701244
         },
         {
             "canton_name": "AppenzellAusserrhoden",
             "mode": "car_passenger",
-            "share": 0.1282823035584496
+            "share": 0.1326308528380999
         },
         {
             "canton_name": "AppenzellAusserrhoden",
             "mode": "pt",
-            "share": 0.12054454865174323
+            "share": 0.12391032733531572
         },
         {
             "canton_name": "AppenzellAusserrhoden",
             "mode": "walk",
-            "share": 0.19723868076456727
+            "share": 0.20274587088405793
         },
         {
             "canton_name": "AppenzellInnerrhoden",
             "mode": "bike",
-            "share": 0.10634313848559342
+            "share": 0.10661663440441967
         },
         {
             "canton_name": "AppenzellInnerrhoden",
             "mode": "car",
-            "share": 0.6132385092297867
+            "share": 0.6148156512243703
         },
         {
             "canton_name": "AppenzellInnerrhoden",
             "mode": "car_passenger",
-            "share": 0.1182231123378881
+            "share": 0.115955336687054
         },
         {
             "canton_name": "AppenzellInnerrhoden",
             "mode": "pt",
-            "share": 0.04289504763530655
+            "share": 0.04300536618178902
         },
         {
             "canton_name": "AppenzellInnerrhoden",
             "mode": "walk",
-            "share": 0.11930019231142522
+            "share": 0.11960701150236702
         },
         {
             "canton_name": "Basel-Landschaft",
             "mode": "bike",
-            "share": 0.1034896031932802
+            "share": 0.10334458869824302
         },
         {
             "canton_name": "Basel-Landschaft",
             "mode": "car",
-            "share": 0.4316115594336817
+            "share": 0.4313544863685636
         },
         {
             "canton_name": "Basel-Landschaft",
             "mode": "car_passenger",
-            "share": 0.08770898909947951
+            "share": 0.08768377914074278
         },
         {
             "canton_name": "Basel-Landschaft",
             "mode": "pt",
-            "share": 0.15775235576036759
+            "share": 0.15737294949562994
         },
         {
             "canton_name": "Basel-Landschaft",
             "mode": "walk",
-            "share": 0.21943749251319097
+            "share": 0.2202441962968207
         },
         {
             "canton_name": "Basel-Stadt",
             "mode": "bike",
-            "share": 0.16719073760417136
+            "share": 0.1650907623311399
         },
         {
             "canton_name": "Basel-Stadt",
             "mode": "car",
-            "share": 0.18959112421661162
+            "share": 0.2001714887677008
         },
         {
             "canton_name": "Basel-Stadt",
             "mode": "car_passenger",
-            "share": 0.04824429891112973
+            "share": 0.054188527633394566
         },
         {
             "canton_name": "Basel-Stadt",
             "mode": "pt",
-            "share": 0.30917101952020554
+            "share": 0.3030086305935477
         },
         {
             "canton_name": "Basel-Stadt",
             "mode": "walk",
-            "share": 0.28580281974788174
+            "share": 0.27754059067421705
         },
         {
             "canton_name": "Bern",
             "mode": "bike",
-            "share": 0.11945388168767478
+            "share": 0.11940808346838908
         },
         {
             "canton_name": "Bern",
             "mode": "car",
-            "share": 0.4080394322509778
+            "share": 0.40826638795561654
         },
         {
             "canton_name": "Bern",
             "mode": "car_passenger",
-            "share": 0.08941599983188012
+            "share": 0.08938171803617709
         },
         {
             "canton_name": "Bern",
             "mode": "pt",
-            "share": 0.1585617019596299
+            "share": 0.15850090993266464
         },
         {
             "canton_name": "Bern",
             "mode": "walk",
-            "share": 0.2245289842698375
+            "share": 0.22444290060715275
         },
         {
             "canton_name": "Fribourg",
             "mode": "bike",
-            "share": 0.026784116973639506
+            "share": 0.026765242822841
         },
         {
             "canton_name": "Fribourg",
             "mode": "car",
-            "share": 0.5205669297775813
+            "share": 0.520751678259835
         },
         {
             "canton_name": "Fribourg",
             "mode": "car_passenger",
-            "share": 0.12052761840763254
+            "share": 0.1205957823371125
         },
         {
             "canton_name": "Fribourg",
             "mode": "pt",
-            "share": 0.10668024662968428
+            "share": 0.10660507151511575
         },
         {
             "canton_name": "Fribourg",
             "mode": "walk",
-            "share": 0.2254410882114623
+            "share": 0.2252822250650957
         },
         {
             "canton_name": "Geneve",
             "mode": "bike",
-            "share": 0.06772996773812709
+            "share": 0.066983513356643
         },
         {
             "canton_name": "Geneve",
             "mode": "car",
-            "share": 0.28317998561074875
+            "share": 0.28895453603003374
         },
         {
             "canton_name": "Geneve",
             "mode": "car_passenger",
-            "share": 0.0704154549553355
+            "share": 0.07137354436485367
         },
         {
             "canton_name": "Geneve",
             "mode": "pt",
-            "share": 0.2084665032013775
+            "share": 0.2065603942541088
         },
         {
             "canton_name": "Geneve",
             "mode": "walk",
-            "share": 0.3702080884944111
+            "share": 0.36612801199436074
         },
         {
             "canton_name": "Glarus",
@@ -228,127 +228,127 @@
         {
             "canton_name": "Graubunden",
             "mode": "bike",
-            "share": 0.0761297205871449
+            "share": 0.07593189151172108
         },
         {
             "canton_name": "Graubunden",
             "mode": "car",
-            "share": 0.45075930597286223
+            "share": 0.45218655117810563
         },
         {
             "canton_name": "Graubunden",
             "mode": "car_passenger",
-            "share": 0.07241581983053555
+            "share": 0.07222764161875907
         },
         {
             "canton_name": "Graubunden",
             "mode": "pt",
-            "share": 0.0903796620543418
+            "share": 0.09014480338359623
         },
         {
             "canton_name": "Graubunden",
             "mode": "walk",
-            "share": 0.3103154915551155
+            "share": 0.3095091123078179
         },
         {
             "canton_name": "Jura",
             "mode": "bike",
-            "share": 0.05239784892814886
+            "share": 0.052288859284298196
         },
         {
             "canton_name": "Jura",
             "mode": "car",
-            "share": 0.5832381258377948
+            "share": 0.5841050073828323
         },
         {
             "canton_name": "Jura",
             "mode": "car_passenger",
-            "share": 0.1155301040070021
+            "share": 0.11528979672059002
         },
         {
             "canton_name": "Jura",
             "mode": "pt",
-            "share": 0.05709169135684835
+            "share": 0.056972938331006626
         },
         {
             "canton_name": "Jura",
             "mode": "walk",
-            "share": 0.1917422298702058
+            "share": 0.19134339828127278
         },
         {
             "canton_name": "Luzern",
             "mode": "bike",
-            "share": 0.09473575248462508
+            "share": 0.09479313188683539
         },
         {
             "canton_name": "Luzern",
             "mode": "car",
-            "share": 0.4620058198135132
+            "share": 0.46184174837218395
         },
         {
             "canton_name": "Luzern",
             "mode": "car_passenger",
-            "share": 0.08622164470981121
+            "share": 0.08611208726932103
         },
         {
             "canton_name": "Luzern",
             "mode": "pt",
-            "share": 0.12922845687925555
+            "share": 0.1293067277686486
         },
         {
             "canton_name": "Luzern",
             "mode": "walk",
-            "share": 0.227808326112795
+            "share": 0.22794630470301103
         },
         {
             "canton_name": "Neuchatel",
             "mode": "bike",
-            "share": 0.022787928856465196
+            "share": 0.02277915976892085
         },
         {
             "canton_name": "Neuchatel",
             "mode": "car",
-            "share": 0.4812665307483073
+            "share": 0.48114630459748964
         },
         {
             "canton_name": "Neuchatel",
             "mode": "car_passenger",
-            "share": 0.11172230637233063
+            "share": 0.11199915564327897
         },
         {
             "canton_name": "Neuchatel",
             "mode": "pt",
-            "share": 0.11327828754790675
+            "share": 0.11323469660874602
         },
         {
             "canton_name": "Neuchatel",
             "mode": "walk",
-            "share": 0.2709449464749902
+            "share": 0.2708406833815646
         },
         {
             "canton_name": "Nidwalden",
             "mode": "bike",
-            "share": 0.1217698274270441
+            "share": 0.12148529128866027
         },
         {
             "canton_name": "Nidwalden",
             "mode": "car",
-            "share": 0.48309882760281425
+            "share": 0.48263338348917534
         },
         {
             "canton_name": "Nidwalden",
             "mode": "car_passenger",
-            "share": 0.11030318125148561
+            "share": 0.11171871148021346
         },
         {
             "canton_name": "Nidwalden",
             "mode": "pt",
-            "share": 0.07325144646489958
+            "share": 0.07308028186568356
         },
         {
             "canton_name": "Nidwalden",
             "mode": "walk",
-            "share": 0.2115767172537564
+            "share": 0.2110823318762672
         },
         {
             "canton_name": "Obwalden",
@@ -378,929 +378,929 @@
         {
             "canton_name": "Schaffhausen",
             "mode": "bike",
-            "share": 0.0895492166991067
+            "share": 0.08679671909860819
         },
         {
             "canton_name": "Schaffhausen",
             "mode": "car",
-            "share": 0.440304376377126
+            "share": 0.45094698953309986
         },
         {
             "canton_name": "Schaffhausen",
             "mode": "car_passenger",
-            "share": 0.06925007146337918
+            "share": 0.07268958690715324
         },
         {
             "canton_name": "Schaffhausen",
             "mode": "pt",
-            "share": 0.1581144195630436
+            "share": 0.15424723955537886
         },
         {
             "canton_name": "Schaffhausen",
             "mode": "walk",
-            "share": 0.24278191589734446
+            "share": 0.23531946490575986
         },
         {
             "canton_name": "Schwyz",
             "mode": "bike",
-            "share": 0.05905148411495292
+            "share": 0.05908809915434342
         },
         {
             "canton_name": "Schwyz",
             "mode": "car",
-            "share": 0.5018846033387625
+            "share": 0.5015757454811977
         },
         {
             "canton_name": "Schwyz",
             "mode": "car_passenger",
-            "share": 0.10718180913459116
+            "share": 0.10724826751785159
         },
         {
             "canton_name": "Schwyz",
             "mode": "pt",
-            "share": 0.08865220810694134
+            "share": 0.08870717715878722
         },
         {
             "canton_name": "Schwyz",
             "mode": "walk",
-            "share": 0.24322989530475206
+            "share": 0.24338071068782008
         },
         {
             "canton_name": "Solothurn",
             "mode": "bike",
-            "share": 0.09302529786297628
+            "share": 0.09303951408472065
         },
         {
             "canton_name": "Solothurn",
             "mode": "car",
-            "share": 0.47649314756963507
+            "share": 0.47743291818985073
         },
         {
             "canton_name": "Solothurn",
             "mode": "car_passenger",
-            "share": 0.097514456775522
+            "share": 0.09752935903515081
         },
         {
             "canton_name": "Solothurn",
             "mode": "pt",
-            "share": 0.10832773053304748
+            "share": 0.10817097302736789
         },
         {
             "canton_name": "Solothurn",
             "mode": "walk",
-            "share": 0.22463936725881925
+            "share": 0.22382723566290985
         },
         {
             "canton_name": "StGallen",
             "mode": "bike",
-            "share": 0.10263018363745188
+            "share": 0.10207425613203364
         },
         {
             "canton_name": "StGallen",
             "mode": "car",
-            "share": 0.4506011477552736
+            "share": 0.45363688885426895
         },
         {
             "canton_name": "StGallen",
             "mode": "car_passenger",
-            "share": 0.0947673957229068
+            "share": 0.09533983891822394
         },
         {
             "canton_name": "StGallen",
             "mode": "pt",
-            "share": 0.11705337921440999
+            "share": 0.1161669273003107
         },
         {
             "canton_name": "StGallen",
             "mode": "walk",
-            "share": 0.23494789366995783
+            "share": 0.23278208879516285
         },
         {
             "canton_name": "Thurgau",
             "mode": "bike",
-            "share": 0.10402870692579062
+            "share": 0.1025695416005006
         },
         {
             "canton_name": "Thurgau",
             "mode": "car",
-            "share": 0.534855515479763
+            "share": 0.5335634942085565
         },
         {
             "canton_name": "Thurgau",
             "mode": "car_passenger",
-            "share": 0.08783191182441294
+            "share": 0.09338629466963407
         },
         {
             "canton_name": "Thurgau",
             "mode": "pt",
-            "share": 0.06473090038260605
+            "share": 0.06528689097280027
         },
         {
             "canton_name": "Thurgau",
             "mode": "walk",
-            "share": 0.20855296538742735
+            "share": 0.20519377854850865
         },
         {
             "canton_name": "Ticino",
             "mode": "bike",
-            "share": 0.029697275761703525
+            "share": 0.02954512784948479
         },
         {
             "canton_name": "Ticino",
             "mode": "car",
-            "share": 0.4842648032455267
+            "share": 0.4860399521377984
         },
         {
             "canton_name": "Ticino",
             "mode": "car_passenger",
-            "share": 0.12115811823591342
+            "share": 0.1210527457345346
         },
         {
             "canton_name": "Ticino",
             "mode": "pt",
-            "share": 0.06847362677369556
+            "share": 0.0681228161660405
         },
         {
             "canton_name": "Ticino",
             "mode": "walk",
-            "share": 0.2964061759831609
+            "share": 0.2952393581121417
         },
         {
             "canton_name": "Uri",
             "mode": "bike",
-            "share": 0.11136323876580158
+            "share": 0.11156934161504056
         },
         {
             "canton_name": "Uri",
             "mode": "car",
-            "share": 0.44047736304663304
+            "share": 0.4394418399155906
         },
         {
             "canton_name": "Uri",
             "mode": "car_passenger",
-            "share": 0.11674387852805941
+            "share": 0.11695993946758043
         },
         {
             "canton_name": "Uri",
             "mode": "pt",
-            "share": 0.0892469567483741
+            "share": 0.08941212841790888
         },
         {
             "canton_name": "Uri",
             "mode": "walk",
-            "share": 0.24216856291113187
+            "share": 0.24261675058387958
         },
         {
             "canton_name": "Valais",
             "mode": "bike",
-            "share": 0.040230066979811595
+            "share": 0.040286689071826046
         },
         {
             "canton_name": "Valais",
             "mode": "car",
-            "share": 0.4803493194453753
+            "share": 0.4793202591578841
         },
         {
             "canton_name": "Valais",
             "mode": "car_passenger",
-            "share": 0.10815924637526053
+            "share": 0.10860915013634174
         },
         {
             "canton_name": "Valais",
             "mode": "pt",
-            "share": 0.0674912103749576
+            "share": 0.06758620135585593
         },
         {
             "canton_name": "Valais",
             "mode": "walk",
-            "share": 0.3037701568245951
+            "share": 0.30419770027809206
         },
         {
             "canton_name": "Vaud",
             "mode": "bike",
-            "share": 0.023578849891575743
+            "share": 0.023541905799096825
         },
         {
             "canton_name": "Vaud",
             "mode": "car",
-            "share": 0.4607836092887489
+            "share": 0.46133511297114377
         },
         {
             "canton_name": "Vaud",
             "mode": "car_passenger",
-            "share": 0.10441803565953899
+            "share": 0.10449371439029209
         },
         {
             "canton_name": "Vaud",
             "mode": "pt",
-            "share": 0.1401854200506919
+            "share": 0.1400198465610587
         },
         {
             "canton_name": "Vaud",
             "mode": "walk",
-            "share": 0.27103408510944443
+            "share": 0.27060942027840873
         },
         {
             "canton_name": "Zug",
             "mode": "bike",
-            "share": 0.10558958586583708
+            "share": 0.10532956348170182
         },
         {
             "canton_name": "Zug",
             "mode": "car",
-            "share": 0.4226761693304145
+            "share": 0.42409787316264247
         },
         {
             "canton_name": "Zug",
             "mode": "car_passenger",
-            "share": 0.07094984419493522
+            "share": 0.0707751248086405
         },
         {
             "canton_name": "Zug",
             "mode": "pt",
-            "share": 0.11824927478936256
+            "share": 0.11795807695862134
         },
         {
             "canton_name": "Zug",
             "mode": "walk",
-            "share": 0.28253512581945056
+            "share": 0.28183936158839396
         },
         {
             "canton_name": "Zurich",
             "mode": "bike",
-            "share": 0.09774253023654737
+            "share": 0.09772820273937646
         },
         {
             "canton_name": "Zurich",
             "mode": "car",
-            "share": 0.33954241243814676
+            "share": 0.3395077101110687
         },
         {
             "canton_name": "Zurich",
             "mode": "car_passenger",
-            "share": 0.07960203183574788
+            "share": 0.07972187832996837
         },
         {
             "canton_name": "Zurich",
             "mode": "pt",
-            "share": 0.2196560453218676
+            "share": 0.21962384724636957
         },
         {
             "canton_name": "Zurich",
             "mode": "walk",
-            "share": 0.2634569801676903
+            "share": 0.2634183615732169
         }
     ],
     "Synthetic": [
         {
             "canton_name": "Aargau",
             "mode": "bike",
-            "share": 0.048217503721695525
+            "share": 0.05350282217900678
         },
         {
             "canton_name": "Aargau",
             "mode": "car",
-            "share": 0.5098801222283162
+            "share": 0.5092728738794289
         },
         {
             "canton_name": "Aargau",
             "mode": "car_passenger",
-            "share": 0.10074433910522604
+            "share": 0.09775648626855761
         },
         {
             "canton_name": "Aargau",
             "mode": "pt",
-            "share": 0.10696544699522056
+            "share": 0.10838116017644547
         },
         {
             "canton_name": "Aargau",
             "mode": "walk",
-            "share": 0.23419258794954165
+            "share": 0.2310866574965612
         },
         {
             "canton_name": "AppenzellAusserrhoden",
             "mode": "bike",
-            "share": 0.08169522091974753
+            "share": 0.08438356164383562
         },
         {
             "canton_name": "AppenzellAusserrhoden",
             "mode": "car",
-            "share": 0.4834986474301172
+            "share": 0.4328767123287671
         },
         {
             "canton_name": "AppenzellAusserrhoden",
             "mode": "car_passenger",
-            "share": 0.09774571686203787
+            "share": 0.1063013698630137
         },
         {
             "canton_name": "AppenzellAusserrhoden",
             "mode": "pt",
-            "share": 0.11127141568981064
+            "share": 0.1052054794520548
         },
         {
             "canton_name": "AppenzellAusserrhoden",
             "mode": "walk",
-            "share": 0.22578899909828676
+            "share": 0.27123287671232876
         },
         {
             "canton_name": "AppenzellInnerrhoden",
             "mode": "bike",
-            "share": 0.08573298429319372
+            "share": 0.07773109243697479
         },
         {
             "canton_name": "AppenzellInnerrhoden",
             "mode": "car",
-            "share": 0.48429319371727747
+            "share": 0.5042016806722689
         },
         {
             "canton_name": "AppenzellInnerrhoden",
             "mode": "car_passenger",
-            "share": 0.13154450261780104
+            "share": 0.12815126050420167
         },
         {
             "canton_name": "AppenzellInnerrhoden",
             "mode": "pt",
-            "share": 0.0844240837696335
+            "share": 0.1407563025210084
         },
         {
             "canton_name": "AppenzellInnerrhoden",
             "mode": "walk",
-            "share": 0.21400523560209425
+            "share": 0.14915966386554622
         },
         {
             "canton_name": "Basel-Landschaft",
             "mode": "bike",
-            "share": 0.07854883720930232
+            "share": 0.0869325694138387
         },
         {
             "canton_name": "Basel-Landschaft",
             "mode": "car",
-            "share": 0.3588837209302326
+            "share": 0.3595196121639489
         },
         {
             "canton_name": "Basel-Landschaft",
             "mode": "car_passenger",
-            "share": 0.09693023255813954
+            "share": 0.09949316879682679
         },
         {
             "canton_name": "Basel-Landschaft",
             "mode": "pt",
-            "share": 0.18515348837209303
+            "share": 0.18223887174966946
         },
         {
             "canton_name": "Basel-Landschaft",
             "mode": "walk",
-            "share": 0.28048372093023255
+            "share": 0.27181577787571615
         },
         {
             "canton_name": "Basel-Stadt",
             "mode": "bike",
-            "share": 0.07688169413605908
+            "share": 0.06905567517686866
         },
         {
             "canton_name": "Basel-Stadt",
             "mode": "car",
-            "share": 0.24414339511908836
+            "share": 0.2685327591510305
         },
         {
             "canton_name": "Basel-Stadt",
             "mode": "car_passenger",
-            "share": 0.06084022105932411
+            "share": 0.06536450322977545
         },
         {
             "canton_name": "Basel-Stadt",
             "mode": "pt",
-            "share": 0.25519636132439966
+            "share": 0.26022762227007074
         },
         {
             "canton_name": "Basel-Stadt",
             "mode": "walk",
-            "share": 0.36293832836112877
+            "share": 0.3368194401722547
         },
         {
             "canton_name": "Bern",
             "mode": "bike",
-            "share": 0.08473451994492406
+            "share": 0.08597699790083671
         },
         {
             "canton_name": "Bern",
             "mode": "car",
-            "share": 0.38857676961577503
+            "share": 0.388138249120421
         },
         {
             "canton_name": "Bern",
             "mode": "car_passenger",
-            "share": 0.0959105116634338
+            "share": 0.09623628891582652
         },
         {
             "canton_name": "Bern",
             "mode": "pt",
-            "share": 0.15900662318214254
+            "share": 0.15977293557638295
         },
         {
             "canton_name": "Bern",
             "mode": "walk",
-            "share": 0.27177157559372456
+            "share": 0.26987552848653285
         },
         {
             "canton_name": "Fribourg",
             "mode": "bike",
-            "share": 0.05634685130234092
+            "share": 0.056510080444929986
         },
         {
             "canton_name": "Fribourg",
             "mode": "car",
-            "share": 0.5239366963402572
+            "share": 0.5288509285927103
         },
         {
             "canton_name": "Fribourg",
             "mode": "car_passenger",
-            "share": 0.109297725024728
+            "share": 0.10686264773065846
         },
         {
             "canton_name": "Fribourg",
             "mode": "pt",
-            "share": 0.10085723705901747
+            "share": 0.0982222663621015
         },
         {
             "canton_name": "Fribourg",
             "mode": "walk",
-            "share": 0.20956149027365645
+            "share": 0.20955407686959976
         },
         {
             "canton_name": "Geneve",
             "mode": "bike",
-            "share": 0.08100129885464635
+            "share": 0.08559167597436952
         },
         {
             "canton_name": "Geneve",
             "mode": "car",
-            "share": 0.27104734915574447
+            "share": 0.2668861325024984
         },
         {
             "canton_name": "Geneve",
             "mode": "car_passenger",
-            "share": 0.072342267878931
+            "share": 0.072835224266651
         },
         {
             "canton_name": "Geneve",
             "mode": "pt",
-            "share": 0.24007163380170818
+            "share": 0.23972723531832343
         },
         {
             "canton_name": "Geneve",
             "mode": "walk",
-            "share": 0.33553745030897
+            "share": 0.33495973193815765
         },
         {
             "canton_name": "Glarus",
             "mode": "bike",
-            "share": 0.04732908939939109
+            "share": 0.049679487179487176
         },
         {
             "canton_name": "Glarus",
             "mode": "car",
-            "share": 0.5297536673124827
+            "share": 0.5528846153846154
         },
         {
             "canton_name": "Glarus",
             "mode": "car_passenger",
-            "share": 0.11597010794353722
+            "share": 0.09375
         },
         {
             "canton_name": "Glarus",
             "mode": "pt",
-            "share": 0.08137282037088292
+            "share": 0.07852564102564102
         },
         {
             "canton_name": "Glarus",
             "mode": "walk",
-            "share": 0.22557431497370606
+            "share": 0.22516025641025642
         },
         {
             "canton_name": "Graubunden",
             "mode": "bike",
-            "share": 0.04571831444221487
+            "share": 0.051735015772870666
         },
         {
             "canton_name": "Graubunden",
             "mode": "car",
-            "share": 0.4960681164922176
+            "share": 0.46798107255520505
         },
         {
             "canton_name": "Graubunden",
             "mode": "car_passenger",
-            "share": 0.10130701231086285
+            "share": 0.10962145110410094
         },
         {
             "canton_name": "Graubunden",
             "mode": "pt",
-            "share": 0.10895384782255003
+            "share": 0.11246056782334385
         },
         {
             "canton_name": "Graubunden",
             "mode": "walk",
-            "share": 0.24795270893215468
+            "share": 0.2582018927444795
         },
         {
             "canton_name": "Jura",
             "mode": "bike",
-            "share": 0.07927114156673415
+            "share": 0.07225806451612904
         },
         {
             "canton_name": "Jura",
             "mode": "car",
-            "share": 0.4497741784768728
+            "share": 0.4756989247311828
         },
         {
             "canton_name": "Jura",
             "mode": "car_passenger",
-            "share": 0.10683694128640399
+            "share": 0.10623655913978494
         },
         {
             "canton_name": "Jura",
             "mode": "pt",
-            "share": 0.11275502258215231
+            "share": 0.10838709677419354
         },
         {
             "canton_name": "Jura",
             "mode": "walk",
-            "share": 0.2513627160878368
+            "share": 0.23741935483870968
         },
         {
             "canton_name": "Luzern",
             "mode": "bike",
-            "share": 0.08048071713539871
+            "share": 0.07594091010318461
         },
         {
             "canton_name": "Luzern",
             "mode": "car",
-            "share": 0.4302812392257302
+            "share": 0.44235765718951825
         },
         {
             "canton_name": "Luzern",
             "mode": "car_passenger",
-            "share": 0.09609417327488548
+            "share": 0.09590973201692525
         },
         {
             "canton_name": "Luzern",
             "mode": "pt",
-            "share": 0.1378367728907058
+            "share": 0.14237992725113205
         },
         {
             "canton_name": "Luzern",
             "mode": "walk",
-            "share": 0.2553070974732798
+            "share": 0.24341177343923984
         },
         {
             "canton_name": "Neuchatel",
             "mode": "bike",
-            "share": 0.07307555870876198
+            "share": 0.07031642390758412
         },
         {
             "canton_name": "Neuchatel",
             "mode": "car",
-            "share": 0.4201253399550668
+            "share": 0.4039845973547631
         },
         {
             "canton_name": "Neuchatel",
             "mode": "car_passenger",
-            "share": 0.09164006148752513
+            "share": 0.08906747028293989
         },
         {
             "canton_name": "Neuchatel",
             "mode": "pt",
-            "share": 0.14774742816601633
+            "share": 0.15687259333668174
         },
         {
             "canton_name": "Neuchatel",
             "mode": "walk",
-            "share": 0.2674116116826298
+            "share": 0.27975891511803114
         },
         {
             "canton_name": "Nidwalden",
             "mode": "bike",
-            "share": 0.08214585079631181
+            "share": 0.09601706970128022
         },
         {
             "canton_name": "Nidwalden",
             "mode": "car",
-            "share": 0.4833752444816988
+            "share": 0.46799431009957326
         },
         {
             "canton_name": "Nidwalden",
             "mode": "car_passenger",
-            "share": 0.10142497904442582
+            "share": 0.10810810810810811
         },
         {
             "canton_name": "Nidwalden",
             "mode": "pt",
-            "share": 0.11343950824252584
+            "share": 0.09103840682788052
         },
         {
             "canton_name": "Nidwalden",
             "mode": "walk",
-            "share": 0.2196144174350377
+            "share": 0.23684210526315788
         },
         {
             "canton_name": "Obwalden",
             "mode": "bike",
-            "share": 0.10527833862128641
+            "share": 0.059931506849315065
         },
         {
             "canton_name": "Obwalden",
             "mode": "car",
-            "share": 0.4932218055956158
+            "share": 0.5291095890410958
         },
         {
             "canton_name": "Obwalden",
             "mode": "car_passenger",
-            "share": 0.11047014710124027
+            "share": 0.11215753424657535
         },
         {
             "canton_name": "Obwalden",
             "mode": "pt",
-            "share": 0.0833573694837035
+            "share": 0.06678082191780822
         },
         {
             "canton_name": "Obwalden",
             "mode": "walk",
-            "share": 0.20767233919815403
+            "share": 0.2320205479452055
         },
         {
             "canton_name": "Schaffhausen",
             "mode": "bike",
-            "share": 0.07827009816927567
+            "share": 0.0721947194719472
         },
         {
             "canton_name": "Schaffhausen",
             "mode": "car",
-            "share": 0.3613690634120456
+            "share": 0.33457095709570955
         },
         {
             "canton_name": "Schaffhausen",
             "mode": "car_passenger",
-            "share": 0.09962854868665429
+            "share": 0.09570957095709572
         },
         {
             "canton_name": "Schaffhausen",
             "mode": "pt",
-            "share": 0.17988856460599628
+            "share": 0.19554455445544555
         },
         {
             "canton_name": "Schaffhausen",
             "mode": "walk",
-            "share": 0.2808437251260281
+            "share": 0.30198019801980197
         },
         {
             "canton_name": "Schwyz",
             "mode": "bike",
-            "share": 0.06000562113546937
+            "share": 0.0562957402889848
         },
         {
             "canton_name": "Schwyz",
             "mode": "car",
-            "share": 0.518760539629005
+            "share": 0.510977669356352
         },
         {
             "canton_name": "Schwyz",
             "mode": "car_passenger",
-            "share": 0.09569983136593592
+            "share": 0.10583599174329142
         },
         {
             "canton_name": "Schwyz",
             "mode": "pt",
-            "share": 0.10202360876897133
+            "share": 0.10546068680803153
         },
         {
             "canton_name": "Schwyz",
             "mode": "walk",
-            "share": 0.22351039910061832
+            "share": 0.2214299118033402
         },
         {
             "canton_name": "Solothurn",
             "mode": "bike",
-            "share": 0.07825506517983352
+            "share": 0.07963946166193357
         },
         {
             "canton_name": "Solothurn",
             "mode": "car",
-            "share": 0.45535574053714467
+            "share": 0.46005679713544884
         },
         {
             "canton_name": "Solothurn",
             "mode": "car_passenger",
-            "share": 0.09981152819224125
+            "share": 0.10038276330411162
         },
         {
             "canton_name": "Solothurn",
             "mode": "pt",
-            "share": 0.12246741008324172
+            "share": 0.13149771576737868
         },
         {
             "canton_name": "Solothurn",
             "mode": "walk",
-            "share": 0.24411025600753888
+            "share": 0.2284232621311273
         },
         {
             "canton_name": "StGallen",
             "mode": "bike",
-            "share": 0.05146550672791577
+            "share": 0.05127257040734578
         },
         {
             "canton_name": "StGallen",
             "mode": "car",
-            "share": 0.4917273059880483
+            "share": 0.48598015652924137
         },
         {
             "canton_name": "StGallen",
             "mode": "car_passenger",
-            "share": 0.09599983739176389
+            "share": 0.09853947125161767
         },
         {
             "canton_name": "StGallen",
             "mode": "pt",
-            "share": 0.11654945322980609
+            "share": 0.11542490910211375
         },
         {
             "canton_name": "StGallen",
             "mode": "walk",
-            "share": 0.24425789666246595
+            "share": 0.2487828927096814
         },
         {
             "canton_name": "Thurgau",
             "mode": "bike",
-            "share": 0.05558634887956291
+            "share": 0.047549556123069436
         },
         {
             "canton_name": "Thurgau",
             "mode": "car",
-            "share": 0.5407791590783119
+            "share": 0.5502857837772103
         },
         {
             "canton_name": "Thurgau",
             "mode": "car_passenger",
-            "share": 0.10661968485232401
+            "share": 0.11285418946856378
         },
         {
             "canton_name": "Thurgau",
             "mode": "pt",
-            "share": 0.07989547866022646
+            "share": 0.08208682962422474
         },
         {
             "canton_name": "Thurgau",
             "mode": "walk",
-            "share": 0.2171193285295748
+            "share": 0.20722364100693177
         },
         {
             "canton_name": "Ticino",
             "mode": "bike",
-            "share": 0.07988063812693676
+            "share": 0.08274824473420261
         },
         {
             "canton_name": "Ticino",
             "mode": "car",
-            "share": 0.44505336852978306
+            "share": 0.43480441323971913
         },
         {
             "canton_name": "Ticino",
             "mode": "car_passenger",
-            "share": 0.09505910708137266
+            "share": 0.09428284854563691
         },
         {
             "canton_name": "Ticino",
             "mode": "pt",
-            "share": 0.11376678526339952
+            "share": 0.12554329655633567
         },
         {
             "canton_name": "Ticino",
             "mode": "walk",
-            "share": 0.266240100998508
+            "share": 0.2626211969241056
         },
         {
             "canton_name": "Uri",
             "mode": "bike",
-            "share": 0.0637158161826896
+            "share": 0.0763239875389408
         },
         {
             "canton_name": "Uri",
             "mode": "car",
-            "share": 0.48660840146602763
+            "share": 0.4431464174454829
         },
         {
             "canton_name": "Uri",
             "mode": "car_passenger",
-            "share": 0.11530871158725683
+            "share": 0.10903426791277258
         },
         {
             "canton_name": "Uri",
             "mode": "pt",
-            "share": 0.09923879334649
+            "share": 0.117601246105919
         },
         {
             "canton_name": "Uri",
             "mode": "walk",
-            "share": 0.23512827741753595
+            "share": 0.2538940809968847
         },
         {
             "canton_name": "Valais",
             "mode": "bike",
-            "share": 0.0650752528990871
+            "share": 0.06272254176937825
         },
         {
             "canton_name": "Valais",
             "mode": "car",
-            "share": 0.5006785097458673
+            "share": 0.5032411211540218
         },
         {
             "canton_name": "Valais",
             "mode": "car_passenger",
-            "share": 0.10572415494695288
+            "share": 0.10435497124075596
         },
         {
             "canton_name": "Valais",
             "mode": "pt",
-            "share": 0.08561559338761411
+            "share": 0.0938555646854743
         },
         {
             "canton_name": "Valais",
             "mode": "walk",
-            "share": 0.24290648902047865
+            "share": 0.23582580115036977
         },
         {
             "canton_name": "Vaud",
             "mode": "bike",
-            "share": 0.07494521918658409
+            "share": 0.07053040695016004
         },
         {
             "canton_name": "Vaud",
             "mode": "car",
-            "share": 0.4275310002406556
+            "share": 0.4327846364883402
         },
         {
             "canton_name": "Vaud",
             "mode": "car_passenger",
-            "share": 0.09094248331243429
+            "share": 0.09213534522176497
         },
         {
             "canton_name": "Vaud",
             "mode": "pt",
-            "share": 0.14654659219009258
+            "share": 0.14094650205761317
         },
         {
             "canton_name": "Vaud",
             "mode": "walk",
-            "share": 0.26003470507023346
+            "share": 0.2636031092821216
         },
         {
             "canton_name": "Zug",
             "mode": "bike",
-            "share": 0.08540952380952381
+            "share": 0.07552941176470589
         },
         {
             "canton_name": "Zug",
             "mode": "car",
-            "share": 0.36510476190476193
+            "share": 0.3851764705882353
         },
         {
             "canton_name": "Zug",
             "mode": "car_passenger",
-            "share": 0.08693333333333333
+            "share": 0.09576470588235295
         },
         {
             "canton_name": "Zug",
             "mode": "pt",
-            "share": 0.1740952380952381
+            "share": 0.19058823529411764
         },
         {
             "canton_name": "Zug",
             "mode": "walk",
-            "share": 0.28845714285714286
+            "share": 0.2529411764705882
         },
         {
             "canton_name": "Zurich",
             "mode": "bike",
-            "share": 0.08318163727351616
+            "share": 0.08242481387628421
         },
         {
             "canton_name": "Zurich",
             "mode": "car",
-            "share": 0.342167589892149
+            "share": 0.3418390398177068
         },
         {
             "canton_name": "Zurich",
             "mode": "car_passenger",
-            "share": 0.08556310229860309
+            "share": 0.08460526057320211
         },
         {
             "canton_name": "Zurich",
             "mode": "pt",
-            "share": 0.20467550092322548
+            "share": 0.2076138841416701
         },
         {
             "canton_name": "Zurich",
             "mode": "walk",
-            "share": 0.28441216961250626
+            "share": 0.2835170015911368
         }
     ],
     "max_share_per_mode": {

@@ -1,7 +1,9 @@
-import React, { useState, useEffect  } from "react";
+import React, { useState, useEffect, useRef  } from "react";
 import "./Sidebar.css";
 import Slider from "rc-slider"; 
 import "rc-slider/assets/index.css";
+import { useFileContext } from "../FileContext";
+import { useLoadWithFallback } from "../utils/useLoadWithFallback";
 
 // Sidebar Modules / Graphs
 import ActivityDist from "./ActivityDist";
@@ -20,12 +22,14 @@ import TransitStopAttributesTable from "./TransitStopAttributesTable";
 import Demographics from "./Demographics";
 import TransitStopHistogram from "./TransitStopHistogram";
 import DestinationZones from "./DestinationZones";
+import DestinationZones from "./DestinationZones";
+import { useLoadWithFallback } from "../utils/useLoadWithFallback";
 
 const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, resetMapView, updateMapSymbology,
   selectedNetworkModes, setSelectedNetworkModes, selectedNetworkFeature, setVisualizeLinkId, dataURL, setDataURL,
   selectedTransitModes, setSelectedTransitModes, selectedTransitStop, highlightedLineId, setHighlightedLineId,
-  setHighlightedRouteIds, setHoveredRouteId, showStopVolumeSymbology, setShowStopVolumeSymbology, timeRange, setTimeRange,
-  setDestinationData }) => {
+  setHighlightedRouteIds, setHoveredRouteId,showStopVolumeSymbology, setShowStopVolumeSymbology, timeRange, setTimeRange,
+  selectedAggCol, setSelectedAggCol, setDestinationData}) => {
     
     // ======================= INITIALIZE VARIABLES =======================
     
@@ -33,7 +37,6 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
     const [selectedMode, setSelectedMode] = useState("None"); // Choropleth mode
     const [selectedDataset, setSelectedDataset] = useState("Microcensus"); // Choropleth dataset
     const [availableModes, setAvailableModes] = useState([]); // Available modes for network filter
-    const [selectedAggCol, setSelectedAggCol] = useState("mode"); // For graphs
     const [modesByCanton, setModesByCanton] = useState({}); // For mode filter (only show modes available in each canton)
     const [inputURL, setInputURL] = useState("");
     
@@ -45,6 +48,11 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
     // Add state for destination outflow data
     const [destinationOutflowData, setDestinationOutflowData] = useState(null);
 
+    // Data upload
+    const { handleFolderUpload, fileMap, clearFileMap } = useFileContext();
+    const loadWithFallback = useLoadWithFallback(dataURL);
+    const fileInputRef = useRef();
+    
     const formatTimeLabel = (index) => {
       const hours = Math.floor(index / 4);
       const minutes = (index % 4) * 15;
@@ -62,20 +70,17 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
     
     // Get modes per canton from JSON file
     useEffect(() => {
-      const dataPath = `${dataURL}modes_by_canton.json`;
-      fetch(dataPath)
-      .then(res => res.json())
+      loadWithFallback("modes_by_canton.json")
       .then(data => setModesByCanton(data))
       .catch(err => console.error("Failed to load modes_by_canton.json", err));
-    }, []);
+    }, [dataURL]);
     
     // Get transit modes per stops
     useEffect(() => {
-      fetch(`${dataURL}/matsim/transit/transit_stop_modes_by_canton.json`)
-      .then((res) => res.json())
-      .then((data) => setTransitModesByCanton(data))
-      .catch((err) => console.error("Failed to load transit modes:", err));
-    }, []);
+      loadWithFallback("matsim/transit/transit_modes_by_canton.json")
+      .then(data => setTransitModesByCanton(data))
+      .catch(err => console.error("Failed to load transit modes:", err));
+    }, [dataURL]);
     
     // Push current module to Map
     const handleGraphSelection = (event) => {
@@ -115,6 +120,14 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
       
       setHighlightedLineId(null);
       setHighlightedRouteIds([]);
+
+      setSelectedGraph(null);
+      onExpandGraph(null);
+
+      clearFileMap();
+      setDataURL("https://matsim-eth.github.io/webmap/data/");
+      setInputURL(""); // clears the text field if you’re using it
+
     };
     
     
@@ -178,12 +191,15 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
     };
 
     return (
+      
+      
       <div className={`floating-panel ${isOpen ?  // Sets the css for sidebar width
         (selectedGraph === "Graph 3" || selectedGraph === "Graph 4" ? "expanded-graph3" : 
           selectedGraph === "Choropleth"  || selectedGraph === "Network" ? "open" : 
           selectedGraph ? "expanded" : "open") 
           : "collapsed"}`}>
           <button className="toggle-button" onClick={toggleSidebar}>{isOpen ? "✕" : "☰"}</button>          
+          
           
           {isOpen && (
             <div className="floating-content">
@@ -284,6 +300,7 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
               </div>
               </div>
             )}
+
             {/* Rendering for graphs */}
             {selectedGraph === "Graph 1" && <div className="plot-container"><AverageDist canton={canton || "All"} aggCol={selectedAggCol} dataURL={dataURL}/></div>}
             {selectedGraph === "Graph 2" && <div className="plot-container"><Histogram canton={canton || "All"} aggCol={selectedAggCol} dataURL={dataURL}/></div>}
@@ -298,19 +315,19 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
             {/* Mode Share Choropleth Selection */}
             {selectedGraph === "Choropleth" && (
               <div>
-              <ChoroplethControls
-              selectedMode={selectedMode}
-              setSelectedMode={setSelectedMode}
-              selectedDataset={selectedDataset}
-              setSelectedDataset={setSelectedDataset}
-              updateMapSymbology={updateMapSymbology}
-              dataURL={dataURL}
-              />
-              <CantonModeShareTable canton={canton} selectedDataset={selectedDataset} selectedMode={selectedMode} dataURL={dataURL} />
+                <ChoroplethControls
+                  selectedMode={selectedMode}
+                  setSelectedMode={setSelectedMode}
+                  selectedDataset={selectedDataset}
+                  setSelectedDataset={setSelectedDataset}
+                  updateMapSymbology={updateMapSymbology}
+                  aggCol={selectedAggCol}
+                />
+                <CantonModeShareTable canton={canton} selectedDataset={selectedDataset} selectedMode={selectedMode} aggCol={selectedAggCol} />
               </div>
             )}
             
-            {/* Network Module */}
+            {/* Destination Module */}
             {selectedGraph === "Destination" && (
               <div className="plot-container">
                 <DestinationZones
@@ -321,157 +338,148 @@ const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, reset
               </div>
             )}
 
+            {/* Network Module */}
             {selectedGraph === "Network" && (
-              
               <div className="plot-container">
-              <div className="mode-filter-container">
-              <label className="mode-filter-label">Filter by Mode:</label>
-              <select
-              multiple
-              value={selectedNetworkModes}
-              onChange={handleModeChange}
-              className="mode-filter-select"
-              >
-              <option value="all">All</option>
-              {availableModes.map((mode) => (
-                <option key={mode} value={mode}>
-                {mode.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
-                </option>
-              ))}
-              </select>
-              </div>  
-              {selectedNetworkFeature && (
-                <SegmentAttributesTable propertiesList={selectedNetworkFeature} />
-              )}
+                <div className="mode-filter-container">
+                  <label className="mode-filter-label">Filter by Mode:</label>
+                  <select
+                    multiple
+                    value={selectedNetworkModes}
+                    onChange={handleModeChange}
+                    className="mode-filter-select"
+                  >
+                    <option value="all">All</option>
+                    {availableModes.map((mode) => (
+                      <option key={mode} value={mode}>
+                        {mode.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
+                      </option>
+                    ))}
+                  </select>
+                </div>  
+                {selectedNetworkFeature && (
+                  <SegmentAttributesTable propertiesList={selectedNetworkFeature} />
+                )}
               </div>
             )}
-            
+
+            {/* Volumes Module */}
             {selectedGraph === "Volumes" && (
               <div className="plot-container">
-              {selectedNetworkFeature && (
-                <SegmentAttributesTable propertiesList={selectedNetworkFeature} selectedGraph={selectedGraph}/>
-              )}
-              
-              {selectedNetworkFeature ? (
-                <SegmentVolumeHistogram
-                linkId={selectedNetworkFeature.map(f => f.id)}
-                setVisualizeLinkId={setVisualizeLinkId}
-                canton={canton}
-                dataURL={dataURL}
-                />
-              ) : (
-                <p style={{ padding: "1rem", fontStyle: "italic", color: "#555" }}>
-                Click a canton and/or segment to see hourly volumes.
-                </p>
-              )}
+                {selectedNetworkFeature && (
+                  <SegmentAttributesTable propertiesList={selectedNetworkFeature} selectedGraph={selectedGraph}/>
+                )}
+                
+                {selectedNetworkFeature ? (
+                  <SegmentVolumeHistogram
+                    linkId={selectedNetworkFeature.map(f => f.id)}
+                    setVisualizeLinkId={setVisualizeLinkId}
+                    canton={canton}
+                  />
+                ) : (
+                  <p style={{ padding: "1rem", fontStyle: "italic", color: "#555" }}>
+                    Click a canton and/or segment to see hourly volumes.
+                  </p>
+                )}
               </div>
             )}
             
+            {/* Transit Module */}
             {selectedGraph === "Transit" && (
               <div style={{ overflowY: "auto", overflowX: "hidden", width: "100%" }}>
-              
-              <div className="mode-filter-container">
-              <label className="mode-filter-label">Filter by Mode:</label>
-              <select
-              multiple
-              value={selectedTransitModes}
-              onChange={handleTransitModeChange}
-              className="mode-filter-select"
-              >
-              <option value="all">All</option>
-              {availableTransitModes.map((mode) => (
-                <option key={mode} value={mode}>
-                {mode.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
-                </option>
-              ))}
-              </select>
-
-
-{/* Time Range + Checkbox Row */}
-<div style={{
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: "0.5rem 2rem 2rem 0.5rem",
-  gap: "1rem",
-}}>
-
-
-  {/* Slider and label */}
-  <div style={{ flex: 1 }}>
-    <label style={{
-      fontWeight: "bold",
-      fontSize: "10pt",
-      display: "block",
-      marginBottom: "0.25rem",
-      marginLeft: "7%"
-    }}>
-      Time: {formatTimeLabel(timeRange[0])} – {formatTimeLabel(timeRange[1])}
-    </label>
-    <Slider
-      range
-      min={0}
-      max={96}
-      step={1}
-      marks={marks}
-      value={timeRange}
-      onChange={(val) => setTimeRange(val)}
-      allowCross={false}
-      style={{ marginLeft: "10%", width: "80%" }}
-    />
-  </div>
-
-    {/* Checkbox */}
-  <label style={{ fontWeight: "bold", fontSize: "10pt", whiteSpace: "nowrap" }}>
-    <input
-      type="checkbox"
-      checked={showStopVolumeSymbology}
-      onChange={(e) => setShowStopVolumeSymbology(e.target.checked)}
-      style={{ marginRight: "0.5rem" }}
-    />
-    Show stop volumes
-  </label>
-
-</div>
-
-              
-             
-              </div>
-              {selectedTransitStop && (
-                <>
-                <TransitStopAttributesTable
-                properties={{
-                  ...selectedTransitStop,
-                  ...(filteredStopVolumes ?? {}) 
-                }}
-                highlightedLineId={highlightedLineId}
-                onLineClick={(lineId, routeIds) => {
-                  setHighlightedLineId(lineId);
-                  setHighlightedRouteIds(routeIds);
-                }}
-                onRouteHover={setHoveredRouteId}
-                />
+                <div className="mode-filter-container">
+                  <label className="mode-filter-label">Filter by Mode:</label>
+                  <select
+                    multiple
+                    value={selectedTransitModes}
+                    onChange={handleTransitModeChange}
+                    className="mode-filter-select"
+                  >
+                    <option value="all">All</option>
+                    {availableTransitModes.map((mode) => (
+                      <option key={mode} value={mode}>
+                        {mode.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
+                      </option>
+                    ))}
+                  </select>
+                  
+                  {/* Time Range + Checkbox Row */}
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "0.5rem 2rem 2rem 0.5rem",
+                    gap: "1rem",
+                  }}>
+                    {/* Slider and label */}
+                    <div style={{ flex: 1 }}>
+                      <label style={{
+                        fontWeight: "bold",
+                        fontSize: "10pt",
+                        display: "block",
+                        marginBottom: "0.25rem",
+                        marginLeft: "7%"
+                      }}>
+                        Time: {formatTimeLabel(timeRange[0])} – {formatTimeLabel(timeRange[1])}
+                      </label>
+                      <Slider
+                        range
+                        min={0}
+                        max={96}
+                        step={1}
+                        marks={marks}
+                        value={timeRange}
+                        onChange={(val) => setTimeRange(val)}
+                        allowCross={false}
+                        style={{ marginLeft: "10%", width: "80%" }}
+                      />
+                    </div>
+                    
+                    {/* Checkbox */}
+                    <label style={{ fontWeight: "bold", fontSize: "10pt", whiteSpace: "nowrap" }}>
+                      <input
+                        type="checkbox"
+                        checked={showStopVolumeSymbology}
+                        onChange={(e) => setShowStopVolumeSymbology(e.target.checked)}
+                        style={{ marginRight: "0.5rem" }}
+                      />
+                      Show stop volumes
+                    </label>
+                  </div>
+                </div>
                 
-                </>
+                {selectedTransitStop && (
+                  <>
+                    <TransitStopAttributesTable
+                      properties={{
+                        ...selectedTransitStop,
+                        ...(filteredStopVolumes ?? {}) 
+                      }}
+                      highlightedLineId={highlightedLineId}
+                      onLineClick={(lineId, routeIds) => {
+                        setHighlightedLineId(lineId);
+                        setHighlightedRouteIds(routeIds);
+                      }}
+                      onRouteHover={setHoveredRouteId}
+                    />
+                  </>
+                )}
                 
-              )}
-              {selectedTransitStop && (
-                <TransitStopHistogram
-                stopIds={selectedTransitStop.stop_ids}
-                canton={canton}
-                dataURL={dataURL}
-                lineId={highlightedLineId}
-                onVolumeUpdate={setFilteredStopVolumes}
-                timeRange={timeRange}
-                />
-              )}
+                {selectedTransitStop && (
+                  <TransitStopHistogram
+                    stopIds={selectedTransitStop.stop_ids}
+                    canton={canton}
+                    lineId={highlightedLineId}
+                    onVolumeUpdate={setFilteredStopVolumes}
+                    timeRange={timeRange}
+                  />
+                )}
               </div>
             )}
-            
-            </div>
-          )}
           </div>
-        );
-      };
-      
-      export default Sidebar;
+        )}
+      </div>
+    );
+  };
+
+  export default Sidebar;

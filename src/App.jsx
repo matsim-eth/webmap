@@ -4,6 +4,7 @@ import Sidebar from "./components/Sidebar";
 import CantonSearch from "./components/CantonSearch";
 import "./App.css";
 import NetworkLegend from "./components/NetworkLegend";
+import { FileProvider } from "./FileContext";
 
 function App() {
   const [dataURL, setDataURL] = useState("https://matsim-eth.github.io/webmap/data/");
@@ -17,6 +18,7 @@ function App() {
   const [cantonList, setCantonList] = useState([]);
   
   // Choropleth Symbology
+  const [aggCol, setAggCol] = useState("mode");
   const [selectedMode, setSelectedMode] = useState("None"); // by default, show no mode (transparent purple background)
   const [selectedDataset, setSelectedDataset] = useState("Microcensus"); // by default, show Microcensus
   
@@ -98,6 +100,7 @@ function App() {
   };
   
   return (
+    <FileProvider dataURL={dataURL}>
     <>
     <CantonSearch
     map={mapRef.current}
@@ -128,6 +131,7 @@ function App() {
     hoveredRouteId={hoveredRouteId}
     showStopVolumeSymbology={showStopVolumeSymbology}
     timeRange={timeRange}
+    aggCol={aggCol}
     />
     
     <Sidebar
@@ -139,6 +143,8 @@ function App() {
     setCanton={setClickedCanton} // from map
     resetMapView={resetMapView} // to app
     updateMapSymbology={updateMapSymbology} // to map
+    selectedAggCol={aggCol}
+    setSelectedAggCol={setAggCol}
     selectedNetworkModes={selectedNetworkModes} // to map
     setSelectedNetworkModes={setSelectedNetworkModes} // to change value
     selectedNetworkFeature={selectedNetworkFeature} // from map
@@ -164,6 +170,7 @@ function App() {
     showStopVolumeSymbology={showStopVolumeSymbology}
     />
     </>
+    </FileProvider>
   );
 }
 
