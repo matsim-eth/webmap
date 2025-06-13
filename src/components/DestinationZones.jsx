@@ -19,6 +19,7 @@ const DestinationZones = ({ canton, dataURL, onTotalOutflowChange }) => {
   const [selectedMode, setSelectedMode] = useState('all');
   const [selectedPurpose, setSelectedPurpose] = useState('all');
   const [selectedCanton, setSelectedCanton] = useState('all');
+  const [isOriginMode, setIsOriginMode] = useState(true);
 
   const modes = [
     { value: 'all', label: 'All Modes' },
@@ -68,14 +69,23 @@ const DestinationZones = ({ canton, dataURL, onTotalOutflowChange }) => {
       return acc;
     }, {});
 
+    // filter by role (origin/destination mode)
+    let filteredData = plotData.filter(d => 
+      d.role === (isOriginMode ? 'origin' : 'destination')
+    );
+
     // filter by canton
-    let filteredData = plotData;
     if (selectedCanton !== 'all') {
       // get the display name to match the internal representation
-      filteredData = plotData.filter(d => 
-        d.destination === selectedCanton ||
-        reverseCantonMap[d.destination] === selectedCanton
-      );
+      filteredData = filteredData.filter(d => {
+        if (isOriginMode) {
+          // In origin mode, filter by destination canton
+          return d.destination === selectedCanton || reverseCantonMap[d.destination] === selectedCanton;
+        } else {
+          // In destination mode, filter by origin canton
+          return d.origin === selectedCanton || reverseCantonMap[d.origin] === selectedCanton;
+        }
+      });
     }
     // filter by transport mode
     if (selectedMode !== 'all') {
@@ -122,7 +132,11 @@ const DestinationZones = ({ canton, dataURL, onTotalOutflowChange }) => {
       return acc;
     }, {});
 
-    let filteredDataForChoropleth = plotData;
+    // filter by role (origin/destination mode)
+    let filteredDataForChoropleth = plotData.filter(d => 
+      d.role === (isOriginMode ? 'origin' : 'destination')
+    );
+
     if (selectedPurpose !== 'all') {
       filteredDataForChoropleth = filteredDataForChoropleth.filter(d => d.purpose === selectedPurpose);
     }
@@ -144,9 +158,11 @@ const DestinationZones = ({ canton, dataURL, onTotalOutflowChange }) => {
             modeTotals[entry.mode] += count;
           }
        
-          let cantonKey = entry.destination;
-          if (reverseCantonMap[entry.destination]) {
-            cantonKey = reverseCantonMap[entry.destination];
+          // When in destination mode, show distribution by origin cantons
+          // When in origin mode, show distribution by destination cantons
+          let cantonKey = isOriginMode ? entry.destination : entry.origin;
+          if (reverseCantonMap[cantonKey]) {
+            cantonKey = reverseCantonMap[cantonKey];
           }
           if (!cantonTotals[cantonKey]) cantonTotals[cantonKey] = initModeTotals();
           cantonTotals[cantonKey].all += count;
@@ -162,13 +178,52 @@ const DestinationZones = ({ canton, dataURL, onTotalOutflowChange }) => {
       perCanton: cantonTotals, 
       selectedMode: selectedMode 
     });
-  }, [plotData, selectedCanton, selectedMode, selectedPurpose, localTimeRange]);
+  }, [plotData, selectedCanton, selectedMode, selectedPurpose, localTimeRange, isOriginMode]);
 
   if (!plotData) return <p>Loading data...</p>;
 
   return (
-      <div className="plot-container">
-      <h3>Origin Canton: {canton}</h3>
+    <div className="plot-container">
+      <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '10px', minHeight: 40 }}>
+        <div style={{ minWidth: 260, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+          <h3 style={{ margin: 0 }}>
+            {isOriginMode ? "Origin" : "Destination"} Canton: {canton}
+            <div style={{ marginTop: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
+                <span style={{ marginRight: '8px', fontWeight: isOriginMode ? 'bold' : 'normal' }}>Origin</span>
+                <label className="switch" style={{ display: 'inline-block', position: 'relative', width: '40px', height: '20px', margin: '0 8px' }}>
+                  <input
+                    type="checkbox"
+                    checked={!isOriginMode}
+                    onChange={() => setIsOriginMode((prev) => !prev)}
+                    style={{ opacity: 0, width: 0, height: 0 }}
+                  />
+                  <span style={{
+                    position: 'absolute',
+                    cursor: 'pointer',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: isOriginMode ? '#2196f3' : '#4caf50', // basic blue for Origin, green for Destination
+                    borderRadius: '20px',
+                    transition: '.4s'
+                  }} />
+                  <span style={{
+                    position: 'absolute',
+                    left: isOriginMode ? '2px' : '22px',
+                    top: '1px',
+                    width: '16px',
+                    height: '16px',
+                    backgroundColor: isOriginMode ? '#fff' : '#e8f5e9', // knob color
+                    borderRadius: '50%',
+                    transition: '.4s'
+                  }} />
+                </label>
+                <span style={{ fontWeight: !isOriginMode ? 'bold' : 'normal' }}>Destination</span>
+              </div>
+            </div>
+          </h3>
+        </div>
+      </div>
+
       <div style={{ width: 500, padding: "20px 10px" }}>
         <div style={{ marginBottom: "8px", fontWeight: "bold"}}>
           Time: {timeToLabel(localTimeRange[0])} – {timeToLabel(localTimeRange[1])}
@@ -232,7 +287,9 @@ const DestinationZones = ({ canton, dataURL, onTotalOutflowChange }) => {
         </div>
 
         <div>
-          <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>Destination Canton</div>
+          <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+            {isOriginMode ? 'Destination Canton' : 'Origin Canton'}
+          </div>
           <select 
             value={selectedCanton}
             onChange={(e) => setSelectedCanton(e.target.value)}
