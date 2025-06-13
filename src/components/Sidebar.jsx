@@ -22,8 +22,6 @@ import TransitStopAttributesTable from "./TransitStopAttributesTable";
 import Demographics from "./Demographics";
 import TransitStopHistogram from "./TransitStopHistogram";
 import DestinationZones from "./DestinationZones";
-import DestinationZones from "./DestinationZones";
-import { useLoadWithFallback } from "../utils/useLoadWithFallback";
 
 const Sidebar = ({canton, isOpen, toggleSidebar, onExpandGraph, setCanton, resetMapView, updateMapSymbology,
   selectedNetworkModes, setSelectedNetworkModes, selectedNetworkFeature, setVisualizeLinkId, dataURL, setDataURL,

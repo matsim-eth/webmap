@@ -31,6 +31,8 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
     const selectedNetworkModesRef = useRef(selectedNetworkModes);
     
     const loadWithFallback = useLoadWithFallback(dataURL);
+    const cantonNumToNameRef = useRef({}); // Store canton number to name mapping
+
     // ======================= INITIALIZE MAP AND HANDLE CANTON SELECTION =======================
 
     useEffect(() => {
