@@ -1,5 +1,5 @@
 import React from "react";
-import "./Table.css"; // Reuse the same CSS
+import "../Table.css"; // Reuse the same CSS
 
 const format = (value, isSpeed = false) => {
   if (isSpeed) return `${Math.round(value * 3.6)} km/h`; // Convert m/s → km/h

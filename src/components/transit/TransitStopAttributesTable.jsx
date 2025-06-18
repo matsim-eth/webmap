@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./Table.css";
+import "../Table.css";
 
 const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId, onRouteHover }) => {
   if (!properties) return null;

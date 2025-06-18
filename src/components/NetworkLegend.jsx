@@ -6,7 +6,7 @@ const Legend = ({ selectedGraph, showStopVolumeSymbology }) => {
   const isNetwork = selectedGraph === "Network";
   const isTransit = selectedGraph === "Transit";
 
-  if ((!isVolumes && !isNetwork && !isTransit) || !showStopVolumeSymbology) return null;
+if (!isVolumes && !isNetwork && !(isTransit && showStopVolumeSymbology)) return null;
 
   return (
     <div className="network-legend-container">

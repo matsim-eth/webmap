@@ -18,7 +18,6 @@ const VARIABLES = {
 const DepartureTimes = ({ canton, onClose, dataURL}) => {
   return (
     <div className="overlay-panel">
-      <h3>{canton || "All"} - Departure Times</h3>
       
       <GenericBarPlot
         dataFile="departure_times.json"

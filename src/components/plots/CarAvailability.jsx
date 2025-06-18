@@ -13,8 +13,8 @@ const AGE_VARIABLES = {
 };
 
 const GENDER_VARIABLES = {
-  "Male": "0",
-  "Female": "1",
+  Male: "0",
+  Female: "1",
 };
 
 const INCOME_VARIABLES = {
@@ -28,24 +28,22 @@ const INCOME_VARIABLES = {
   "8": "8",
 };
 
-const PtSubscription = ({ canton, onClose, dataURL }) => {
+const CarAvailability = ({ canton, onClose, dataURL }) => {
   return (
     <div className="overlay-panel">
-      <h3>{canton || "All"} - Public Transport Subscription</h3>
-
       <BasicBarPlot
-        dataFile="pt_subscriptions.json"
-        title="Public Transport Subscription Distribution"
-        xAxisTitle="Subscription Type"
+        dataFile="car_availability.json"
+        title="Car Availability Class Distribution"
+        xAxisTitle="Car Class"
         yAxisTitle="Proportion"
         canton={canton}
         dataURL={dataURL}
       />
 
       <GenericBarPlot
-        dataFile="pt_sub_age.json"
-        title="Public Transport Subscriptions by Age"
-        xAxisTitle="Subscription Type"
+        dataFile="num_cars_age.json"
+        title="Car Availability Class by Age"
+        xAxisTitle="Car Availability Class"
         variables={AGE_VARIABLES}
         defaultVariable={AGE_VARIABLES["[6, 15)"]}
         canton={canton}
@@ -54,9 +52,9 @@ const PtSubscription = ({ canton, onClose, dataURL }) => {
       />
 
       <GenericBarPlot
-        dataFile="pt_sub_gender.json"
-        title="Public Transport Subscriptions by Gender"
-        xAxisTitle="Subscription Type"
+        dataFile="num_cars_gender.json"
+        title="Car Availability Class by Gender"
+        xAxisTitle="Car Availability Class"
         variables={GENDER_VARIABLES}
         defaultVariable={GENDER_VARIABLES["Female"]}
         canton={canton}
@@ -65,9 +63,9 @@ const PtSubscription = ({ canton, onClose, dataURL }) => {
       />
 
       <GenericBarPlot
-        dataFile="pt_sub_income.json"
-        title="Public Transport Subscriptions by Income"
-        xAxisTitle="Subscription Type"
+        dataFile="num_cars_income.json"
+        title="Car Availability Class by Income"
+        xAxisTitle="Car Availability Class"
         variables={INCOME_VARIABLES}
         defaultVariable={INCOME_VARIABLES["1"]}
         canton={canton}
@@ -78,4 +76,4 @@ const PtSubscription = ({ canton, onClose, dataURL }) => {
   );
 };
 
-export default PtSubscription;
+export default CarAvailability;

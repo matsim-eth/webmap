@@ -132,7 +132,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
             });
             
             if (graphExpandedRef.current === "Network" || graphExpandedRef.current === "Volumes") {
-              loadNetworkForCanton(cantonName);
+              //loadNetworkForCanton(cantonName);
             } else {
               // Remove network-related layers and sources
               if (map.getLayer("network-layer")) {
