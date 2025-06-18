@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
+import cantonAlias from "../../utils/canton_alias.json";
 
 const BasicBarPlot = ({
     dataFile = "/data/frequent_sequences.json",
@@ -39,7 +40,7 @@ const BasicBarPlot = ({
 
     return (
     <div className="overlay-panel">
-        <h3>{canton} - {title}</h3>
+        <h3>{cantonAlias[canton]} - {title}</h3>
 
         <Plot
         data={dataKeys.map((key) => ({

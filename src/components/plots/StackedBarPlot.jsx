@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
-import cantonAlias from "../utils/canton_alias.json";
-import { useLoadWithFallback } from "../utils/useLoadWithFallback";
+import cantonAlias from "../../utils/canton_alias.json";
+import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
 
 const MODE_COLORS = {
   car: "#636efa",

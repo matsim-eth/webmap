@@ -15,7 +15,7 @@ export const useLoadWithFallback = (explicitDataURL) => {
         console.log(`Loaded from uploaded files: ${localPath}`);
         return json;
       } catch (err) {
-        // silently fall through to next attempt
+        console.warn(`Failed parsing uploaded file: ${localPath}`, err);
       }
     }
 
@@ -33,6 +33,12 @@ export const useLoadWithFallback = (explicitDataURL) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
         console.log(`Loaded from remote URL: ${finalURL}`);
+
+        if (base.startsWith("http")) {
+  console.log(`[loadWithFallback] Loaded from remote URL: ${finalURL}`);
+  console.trace(); // shows you where the function was called
+}
+
         return json;
       } catch {
         // silently try next

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
-import { useLoadWithFallback } from "../utils/useLoadWithFallback";
+import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
 
 const TransitStopHistogram = ({ stopIds, canton, lineId, onVolumeUpdate, timeRange }) => {
   const [hourlyCounts, setHourlyCounts] = useState(null);

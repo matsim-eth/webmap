@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
+import cantonAlias from "../../utils/canton_alias.json";
 
 const GenericBarPlot = ({
     dataFile = "/data/pt_sub_age.json",
@@ -39,7 +40,7 @@ const GenericBarPlot = ({
 
     return (
     <div className="overlay-panel">
-      <h3>{canton} - {title}</h3>
+      <h3>{cantonAlias[canton]} - {title}</h3>
 
       <div style={{ display: "flex", gap: "15px", marginBottom: "10px" }}>
         {Object.entries(variables).map(([label, value]) => (

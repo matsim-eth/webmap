@@ -12,8 +12,6 @@ const ACTIVITY_VARIABLES = {
 const Demographics = ({ canton, onClose, dataURL }) => {
   return (
     <div className="overlay-panel">
-      <h3>{canton || "All"} - Activity Distributions</h3>
-
       <BasicBarPlot
         dataFile="age.json"
         title="Age Group Distribution"

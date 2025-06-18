@@ -13,7 +13,6 @@ const ACTIVITY_VARIABLES = {
 const ActivityDist = ({ canton, onClose, dataURL }) => {
   return (
     <div className="overlay-panel">
-      <h3>{canton || "All"} - Activity Distributions</h3>
 
       <BasicBarPlot
         dataFile="num_activities.json"

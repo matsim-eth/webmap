@@ -49,7 +49,7 @@ function App() {
   const [timeRange, setTimeRange] = useState([0, 96]);
   
   // Pass selected mode/dataset from sidebar to map
-  const updateMapSymbology = (mode, dataset) => {
+  const updateMapChoropleth = (mode, dataset) => {
     setSelectedMode(mode);
     setSelectedDataset(dataset);
   };
@@ -89,7 +89,6 @@ function App() {
   
   return (
     <FileProvider dataURL={dataURL}>
-    <>
     <CantonSearch
     map={mapRef.current}
     cantonList={cantonList} // from app
@@ -129,7 +128,7 @@ function App() {
     onExpandGraph={setIsGraphExpanded} // to map
     setCanton={setClickedCanton} // from map
     resetMapView={resetMapView} // to app
-    updateMapSymbology={updateMapSymbology} // to map
+    updateMapChoropleth={updateMapChoropleth} // to map
     selectedAggCol={aggCol}
     setSelectedAggCol={setAggCol}
     selectedNetworkModes={selectedNetworkModes} // to map
@@ -155,7 +154,6 @@ function App() {
     selectedGraph={isGraphExpanded} // from sidebar
     showStopVolumeSymbology={showStopVolumeSymbology}
     />
-    </>
     </FileProvider>
   );
 }
