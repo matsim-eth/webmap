@@ -43,7 +43,7 @@ const ChoroplethControls = ({
   setSelectedMode,
   selectedDataset,
   setSelectedDataset,
-  updateMapSymbology,
+  updateMapChoropleth,
   aggCol = "mode",
 }) => {
   const [maxSharePerMode, setMaxSharePerMode] = useState(null);
@@ -67,7 +67,7 @@ useEffect(() => {
   const handleModeChange = (e) => {
     const newMode = e.target.value;
     setSelectedMode(newMode);
-    updateMapSymbology(newMode, selectedDataset);
+    updateMapChoropleth(newMode, selectedDataset);
   };
 
   return (
@@ -89,7 +89,7 @@ useEffect(() => {
             className={`dataset-option ${selectedDataset === option ? "active" : ""}`}
             onClick={() => {
               setSelectedDataset(option);
-              updateMapSymbology(selectedMode, option);
+              updateMapChoropleth(selectedMode, option);
             }}
           >
             {option}

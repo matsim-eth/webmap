@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import SegmentAttributesTable from "./SegmentAttributesTable";
 import SegmentVolumeHistogram from "./SegmentVolumeHistogram";
 import { marks, formatTimeLabel } from "../../utils/timeSliderUtils";
@@ -12,7 +12,12 @@ const VolumesModule = ({
     canton,
     timeRange,
     setTimeRange,
-}) => (
+}) => {
+    
+    const [filteredVolume, setFilteredVolume] = useState(null);
+
+    return (
+
     <div className="plot-container">
     {/* Time Range Slider UI — shared with Transit */}
     <div
@@ -50,7 +55,11 @@ const VolumesModule = ({
     </div>
     
     {selectedNetworkFeature && (
-        <SegmentAttributesTable propertiesList={selectedNetworkFeature} selectedGraph={selectedGraph}/>
+        <SegmentAttributesTable 
+        propertiesList={selectedNetworkFeature}
+        selectedGraph={selectedGraph}
+        filteredVolume={filteredVolume}
+        />
     )}
     
     {selectedNetworkFeature ? (
@@ -59,6 +68,7 @@ const VolumesModule = ({
         setVisualizeLinkId={setVisualizeLinkId}
         canton={canton}
         timeRange={timeRange}
+        onVolumeUpdate={setFilteredVolume}
         />
     ) : (
         <p style={{ padding: "1rem", fontStyle: "italic", color: "#555" }}>
@@ -67,5 +77,6 @@ const VolumesModule = ({
     )}
     </div>
 );
+}
 
 export default VolumesModule;

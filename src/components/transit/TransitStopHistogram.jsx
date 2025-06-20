@@ -82,12 +82,12 @@ const filteredAlightings = paddedAlightings.slice(timeRange?.[0] ?? 0, (timeRang
   const maxY = Math.max(...filteredBoardings, ...filteredAlightings);
 
   // Notify parent of volume totals
-useEffect(() => {
-  if (!hourlyCounts || !onVolumeUpdate) return;
-  const totalBoardings = filteredBoardings.reduce((sum, val) => sum + val, 0);
-  const totalAlightings = filteredAlightings.reduce((sum, val) => sum + val, 0);
-  onVolumeUpdate({ boardings: totalBoardings, alightings: totalAlightings, total: totalBoardings + totalAlightings });
-}, [hourlyCounts, timeRange, onVolumeUpdate]);
+  useEffect(() => {
+    if (!hourlyCounts || !onVolumeUpdate) return;
+    const totalBoardings = filteredBoardings.reduce((sum, val) => sum + val, 0);
+    const totalAlightings = filteredAlightings.reduce((sum, val) => sum + val, 0);
+    onVolumeUpdate({ boardings: totalBoardings, alightings: totalAlightings, total: totalBoardings + totalAlightings });
+  }, [hourlyCounts, timeRange, onVolumeUpdate]);
 
   if (!hourlyCounts) return <p>Loading passenger data...</p>;
 

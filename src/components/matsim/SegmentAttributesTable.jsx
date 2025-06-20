@@ -6,7 +6,7 @@ const format = (value, isSpeed = false) => {
   return `${Math.round(parseFloat(value))}`;
 };
 
-const SegmentAttributesTable = ({ propertiesList, selectedGraph }) => {
+const SegmentAttributesTable = ({ propertiesList, selectedGraph, filteredVolume }) => {
   if (!propertiesList || propertiesList.length === 0) return null;
 
   const top = propertiesList[0];
@@ -48,10 +48,24 @@ const SegmentAttributesTable = ({ propertiesList, selectedGraph }) => {
             <td>{renderPerFeatureValues("permlanes")}</td>
           </tr>
           {selectedGraph === "Volumes" && (
-            <tr>
-              <td><strong>Avg Daily Volume</strong></td>
-              <td>{renderPerFeatureValues("daily_avg_volume", " vehicles/day")}</td>
-            </tr>
+        <tr>
+          <td><strong>Avg Daily Volume</strong></td>
+          <td>
+            {filteredVolume != null ? (
+              propertiesList.map((prop) => {
+                const val = filteredVolume?.[prop.id];
+                return (
+                  <div key={prop.id} style={{ marginBottom: "0.25rem" }}>
+                    {val != null ? `${Math.round(val)} vehicles` : "-"}
+                    {showId && <span style={{ color: "#888" }}> (ID: {prop.id})</span>}
+                  </div>
+                );
+              })
+            ) : (
+              renderPerFeatureValues("daily_avg_volume", " vehicles/day") // fallback to unfiltered total
+            )}
+          </td>
+        </tr>
           )}
           <tr>
             <td><strong>Modes</strong></td>
