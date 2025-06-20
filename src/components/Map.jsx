@@ -130,25 +130,6 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
               maxZoom: 10,
               duration: 1000
             });
-            
-            if (graphExpandedRef.current === "Network" || graphExpandedRef.current === "Volumes") {
-              //loadNetworkForCanton(cantonName);
-            } else {
-              // Remove network-related layers and sources
-              if (map.getLayer("network-layer")) {
-                map.removeLayer("network-layer");
-                map.removeLayer("click-network-layer");
-                map.removeSource("network-source");
-              }
-              if (map.getLayer("ant-line")) {
-                map.removeLayer("ant-line");
-                map.removeSource("ant-path");
-              }
-              ["network-highlight"].forEach(id => {
-                if (map.getLayer(id)) map.removeLayer(id);
-                if (map.getSource(id)) map.removeSource(id);
-              });
-            }
           }
         };
         
