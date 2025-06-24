@@ -8,7 +8,7 @@ import { useLoadWithFallback } from "../utils/useLoadWithFallback";
 const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchCanton, selectedMode,
   selectedDataset, selectedNetworkModes, selectedTransitModes, setSelectedTransitStop, setSelectedNetworkFeature,
   visualizeLinkId, dataURL, setHighlightedLineId, setHighlightedRouteIds, highlightedRouteIds, highlightedLineId,
-  hoveredRouteId, showStopVolumeSymbology, aggCol}) => {
+  hoveredRouteId, showStopVolumeSymbology, aggCol, showMajorRoadsOnly, timeRange}) => {
     
     // ======================= INITIALIZE VARIABLES =======================
     
@@ -30,9 +30,15 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
     // Keep track of select network modes
     const selectedNetworkModesRef = useRef(selectedNetworkModes);
     
+    // Save volume data for when filtering with sidebar
+    const [linkVolumeData, setLinkVolumeData] = useState(null);
+    
+    // Save unfiltered volume data for all links
+    const [originalNetworkGeoJSON, setOriginalNetworkGeoJSON] = useState(null);
+    
     const loadWithFallback = useLoadWithFallback(dataURL);
     // ======================= INITIALIZE MAP AND HANDLE CANTON SELECTION =======================
-
+    
     useEffect(() => {
       
       mapboxgl.accessToken = 'pk.eyJ1IjoiYW5kd29vIiwiYSI6ImNrMjlnYnNkdTEwMHozaG5wamJvZHJyangifQ.6M4eeri_Ubmo7NedQT7NuQ';
@@ -211,6 +217,9 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
       
       if (!networkGeojson) return;
       
+      
+      setOriginalNetworkGeoJSON(networkGeojson); // cache the original network GeoJSON
+      
       map.addSource("network-source", { type: "geojson", data: networkGeojson });
       
       map.addLayer({
@@ -252,8 +261,21 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
       
       if (graphExpandedRef.current === "Volumes") {
         const carFilter = ["match", ["index-of", "car", ["get", "modes"]], -1, false, true];
-        map.setFilter("click-network-layer", carFilter);
-        map.setFilter("network-layer", carFilter);
+        
+        
+        let filter = carFilter;
+        
+        if (showMajorRoadsOnly) {
+          // combine both filters
+          filter = ["all", carFilter, [">", ["get", "capacity"], 1000]];
+        }
+        
+        map.setFilter("click-network-layer", filter);
+        map.setFilter("network-layer", filter);
+        
+        if (map.getLayer("network-highlight")) {
+          map.setFilter("network-highlight", filter);
+        }
       }
       
       const handleIdle = () => {
@@ -352,6 +374,26 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
       selectedNetworkModesRef.current = selectedNetworkModes;
       updateNetworkFilter(selectedNetworkModes); // Apply mode filter when it changes
     }, [selectedNetworkModes]);
+    
+    useEffect(() => {
+      const map = mapRef.current;
+      if (!map || graphExpandedRef.current !== "Volumes") return;
+      
+      const carFilter = ["match", ["index-of", "car", ["get", "modes"]], -1, false, true];
+      const fullFilter = showMajorRoadsOnly
+      ? ["all", carFilter, [">", ["get", "capacity"], 1000]]
+      : carFilter;
+      
+      // If turning off the major roads filter, re-apply full network
+      if (!showMajorRoadsOnly && originalNetworkGeoJSON) {
+        const source = map.getSource("network-source");
+        if (source) source.setData(originalNetworkGeoJSON);
+      }
+      
+      if (map.getLayer("network-layer")) map.setFilter("network-layer", fullFilter);
+      if (map.getLayer("click-network-layer")) map.setFilter("click-network-layer", fullFilter);
+      if (map.getLayer("network-highlight")) map.setFilter("network-highlight", fullFilter);
+    }, [showMajorRoadsOnly, isGraphExpanded, originalNetworkGeoJSON]);
     
     // ---------------- ADD ANT PATH TO VISUALIZE VOLUME DIRECTION ----------------
     useEffect(() => {
@@ -488,12 +530,29 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
       if (isGraphExpanded === "Network" || isGraphExpanded === "Volumes") {
         if (map.getLayer("network-layer")) {
           showNetworkLayers(); 
+          if (isGraphExpanded === "Network") {
+            // reload full network
+            const source = map.getSource("network-source");
+            if (source) source.setData(originalNetworkGeoJSON);
+            map.setFilter("network-layer", null);
+            map.setFilter("click-network-layer", null);
+            if (map.getLayer("network-highlight")) {
+              map.setFilter("network-highlight", null);
+            }
+          } else if (isGraphExpanded === "Volumes") {
+            
+            if (!showMajorRoadsOnly) {
+              const source = map.getSource("network-source");
+              if (source) source.setData(originalNetworkGeoJSON);
+            }
+          }
         } else {
           loadNetworkForCanton(canton);
         }
       } else {
         hideNetworkLayers();
       }
+      
       
       if (!map.getLayer("network-layer")) return;
       
@@ -553,6 +612,80 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
       }
       
     }, [isGraphExpanded]);
+    
+    // Visualize link volume data based on time range -------------------------
+    
+    // load link volume data for current canton
+    useEffect(() => {
+
+      const loadAllLinkVolumes = async () => {
+        if (!searchCanton || graphExpandedRef.current !== "Volumes") return;
+        
+        try {
+          const path = `matsim/${searchCanton}_link_traffic_volumes.json`;
+          const raw = await loadWithFallback(path);
+          
+          const volumeMap = Object.fromEntries(
+            raw.map(e => [e.link_id.toString(), e.hourly_avg_volumes])
+          );
+          setLinkVolumeData(volumeMap);
+        } catch (err) {
+          console.warn("Failed to load all link volumes", err);
+        }
+      };
+      
+      loadAllLinkVolumes();
+    }, [searchCanton, isGraphExpanded]);
+    
+    useEffect(() => {
+      if (!mapRef.current || !linkVolumeData || graphExpandedRef.current !== "Volumes") return;
+      
+      const map = mapRef.current;
+      const source = map.getSource("network-source");
+      if (!source || !source._data) return;
+      
+      const startHour = Math.floor((timeRange[0] ?? 0) / 4);
+      const endHour = Math.ceil((timeRange[1] ?? 96) / 4);
+      
+      const relevantFeatures = showMajorRoadsOnly
+      ? source._data.features.filter(f => f.properties.capacity > 1000)
+      : source._data.features;
+      
+      const updatedFeatures = relevantFeatures.map(f => {
+        const id = f.properties.id.toString();
+        const capacity = f.properties.capacity ?? 0;
+        
+        // Skip recalculation for low-capacity roads if filter is active
+        if (showMajorRoadsOnly && capacity <= 1000) return f;
+        
+        const hourly = linkVolumeData[id];
+        let total = 0;
+        
+        if (hourly) {
+          for (let h = startHour; h < endHour; h++) {
+            const key = `HRS${h}-${h + 1}avg`;
+            total += hourly[key] ?? 0;
+          }
+        }
+        
+        return {
+          ...f,
+          properties: {
+            ...f.properties,
+            daily_avg_volume: total
+          }
+        };
+      });
+      
+      
+      const updatedGeoJSON = {
+        ...source._data,
+        features: updatedFeatures
+      };
+      
+      source.setData(updatedGeoJSON);
+    }, [timeRange, linkVolumeData, isGraphExpanded, showMajorRoadsOnly]);
+    
     
     // ======================= TRANSIT STOPS MODULE =======================
     
@@ -919,15 +1052,15 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
   
   // ======================= CHOROPLETH MODULE =======================
   
-useEffect(() => {
-  fetch(`${dataURL}${aggCol}_share.json`)
+  useEffect(() => {
+    fetch(`${dataURL}${aggCol}_share.json`)
     .then((response) => response.json())
     .then((data) => {
       setModeShareData(data);
       setMaxSharePerMode(data[`max_share_per_${aggCol}`]);
     })
     .catch((error) => console.error("Error loading mode share data:", error));
-}, [aggCol, dataURL]);
+  }, [aggCol, dataURL]);
   
   // Set colours for choropleth by mode (matches with plots)
   const COLOR_MAPS = {

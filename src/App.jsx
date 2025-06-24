@@ -45,6 +45,9 @@ function App() {
   const [hoveredRouteId, setHoveredRouteId] = useState(null);
   const [showStopVolumeSymbology, setShowStopVolumeSymbology] = useState(false);
   
+  // Pass showing major roads toggle (volumes module)
+  const [showMajorRoadsOnly, setShowMajorRoadsOnly] = useState(false);
+
   // time range for filtering volumes
   const [timeRange, setTimeRange] = useState([0, 96]);
   
@@ -78,6 +81,10 @@ function App() {
     // Reset selected network, 
     setSelectedNetworkFeature(null)
     setVisualizeLinkId(null)
+
+    setTimeRange([0, 96]); // Reset time range to default
+    setShowMajorRoadsOnly(false); // Reset major roads toggle
+    setShowStopVolumeSymbology(false); // Reset stop volume symbology toggle
     
     // Reset to map center
     mapRef.current.easeTo({
@@ -116,6 +123,7 @@ function App() {
     setHighlightedRouteIds = {setHighlightedRouteIds}
     hoveredRouteId={hoveredRouteId}
     showStopVolumeSymbology={showStopVolumeSymbology}
+    showMajorRoadsOnly={showMajorRoadsOnly}
     timeRange={timeRange}
     aggCol={aggCol}
     />
@@ -146,6 +154,8 @@ function App() {
     setHoveredRouteId={setHoveredRouteId}
     showStopVolumeSymbology={showStopVolumeSymbology}
     setShowStopVolumeSymbology={setShowStopVolumeSymbology}
+    showMajorRoadsOnly={showMajorRoadsOnly}
+    setShowMajorRoadsOnly={setShowMajorRoadsOnly}
     timeRange={timeRange}       
     setTimeRange={setTimeRange}       
     />
