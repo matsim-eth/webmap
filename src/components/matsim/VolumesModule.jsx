@@ -12,9 +12,12 @@ const VolumesModule = ({
     canton,
     timeRange,
     setTimeRange,
+    showMajorRoadsOnly,
+    setShowMajorRoadsOnly,
 }) => {
     
     const [filteredVolume, setFilteredVolume] = useState(null);
+
 
     return (
 
@@ -52,6 +55,17 @@ const VolumesModule = ({
     style={{ marginLeft: "10%", width: "80%" }}
     />
     </div>
+
+    {/* Checkbox */}
+        <label style={{ fontWeight: "bold", fontSize: "10pt", whiteSpace: "nowrap" }}>
+        <input
+        type="checkbox"
+        style={{ marginRight: "0.5rem" }}
+        checked={showMajorRoadsOnly}
+        onChange={(e) => setShowMajorRoadsOnly(e.target.checked)}
+        />
+        Show only major roads
+        </label>
     </div>
     
     {selectedNetworkFeature && (
