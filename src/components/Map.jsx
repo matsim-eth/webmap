@@ -1374,7 +1374,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
       return caseExpression;
     };
     map.setPaintProperty('destination-choropleth', 'fill-color', createColorExpression(selectedDestinationData.selectedMode || 'all'));
-    
+    map.setPaintProperty("canton-fill", "fill-opacity", 0);
   }, [selectedDestinationData]);
   
   useEffect(() => {
@@ -1453,9 +1453,9 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
     if (!mapRef.current) return;
     
     const map = mapRef.current;
-    if (map.getLayer('destination-choropleth')) {
-      const visibility = (isGraphExpanded === "Destination" && selectedDestinationData) ? 'visible' : 'none';
-      map.setLayoutProperty('destination-choropleth', 'visibility', visibility);
+    if (map.getLayer('destination-choropleth') && isGraphExpanded !== "Destination") {
+      map.setPaintProperty("canton-fill", "fill-opacity", 0.15);
+      map.removeLayer('destination-choropleth')
     }
   }, [isGraphExpanded, selectedDestinationData]);
   
