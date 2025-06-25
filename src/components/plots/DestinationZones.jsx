@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import Plot from "react-plotly.js";
+import { marks, formatTimeLabel } from "../../utils/timeSliderUtils";
+import cantonAlias from "../../utils/canton_alias.json";
+import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
-import cantonAlias from "../../utils/canton_alias.json";
 
 const MODE_COLORS = {
   car: "#636efa",
@@ -13,14 +15,15 @@ const MODE_COLORS = {
 };
 
 
-const DestinationZones = ({ canton, dataURL, onTotalOutflowChange }) => {
+const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRange }) => {
   const [plotData, setPlotData] = useState(null);
-  const [localTimeRange, setLocalTimeRange] = useState([0, 96]);
   const [selectedMode, setSelectedMode] = useState('all');
   const [selectedPurpose, setSelectedPurpose] = useState('all');
   const [selectedCanton, setSelectedCanton] = useState('all');
   const [isOriginMode, setIsOriginMode] = useState(true);
-
+  
+  const loadWithFallback = useLoadWithFallback();
+  
   const modes = [
     { value: 'all', label: 'All Modes' },
     { value: 'car', label: 'Car' },
@@ -28,7 +31,7 @@ const DestinationZones = ({ canton, dataURL, onTotalOutflowChange }) => {
     { value: 'bike', label: 'Bicycle' },
     { value: 'walk', label: 'Walk' }
   ];
-
+  
   const purposes = [
     { value: 'all', label: 'All Purposes'},
     { value: 'work', label: 'Work'},
@@ -36,44 +39,46 @@ const DestinationZones = ({ canton, dataURL, onTotalOutflowChange }) => {
     { value: 'shop', label: 'Shopping'},
     { value: 'leisure', label: 'Leisure'}
   ];
-
+  
   const cantonOptions = [
     { value: 'all', label: 'All Cantons' },
     ...Object.entries(cantonAlias).map(([value, label]) => ({ value, label }))
   ];
-
+  
   const timeToLabel = (value) => {
     const hour = Math.floor(value / 4);
     const minute = (value % 4) * 15;
     return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
   };
-
+  
   useEffect(() => {
     if (!canton) return;
-    fetch(`/webmap/data/destination_data/${canton}.json`)
-      .then(res => res.json())
-      .then(data => {
-        setPlotData(data);
-      })
-      .catch(err => {
-        console.error("Error loading plot data:", err);
-      });
-  }, [canton, dataURL]);
-
+    
+    const path = `destination_data/${canton}.json`;
+    
+    loadWithFallback(path)
+    .then(data => {
+      setPlotData(data);
+    })
+    .catch(err => {
+      console.error("Error loading plot data:", err);
+    });
+  }, [canton]);
+  
   const processData = () => {
     if (!plotData) return null;
-
+    
     // reverse mapping of display names to internal values
     const reverseCantonMap = Object.entries(cantonAlias).reduce((acc, [key, value]) => {
       acc[value] = key;
       return acc;
     }, {});
-
+    
     // filter by role (origin/destination mode)
     let filteredData = plotData.filter(d => 
       d.role === (isOriginMode ? 'origin' : 'destination')
     );
-
+    
     // filter by canton
     if (selectedCanton !== 'all') {
       // get the display name to match the internal representation
@@ -95,7 +100,7 @@ const DestinationZones = ({ canton, dataURL, onTotalOutflowChange }) => {
     if (selectedPurpose !== 'all') {
       filteredData = filteredData.filter(d => d.purpose === selectedPurpose);
     }
-
+    
     // aggregate the filtered bins
     const aggregatedBins = {};
     filteredData.forEach(entry => {
@@ -105,7 +110,7 @@ const DestinationZones = ({ canton, dataURL, onTotalOutflowChange }) => {
         const timeIndex = hours * 4 + Math.floor(minutes / 15);
         
         // limit display to selected time range
-        if (timeIndex >= localTimeRange[0] && timeIndex <= localTimeRange[1]) {
+        if (timeIndex >= timeRange[0] && timeIndex <= timeRange[1]) {
           if (!aggregatedBins[time]) {
             aggregatedBins[time] = 0;
           }
@@ -113,51 +118,51 @@ const DestinationZones = ({ canton, dataURL, onTotalOutflowChange }) => {
         }
       });
     });
-
+    
     // sort trip counts by time
     const times = Object.keys(aggregatedBins).sort();
     const counts = times.map(t => aggregatedBins[t]);
-
+    
     return { times, counts };
   };
-
+  
   const data = processData();
   
   // calculating trip outflow based to propagate to map
   useEffect(() => {
     if (!plotData || !onTotalOutflowChange) return;
-
+    
     const reverseCantonMap = Object.entries(cantonAlias).reduce((acc, [key, value]) => {
       acc[value] = key;
       return acc;
     }, {});
-
+    
     // filter by role (origin/destination mode)
     let filteredDataForChoropleth = plotData.filter(d => 
       d.role === (isOriginMode ? 'origin' : 'destination')
     );
-
+    
     if (selectedPurpose !== 'all') {
       filteredDataForChoropleth = filteredDataForChoropleth.filter(d => d.purpose === selectedPurpose);
     }
-
+    
     const initModeTotals = () => {
       return { all: 0, car: 0, pt: 0, bike: 0, walk: 0 };
     };
-
+    
     const modeTotals = initModeTotals();
     const cantonTotals = {};
-
+    
     filteredDataForChoropleth.forEach(entry => {
       Object.entries(entry.time_bins).forEach(([time, count]) => {
         const [hours, minutes] = time.split(':').map(Number);
         const timeIndex = hours * 4 + Math.floor(minutes / 15);
-        if (timeIndex >= localTimeRange[0] && timeIndex <= localTimeRange[1]) {
+        if (timeIndex >= timeRange[0] && timeIndex <= timeRange[1]) {
           modeTotals.all += count;
           if (modeTotals[entry.mode] !== undefined) {
             modeTotals[entry.mode] += count;
           }
-       
+          
           // When in destination mode, show distribution by origin cantons
           // When in origin mode, show distribution by destination cantons
           let cantonKey = isOriginMode ? entry.destination : entry.origin;
@@ -178,159 +183,198 @@ const DestinationZones = ({ canton, dataURL, onTotalOutflowChange }) => {
       perCanton: cantonTotals, 
       selectedMode: selectedMode 
     });
-  }, [plotData, selectedCanton, selectedMode, selectedPurpose, localTimeRange, isOriginMode]);
-
-  if (!plotData) return <p>Loading data...</p>;
-
+  }, [plotData, selectedCanton, selectedMode, selectedPurpose, timeRange, isOriginMode]);
+  
+  if (!plotData) {
+    return (
+      <p style={{ padding: "1rem", fontStyle: "italic", color: "#555" }}>
+      Click a canton to load destination data.
+      </p>
+    );
+  }
+  
   return (
     <div className="plot-container">
-      <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '10px', minHeight: 40 }}>
-        <div style={{ minWidth: 260, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-          <h3 style={{ margin: 0 }}>
-            {isOriginMode ? "Origin" : "Destination"} Canton: {canton}
-            <div style={{ marginTop: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-                <span style={{ marginRight: '8px', fontWeight: isOriginMode ? 'bold' : 'normal' }}>Origin</span>
-                <label className="switch" style={{ display: 'inline-block', position: 'relative', width: '40px', height: '20px', margin: '0 8px' }}>
-                  <input
-                    type="checkbox"
-                    checked={!isOriginMode}
-                    onChange={() => setIsOriginMode((prev) => !prev)}
-                    style={{ opacity: 0, width: 0, height: 0 }}
-                  />
-                  <span style={{
-                    position: 'absolute',
-                    cursor: 'pointer',
-                    top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: isOriginMode ? '#2196f3' : '#4caf50', // basic blue for Origin, green for Destination
-                    borderRadius: '20px',
-                    transition: '.4s'
-                  }} />
-                  <span style={{
-                    position: 'absolute',
-                    left: isOriginMode ? '2px' : '22px',
-                    top: '1px',
-                    width: '16px',
-                    height: '16px',
-                    backgroundColor: isOriginMode ? '#fff' : '#e8f5e9', // knob color
-                    borderRadius: '50%',
-                    transition: '.4s'
-                  }} />
-                </label>
-                <span style={{ fontWeight: !isOriginMode ? 'bold' : 'normal' }}>Destination</span>
-              </div>
-            </div>
-          </h3>
-        </div>
-      </div>
+    <div style={{ display: 'flex', alignItems: 'flex-start', minHeight: 40 }}>
+    <div style={{ minWidth: 260, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+    <h3 style={{ margin: 0 }}>
+    {isOriginMode ? "Origin" : "Destination"} Canton: {cantonAlias[canton]}
+    </h3>
+</div>
+</div>
 
-      <div style={{ width: 500, padding: "20px 10px" }}>
-        <div style={{ marginBottom: "8px", fontWeight: "bold"}}>
-          Time: {timeToLabel(localTimeRange[0])} – {timeToLabel(localTimeRange[1])}
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: "8px" }}></div>
-        <Slider
-          range
-          value={localTimeRange}
-          onChange={setLocalTimeRange}
-          min={0}
-          max={96}
-          step={1}
-          marks={{
-            0: timeToLabel(0),
-            24: timeToLabel(24),
-            48: timeToLabel(48),
-            72: timeToLabel(72),
-            96: timeToLabel(96)
-          }}
-          tipFormatter={timeToLabel}
-        />
-      </div>
+<div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "0 1rem 1.5rem",
+    gap: "1rem"
+  }}
+>
 
-      <div style={{ display: 'flex', gap: '40px', margin: '20px 10px' }}>
-        <div>
-          <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>Transport Mode</div>
-          {modes.map(mode => (
-            <div key={mode.value} style={{ marginBottom: '4px' }}>
-              <input
-                type="radio"
-                id={`mode-${mode.value}`}
-                name="transport-mode"
-                value={mode.value}
-                checked={selectedMode === mode.value}
-                onChange={(e) => setSelectedMode(e.target.value)}
-              />
-              <label htmlFor={`mode-${mode.value}`} style={{ marginLeft: '8px' }}>
-                {mode.label}
-              </label>
-            </div>
-          ))}
-        </div>
-
-        <div>
-          <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>Trip Purpose</div>
-          {purposes.map(purpose => (
-            <div key={purpose.value} style={{ marginBottom: '4px' }}>
-              <input
-                type="radio"
-                id={`purpose-${purpose.value}`}
-                name="trip-purpose"
-                value={purpose.value}
-                checked={selectedPurpose === purpose.value}
-                onChange={(e) => setSelectedPurpose(e.target.value)}
-              />
-              <label htmlFor={`purpose-${purpose.value}`} style={{ marginLeft: '8px' }}>
-                {purpose.label}
-              </label>
-            </div>
-          ))}
-        </div>
-
-        <div>
-          <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
-            {isOriginMode ? 'Destination Canton' : 'Origin Canton'}
-          </div>
-          <select 
-            value={selectedCanton}
-            onChange={(e) => setSelectedCanton(e.target.value)}
-            style={{
-              padding: '4px 8px',
-              borderRadius: '4px',
-              border: '1px solid #ccc',
-              fontSize: '14px',
-              minWidth: '150px'
-            }}
-          >
-            {cantonOptions.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <h4 style={{ marginTop: "1rem" }}>Trip Counts</h4>
-      
-      <Plot
-        data={[
-          {
-            x: data.times,
-            y: data.counts,
-            type: "bar",
-            marker: { color: MODE_COLORS[selectedMode] || MODE_COLORS.all }
-          }
-        ]}
-        layout={{
-          margin: { t: 30, r: 10, l: 40, b: 10 },
-          xaxis: { title: "Hour", tickangle: -45, automargin: true },
-          yaxis: { title: "Trip Count" },
-          height: 250,
-          width: 525,
-          paper_bgcolor: "rgba(255,255,255,0)",
-          plot_bgcolor: "rgba(255,255,255,0)",
+  {/* OD Toggle */}
+  <div style={{ display: "flex", alignItems: "center", minWidth: 180, marginTop: '15px' }}>
+    <span style={{ marginRight: '8px', fontWeight: isOriginMode ? 'bold' : 'normal' }}>Origin</span>
+    <label
+      className="switch"
+      style={{
+        display: 'inline-block',
+        position: 'relative',
+        width: '40px',
+        height: '20px',
+        margin: '0px 14px 0 8px',
+      }}
+    >
+      <input
+        type="checkbox"
+        checked={!isOriginMode}
+        onChange={() => setIsOriginMode((prev) => !prev)}
+        style={{ opacity: 0, width: 0, height: 0 }}
+      />
+      <span
+        style={{
+          position: 'absolute',
+          cursor: 'pointer',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: isOriginMode ? '#2196f3' : '#4caf50',
+          borderRadius: '20px',
+          transition: '.4s',
         }}
       />
+      <span
+        style={{
+          position: 'absolute',
+          left: isOriginMode ? '2px' : '22px',
+          top: '2px',
+          width: '16px',
+          height: '16px',
+          backgroundColor: isOriginMode ? '#fff' : '#e8f5e9',
+          borderRadius: '50%',
+          transition: '.4s',
+        }}
+      />
+    </label>
+    <span style={{ fontWeight: !isOriginMode ? 'bold' : 'normal' }}>Destination</span>
+  </div>
+
+  {/* Time Slider */}
+  <div style={{ flex: 1 }}>
+    <label
+      style={{
+        fontWeight: "bold",
+        fontSize: "10pt",
+        display: "block",
+        marginBottom: "0.25rem",
+        marginLeft: "10%",
+      }}
+    >
+      Time: {formatTimeLabel(timeRange[0])} - {formatTimeLabel(timeRange[1])}
+    </label>
+    <Slider
+      range
+      min={0}
+      max={96}
+      step={1}
+      marks={marks}
+      value={timeRange}
+      onChange={(val) => setTimeRange(val)}
+      allowCross={false}
+      style={{ marginLeft: "10%", width: "80%" }}
+    />
+  </div>
+
+  
+</div>
+
+    
+    <div style={{ display: 'flex', gap: '40px', margin: '20px 10px' }}>
+    <div>
+    <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>Transport Mode</div>
+    {modes.map(mode => (
+      <div key={mode.value} style={{ marginBottom: '4px' }}>
+      <input
+      type="radio"
+      id={`mode-${mode.value}`}
+      name="transport-mode"
+      value={mode.value}
+      checked={selectedMode === mode.value}
+      onChange={(e) => setSelectedMode(e.target.value)}
+      />
+      <label htmlFor={`mode-${mode.value}`} style={{ marginLeft: '8px' }}>
+      {mode.label}
+      </label>
+      </div>
+    ))}
+    </div>
+    
+    <div>
+    <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>Trip Purpose</div>
+    {purposes.map(purpose => (
+      <div key={purpose.value} style={{ marginBottom: '4px' }}>
+      <input
+      type="radio"
+      id={`purpose-${purpose.value}`}
+      name="trip-purpose"
+      value={purpose.value}
+      checked={selectedPurpose === purpose.value}
+      onChange={(e) => setSelectedPurpose(e.target.value)}
+      />
+      <label htmlFor={`purpose-${purpose.value}`} style={{ marginLeft: '8px' }}>
+      {purpose.label}
+      </label>
+      </div>
+    ))}
+    </div>
+    
+    <div>
+    <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+    {isOriginMode ? 'Destination Canton' : 'Origin Canton'}
+    </div>
+    <select 
+    value={selectedCanton}
+    onChange={(e) => setSelectedCanton(e.target.value)}
+    style={{
+      padding: '4px 8px',
+      borderRadius: '4px',
+      border: '1px solid #ccc',
+      fontSize: '14px',
+      minWidth: '150px'
+    }}
+    >
+    {cantonOptions.map(option => (
+      <option key={option.value} value={option.value}>
+      {option.label}
+      </option>
+    ))}
+    </select>
+    </div>
+    </div>
+    
+    <h4 style={{ marginTop: "1rem" }}>Trip Counts</h4>
+    
+    <Plot
+    data={[
+      {
+        x: data.times,
+        y: data.counts,
+        type: "bar",
+        marker: { color: MODE_COLORS[selectedMode] || MODE_COLORS.all }
+      }
+    ]}
+    layout={{
+      margin: { t: 30, r: 10, l: 40, b: 10 },
+      xaxis: { title: "Hour", tickangle: -45, automargin: true },
+      yaxis: { title: "Trip Count" },
+      height: 250,
+      width: 525,
+      paper_bgcolor: "rgba(255,255,255,0)",
+      plot_bgcolor: "rgba(255,255,255,0)",
+    }}
+    />
     </div>
   );
 };

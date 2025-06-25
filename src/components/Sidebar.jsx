@@ -54,7 +54,7 @@ const Sidebar = ({
   selectedTransitModes, setSelectedTransitModes, selectedTransitStop, highlightedLineId, 
   setHighlightedLineId, setHighlightedRouteIds, setHoveredRouteId, showStopVolumeSymbology,
   setShowStopVolumeSymbology,
-
+  
   // Destination data
   setDestinationData,
   
@@ -187,7 +187,7 @@ const Sidebar = ({
       setAvailableTransitModes([]);
     }
   }, [canton]);
-
+  
   // Handle outflow data from DestinationZones and pass to Map
   const handleTotalOutflowChange = (outflowData) => {
     setDestinationOutflowData(outflowData);
@@ -199,7 +199,7 @@ const Sidebar = ({
       console.log('Sidebar - setDestinationData is not available');
     }
   };
-
+  
   
   // ======================== SIDEBAR ITEMS =======================
   return (
@@ -263,11 +263,11 @@ const Sidebar = ({
           {selectedGraph === "Graph 2" && <div className="plot-container"><Histogram canton={canton || "All"} aggCol={selectedAggCol}/></div>}
           {selectedGraph === "Graph 3" && <div className="plot-container"><StackedBarPlot canton={canton || "All"} aggCol={selectedAggCol}/></div>}
           {selectedGraph === "Graph 4" && <div className="plot-container"><ModeShareLinePlot canton={canton || "All"} aggCol={selectedAggCol}/></div>}
-          {selectedGraph === "Graph 5" && <div className="plot-container"><ActivityDist canton={canton || "All"} dataURL={dataURL} /></div>}
-          {selectedGraph === "Graph 6" && <div className="plot-container"><PtSubscription canton={canton || "All"} dataURL={dataURL} /></div>}
-          {selectedGraph === "Graph 7" && <div className="plot-container"><CarAvailability canton={canton || "All"} dataURL={dataURL} /></div>}
-          {selectedGraph === "Graph 8" && <div className="plot-container"><DepartureTimes canton={canton || "All"} dataURL={dataURL} /></div>}
-          {selectedGraph === "Graph 9" && <div className="plot-container"><Demographics canton={canton || "All"} dataURL={dataURL} /></div>}
+          {selectedGraph === "Graph 5" && <div className="plot-container"><ActivityDist canton={canton || "All"}/></div>}
+          {selectedGraph === "Graph 6" && <div className="plot-container"><PtSubscription canton={canton || "All"}/></div>}
+          {selectedGraph === "Graph 7" && <div className="plot-container"><CarAvailability canton={canton || "All"}/></div>}
+          {selectedGraph === "Graph 8" && <div className="plot-container"><DepartureTimes canton={canton || "All"}/></div>}
+          {selectedGraph === "Graph 9" && <div className="plot-container"><Demographics canton={canton || "All"}/></div>}
           
           {/* Mode Share Choropleth Selection */}
           {selectedGraph === "Choropleth" && (
@@ -283,16 +283,17 @@ const Sidebar = ({
             <CantonModeShareTable canton={canton} selectedDataset={selectedDataset} selectedMode={selectedMode} aggCol={selectedAggCol} />
             </div>
           )}
-
+          
           {/* Destination Module */}
-            {selectedGraph === "Destination" && (
-              <div className="plot-container">
-                <DestinationZones
-                  canton={canton}
-                  dataURL={dataURL}
-                  onTotalOutflowChange={handleTotalOutflowChange}
-                />
-              </div>
+          {selectedGraph === "Destination" && (
+            <div className="plot-container">
+              <DestinationZones
+              canton={canton}
+              timeRange={timeRange}
+              setTimeRange={setTimeRange}
+              onTotalOutflowChange={handleTotalOutflowChange}
+              />
+            </div>
           )}
           
           {/* Network Module */}
@@ -305,6 +306,7 @@ const Sidebar = ({
             />
           )}
           
+          {/* Road Volume Module */}
           {selectedGraph === "Volumes" && (
             <VolumesModule
             selectedNetworkFeature={selectedNetworkFeature}
@@ -318,6 +320,7 @@ const Sidebar = ({
             />
           )}
           
+          {/* Transit Module */}
           {selectedGraph === "Transit" && (
             <TransitModule
             selectedTransitModes={selectedTransitModes}

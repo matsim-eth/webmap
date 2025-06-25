@@ -85,6 +85,9 @@ function App() {
     setSelectedNetworkFeature(null)
     setVisualizeLinkId(null)
 
+    // Reset current module
+    setIsGraphExpanded(false);
+
     setTimeRange([0, 96]); // Reset time range to default
     setShowMajorRoadsOnly(true); // Reset major roads toggle
     setShowStopVolumeSymbology(false); // Reset stop volume symbology toggle
