@@ -2,9 +2,9 @@ import { useFileContext } from "../FileContext";
 
 export const useLoadWithFallback = (explicitDataURL) => {
   const { fileMap, readJSONFile, dataURL: contextDataURL } = useFileContext();
-
+  
   const DEFAULT_DATA_URL = "https://matsim-eth.github.io/webmap/data/";
-
+  
   const loadWithFallback = async (relativePath) => {
     const localPath = `data/${relativePath}`;
     
@@ -18,14 +18,14 @@ export const useLoadWithFallback = (explicitDataURL) => {
         console.warn(`Failed parsing uploaded file: ${localPath}`, err);
       }
     }
-
+    
     // 2. Try from remote sources
     const candidates = [
       explicitDataURL,
       contextDataURL,
       DEFAULT_DATA_URL
     ].filter(Boolean); // remove undefined/null
-
+    
     for (const base of candidates) {
       const finalURL = base + relativePath;
       try {
@@ -33,20 +33,15 @@ export const useLoadWithFallback = (explicitDataURL) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
         console.log(`Loaded from remote URL: ${finalURL}`);
-
-        if (base.startsWith("http")) {
-  console.log(`[loadWithFallback] Loaded from remote URL: ${finalURL}`);
-  console.trace(); // shows you where the function was called
-}
-
+        
         return json;
       } catch {
         // silently try next
       }
     }
-
+    
     throw new Error(`All fallback attempts failed for ${relativePath}`);
   };
-
+  
   return loadWithFallback;
 };

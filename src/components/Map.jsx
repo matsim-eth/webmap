@@ -4,6 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import bboxCache from '../utils/bboxCanton.json'; 
 import "./Loading.css" // loading screen for network
 import { useLoadWithFallback } from "../utils/useLoadWithFallback";
+import cantonAlias from "../utils/canton_alias.json";
 
 const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchCanton, selectedMode,
   selectedDataset, selectedNetworkModes, selectedTransitModes, setSelectedTransitStop, setSelectedNetworkFeature,
@@ -37,10 +38,10 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
     const [originalNetworkGeoJSON, setOriginalNetworkGeoJSON] = useState(null);
     
     const loadWithFallback = useLoadWithFallback(dataURL);
-
+    
     // Store canton number to name mapping
     const cantonNumToNameRef = useRef({});
-
+    
     // ======================= INITIALIZE MAP AND HANDLE CANTON SELECTION =======================
     
     useEffect(() => {
@@ -127,7 +128,17 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
             
             if (graphExpandedRef.current === "Graph 3" || graphExpandedRef.current === "Graph 4") {
               rightPadding = 950; // Adjust for 900px width
-            } else if (graphExpandedRef.current === "Graph 1" || graphExpandedRef.current === "Graph 2" || graphExpandedRef.current === "Volumes" || isGraphExpanded === "Transit") {
+            } else if (
+              graphExpandedRef.current === "Graph 1" 
+              || graphExpandedRef.current === "Graph 2" 
+              || graphExpandedRef.current === "Graph 5" 
+              || graphExpandedRef.current === "Graph 6" 
+              || graphExpandedRef.current === "Graph 7" 
+              || graphExpandedRef.current === "Graph 8"
+              || graphExpandedRef.current === "Graph 9"
+              || graphExpandedRef.current === "Volumes" 
+              || graphExpandedRef.current === "Transit" 
+              || graphExpandedRef.current === "Destination") {
               rightPadding = 650; // Adjust for 600px width
             } else {
               rightPadding = 350; // Default open sidebar
@@ -621,7 +632,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
     
     // load link volume data for current canton
     useEffect(() => {
-
+      
       const loadAllLinkVolumes = async () => {
         if (!searchCanton || graphExpandedRef.current !== "Volumes") return;
         
@@ -1166,10 +1177,20 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
       
       if (isSidebarOpen) {
         // Widest width
-        if (isGraphExpanded === "Graph 3" || isGraphExpanded === "Graph 4") {
+        if (isGraphExpanded === "Graph 3" 
+          || isGraphExpanded === "Graph 4") {
           rightPadding = 950; // Adjust for 900px width
           // Middle width
-        } else if (isGraphExpanded === "Graph 1" || isGraphExpanded === "Graph 2" || isGraphExpanded === "Volumes" || isGraphExpanded === "Transit"
+        } else if (isGraphExpanded === "Graph 1" 
+          || isGraphExpanded === "Graph 2" 
+          || isGraphExpanded === "Graph 5" 
+          || isGraphExpanded === "Graph 6" 
+          || isGraphExpanded === "Graph 7" 
+          || isGraphExpanded === "Graph 8" 
+          || isGraphExpanded === "Graph 9" 
+          || isGraphExpanded === "Volumes" 
+          || isGraphExpanded === "Transit" 
+          || isGraphExpanded === "Destination"
         ) {
           rightPadding = 650; // Adjust for 600px width
         } else {
@@ -1195,9 +1216,19 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
       // Determine the correct right padding
       let rightPadding = 50; // Default for collapsed sidebar
       if (isSidebarOpen) {
-        if (isGraphExpanded === "Graph 3" || isGraphExpanded === "Graph 4") {
+        if (isGraphExpanded === "Graph 3" 
+          || isGraphExpanded === "Graph 4") {
           rightPadding = 950; // Adjust for 900px width
-        } else if (isGraphExpanded === "Graph 1" || isGraphExpanded === "Graph 2" || isGraphExpanded === "Volumes" || isGraphExpanded === "Transit"
+        } else if (isGraphExpanded === "Graph 1" 
+          || isGraphExpanded === "Graph 2"
+          || isGraphExpanded === "Graph 5" 
+          || isGraphExpanded === "Graph 6" 
+          || isGraphExpanded === "Graph 7" 
+          || isGraphExpanded === "Graph 8" 
+          || isGraphExpanded === "Graph 9" 
+          || isGraphExpanded === "Volumes" 
+          || isGraphExpanded === "Transit" 
+          || isGraphExpanded === "Destination"
         ) {
           rightPadding = 650; // Adjust for 600px width
         } else {
@@ -1242,141 +1273,141 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
       }
     }
   }, [searchCanton]); // only update when searchCanton updates
-
-
-// ------------------------- DESTINATION ZONES CHOROPLETH ------------------------- 
-useEffect(() => {
-  if (!selectedDestinationData || !mapRef.current || !mapRef.current.getSource('cantons')) return;
-  const map = mapRef.current;
-  const { perCanton } = selectedDestinationData;
-  if (!perCanton || Object.keys(perCanton).length === 0) return;
-
-  // Remap perCanton to use canton names as keys
-  const cantonNumToName = cantonNumToNameRef.current;
-  const perCantonByName = {};
-  Object.entries(perCanton).forEach(([num, data]) => {
-    const name = cantonNumToName[num] || num;
-    perCantonByName[name] = data;
-  });
-
-  // adds layer over cantons to be colored (placed before canton-borders)
-  if (!map.getLayer('destination-choropleth')) {
-    map.addLayer({
-      id: 'destination-choropleth',
-      type: 'fill',
-      source: 'cantons',
-      paint: {
-        'fill-color': '#A07CC5',
-        'fill-opacity': 0.6
-      }
-    }, 'canton-borders');
-  }
-
-  // Compute totals over all modes over all cantons 
-  const allValues = { all: [], car: [], pt: [], bike: [], walk: [] };
-  Object.values(perCantonByName).forEach(cantonData => {
-    if (!cantonData || typeof cantonData !== 'object') return;
-    Object.keys(allValues).forEach(mode => {
-      if (cantonData[mode] && cantonData[mode] > 0) {
-        allValues[mode].push(cantonData[mode]);
-      }
-    });
-  });
-
-  // get second largest value for each mode (or largest if only one value exists)
-  const maxValues = {};
-  Object.keys(allValues).forEach(mode => {
-    const sortedValues = allValues[mode].sort((a, b) => b - a);
-    maxValues[mode] = sortedValues.length > 1 ? sortedValues[1] : (sortedValues[0] || 0);
-  });
-
-  const MODE_COLORS = {
-    car: "#636efa",
-    pt: "#00cc96",
-    bike: "#ab63fa",
-    walk: "#ffa15a",
-    all: "#1f77b4"
-  };
-
-  // build case expression for chloropleth
-  const createColorExpression = (mode = 'all') => {
-    const maxValue = maxValues[mode];
-    if (maxValue === 0) return 'rgba(0,0,0,0)';
-    
-    const caseExpression = ['case'];
-    Object.entries(perCantonByName).forEach(([canton, data]) => {
-      if (!data || typeof data !== 'object') return;
-      const value = data[mode] || 0;
-      const intensity = Math.min(value / maxValue, 1);
-      const baseColor = MODE_COLORS[mode] || MODE_COLORS.all;
-      const hexToRgb = (hex) => {
-        const bigint = parseInt(hex.slice(1), 16);
-        return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
-      };
-      
-      // use quartile based shading (otherwise counts are too sparse)
-      const baseRgb = hexToRgb(baseColor);
-      let colorIntensity;
-      
-      if (intensity <= 0.25) {
-        colorIntensity = 0.25;
-      } else if (intensity <= 0.5) {
-        colorIntensity = 0.5;
-      } else if (intensity <= 0.75) {
-        colorIntensity = 0.75;
-      } else {
-        colorIntensity = 1.0;
-      }
-      
-      const rgb1 = [255, 255, 255];
-      const r = Math.round(rgb1[0] * (1 - colorIntensity) + baseRgb[0] * colorIntensity);
-      const g = Math.round(rgb1[1] * (1 - colorIntensity) + baseRgb[1] * colorIntensity);
-      const b = Math.round(rgb1[2] * (1 - colorIntensity) + baseRgb[2] * colorIntensity);
-      const color = `rgb(${r},${g},${b})`;
-      
-      caseExpression.push(['==', ['get', 'NAME'], canton]);
-      caseExpression.push(color);
-    });
-    
-    // translucent as default color
-    caseExpression.push('rgba(0,0,0,0)');
-    return caseExpression;
-  };
-  map.setPaintProperty('destination-choropleth', 'fill-color', createColorExpression(selectedDestinationData.selectedMode || 'all'));
   
-}, [selectedDestinationData]);
-
-useEffect(() => {
-  if (!mapRef.current || !selectedDestinationData?.perCanton) return;
-  const map = mapRef.current;
-  const { perCanton } = selectedDestinationData;
-  const cantonNumToName = cantonNumToNameRef.current;
-  const perCantonByName = {};
-  Object.entries(perCanton).forEach(([num, data]) => {
-    const name = cantonNumToName[num] || num;
-    perCantonByName[name] = data;
-  });
-
-  const handleMouseEnter = (e) => {
-    const cantonName = e.features[0].properties.NAME;
-    const cantonData = perCantonByName[cantonName];
-    const selectedMode = selectedDestinationData.selectedMode || 'all';
+  
+  // ------------------------- DESTINATION ZONES CHOROPLETH ------------------------- 
+  useEffect(() => {
+    if (!selectedDestinationData || !mapRef.current || !mapRef.current.getSource('cantons')) return;
+    const map = mapRef.current;
+    const { perCanton } = selectedDestinationData;
+    if (!perCanton || Object.keys(perCanton).length === 0) return;
     
-    if (cantonData && typeof cantonData === 'object') {
-      const modeLabels = {
-        all: 'Total',
-        car: 'Car',
-        pt: 'Public Transport',
-        bike: 'Bicycle',
-        walk: 'Walk'
-      };
+    // Remap perCanton to use canton names as keys
+    const cantonNumToName = cantonNumToNameRef.current;
+    const perCantonByName = {};
+    Object.entries(perCanton).forEach(([num, data]) => {
+      const name = cantonNumToName[num] || num;
+      perCantonByName[name] = data;
+    });
+    
+    // adds layer over cantons to be colored (placed before canton-borders)
+    if (!map.getLayer('destination-choropleth')) {
+      map.addLayer({
+        id: 'destination-choropleth',
+        type: 'fill',
+        source: 'cantons',
+        paint: {
+          'fill-color': '#A07CC5',
+          'fill-opacity': 0.6
+        }
+      }, 'canton-borders');
+    }
+    
+    // Compute totals over all modes over all cantons 
+    const allValues = { all: [], car: [], pt: [], bike: [], walk: [] };
+    Object.values(perCantonByName).forEach(cantonData => {
+      if (!cantonData || typeof cantonData !== 'object') return;
+      Object.keys(allValues).forEach(mode => {
+        if (cantonData[mode] && cantonData[mode] > 0) {
+          allValues[mode].push(cantonData[mode]);
+        }
+      });
+    });
+    
+    // get second largest value for each mode (or largest if only one value exists)
+    const maxValues = {};
+    Object.keys(allValues).forEach(mode => {
+      const sortedValues = allValues[mode].sort((a, b) => b - a);
+      maxValues[mode] = sortedValues.length > 1 ? sortedValues[1] : (sortedValues[0] || 0);
+    });
+    
+    const MODE_COLORS = {
+      car: "#636efa",
+      pt: "#00cc96",
+      bike: "#ab63fa",
+      walk: "#ffa15a",
+      all: "#1f77b4"
+    };
+    
+    // build case expression for chloropleth
+    const createColorExpression = (mode = 'all') => {
+      const maxValue = maxValues[mode];
+      if (maxValue === 0) return 'rgba(0,0,0,0)';
       
-      const selectedValue = cantonData[selectedMode] || 0;
-      const selectedLabel = modeLabels[selectedMode] || 'Total';
+      const caseExpression = ['case'];
+      Object.entries(perCantonByName).forEach(([canton, data]) => {
+        if (!data || typeof data !== 'object') return;
+        const value = data[mode] || 0;
+        const intensity = Math.min(value / maxValue, 1);
+        const baseColor = MODE_COLORS[mode] || MODE_COLORS.all;
+        const hexToRgb = (hex) => {
+          const bigint = parseInt(hex.slice(1), 16);
+          return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
+        };
+        
+        // use quartile based shading (otherwise counts are too sparse)
+        const baseRgb = hexToRgb(baseColor);
+        let colorIntensity;
+        
+        if (intensity <= 0.25) {
+          colorIntensity = 0.25;
+        } else if (intensity <= 0.5) {
+          colorIntensity = 0.5;
+        } else if (intensity <= 0.75) {
+          colorIntensity = 0.75;
+        } else {
+          colorIntensity = 1.0;
+        }
+        
+        const rgb1 = [255, 255, 255];
+        const r = Math.round(rgb1[0] * (1 - colorIntensity) + baseRgb[0] * colorIntensity);
+        const g = Math.round(rgb1[1] * (1 - colorIntensity) + baseRgb[1] * colorIntensity);
+        const b = Math.round(rgb1[2] * (1 - colorIntensity) + baseRgb[2] * colorIntensity);
+        const color = `rgb(${r},${g},${b})`;
+        
+        caseExpression.push(['==', ['get', 'NAME'], canton]);
+        caseExpression.push(color);
+      });
       
-      const popupContent = `
+      // translucent as default color
+      caseExpression.push('rgba(0,0,0,0)');
+      return caseExpression;
+    };
+    map.setPaintProperty('destination-choropleth', 'fill-color', createColorExpression(selectedDestinationData.selectedMode || 'all'));
+    
+  }, [selectedDestinationData]);
+  
+  useEffect(() => {
+    if (!mapRef.current || !selectedDestinationData?.perCanton) return;
+    const map = mapRef.current;
+    const { perCanton } = selectedDestinationData;
+    const cantonNumToName = cantonNumToNameRef.current;
+    const perCantonByName = {};
+    Object.entries(perCanton).forEach(([num, data]) => {
+      const name = cantonNumToName[num] || num;
+      perCantonByName[name] = data;
+    });
+    
+    const handleMouseEnter = (e) => {
+      const cantonName = e.features[0].properties.NAME;
+      const cantonData = perCantonByName[cantonName];
+      const selectedMode = selectedDestinationData.selectedMode || 'all';
+      
+      if (cantonData && typeof cantonData === 'object') {
+        const modeLabels = {
+          all: 'Total',
+          car: 'Car',
+          pt: 'Public Transport',
+          bike: 'Bicycle',
+          walk: 'Walk'
+        };
+        
+        const selectedValue = cantonData[selectedMode] || 0;
+        const selectedLabel = modeLabels[selectedMode] || 'Total';
+        
+        const popupContent = `
         <div style="font-size: 12px;">
-          <strong>${cantonName}</strong><br/>
+          <strong>${cantonAlias[cantonName]}</strong><br/>
           <strong>Inflow from Origin:</strong><br/>
           <div style="font-weight: bold; color: #007AFF; margin: 4px 0;">
             ${selectedLabel}: ${selectedValue.toLocaleString()}
@@ -1390,43 +1421,43 @@ useEffect(() => {
           </div>
         </div>
       `;
-      new mapboxgl.Popup()
+        new mapboxgl.Popup()
         .setLngLat(e.lngLat)
         .setHTML(popupContent)
         .addTo(map);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    map.getCanvas().style.cursor = '';
-    const popups = document.getElementsByClassName('mapboxgl-popup');
-    if (popups.length) {
-      popups[0].remove();
-    }
-  };
-
-  if (map.getLayer('destination-choropleth')) {
-    map.on('mouseenter', 'destination-choropleth', handleMouseEnter);
-    map.on('mouseleave', 'destination-choropleth', handleMouseLeave);
-  }
-  return () => {
+      }
+    };
+    
+    const handleMouseLeave = () => {
+      map.getCanvas().style.cursor = '';
+      const popups = document.getElementsByClassName('mapboxgl-popup');
+      if (popups.length) {
+        popups[0].remove();
+      }
+    };
+    
     if (map.getLayer('destination-choropleth')) {
-      map.off('mouseenter', 'destination-choropleth', handleMouseEnter);
-      map.off('mouseleave', 'destination-choropleth', handleMouseLeave);
+      map.on('mouseenter', 'destination-choropleth', handleMouseEnter);
+      map.on('mouseleave', 'destination-choropleth', handleMouseLeave);
     }
-  };
-}, [selectedDestinationData?.perCanton]);
-
-// Hide/show destination choropleth based on graph selection
-useEffect(() => {
-  if (!mapRef.current) return;
+    return () => {
+      if (map.getLayer('destination-choropleth')) {
+        map.off('mouseenter', 'destination-choropleth', handleMouseEnter);
+        map.off('mouseleave', 'destination-choropleth', handleMouseLeave);
+      }
+    };
+  }, [selectedDestinationData?.perCanton]);
   
-  const map = mapRef.current;
-  if (map.getLayer('destination-choropleth')) {
-    const visibility = (isGraphExpanded === "Destination" && selectedDestinationData) ? 'visible' : 'none';
-    map.setLayoutProperty('destination-choropleth', 'visibility', visibility);
-  }
-}, [isGraphExpanded, selectedDestinationData]);
+  // Hide/show destination choropleth based on graph selection
+  useEffect(() => {
+    if (!mapRef.current) return;
+    
+    const map = mapRef.current;
+    if (map.getLayer('destination-choropleth')) {
+      const visibility = (isGraphExpanded === "Destination" && selectedDestinationData) ? 'visible' : 'none';
+      map.setLayoutProperty('destination-choropleth', 'visibility', visibility);
+    }
+  }, [isGraphExpanded, selectedDestinationData]);
   
   return (
     <>

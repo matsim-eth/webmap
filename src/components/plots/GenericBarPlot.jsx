@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
 import cantonAlias from "../../utils/canton_alias.json";
+import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
 
 const GenericBarPlot = ({
     dataFile = "/data/pt_sub_age.json",
@@ -15,23 +16,21 @@ const GenericBarPlot = ({
     variables,
     defaultVariable,
     canton = "Zurich",
-    onClose,
-    dataURL="/webmap"
 }) => {
     const [selectedVariable, setSelectedVariable] = useState(defaultVariable);
     const [data, setData] = useState(null);
+    const loadWithFallback = useLoadWithFallback();
 
     useEffect(() => {
-      const url = `${dataURL}${dataFile}`;
-      console.log("fetching from", dataFile)
-      fetch(url)
-          .then((res) => res.json())
-          .then((json) => {
-          if (json[canton]) {
-              setData(json[canton]);
-          }
-          })
-          .catch((err) => console.error("Error loading JSON:", err));
+        loadWithFallback(dataFile)
+        .then((jsonData) => {
+            if (jsonData[canton]) {
+                setData(jsonData[canton]);
+            } else {
+                console.error(`No data found for canton: ${canton} in ${dataFile}`);
+            }
+        })
+        .catch((error) => console.error("Error loading JSON:", error));
     }, [selectedVariable, canton, dataFile]);
 
     if (!data) return <p>Loading...</p>;
