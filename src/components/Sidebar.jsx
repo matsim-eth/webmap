@@ -14,6 +14,7 @@ import DepartureTimes from "./plots/DepartureTimes";
 import ModeShareLinePlot from "./plots/ModeShareLinePlot";
 import PtSubscription from "./plots/PtSubscription";
 import Demographics from "./plots/Demographics";
+import DestinationZones from "./plots/DestinationZones";
 
 // Home Module
 import HomeModule from "./HomeModule";
@@ -53,6 +54,9 @@ const Sidebar = ({
   selectedTransitModes, setSelectedTransitModes, selectedTransitStop, highlightedLineId, 
   setHighlightedLineId, setHighlightedRouteIds, setHoveredRouteId, showStopVolumeSymbology,
   setShowStopVolumeSymbology,
+
+  // Destination data
+  setDestinationData,
   
   // Time Range Slider
   timeRange, setTimeRange,
@@ -69,6 +73,9 @@ const Sidebar = ({
   const [availableModes, setAvailableModes] = useState([]); // Available modes for network filter
   const [modesByCanton, setModesByCanton] = useState({}); // For mode filter (only show modes available in each canton)
   const [inputURL, setInputURL] = useState("");
+  
+  // Add state for destination outflow data
+  const [destinationOutflowData, setDestinationOutflowData] = useState(null);
   
   // Transit module
   const [availableTransitModes, setAvailableTransitModes] = useState([]);
@@ -180,6 +187,19 @@ const Sidebar = ({
       setAvailableTransitModes([]);
     }
   }, [canton]);
+
+  // Handle outflow data from DestinationZones and pass to Map
+  const handleTotalOutflowChange = (outflowData) => {
+    setDestinationOutflowData(outflowData);
+    // Pass to Map component via setDestinationData prop
+    if (setDestinationData) {
+      console.log('Sidebar - calling setDestinationData with:', outflowData);
+      setDestinationData(outflowData);
+    } else {
+      console.log('Sidebar - setDestinationData is not available');
+    }
+  };
+
   
   // ======================== SIDEBAR ITEMS =======================
   return (
@@ -210,6 +230,7 @@ const Sidebar = ({
           <option value="Network">MATSim Network</option>
           <option value="Volumes">Road Volumes</option>
           <option value="Transit">Transit Stops/Lines</option>
+          <option value="Destination">Destination Zones</option>
           <option value="Graph 1">Average Distance by {selectedAggCol.charAt(0).toUpperCase() + selectedAggCol.slice(1)}</option>
           <option value="Graph 2">Distance Distribution by {selectedAggCol.charAt(0).toUpperCase() + selectedAggCol.slice(1)}</option>
           <option value="Graph 3">{selectedAggCol.charAt(0).toUpperCase() + selectedAggCol.slice(1)} by Distance (Stacked)</option>
@@ -261,6 +282,17 @@ const Sidebar = ({
             />
             <CantonModeShareTable canton={canton} selectedDataset={selectedDataset} selectedMode={selectedMode} aggCol={selectedAggCol} />
             </div>
+          )}
+
+          {/* Destination Module */}
+            {selectedGraph === "Destination" && (
+              <div className="plot-container">
+                <DestinationZones
+                  canton={canton}
+                  dataURL={dataURL}
+                  onTotalOutflowChange={handleTotalOutflowChange}
+                />
+              </div>
           )}
           
           {/* Network Module */}
