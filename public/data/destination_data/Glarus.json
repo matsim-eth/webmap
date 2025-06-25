@@ -1,0 +1,4198 @@
+[
+  {
+    "destination": "Aargau",
+    "origin": "Glarus",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "17:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Aargau",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "14:30": 1,
+      "15:30": 1,
+      "16:15": 1,
+      "16:45": 1,
+      "18:15": 1,
+      "18:30": 2,
+      "21:45": 1,
+      "23:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Aargau",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "10:00": 1,
+      "14:15": 1,
+      "14:45": 1,
+      "15:15": 1,
+      "19:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Appenzell Ausserrhoden",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "21:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Basel-Landschaft",
+    "origin": "Glarus",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "18:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Basel-Landschaft",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "18:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Basel-Stadt",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "11:00": 1,
+      "17:30": 1,
+      "18:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Basel-Stadt",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "06:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Basel-Stadt",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "17:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Basel-Stadt",
+    "origin": "Glarus",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "17:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Basel-Stadt",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "09:45": 1,
+      "18:45": 1,
+      "21:15": 1,
+      "22:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Bern",
+    "origin": "Glarus",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "09:15": 1,
+      "14:45": 1,
+      "15:45": 1,
+      "16:00": 2,
+      "16:15": 1,
+      "18:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Bern",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "15:30": 1,
+      "16:00": 1,
+      "16:15": 1,
+      "16:30": 1,
+      "18:00": 1,
+      "18:45": 1,
+      "19:00": 1,
+      "19:30": 2,
+      "22:45": 2
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Bern",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "17:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Bern",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "06:00": 1,
+      "06:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Bern",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "18:00": 2,
+      "18:15": 1,
+      "18:30": 1,
+      "19:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Bern",
+    "origin": "Glarus",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "16:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Bern",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "05:30": 1,
+      "11:45": 2,
+      "12:00": 1,
+      "15:00": 1,
+      "15:30": 1,
+      "16:00": 1,
+      "16:15": 1,
+      "16:30": 1,
+      "16:45": 1,
+      "17:00": 2,
+      "18:30": 1,
+      "19:30": 1,
+      "21:00": 1,
+      "22:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Fribourg",
+    "origin": "Glarus",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "21:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Fribourg",
+    "origin": "Glarus",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "07:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Geneve",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "21:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "bike",
+    "purpose": "education",
+    "time_bins": {
+      "06:30": 1,
+      "06:45": 1,
+      "07:30": 4,
+      "07:45": 1,
+      "08:00": 3,
+      "08:15": 1,
+      "10:15": 1,
+      "12:30": 1,
+      "12:45": 1,
+      "13:00": 1,
+      "13:15": 2,
+      "13:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "11:15": 2,
+      "11:45": 4,
+      "12:00": 1,
+      "13:00": 1,
+      "13:45": 1,
+      "15:30": 2,
+      "15:45": 1,
+      "16:15": 1,
+      "16:45": 1,
+      "17:00": 2,
+      "17:15": 1,
+      "19:15": 1,
+      "19:45": 1,
+      "20:30": 1,
+      "21:00": 1,
+      "22:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "bike",
+    "purpose": "leisure",
+    "time_bins": {
+      "13:30": 1,
+      "13:45": 1,
+      "14:00": 1,
+      "14:45": 1,
+      "15:15": 1,
+      "17:45": 1,
+      "18:15": 3,
+      "19:00": 2,
+      "19:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "bike",
+    "purpose": "other",
+    "time_bins": {
+      "08:00": 1,
+      "14:45": 1,
+      "18:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "bike",
+    "purpose": "shop",
+    "time_bins": {
+      "10:00": 1,
+      "12:45": 1,
+      "14:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "bike",
+    "purpose": "work",
+    "time_bins": {
+      "05:45": 1,
+      "06:30": 1,
+      "07:00": 2
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "education",
+    "time_bins": {
+      "06:30": 1,
+      "06:45": 1,
+      "17:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "05:15": 1,
+      "05:30": 1,
+      "06:30": 1,
+      "06:45": 1,
+      "07:15": 1,
+      "07:30": 1,
+      "07:45": 2,
+      "08:00": 1,
+      "08:15": 2,
+      "08:30": 1,
+      "08:45": 2,
+      "09:00": 2,
+      "09:15": 3,
+      "09:30": 3,
+      "09:45": 4,
+      "10:30": 3,
+      "10:45": 3,
+      "11:00": 2,
+      "11:15": 1,
+      "11:30": 7,
+      "11:45": 10,
+      "12:00": 8,
+      "12:15": 2,
+      "12:30": 5,
+      "12:45": 2,
+      "13:15": 3,
+      "13:30": 3,
+      "13:45": 3,
+      "14:00": 2,
+      "14:15": 2,
+      "14:30": 1,
+      "14:45": 1,
+      "15:00": 5,
+      "15:15": 5,
+      "15:30": 2,
+      "15:45": 7,
+      "16:00": 5,
+      "16:15": 4,
+      "16:30": 4,
+      "16:45": 6,
+      "17:00": 4,
+      "17:15": 4,
+      "17:30": 4,
+      "17:45": 5,
+      "18:00": 5,
+      "18:15": 2,
+      "18:30": 3,
+      "18:45": 1,
+      "19:00": 2,
+      "19:15": 2,
+      "19:30": 3,
+      "19:45": 4,
+      "20:00": 3,
+      "20:30": 2,
+      "20:45": 2,
+      "21:00": 2,
+      "21:30": 1,
+      "21:45": 2,
+      "22:15": 2,
+      "23:15": 2
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "05:00": 1,
+      "05:45": 1,
+      "07:00": 1,
+      "08:15": 2,
+      "08:30": 5,
+      "08:45": 3,
+      "09:00": 1,
+      "09:15": 2,
+      "09:30": 3,
+      "10:00": 2,
+      "10:30": 2,
+      "11:00": 1,
+      "11:15": 2,
+      "11:30": 3,
+      "12:00": 1,
+      "12:15": 1,
+      "12:30": 1,
+      "12:45": 1,
+      "13:00": 2,
+      "13:15": 1,
+      "13:30": 1,
+      "13:45": 2,
+      "14:00": 2,
+      "14:15": 3,
+      "14:45": 4,
+      "15:00": 1,
+      "15:15": 2,
+      "15:45": 3,
+      "16:00": 2,
+      "16:15": 2,
+      "16:30": 2,
+      "16:45": 2,
+      "17:00": 1,
+      "17:15": 3,
+      "17:30": 2,
+      "17:45": 2,
+      "18:00": 6,
+      "18:15": 1,
+      "18:30": 1,
+      "18:45": 4,
+      "19:00": 2,
+      "19:15": 1,
+      "19:30": 4,
+      "19:45": 2,
+      "20:15": 3,
+      "22:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "05:45": 1,
+      "06:30": 1,
+      "07:15": 1,
+      "07:30": 2,
+      "07:45": 2,
+      "08:00": 4,
+      "08:15": 2,
+      "08:30": 1,
+      "08:45": 3,
+      "09:00": 1,
+      "09:15": 2,
+      "10:00": 1,
+      "11:00": 1,
+      "11:30": 2,
+      "11:45": 1,
+      "12:00": 3,
+      "12:45": 2,
+      "13:00": 2,
+      "13:30": 1,
+      "13:45": 3,
+      "14:00": 1,
+      "14:45": 3,
+      "15:00": 1,
+      "15:15": 2,
+      "15:30": 3,
+      "15:45": 2,
+      "16:00": 1,
+      "16:15": 1,
+      "16:30": 5,
+      "16:45": 2,
+      "17:00": 2,
+      "17:15": 1,
+      "17:30": 1,
+      "17:45": 1,
+      "18:00": 2,
+      "18:15": 1,
+      "18:30": 1,
+      "19:00": 1,
+      "19:30": 1,
+      "20:15": 3
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "07:30": 2,
+      "07:45": 1,
+      "08:00": 3,
+      "08:15": 3,
+      "08:30": 3,
+      "09:00": 2,
+      "09:15": 2,
+      "09:30": 5,
+      "09:45": 3,
+      "10:00": 2,
+      "10:15": 4,
+      "10:30": 5,
+      "10:45": 5,
+      "11:15": 2,
+      "11:30": 2,
+      "12:15": 1,
+      "12:30": 4,
+      "12:45": 3,
+      "13:45": 2,
+      "14:15": 2,
+      "14:30": 2,
+      "14:45": 1,
+      "15:00": 2,
+      "15:30": 2,
+      "15:45": 1,
+      "16:00": 3,
+      "16:30": 1,
+      "17:15": 1,
+      "17:30": 1,
+      "18:00": 2,
+      "18:15": 3,
+      "18:30": 2
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "03:45": 1,
+      "04:15": 1,
+      "04:45": 4,
+      "05:00": 1,
+      "05:15": 2,
+      "05:30": 4,
+      "05:45": 4,
+      "06:00": 3,
+      "06:15": 10,
+      "06:30": 8,
+      "06:45": 8,
+      "07:00": 7,
+      "07:15": 6,
+      "07:30": 1,
+      "07:45": 4,
+      "08:00": 3,
+      "08:15": 2,
+      "08:30": 1,
+      "08:45": 2,
+      "09:00": 2,
+      "09:15": 2,
+      "09:45": 2,
+      "10:00": 1,
+      "10:15": 1,
+      "10:30": 1,
+      "11:30": 1,
+      "12:00": 2,
+      "12:30": 12,
+      "12:45": 7,
+      "13:00": 8,
+      "13:15": 1,
+      "13:30": 1,
+      "13:45": 2,
+      "14:15": 1,
+      "14:30": 1,
+      "15:45": 2,
+      "16:15": 1,
+      "16:45": 3,
+      "17:00": 2,
+      "17:15": 2,
+      "17:45": 3,
+      "19:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "education",
+    "time_bins": {
+      "07:15": 1,
+      "07:45": 1,
+      "08:00": 2,
+      "08:45": 2,
+      "13:15": 1,
+      "14:00": 1,
+      "19:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "10:15": 1,
+      "10:45": 1,
+      "11:00": 1,
+      "11:15": 1,
+      "12:15": 1,
+      "12:30": 1,
+      "14:00": 1,
+      "14:45": 1,
+      "16:00": 1,
+      "16:15": 2,
+      "19:00": 1,
+      "19:15": 1,
+      "20:00": 1,
+      "20:15": 1,
+      "20:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "07:30": 1,
+      "11:30": 1,
+      "11:45": 2,
+      "13:30": 1,
+      "14:00": 1,
+      "14:30": 1,
+      "14:45": 1,
+      "15:45": 1,
+      "16:15": 1,
+      "17:00": 1,
+      "17:15": 1,
+      "17:30": 1,
+      "17:45": 2,
+      "18:00": 2,
+      "18:30": 3,
+      "18:45": 2,
+      "19:00": 1,
+      "19:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "other",
+    "time_bins": {
+      "10:30": 1,
+      "11:30": 1,
+      "15:45": 1,
+      "16:00": 1,
+      "17:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "shop",
+    "time_bins": {
+      "08:45": 1,
+      "09:15": 1,
+      "10:00": 1,
+      "10:15": 1,
+      "10:45": 1,
+      "12:15": 1,
+      "13:15": 2,
+      "13:30": 1,
+      "14:30": 1,
+      "16:00": 1,
+      "16:45": 2,
+      "17:15": 1,
+      "17:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "work",
+    "time_bins": {
+      "06:30": 1,
+      "07:00": 1,
+      "08:15": 1,
+      "08:30": 1,
+      "10:00": 1,
+      "12:30": 1,
+      "13:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "education",
+    "time_bins": {
+      "06:15": 1,
+      "06:30": 1,
+      "06:45": 2,
+      "07:30": 2,
+      "07:45": 2,
+      "08:00": 1,
+      "08:15": 1,
+      "10:00": 1,
+      "13:45": 1,
+      "14:00": 1,
+      "15:45": 1,
+      "19:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "08:45": 1,
+      "10:00": 1,
+      "11:00": 1,
+      "11:30": 1,
+      "12:00": 1,
+      "12:15": 1,
+      "13:00": 1,
+      "16:00": 1,
+      "16:15": 1,
+      "16:30": 2,
+      "17:00": 1,
+      "17:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "08:15": 1,
+      "11:30": 1,
+      "13:00": 1,
+      "17:30": 1,
+      "20:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "other",
+    "time_bins": {
+      "09:45": 1,
+      "10:15": 1,
+      "14:15": 1,
+      "17:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "shop",
+    "time_bins": {
+      "08:00": 1,
+      "11:00": 2,
+      "11:15": 1,
+      "15:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "05:15": 2,
+      "05:30": 1,
+      "06:15": 1,
+      "06:30": 1,
+      "06:45": 1,
+      "07:00": 1,
+      "07:45": 1,
+      "08:30": 1,
+      "11:00": 1,
+      "12:45": 1,
+      "13:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "06:45": 1,
+      "09:45": 1,
+      "10:45": 1,
+      "12:30": 1,
+      "15:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "education",
+    "time_bins": {
+      "05:30": 1,
+      "06:30": 1,
+      "06:45": 2,
+      "07:00": 1,
+      "07:15": 3,
+      "07:30": 5,
+      "07:45": 1,
+      "08:00": 2,
+      "12:30": 1,
+      "12:45": 2,
+      "13:00": 4,
+      "13:15": 1,
+      "13:30": 2,
+      "13:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "04:00": 1,
+      "06:00": 1,
+      "06:15": 1,
+      "06:45": 1,
+      "07:30": 1,
+      "07:45": 3,
+      "08:00": 3,
+      "08:15": 5,
+      "08:30": 4,
+      "08:45": 3,
+      "09:00": 1,
+      "09:15": 3,
+      "09:30": 4,
+      "09:45": 3,
+      "10:00": 2,
+      "10:15": 1,
+      "10:30": 3,
+      "11:00": 4,
+      "11:15": 3,
+      "11:30": 5,
+      "11:45": 2,
+      "12:15": 3,
+      "13:00": 2,
+      "13:15": 2,
+      "13:30": 2,
+      "13:45": 3,
+      "14:00": 4,
+      "14:15": 3,
+      "14:30": 2,
+      "14:45": 3,
+      "15:00": 3,
+      "15:15": 2,
+      "15:45": 1,
+      "16:00": 2,
+      "16:15": 3,
+      "16:30": 2,
+      "16:45": 5,
+      "17:15": 1,
+      "17:30": 1,
+      "18:30": 1,
+      "18:45": 2,
+      "19:30": 2,
+      "19:45": 1,
+      "20:00": 1,
+      "20:45": 1,
+      "21:45": 1,
+      "22:00": 1,
+      "22:45": 1,
+      "23:00": 2,
+      "24:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "leisure",
+    "time_bins": {
+      "06:45": 1,
+      "07:00": 1,
+      "08:00": 1,
+      "08:15": 1,
+      "08:30": 1,
+      "09:00": 1,
+      "09:15": 1,
+      "09:30": 2,
+      "09:45": 2,
+      "11:00": 1,
+      "11:30": 3,
+      "11:45": 1,
+      "12:00": 1,
+      "12:15": 4,
+      "13:15": 1,
+      "13:45": 1,
+      "14:30": 2,
+      "15:00": 3,
+      "16:00": 1,
+      "17:15": 1,
+      "17:45": 2,
+      "18:15": 1,
+      "18:45": 2,
+      "19:15": 2,
+      "19:30": 1,
+      "19:45": 1,
+      "20:00": 2
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "other",
+    "time_bins": {
+      "06:00": 1,
+      "07:30": 1,
+      "07:45": 2,
+      "08:00": 3,
+      "08:30": 2,
+      "09:00": 1,
+      "09:15": 1,
+      "09:30": 1,
+      "09:45": 1,
+      "10:15": 1,
+      "10:45": 1,
+      "11:15": 1,
+      "12:00": 1,
+      "12:15": 2,
+      "13:00": 2,
+      "13:45": 1,
+      "14:00": 2,
+      "15:00": 1,
+      "15:30": 1,
+      "17:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "shop",
+    "time_bins": {
+      "07:30": 2,
+      "08:00": 3,
+      "08:15": 2,
+      "08:45": 1,
+      "09:00": 2,
+      "09:15": 2,
+      "09:30": 1,
+      "09:45": 2,
+      "10:00": 1,
+      "10:30": 1,
+      "10:45": 1,
+      "11:45": 1,
+      "12:00": 1,
+      "12:45": 1,
+      "13:00": 3,
+      "13:30": 2,
+      "13:45": 2,
+      "14:00": 2,
+      "14:15": 1,
+      "14:30": 1,
+      "14:45": 1,
+      "15:15": 1,
+      "16:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "06:00": 1,
+      "06:45": 1,
+      "07:15": 4,
+      "07:30": 2,
+      "08:15": 1,
+      "08:30": 2,
+      "09:15": 1,
+      "09:30": 1,
+      "10:15": 1,
+      "11:00": 1,
+      "11:15": 2,
+      "12:00": 1,
+      "12:15": 3,
+      "12:30": 1,
+      "12:45": 1,
+      "13:00": 2,
+      "13:15": 3,
+      "13:45": 1,
+      "14:30": 1,
+      "16:15": 1,
+      "17:00": 2,
+      "18:15": 1,
+      "21:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Graubunden",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "education",
+    "time_bins": {
+      "10:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Graubunden",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "09:45": 1,
+      "18:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Graubunden",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "06:15": 1,
+      "08:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Graubunden",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "education",
+    "time_bins": {
+      "08:45": 1,
+      "09:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Graubunden",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "16:45": 1,
+      "21:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Graubunden",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "other",
+    "time_bins": {
+      "13:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Graubunden",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "education",
+    "time_bins": {
+      "08:30": 1,
+      "09:30": 1,
+      "10:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Graubunden",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "10:30": 1,
+      "15:45": 1,
+      "16:30": 1,
+      "22:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Graubunden",
+    "origin": "Glarus",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "08:15": 1,
+      "08:30": 1,
+      "10:00": 1,
+      "13:30": 1,
+      "15:30": 1,
+      "16:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Graubunden",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "leisure",
+    "time_bins": {
+      "13:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Jura",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "07:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Luzern",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "12:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Nidwalden",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "18:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Obwalden",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "17:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "education",
+    "time_bins": {
+      "07:30": 1,
+      "17:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "10:15": 1,
+      "10:30": 1,
+      "10:45": 1,
+      "11:30": 1,
+      "14:45": 1,
+      "16:00": 1,
+      "16:15": 2,
+      "16:30": 1,
+      "16:45": 1,
+      "17:00": 1,
+      "17:15": 1,
+      "21:00": 1,
+      "22:00": 1,
+      "23:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "14:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "09:45": 1,
+      "13:45": 1,
+      "17:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "06:30": 1,
+      "12:45": 1,
+      "13:45": 1,
+      "16:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "05:00": 1,
+      "06:45": 1,
+      "07:15": 1,
+      "08:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "17:30": 2
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "05:30": 1,
+      "16:00": 1,
+      "22:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "12:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "14:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "06:00": 1,
+      "07:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "05:00": 1,
+      "13:15": 1,
+      "15:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "10:15": 1,
+      "14:15": 1,
+      "15:30": 2,
+      "17:15": 1,
+      "19:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "07:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Solothurn",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "16:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Solothurn",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "15:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Glarus",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "09:45": 1,
+      "11:45": 1,
+      "12:15": 1,
+      "18:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "education",
+    "time_bins": {
+      "17:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "08:30": 1,
+      "09:00": 1,
+      "09:15": 1,
+      "09:45": 1,
+      "10:15": 1,
+      "10:30": 2,
+      "11:00": 2,
+      "11:15": 1,
+      "11:30": 2,
+      "11:45": 2,
+      "12:00": 2,
+      "12:15": 1,
+      "12:45": 2,
+      "13:15": 1,
+      "13:45": 2,
+      "14:00": 1,
+      "14:30": 1,
+      "15:00": 1,
+      "15:30": 2,
+      "16:15": 1,
+      "16:30": 5,
+      "16:45": 3,
+      "17:30": 2,
+      "17:45": 1,
+      "18:00": 2,
+      "20:15": 1,
+      "20:30": 1,
+      "20:45": 1,
+      "21:30": 2,
+      "22:00": 1,
+      "23:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "07:15": 1,
+      "08:30": 1,
+      "09:30": 1,
+      "13:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "07:00": 1,
+      "11:45": 1,
+      "13:00": 1,
+      "14:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "11:30": 1,
+      "13:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "05:30": 2,
+      "06:00": 2,
+      "06:30": 1,
+      "07:15": 1,
+      "11:15": 1,
+      "14:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "10:30": 1,
+      "13:45": 1,
+      "18:30": 1,
+      "22:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "10:30": 1,
+      "19:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "other",
+    "time_bins": {
+      "13:00": 1,
+      "15:30": 1,
+      "16:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "shop",
+    "time_bins": {
+      "07:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "work",
+    "time_bins": {
+      "09:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "education",
+    "time_bins": {
+      "06:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "11:30": 1,
+      "15:30": 1,
+      "15:45": 1,
+      "16:15": 1,
+      "16:45": 1,
+      "17:00": 1,
+      "18:15": 1,
+      "18:45": 1,
+      "20:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "09:30": 1,
+      "11:45": 1,
+      "15:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "shop",
+    "time_bins": {
+      "10:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "04:15": 1,
+      "06:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Glarus",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "06:45": 1,
+      "15:30": 1,
+      "20:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "05:15": 1,
+      "10:30": 1,
+      "10:45": 1,
+      "13:30": 1,
+      "14:30": 1,
+      "15:15": 1,
+      "16:30": 1,
+      "25:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "other",
+    "time_bins": {
+      "07:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Thurgau",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "work",
+    "time_bins": {
+      "07:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Thurgau",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "19:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Ticino",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "13:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Uri",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "09:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Vaud",
+    "origin": "Glarus",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "15:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Vaud",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "10:00": 1,
+      "11:15": 1,
+      "12:30": 1,
+      "13:30": 1,
+      "15:15": 1,
+      "15:45": 1,
+      "17:45": 1,
+      "19:15": 1,
+      "20:00": 1,
+      "20:45": 1,
+      "22:00": 1,
+      "22:15": 1,
+      "22:45": 1,
+      "23:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Vaud",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "16:00": 2,
+      "17:15": 2,
+      "18:30": 1,
+      "24:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Vaud",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "education",
+    "time_bins": {
+      "15:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Vaud",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "15:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Vaud",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "08:45": 1,
+      "09:45": 1,
+      "13:15": 1,
+      "14:00": 1,
+      "14:45": 2,
+      "15:30": 1,
+      "16:15": 1,
+      "17:15": 1,
+      "17:30": 1,
+      "17:45": 2,
+      "19:30": 1,
+      "20:00": 1,
+      "21:00": 1,
+      "21:30": 1,
+      "23:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zug",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "09:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zug",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "06:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Glarus",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "13:15": 1,
+      "15:00": 1,
+      "17:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "09:45": 1,
+      "13:15": 1,
+      "13:45": 1,
+      "15:00": 1,
+      "15:30": 1,
+      "16:15": 1,
+      "16:30": 1,
+      "17:00": 1,
+      "18:45": 1,
+      "19:00": 1,
+      "19:30": 1,
+      "20:00": 2,
+      "21:45": 1,
+      "22:15": 1,
+      "22:30": 1,
+      "23:00": 1,
+      "23:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "15:30": 1,
+      "18:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "17:15": 1,
+      "19:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "03:15": 1,
+      "05:15": 1,
+      "06:15": 1,
+      "06:45": 1,
+      "07:00": 1,
+      "07:15": 1,
+      "08:15": 2
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "17:00": 1,
+      "17:15": 1,
+      "19:30": 1,
+      "21:45": 1,
+      "22:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "shop",
+    "time_bins": {
+      "16:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "work",
+    "time_bins": {
+      "15:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "08:00": 1,
+      "11:00": 1,
+      "13:30": 1,
+      "17:30": 2
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "13:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "shop",
+    "time_bins": {
+      "16:15": 1,
+      "18:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "06:15": 1,
+      "07:45": 1,
+      "08:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Glarus",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "07:00": 1,
+      "07:15": 1,
+      "15:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "09:45": 1,
+      "11:45": 1,
+      "14:00": 1,
+      "16:00": 2,
+      "16:45": 1,
+      "17:15": 1,
+      "17:30": 1,
+      "21:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "12:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Aargau",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "11:15": 1,
+      "15:15": 1,
+      "15:30": 1,
+      "17:00": 1,
+      "18:15": 1,
+      "21:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Aargau",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "10:30": 1,
+      "12:00": 1,
+      "16:30": 1,
+      "20:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Aargau",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "13:15": 1,
+      "14:00": 2,
+      "14:15": 1,
+      "17:15": 1,
+      "17:30": 1,
+      "17:45": 1,
+      "20:00": 1,
+      "21:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Basel-Landschaft",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "16:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Basel-Landschaft",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "20:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Basel-Landschaft",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "18:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Basel-Landschaft",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "17:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Basel-Stadt",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "16:15": 1,
+      "17:45": 1,
+      "21:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Basel-Stadt",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "13:00": 1,
+      "14:45": 1,
+      "18:15": 1,
+      "21:30": 1,
+      "22:00": 1,
+      "24:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Basel-Stadt",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "14:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Bern",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "15:30": 1,
+      "18:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Bern",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "11:15": 1,
+      "11:45": 1,
+      "13:45": 1,
+      "16:00": 1,
+      "16:30": 1,
+      "16:45": 1,
+      "17:15": 1,
+      "17:45": 1,
+      "18:00": 1,
+      "19:30": 1,
+      "19:45": 1,
+      "21:30": 1,
+      "22:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Bern",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "16:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Bern",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "17:00": 1,
+      "17:15": 1,
+      "17:30": 1,
+      "19:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Bern",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "16:15": 1,
+      "16:30": 1,
+      "16:45": 1,
+      "17:30": 1,
+      "18:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Bern",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "16:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Bern",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "09:30": 1,
+      "10:00": 1,
+      "14:45": 1,
+      "15:00": 1,
+      "16:00": 1,
+      "16:30": 1,
+      "16:45": 1,
+      "17:30": 1,
+      "18:15": 2,
+      "18:45": 2,
+      "19:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "bike",
+    "purpose": "education",
+    "time_bins": {
+      "06:30": 1,
+      "06:45": 1,
+      "07:30": 4,
+      "07:45": 1,
+      "08:00": 3,
+      "08:15": 1,
+      "10:15": 1,
+      "12:30": 1,
+      "12:45": 1,
+      "13:00": 1,
+      "13:15": 2,
+      "13:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "11:15": 2,
+      "11:45": 4,
+      "12:00": 1,
+      "13:00": 1,
+      "13:45": 1,
+      "15:30": 2,
+      "15:45": 1,
+      "16:15": 1,
+      "16:45": 1,
+      "17:00": 2,
+      "17:15": 1,
+      "19:15": 1,
+      "19:45": 1,
+      "20:30": 1,
+      "21:00": 1,
+      "22:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "bike",
+    "purpose": "leisure",
+    "time_bins": {
+      "13:30": 1,
+      "13:45": 1,
+      "14:00": 1,
+      "14:45": 1,
+      "15:15": 1,
+      "17:45": 1,
+      "18:15": 3,
+      "19:00": 2,
+      "19:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "bike",
+    "purpose": "other",
+    "time_bins": {
+      "08:00": 1,
+      "14:45": 1,
+      "18:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "bike",
+    "purpose": "shop",
+    "time_bins": {
+      "10:00": 1,
+      "12:45": 1,
+      "14:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "bike",
+    "purpose": "work",
+    "time_bins": {
+      "05:45": 1,
+      "06:30": 1,
+      "07:00": 2
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "education",
+    "time_bins": {
+      "06:30": 1,
+      "06:45": 1,
+      "17:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "05:15": 1,
+      "05:30": 1,
+      "06:30": 1,
+      "06:45": 1,
+      "07:15": 1,
+      "07:30": 1,
+      "07:45": 2,
+      "08:00": 1,
+      "08:15": 2,
+      "08:30": 1,
+      "08:45": 2,
+      "09:00": 2,
+      "09:15": 3,
+      "09:30": 3,
+      "09:45": 4,
+      "10:30": 3,
+      "10:45": 3,
+      "11:00": 2,
+      "11:15": 1,
+      "11:30": 7,
+      "11:45": 10,
+      "12:00": 8,
+      "12:15": 2,
+      "12:30": 5,
+      "12:45": 2,
+      "13:15": 3,
+      "13:30": 3,
+      "13:45": 3,
+      "14:00": 2,
+      "14:15": 2,
+      "14:30": 1,
+      "14:45": 1,
+      "15:00": 5,
+      "15:15": 5,
+      "15:30": 2,
+      "15:45": 7,
+      "16:00": 5,
+      "16:15": 4,
+      "16:30": 4,
+      "16:45": 6,
+      "17:00": 4,
+      "17:15": 4,
+      "17:30": 4,
+      "17:45": 5,
+      "18:00": 5,
+      "18:15": 2,
+      "18:30": 3,
+      "18:45": 1,
+      "19:00": 2,
+      "19:15": 2,
+      "19:30": 3,
+      "19:45": 4,
+      "20:00": 3,
+      "20:30": 2,
+      "20:45": 2,
+      "21:00": 2,
+      "21:30": 1,
+      "21:45": 2,
+      "22:15": 2,
+      "23:15": 2
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "05:00": 1,
+      "05:45": 1,
+      "07:00": 1,
+      "08:15": 2,
+      "08:30": 5,
+      "08:45": 3,
+      "09:00": 1,
+      "09:15": 2,
+      "09:30": 3,
+      "10:00": 2,
+      "10:30": 2,
+      "11:00": 1,
+      "11:15": 2,
+      "11:30": 3,
+      "12:00": 1,
+      "12:15": 1,
+      "12:30": 1,
+      "12:45": 1,
+      "13:00": 2,
+      "13:15": 1,
+      "13:30": 1,
+      "13:45": 2,
+      "14:00": 2,
+      "14:15": 3,
+      "14:45": 4,
+      "15:00": 1,
+      "15:15": 2,
+      "15:45": 3,
+      "16:00": 2,
+      "16:15": 2,
+      "16:30": 2,
+      "16:45": 2,
+      "17:00": 1,
+      "17:15": 3,
+      "17:30": 2,
+      "17:45": 2,
+      "18:00": 6,
+      "18:15": 1,
+      "18:30": 1,
+      "18:45": 4,
+      "19:00": 2,
+      "19:15": 1,
+      "19:30": 4,
+      "19:45": 2,
+      "20:15": 3,
+      "22:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "05:45": 1,
+      "06:30": 1,
+      "07:15": 1,
+      "07:30": 2,
+      "07:45": 2,
+      "08:00": 4,
+      "08:15": 2,
+      "08:30": 1,
+      "08:45": 3,
+      "09:00": 1,
+      "09:15": 2,
+      "10:00": 1,
+      "11:00": 1,
+      "11:30": 2,
+      "11:45": 1,
+      "12:00": 3,
+      "12:45": 2,
+      "13:00": 2,
+      "13:30": 1,
+      "13:45": 3,
+      "14:00": 1,
+      "14:45": 3,
+      "15:00": 1,
+      "15:15": 2,
+      "15:30": 3,
+      "15:45": 2,
+      "16:00": 1,
+      "16:15": 1,
+      "16:30": 5,
+      "16:45": 2,
+      "17:00": 2,
+      "17:15": 1,
+      "17:30": 1,
+      "17:45": 1,
+      "18:00": 2,
+      "18:15": 1,
+      "18:30": 1,
+      "19:00": 1,
+      "19:30": 1,
+      "20:15": 3
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "07:30": 2,
+      "07:45": 1,
+      "08:00": 3,
+      "08:15": 3,
+      "08:30": 3,
+      "09:00": 2,
+      "09:15": 2,
+      "09:30": 5,
+      "09:45": 3,
+      "10:00": 2,
+      "10:15": 4,
+      "10:30": 5,
+      "10:45": 5,
+      "11:15": 2,
+      "11:30": 2,
+      "12:15": 1,
+      "12:30": 4,
+      "12:45": 3,
+      "13:45": 2,
+      "14:15": 2,
+      "14:30": 2,
+      "14:45": 1,
+      "15:00": 2,
+      "15:30": 2,
+      "15:45": 1,
+      "16:00": 3,
+      "16:30": 1,
+      "17:15": 1,
+      "17:30": 1,
+      "18:00": 2,
+      "18:15": 3,
+      "18:30": 2
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "03:45": 1,
+      "04:15": 1,
+      "04:45": 4,
+      "05:00": 1,
+      "05:15": 2,
+      "05:30": 4,
+      "05:45": 4,
+      "06:00": 3,
+      "06:15": 10,
+      "06:30": 8,
+      "06:45": 8,
+      "07:00": 7,
+      "07:15": 6,
+      "07:30": 1,
+      "07:45": 4,
+      "08:00": 3,
+      "08:15": 2,
+      "08:30": 1,
+      "08:45": 2,
+      "09:00": 2,
+      "09:15": 2,
+      "09:45": 2,
+      "10:00": 1,
+      "10:15": 1,
+      "10:30": 1,
+      "11:30": 1,
+      "12:00": 2,
+      "12:30": 12,
+      "12:45": 7,
+      "13:00": 8,
+      "13:15": 1,
+      "13:30": 1,
+      "13:45": 2,
+      "14:15": 1,
+      "14:30": 1,
+      "15:45": 2,
+      "16:15": 1,
+      "16:45": 3,
+      "17:00": 2,
+      "17:15": 2,
+      "17:45": 3,
+      "19:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "education",
+    "time_bins": {
+      "07:15": 1,
+      "07:45": 1,
+      "08:00": 2,
+      "08:45": 2,
+      "13:15": 1,
+      "14:00": 1,
+      "19:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "10:15": 1,
+      "10:45": 1,
+      "11:00": 1,
+      "11:15": 1,
+      "12:15": 1,
+      "12:30": 1,
+      "14:00": 1,
+      "14:45": 1,
+      "16:00": 1,
+      "16:15": 2,
+      "19:00": 1,
+      "19:15": 1,
+      "20:00": 1,
+      "20:15": 1,
+      "20:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "07:30": 1,
+      "11:30": 1,
+      "11:45": 2,
+      "13:30": 1,
+      "14:00": 1,
+      "14:30": 1,
+      "14:45": 1,
+      "15:45": 1,
+      "16:15": 1,
+      "17:00": 1,
+      "17:15": 1,
+      "17:30": 1,
+      "17:45": 2,
+      "18:00": 2,
+      "18:30": 3,
+      "18:45": 2,
+      "19:00": 1,
+      "19:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "other",
+    "time_bins": {
+      "10:30": 1,
+      "11:30": 1,
+      "15:45": 1,
+      "16:00": 1,
+      "17:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "shop",
+    "time_bins": {
+      "08:45": 1,
+      "09:15": 1,
+      "10:00": 1,
+      "10:15": 1,
+      "10:45": 1,
+      "12:15": 1,
+      "13:15": 2,
+      "13:30": 1,
+      "14:30": 1,
+      "16:00": 1,
+      "16:45": 2,
+      "17:15": 1,
+      "17:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "work",
+    "time_bins": {
+      "06:30": 1,
+      "07:00": 1,
+      "08:15": 1,
+      "08:30": 1,
+      "10:00": 1,
+      "12:30": 1,
+      "13:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "education",
+    "time_bins": {
+      "06:15": 1,
+      "06:30": 1,
+      "06:45": 2,
+      "07:30": 2,
+      "07:45": 2,
+      "08:00": 1,
+      "08:15": 1,
+      "10:00": 1,
+      "13:45": 1,
+      "14:00": 1,
+      "15:45": 1,
+      "19:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "08:45": 1,
+      "10:00": 1,
+      "11:00": 1,
+      "11:30": 1,
+      "12:00": 1,
+      "12:15": 1,
+      "13:00": 1,
+      "16:00": 1,
+      "16:15": 1,
+      "16:30": 2,
+      "17:00": 1,
+      "17:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "08:15": 1,
+      "11:30": 1,
+      "13:00": 1,
+      "17:30": 1,
+      "20:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "other",
+    "time_bins": {
+      "09:45": 1,
+      "10:15": 1,
+      "14:15": 1,
+      "17:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "shop",
+    "time_bins": {
+      "08:00": 1,
+      "11:00": 2,
+      "11:15": 1,
+      "15:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "05:15": 2,
+      "05:30": 1,
+      "06:15": 1,
+      "06:30": 1,
+      "06:45": 1,
+      "07:00": 1,
+      "07:45": 1,
+      "08:30": 1,
+      "11:00": 1,
+      "12:45": 1,
+      "13:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "06:45": 1,
+      "09:45": 1,
+      "10:45": 1,
+      "12:30": 1,
+      "15:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "education",
+    "time_bins": {
+      "05:30": 1,
+      "06:30": 1,
+      "06:45": 2,
+      "07:00": 1,
+      "07:15": 3,
+      "07:30": 5,
+      "07:45": 1,
+      "08:00": 2,
+      "12:30": 1,
+      "12:45": 2,
+      "13:00": 4,
+      "13:15": 1,
+      "13:30": 2,
+      "13:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "04:00": 1,
+      "06:00": 1,
+      "06:15": 1,
+      "06:45": 1,
+      "07:30": 1,
+      "07:45": 3,
+      "08:00": 3,
+      "08:15": 5,
+      "08:30": 4,
+      "08:45": 3,
+      "09:00": 1,
+      "09:15": 3,
+      "09:30": 4,
+      "09:45": 3,
+      "10:00": 2,
+      "10:15": 1,
+      "10:30": 3,
+      "11:00": 4,
+      "11:15": 3,
+      "11:30": 5,
+      "11:45": 2,
+      "12:15": 3,
+      "13:00": 2,
+      "13:15": 2,
+      "13:30": 2,
+      "13:45": 3,
+      "14:00": 4,
+      "14:15": 3,
+      "14:30": 2,
+      "14:45": 3,
+      "15:00": 3,
+      "15:15": 2,
+      "15:45": 1,
+      "16:00": 2,
+      "16:15": 3,
+      "16:30": 2,
+      "16:45": 5,
+      "17:15": 1,
+      "17:30": 1,
+      "18:30": 1,
+      "18:45": 2,
+      "19:30": 2,
+      "19:45": 1,
+      "20:00": 1,
+      "20:45": 1,
+      "21:45": 1,
+      "22:00": 1,
+      "22:45": 1,
+      "23:00": 2,
+      "24:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "leisure",
+    "time_bins": {
+      "06:45": 1,
+      "07:00": 1,
+      "08:00": 1,
+      "08:15": 1,
+      "08:30": 1,
+      "09:00": 1,
+      "09:15": 1,
+      "09:30": 2,
+      "09:45": 2,
+      "11:00": 1,
+      "11:30": 3,
+      "11:45": 1,
+      "12:00": 1,
+      "12:15": 4,
+      "13:15": 1,
+      "13:45": 1,
+      "14:30": 2,
+      "15:00": 3,
+      "16:00": 1,
+      "17:15": 1,
+      "17:45": 2,
+      "18:15": 1,
+      "18:45": 2,
+      "19:15": 2,
+      "19:30": 1,
+      "19:45": 1,
+      "20:00": 2
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "other",
+    "time_bins": {
+      "06:00": 1,
+      "07:30": 1,
+      "07:45": 2,
+      "08:00": 3,
+      "08:30": 2,
+      "09:00": 1,
+      "09:15": 1,
+      "09:30": 1,
+      "09:45": 1,
+      "10:15": 1,
+      "10:45": 1,
+      "11:15": 1,
+      "12:00": 1,
+      "12:15": 2,
+      "13:00": 2,
+      "13:45": 1,
+      "14:00": 2,
+      "15:00": 1,
+      "15:30": 1,
+      "17:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "shop",
+    "time_bins": {
+      "07:30": 2,
+      "08:00": 3,
+      "08:15": 2,
+      "08:45": 1,
+      "09:00": 2,
+      "09:15": 2,
+      "09:30": 1,
+      "09:45": 2,
+      "10:00": 1,
+      "10:30": 1,
+      "10:45": 1,
+      "11:45": 1,
+      "12:00": 1,
+      "12:45": 1,
+      "13:00": 3,
+      "13:30": 2,
+      "13:45": 2,
+      "14:00": 2,
+      "14:15": 1,
+      "14:30": 1,
+      "14:45": 1,
+      "15:15": 1,
+      "16:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "06:00": 1,
+      "06:45": 1,
+      "07:15": 4,
+      "07:30": 2,
+      "08:15": 1,
+      "08:30": 2,
+      "09:15": 1,
+      "09:30": 1,
+      "10:15": 1,
+      "11:00": 1,
+      "11:15": 2,
+      "12:00": 1,
+      "12:15": 3,
+      "12:30": 1,
+      "12:45": 1,
+      "13:00": 2,
+      "13:15": 3,
+      "13:45": 1,
+      "14:30": 1,
+      "16:15": 1,
+      "17:00": 2,
+      "18:15": 1,
+      "21:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Graubunden",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "11:15": 1,
+      "15:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Graubunden",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "16:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Graubunden",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "15:00": 1,
+      "16:30": 1,
+      "17:00": 1,
+      "18:45": 1,
+      "21:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Graubunden",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "15:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Graubunden",
+    "mode": "car_passenger",
+    "purpose": "shop",
+    "time_bins": {
+      "13:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Graubunden",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "10:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Graubunden",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "06:15": 1,
+      "20:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Graubunden",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "00:15": 1,
+      "08:15": 1,
+      "10:15": 1,
+      "10:45": 1,
+      "12:30": 1,
+      "12:45": 1,
+      "15:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Jura",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "15:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Luzern",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "18:15": 1,
+      "22:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Luzern",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "15:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Nidwalden",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "21:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "education",
+    "time_bins": {
+      "10:00": 1,
+      "16:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "11:45": 1,
+      "15:45": 1,
+      "16:45": 2,
+      "17:30": 2,
+      "19:00": 1,
+      "19:15": 1,
+      "19:30": 1,
+      "20:15": 1,
+      "22:45": 1,
+      "24:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "10:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "07:30": 1,
+      "09:30": 1,
+      "13:45": 1,
+      "16:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "11:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "06:00": 1,
+      "06:30": 1,
+      "13:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "16:30": 1,
+      "20:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "other",
+    "time_bins": {
+      "21:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "11:30": 1,
+      "12:45": 1,
+      "17:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "12:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "09:15": 1,
+      "17:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "14:00": 1,
+      "16:15": 1,
+      "17:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "leisure",
+    "time_bins": {
+      "13:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "other",
+    "time_bins": {
+      "05:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Solothurn",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "23:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Solothurn",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "07:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "St. Gallen",
+    "mode": "bike",
+    "purpose": "leisure",
+    "time_bins": {
+      "08:15": 1,
+      "17:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "St. Gallen",
+    "mode": "bike",
+    "purpose": "other",
+    "time_bins": {
+      "11:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "St. Gallen",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "07:45": 1,
+      "11:00": 1,
+      "11:45": 1,
+      "12:15": 1,
+      "12:45": 1,
+      "13:00": 1,
+      "14:00": 1,
+      "14:45": 1,
+      "15:00": 1,
+      "16:00": 2,
+      "16:45": 2,
+      "17:15": 3,
+      "17:45": 1,
+      "18:15": 1,
+      "18:45": 1,
+      "21:15": 1,
+      "22:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "St. Gallen",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "04:45": 1,
+      "06:30": 1,
+      "07:45": 1,
+      "09:00": 1,
+      "09:30": 1,
+      "11:15": 1,
+      "18:30": 1,
+      "19:00": 2
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "St. Gallen",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "08:15": 1,
+      "09:00": 1,
+      "12:30": 1,
+      "13:00": 1,
+      "14:45": 1,
+      "15:30": 2,
+      "17:45": 1,
+      "18:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "St. Gallen",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "07:30": 1,
+      "07:45": 1,
+      "09:30": 1,
+      "09:45": 1,
+      "10:45": 1,
+      "11:30": 1,
+      "12:30": 2,
+      "13:45": 1,
+      "14:15": 1,
+      "15:15": 1,
+      "16:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "St. Gallen",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "05:00": 1,
+      "05:30": 1,
+      "06:15": 3,
+      "06:30": 1,
+      "06:45": 1,
+      "07:00": 1,
+      "07:15": 1,
+      "08:00": 2,
+      "08:15": 1,
+      "10:15": 1,
+      "11:00": 1,
+      "12:30": 1,
+      "12:45": 2,
+      "13:15": 2,
+      "19:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "St. Gallen",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "13:30": 1,
+      "15:45": 1,
+      "16:30": 1,
+      "20:45": 1,
+      "21:00": 1,
+      "23:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "St. Gallen",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "09:30": 1,
+      "16:30": 1,
+      "19:30": 1,
+      "23:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "St. Gallen",
+    "mode": "car_passenger",
+    "purpose": "other",
+    "time_bins": {
+      "07:30": 1,
+      "17:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "St. Gallen",
+    "mode": "car_passenger",
+    "purpose": "shop",
+    "time_bins": {
+      "08:45": 1,
+      "09:45": 1,
+      "16:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "St. Gallen",
+    "mode": "pt",
+    "purpose": "education",
+    "time_bins": {
+      "11:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "St. Gallen",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "10:30": 1,
+      "13:00": 1,
+      "14:00": 1,
+      "14:30": 1,
+      "16:15": 1,
+      "16:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "St. Gallen",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "13:30": 1,
+      "14:00": 1,
+      "17:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "St. Gallen",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "07:00": 1,
+      "13:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "St. Gallen",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "07:00": 1,
+      "10:30": 1,
+      "13:00": 1,
+      "18:45": 2
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "St. Gallen",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "22:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "St. Gallen",
+    "mode": "walk",
+    "purpose": "leisure",
+    "time_bins": {
+      "10:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "St. Gallen",
+    "mode": "walk",
+    "purpose": "shop",
+    "time_bins": {
+      "16:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "St. Gallen",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "07:15": 1,
+      "08:30": 1,
+      "11:45": 1,
+      "12:15": 1,
+      "17:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Ticino",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "09:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Uri",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "16:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Uri",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "12:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Valais",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "14:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Vaud",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "14:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Vaud",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "11:15": 1,
+      "11:45": 1,
+      "12:15": 1,
+      "13:00": 1,
+      "13:45": 1,
+      "15:30": 1,
+      "16:15": 1,
+      "17:00": 1,
+      "17:15": 1,
+      "17:45": 1,
+      "19:15": 1,
+      "19:30": 1,
+      "20:15": 1,
+      "22:00": 1,
+      "23:30": 1,
+      "24:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Vaud",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "15:45": 1,
+      "19:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Vaud",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "11:30": 1,
+      "16:00": 1,
+      "16:30": 2,
+      "17:15": 1,
+      "17:45": 1,
+      "18:00": 1,
+      "19:00": 1,
+      "21:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Vaud",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "12:00": 1,
+      "14:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Vaud",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "14:30": 1,
+      "14:45": 1,
+      "15:00": 2,
+      "15:15": 1,
+      "16:00": 1,
+      "16:15": 1,
+      "17:00": 1,
+      "17:15": 2,
+      "18:00": 1,
+      "18:45": 1,
+      "19:00": 1,
+      "19:45": 1,
+      "23:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Zug",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "11:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Zug",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "13:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Zurich",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "11:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Zurich",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "09:00": 1,
+      "13:15": 1,
+      "14:30": 1,
+      "15:00": 1,
+      "16:30": 1,
+      "16:45": 2,
+      "17:00": 3,
+      "17:15": 3,
+      "17:30": 2,
+      "20:00": 1,
+      "20:15": 1,
+      "20:45": 1,
+      "21:30": 2,
+      "24:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Zurich",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "18:30": 1,
+      "19:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Zurich",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "17:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Zurich",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "05:45": 2
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Zurich",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "08:15": 1,
+      "12:00": 1,
+      "14:30": 1,
+      "16:30": 1,
+      "17:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Zurich",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "16:15": 1,
+      "19:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Zurich",
+    "mode": "car_passenger",
+    "purpose": "work",
+    "time_bins": {
+      "06:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Zurich",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "08:30": 1,
+      "13:45": 1,
+      "16:30": 1,
+      "16:45": 1,
+      "17:15": 1,
+      "18:45": 1,
+      "19:30": 1,
+      "22:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Zurich",
+    "mode": "pt",
+    "purpose": "shop",
+    "time_bins": {
+      "15:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Zurich",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "07:15": 1,
+      "07:30": 1,
+      "08:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Zurich",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "08:15": 1,
+      "12:45": 1,
+      "14:30": 1,
+      "14:45": 1,
+      "15:15": 1,
+      "15:30": 1,
+      "16:00": 3,
+      "16:15": 1,
+      "17:00": 1,
+      "17:15": 1,
+      "17:45": 1,
+      "18:15": 1,
+      "18:45": 1,
+      "21:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Zurich",
+    "mode": "walk",
+    "purpose": "other",
+    "time_bins": {
+      "17:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Zurich",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "11:15": 1,
+      "13:00": 1,
+      "13:15": 1,
+      "15:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "freight_unloading",
+    "time_bins": {},
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "freight_unloading",
+    "time_bins": {},
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "freight_unloading",
+    "time_bins": {},
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "freight_unloading",
+    "time_bins": {},
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "freight_unloading",
+    "time_bins": {},
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "freight_unloading",
+    "time_bins": {},
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "freight_unloading",
+    "time_bins": {},
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "freight_unloading",
+    "time_bins": {},
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "bike",
+    "purpose": "freight_unloading",
+    "time_bins": {},
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "bike",
+    "purpose": "freight_unloading",
+    "time_bins": {},
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "truck",
+    "purpose": "leisure",
+    "time_bins": {},
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "truck",
+    "purpose": "leisure",
+    "time_bins": {},
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "truck",
+    "purpose": "home",
+    "time_bins": {},
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "truck",
+    "purpose": "home",
+    "time_bins": {},
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "truck",
+    "purpose": "shop",
+    "time_bins": {},
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "truck",
+    "purpose": "shop",
+    "time_bins": {},
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "truck",
+    "purpose": "work",
+    "time_bins": {},
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "truck",
+    "purpose": "work",
+    "time_bins": {},
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "truck",
+    "purpose": "education",
+    "time_bins": {},
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "truck",
+    "purpose": "education",
+    "time_bins": {},
+    "role": "destination"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "truck",
+    "purpose": "other",
+    "time_bins": {},
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Glarus",
+    "mode": "truck",
+    "purpose": "other",
+    "time_bins": {},
+    "role": "destination"
+  }
+]
