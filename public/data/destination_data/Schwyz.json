@@ -1,0 +1,8792 @@
+[
+  {
+    "destination": "Aargau",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "18:30": 1,
+      "20:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Aargau",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "10:30": 1,
+      "11:00": 1,
+      "11:15": 1,
+      "11:45": 1,
+      "13:15": 1,
+      "14:30": 1,
+      "16:00": 2,
+      "16:15": 1,
+      "16:45": 1,
+      "17:00": 2,
+      "17:15": 1,
+      "17:30": 1,
+      "17:45": 1,
+      "18:45": 1,
+      "19:45": 1,
+      "20:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Aargau",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "10:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Aargau",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "15:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Aargau",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "education",
+    "time_bins": {
+      "15:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Aargau",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "09:30": 1,
+      "15:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Aargau",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "05:30": 1,
+      "11:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Aargau",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "07:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Aargau",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "14:15": 1,
+      "15:15": 1,
+      "16:15": 1,
+      "21:30": 1,
+      "22:00": 1,
+      "22:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Aargau",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "12:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Appenzell Ausserrhoden",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "05:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Appenzell Ausserrhoden",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "10:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Appenzell Innerrhoden",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "20:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Basel-Landschaft",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "20:30": 1,
+      "22:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Basel-Landschaft",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "06:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Basel-Landschaft",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "19:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Basel-Landschaft",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "other",
+    "time_bins": {
+      "05:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Basel-Landschaft",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "06:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Basel-Stadt",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "18:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Basel-Stadt",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "16:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Bern",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "12:45": 1,
+      "14:00": 2,
+      "14:45": 1,
+      "15:15": 2,
+      "15:45": 1,
+      "16:15": 1,
+      "16:45": 1,
+      "17:15": 3,
+      "17:30": 1,
+      "18:00": 2,
+      "18:30": 1,
+      "20:00": 1,
+      "20:30": 1,
+      "21:45": 1,
+      "22:00": 1,
+      "22:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Bern",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "17:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Bern",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "06:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Bern",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "21:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Bern",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "07:30": 1,
+      "07:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Bern",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "11:00": 1,
+      "14:45": 1,
+      "17:00": 1,
+      "23:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Bern",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "16:30": 1,
+      "17:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Bern",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "06:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Bern",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "07:00": 1,
+      "09:15": 1,
+      "09:30": 1,
+      "10:45": 1,
+      "11:30": 1,
+      "12:15": 1,
+      "13:15": 1,
+      "13:45": 2,
+      "14:15": 1,
+      "14:30": 1,
+      "14:45": 1,
+      "15:45": 1,
+      "16:00": 1,
+      "16:15": 1,
+      "19:00": 1,
+      "19:45": 1,
+      "20:00": 1,
+      "20:45": 1,
+      "21:45": 1,
+      "23:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Fribourg",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "18:45": 1,
+      "21:45": 1,
+      "22:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Fribourg",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "07:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "education",
+    "time_bins": {
+      "10:00": 1,
+      "16:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "11:45": 1,
+      "15:45": 1,
+      "16:45": 2,
+      "17:30": 2,
+      "19:00": 1,
+      "19:15": 1,
+      "19:30": 1,
+      "20:15": 1,
+      "22:45": 1,
+      "24:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "10:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "07:30": 1,
+      "09:30": 1,
+      "13:45": 1,
+      "16:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "11:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "06:00": 1,
+      "06:30": 1,
+      "13:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "16:30": 1,
+      "20:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "other",
+    "time_bins": {
+      "21:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "11:30": 1,
+      "12:45": 1,
+      "17:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "12:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "09:15": 1,
+      "17:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "14:00": 1,
+      "16:15": 1,
+      "17:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "leisure",
+    "time_bins": {
+      "13:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Glarus",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "other",
+    "time_bins": {
+      "05:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Graubunden",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "16:00": 1,
+      "16:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Graubunden",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "11:45": 1,
+      "13:30": 1,
+      "15:30": 1,
+      "21:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Graubunden",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "08:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Graubunden",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "04:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Graubunden",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "17:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Graubunden",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "work",
+    "time_bins": {
+      "17:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Graubunden",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "shop",
+    "time_bins": {
+      "15:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Jura",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "17:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Luzern",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "20:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Luzern",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "education",
+    "time_bins": {
+      "06:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Luzern",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "08:00": 1,
+      "08:15": 2,
+      "09:00": 1,
+      "10:45": 1,
+      "11:15": 1,
+      "11:30": 4,
+      "11:45": 1,
+      "12:15": 2,
+      "12:30": 2,
+      "13:15": 2,
+      "13:45": 1,
+      "14:45": 1,
+      "15:00": 1,
+      "16:00": 1,
+      "16:15": 2,
+      "16:45": 2,
+      "17:00": 3,
+      "17:15": 1,
+      "17:45": 5,
+      "18:00": 4,
+      "18:30": 1,
+      "18:45": 1,
+      "19:00": 2,
+      "20:00": 1,
+      "21:00": 1,
+      "22:15": 3,
+      "23:00": 1,
+      "25:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Luzern",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "06:45": 1,
+      "10:15": 3,
+      "11:45": 1,
+      "12:15": 1,
+      "13:30": 1,
+      "14:30": 1,
+      "16:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Luzern",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "06:30": 2,
+      "15:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Luzern",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "15:30": 1,
+      "16:15": 1,
+      "17:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Luzern",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "04:45": 1,
+      "05:00": 1,
+      "05:15": 1,
+      "05:30": 1,
+      "05:45": 1,
+      "06:15": 1,
+      "06:30": 1,
+      "07:30": 1,
+      "08:00": 2,
+      "13:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Luzern",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "08:30": 1,
+      "09:45": 1,
+      "10:00": 1,
+      "11:30": 1,
+      "11:45": 1,
+      "12:00": 1,
+      "13:00": 1,
+      "14:15": 1,
+      "14:45": 1,
+      "16:00": 1,
+      "16:30": 1,
+      "16:45": 1,
+      "17:30": 1,
+      "19:15": 1,
+      "20:15": 1,
+      "20:45": 1,
+      "21:30": 1,
+      "24:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Luzern",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "14:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Luzern",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "other",
+    "time_bins": {
+      "14:00": 1,
+      "15:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Luzern",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "shop",
+    "time_bins": {
+      "10:30": 1,
+      "18:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Luzern",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "education",
+    "time_bins": {
+      "06:30": 1,
+      "06:45": 1,
+      "07:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Luzern",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "10:15": 1,
+      "12:00": 1,
+      "12:15": 1,
+      "12:45": 1,
+      "16:45": 2,
+      "17:00": 1,
+      "17:30": 3,
+      "18:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Luzern",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "16:00": 1,
+      "18:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Luzern",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "other",
+    "time_bins": {
+      "09:30": 1,
+      "16:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Luzern",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "08:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Luzern",
+    "origin": "Schwyz",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "11:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Luzern",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "07:00": 1,
+      "07:15": 1,
+      "08:45": 1,
+      "09:45": 1,
+      "10:15": 1,
+      "10:30": 1,
+      "10:45": 2,
+      "12:00": 1,
+      "13:30": 1,
+      "14:00": 1,
+      "14:45": 1,
+      "15:30": 1,
+      "17:15": 1,
+      "21:00": 1,
+      "21:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Luzern",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "leisure",
+    "time_bins": {
+      "17:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Luzern",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "other",
+    "time_bins": {
+      "15:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Luzern",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "07:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Nidwalden",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "leisure",
+    "time_bins": {
+      "13:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Nidwalden",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "08:45": 1,
+      "09:00": 1,
+      "13:15": 1,
+      "15:30": 1,
+      "16:30": 1,
+      "16:45": 1,
+      "17:00": 1,
+      "17:15": 1,
+      "18:00": 2,
+      "18:15": 1,
+      "19:45": 1,
+      "21:30": 1,
+      "21:45": 1,
+      "22:30": 1,
+      "23:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Nidwalden",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "08:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Nidwalden",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "07:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Nidwalden",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "13:00": 1,
+      "13:30": 1,
+      "16:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Nidwalden",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "14:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Nidwalden",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "education",
+    "time_bins": {
+      "06:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Nidwalden",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "10:45": 1,
+      "16:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Nidwalden",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "10:00": 2,
+      "23:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Nidwalden",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "12:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Obwalden",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "09:00": 1,
+      "10:00": 1,
+      "14:45": 1,
+      "20:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Obwalden",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "17:00": 1,
+      "21:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Obwalden",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "16:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schaffhausen",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "08:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schaffhausen",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "05:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schaffhausen",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "11:30": 1,
+      "15:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schaffhausen",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "10:30": 1,
+      "15:45": 1,
+      "19:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "education",
+    "time_bins": {
+      "06:00": 1,
+      "06:30": 1,
+      "06:45": 2,
+      "07:00": 3,
+      "07:15": 6,
+      "07:30": 7,
+      "07:45": 4,
+      "08:00": 6,
+      "08:15": 3,
+      "12:45": 2,
+      "13:00": 6,
+      "13:15": 3,
+      "13:30": 8,
+      "13:45": 2,
+      "18:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "05:30": 1,
+      "08:30": 1,
+      "08:45": 1,
+      "10:45": 1,
+      "11:00": 3,
+      "11:15": 3,
+      "11:30": 5,
+      "11:45": 5,
+      "12:00": 5,
+      "12:15": 1,
+      "12:30": 1,
+      "13:30": 2,
+      "14:00": 1,
+      "14:30": 2,
+      "14:45": 1,
+      "15:00": 4,
+      "15:15": 7,
+      "15:30": 5,
+      "15:45": 1,
+      "16:15": 4,
+      "16:30": 3,
+      "17:30": 1,
+      "17:45": 1,
+      "18:00": 1,
+      "18:15": 2,
+      "18:30": 1,
+      "19:00": 1,
+      "19:30": 2,
+      "20:15": 1,
+      "20:45": 1,
+      "22:00": 1,
+      "22:30": 1,
+      "23:00": 1,
+      "23:30": 1,
+      "24:00": 1,
+      "25:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "leisure",
+    "time_bins": {
+      "07:30": 1,
+      "08:30": 1,
+      "10:00": 1,
+      "11:15": 1,
+      "11:30": 1,
+      "11:45": 1,
+      "12:00": 1,
+      "13:00": 1,
+      "13:15": 1,
+      "13:45": 1,
+      "14:00": 1,
+      "14:15": 1,
+      "14:30": 1,
+      "15:15": 1,
+      "15:30": 1,
+      "15:45": 1,
+      "16:00": 1,
+      "16:30": 1,
+      "16:45": 1,
+      "17:15": 2,
+      "17:30": 1,
+      "17:45": 1,
+      "18:00": 2,
+      "18:30": 1,
+      "18:45": 1,
+      "19:15": 2,
+      "19:30": 2,
+      "19:45": 1,
+      "20:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "other",
+    "time_bins": {
+      "06:45": 1,
+      "08:45": 1,
+      "09:00": 1,
+      "09:15": 1,
+      "13:15": 1,
+      "13:30": 1,
+      "15:15": 1,
+      "15:30": 1,
+      "16:00": 1,
+      "17:00": 1,
+      "17:15": 1,
+      "18:15": 1,
+      "19:30": 1,
+      "23:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "shop",
+    "time_bins": {
+      "08:00": 1,
+      "08:30": 1,
+      "09:30": 1,
+      "10:30": 1,
+      "13:30": 2,
+      "14:15": 1,
+      "14:30": 1,
+      "15:30": 1,
+      "16:30": 1,
+      "17:00": 1,
+      "17:30": 1,
+      "19:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "work",
+    "time_bins": {
+      "03:45": 1,
+      "06:15": 1,
+      "07:30": 2,
+      "07:45": 1,
+      "09:00": 1,
+      "10:00": 2,
+      "15:15": 1,
+      "16:30": 1,
+      "18:00": 1,
+      "18:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "education",
+    "time_bins": {
+      "06:15": 1,
+      "06:30": 2,
+      "06:45": 1,
+      "07:00": 2,
+      "07:45": 1,
+      "08:15": 1,
+      "11:45": 1,
+      "12:00": 1,
+      "13:00": 1,
+      "17:15": 1,
+      "17:45": 1,
+      "18:45": 1,
+      "19:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "06:15": 1,
+      "06:30": 1,
+      "06:45": 1,
+      "07:00": 2,
+      "07:30": 3,
+      "07:45": 3,
+      "08:00": 4,
+      "08:15": 1,
+      "08:30": 1,
+      "08:45": 2,
+      "09:00": 5,
+      "09:15": 3,
+      "09:30": 6,
+      "09:45": 8,
+      "10:00": 5,
+      "10:15": 5,
+      "10:30": 9,
+      "10:45": 7,
+      "11:00": 13,
+      "11:15": 13,
+      "11:30": 12,
+      "11:45": 11,
+      "12:00": 13,
+      "12:15": 20,
+      "12:30": 9,
+      "12:45": 3,
+      "13:00": 3,
+      "13:15": 3,
+      "13:30": 6,
+      "13:45": 5,
+      "14:00": 3,
+      "14:15": 5,
+      "14:30": 3,
+      "14:45": 3,
+      "15:00": 9,
+      "15:15": 8,
+      "15:30": 9,
+      "15:45": 5,
+      "16:00": 5,
+      "16:15": 12,
+      "16:30": 11,
+      "16:45": 12,
+      "17:00": 19,
+      "17:15": 12,
+      "17:30": 14,
+      "17:45": 4,
+      "18:00": 5,
+      "18:15": 8,
+      "18:30": 12,
+      "18:45": 6,
+      "19:00": 4,
+      "19:15": 4,
+      "19:30": 1,
+      "19:45": 3,
+      "20:00": 3,
+      "20:15": 4,
+      "20:30": 2,
+      "20:45": 5,
+      "21:00": 3,
+      "21:15": 3,
+      "21:30": 3,
+      "21:45": 5,
+      "22:00": 3,
+      "22:15": 3,
+      "22:30": 2,
+      "22:45": 1,
+      "23:00": 2,
+      "23:15": 2,
+      "23:45": 1,
+      "24:15": 2,
+      "25:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "04:30": 2,
+      "05:45": 2,
+      "06:00": 2,
+      "06:15": 1,
+      "06:30": 1,
+      "07:15": 3,
+      "07:30": 3,
+      "07:45": 5,
+      "08:00": 5,
+      "08:15": 5,
+      "08:30": 7,
+      "08:45": 7,
+      "09:00": 2,
+      "09:15": 11,
+      "09:30": 4,
+      "09:45": 2,
+      "10:00": 1,
+      "10:15": 3,
+      "10:30": 7,
+      "10:45": 2,
+      "11:00": 2,
+      "11:15": 4,
+      "11:30": 8,
+      "11:45": 10,
+      "12:00": 6,
+      "12:15": 8,
+      "12:30": 1,
+      "12:45": 4,
+      "13:00": 4,
+      "13:15": 3,
+      "13:30": 14,
+      "13:45": 12,
+      "14:00": 3,
+      "14:15": 4,
+      "14:30": 3,
+      "14:45": 1,
+      "15:15": 3,
+      "15:30": 1,
+      "15:45": 2,
+      "16:00": 5,
+      "16:15": 8,
+      "16:30": 4,
+      "16:45": 5,
+      "17:00": 4,
+      "17:15": 2,
+      "17:30": 8,
+      "17:45": 7,
+      "18:00": 8,
+      "18:15": 7,
+      "18:30": 8,
+      "18:45": 13,
+      "19:00": 7,
+      "19:15": 6,
+      "19:30": 6,
+      "19:45": 4,
+      "20:00": 4,
+      "20:15": 5,
+      "20:30": 7,
+      "20:45": 4,
+      "21:30": 1,
+      "21:45": 1,
+      "22:00": 1,
+      "22:45": 1,
+      "23:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "05:45": 1,
+      "06:00": 1,
+      "06:15": 3,
+      "06:30": 4,
+      "06:45": 1,
+      "07:00": 8,
+      "07:15": 4,
+      "07:30": 5,
+      "07:45": 3,
+      "08:00": 3,
+      "08:15": 5,
+      "08:45": 7,
+      "09:00": 3,
+      "09:15": 4,
+      "09:30": 2,
+      "09:45": 3,
+      "10:00": 6,
+      "10:15": 6,
+      "10:30": 2,
+      "10:45": 4,
+      "11:00": 4,
+      "11:15": 4,
+      "11:30": 3,
+      "11:45": 2,
+      "12:00": 1,
+      "12:15": 3,
+      "12:30": 4,
+      "12:45": 5,
+      "13:00": 3,
+      "13:15": 7,
+      "13:30": 5,
+      "13:45": 9,
+      "14:00": 2,
+      "14:15": 3,
+      "14:30": 1,
+      "14:45": 2,
+      "15:00": 4,
+      "15:15": 10,
+      "15:30": 3,
+      "15:45": 3,
+      "16:00": 9,
+      "16:15": 7,
+      "16:30": 5,
+      "16:45": 7,
+      "17:00": 4,
+      "17:15": 4,
+      "17:30": 4,
+      "17:45": 2,
+      "18:00": 3,
+      "18:15": 6,
+      "18:30": 7,
+      "18:45": 2,
+      "19:00": 2,
+      "19:15": 1,
+      "19:45": 2,
+      "20:00": 1,
+      "20:15": 2,
+      "20:45": 2,
+      "21:00": 1,
+      "21:30": 2,
+      "21:45": 1,
+      "22:00": 2,
+      "22:15": 1,
+      "23:15": 1,
+      "23:30": 1,
+      "23:45": 1,
+      "24:15": 1,
+      "24:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "06:00": 1,
+      "06:15": 1,
+      "06:45": 1,
+      "07:00": 1,
+      "07:15": 1,
+      "07:30": 2,
+      "07:45": 7,
+      "08:00": 4,
+      "08:15": 4,
+      "08:30": 6,
+      "08:45": 8,
+      "09:00": 14,
+      "09:15": 6,
+      "09:30": 9,
+      "09:45": 5,
+      "10:00": 3,
+      "10:15": 9,
+      "10:30": 5,
+      "10:45": 2,
+      "11:00": 4,
+      "11:15": 4,
+      "11:30": 4,
+      "11:45": 5,
+      "12:00": 4,
+      "12:15": 1,
+      "12:30": 3,
+      "12:45": 5,
+      "13:00": 8,
+      "13:15": 5,
+      "13:30": 8,
+      "13:45": 10,
+      "14:00": 9,
+      "14:15": 5,
+      "14:30": 1,
+      "14:45": 2,
+      "15:00": 5,
+      "15:30": 5,
+      "15:45": 4,
+      "16:00": 6,
+      "16:15": 11,
+      "16:30": 4,
+      "16:45": 7,
+      "17:00": 7,
+      "17:15": 5,
+      "17:30": 2,
+      "17:45": 3,
+      "18:00": 1,
+      "18:15": 3,
+      "18:30": 2,
+      "18:45": 1,
+      "19:00": 1,
+      "19:30": 2,
+      "22:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "02:30": 1,
+      "03:30": 1,
+      "03:45": 1,
+      "04:00": 1,
+      "04:15": 2,
+      "04:30": 1,
+      "04:45": 4,
+      "05:00": 9,
+      "05:15": 5,
+      "05:30": 10,
+      "05:45": 15,
+      "06:00": 21,
+      "06:15": 31,
+      "06:30": 32,
+      "06:45": 23,
+      "07:00": 20,
+      "07:15": 27,
+      "07:30": 17,
+      "07:45": 12,
+      "08:00": 13,
+      "08:15": 13,
+      "08:30": 10,
+      "08:45": 6,
+      "09:00": 7,
+      "09:15": 9,
+      "09:30": 5,
+      "09:45": 3,
+      "10:00": 2,
+      "10:15": 5,
+      "10:30": 2,
+      "10:45": 2,
+      "11:00": 2,
+      "11:15": 2,
+      "11:30": 2,
+      "11:45": 1,
+      "12:00": 4,
+      "12:15": 8,
+      "12:30": 4,
+      "12:45": 12,
+      "13:00": 22,
+      "13:15": 14,
+      "13:30": 3,
+      "13:45": 7,
+      "14:00": 2,
+      "14:15": 4,
+      "14:30": 3,
+      "14:45": 4,
+      "15:00": 5,
+      "15:15": 1,
+      "15:45": 2,
+      "16:00": 2,
+      "16:15": 1,
+      "16:30": 3,
+      "16:45": 5,
+      "17:00": 3,
+      "17:30": 1,
+      "17:45": 3,
+      "18:00": 2,
+      "18:15": 2,
+      "18:30": 1,
+      "20:00": 1,
+      "20:30": 1,
+      "23:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "education",
+    "time_bins": {
+      "06:30": 2,
+      "07:00": 2,
+      "07:30": 2,
+      "07:45": 1,
+      "08:00": 3,
+      "08:15": 3,
+      "10:15": 1,
+      "12:15": 1,
+      "18:00": 1,
+      "18:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "09:00": 1,
+      "09:45": 1,
+      "10:15": 1,
+      "10:30": 1,
+      "10:45": 3,
+      "11:00": 2,
+      "11:15": 1,
+      "11:30": 2,
+      "11:45": 1,
+      "12:00": 4,
+      "12:15": 1,
+      "12:30": 1,
+      "12:45": 1,
+      "13:30": 1,
+      "13:45": 1,
+      "14:00": 1,
+      "14:15": 2,
+      "14:30": 2,
+      "14:45": 1,
+      "15:00": 1,
+      "15:15": 2,
+      "15:45": 1,
+      "16:00": 1,
+      "16:15": 1,
+      "16:30": 4,
+      "16:45": 3,
+      "17:00": 3,
+      "17:15": 2,
+      "17:30": 4,
+      "18:00": 4,
+      "18:15": 1,
+      "18:45": 2,
+      "19:00": 2,
+      "19:30": 1,
+      "19:45": 1,
+      "20:15": 3,
+      "20:30": 2,
+      "20:45": 1,
+      "22:30": 1,
+      "23:00": 2,
+      "23:15": 1,
+      "23:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "07:15": 1,
+      "08:30": 1,
+      "08:45": 3,
+      "09:00": 2,
+      "09:15": 2,
+      "09:30": 3,
+      "10:15": 1,
+      "10:30": 1,
+      "11:00": 3,
+      "11:30": 2,
+      "11:45": 1,
+      "12:15": 3,
+      "12:30": 1,
+      "12:45": 3,
+      "13:00": 1,
+      "13:15": 2,
+      "13:30": 3,
+      "14:00": 1,
+      "14:30": 3,
+      "14:45": 2,
+      "15:00": 1,
+      "15:15": 1,
+      "15:30": 4,
+      "15:45": 5,
+      "16:00": 3,
+      "16:15": 2,
+      "16:30": 1,
+      "16:45": 1,
+      "17:15": 4,
+      "17:30": 5,
+      "17:45": 4,
+      "18:00": 7,
+      "18:15": 4,
+      "18:30": 4,
+      "18:45": 4,
+      "19:00": 4,
+      "19:15": 2,
+      "19:30": 2,
+      "19:45": 1,
+      "20:15": 3,
+      "20:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "other",
+    "time_bins": {
+      "06:30": 1,
+      "07:30": 1,
+      "07:45": 2,
+      "08:00": 1,
+      "08:15": 1,
+      "08:45": 1,
+      "09:45": 1,
+      "10:00": 1,
+      "10:15": 2,
+      "10:45": 1,
+      "11:15": 1,
+      "13:00": 1,
+      "13:15": 1,
+      "13:30": 1,
+      "13:45": 2,
+      "14:45": 1,
+      "15:15": 2,
+      "16:30": 1,
+      "16:45": 1,
+      "17:00": 1,
+      "18:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "shop",
+    "time_bins": {
+      "07:15": 1,
+      "07:30": 1,
+      "07:45": 1,
+      "08:00": 2,
+      "08:15": 1,
+      "08:30": 1,
+      "08:45": 1,
+      "09:00": 1,
+      "09:15": 2,
+      "09:30": 1,
+      "09:45": 1,
+      "10:00": 3,
+      "10:15": 1,
+      "10:45": 1,
+      "11:00": 1,
+      "11:15": 1,
+      "12:15": 1,
+      "13:00": 1,
+      "13:15": 1,
+      "13:30": 5,
+      "13:45": 2,
+      "14:00": 1,
+      "14:15": 2,
+      "14:30": 3,
+      "14:45": 1,
+      "15:30": 3,
+      "16:00": 2,
+      "16:15": 1,
+      "17:00": 1,
+      "17:30": 1,
+      "17:45": 1,
+      "18:15": 2,
+      "19:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "work",
+    "time_bins": {
+      "04:30": 1,
+      "04:45": 1,
+      "05:15": 1,
+      "05:30": 1,
+      "05:45": 1,
+      "06:00": 4,
+      "06:15": 4,
+      "06:30": 1,
+      "06:45": 4,
+      "07:00": 2,
+      "08:30": 1,
+      "10:15": 1,
+      "10:30": 1,
+      "11:30": 1,
+      "12:30": 1,
+      "12:45": 1,
+      "13:00": 2,
+      "13:15": 2,
+      "13:30": 1,
+      "14:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "education",
+    "time_bins": {
+      "05:45": 2,
+      "06:30": 2,
+      "06:45": 3,
+      "07:00": 4,
+      "07:15": 4,
+      "07:30": 5,
+      "07:45": 2,
+      "08:00": 3,
+      "08:15": 2,
+      "08:30": 2,
+      "09:00": 1,
+      "09:15": 1,
+      "09:45": 1,
+      "10:15": 1,
+      "10:30": 1,
+      "11:45": 1,
+      "12:30": 3,
+      "12:45": 1,
+      "13:00": 1,
+      "13:15": 3,
+      "13:30": 1,
+      "13:45": 2,
+      "14:30": 1,
+      "14:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "09:15": 2,
+      "09:30": 2,
+      "09:45": 1,
+      "10:30": 1,
+      "10:45": 1,
+      "11:00": 2,
+      "11:45": 6,
+      "12:00": 4,
+      "12:15": 4,
+      "12:45": 1,
+      "13:00": 1,
+      "13:30": 1,
+      "14:15": 1,
+      "14:30": 2,
+      "15:00": 2,
+      "15:30": 2,
+      "15:45": 1,
+      "16:00": 1,
+      "16:15": 4,
+      "16:30": 3,
+      "16:45": 2,
+      "17:00": 4,
+      "17:15": 1,
+      "17:30": 3,
+      "17:45": 2,
+      "18:00": 4,
+      "18:30": 3,
+      "18:45": 3,
+      "19:00": 3,
+      "19:15": 1,
+      "19:45": 1,
+      "20:30": 1,
+      "20:45": 1,
+      "21:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "07:15": 1,
+      "07:30": 1,
+      "07:45": 1,
+      "08:00": 2,
+      "08:15": 1,
+      "08:45": 1,
+      "09:00": 1,
+      "09:30": 1,
+      "10:00": 2,
+      "10:30": 1,
+      "10:45": 1,
+      "11:00": 3,
+      "11:15": 2,
+      "11:30": 6,
+      "12:30": 1,
+      "12:45": 1,
+      "13:00": 1,
+      "13:15": 4,
+      "13:30": 1,
+      "13:45": 1,
+      "14:00": 1,
+      "14:45": 2,
+      "15:15": 1,
+      "15:45": 1,
+      "16:30": 2,
+      "16:45": 1,
+      "17:00": 2,
+      "17:30": 1,
+      "18:00": 2,
+      "18:15": 1,
+      "18:45": 2,
+      "19:15": 2
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "other",
+    "time_bins": {
+      "07:15": 1,
+      "08:00": 1,
+      "08:45": 1,
+      "09:15": 1,
+      "09:30": 1,
+      "10:45": 1,
+      "12:15": 1,
+      "12:30": 1,
+      "12:45": 1,
+      "13:30": 3,
+      "13:45": 1,
+      "14:45": 1,
+      "15:30": 1,
+      "16:15": 1,
+      "17:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "shop",
+    "time_bins": {
+      "09:00": 1,
+      "09:15": 1,
+      "09:30": 2,
+      "11:00": 1,
+      "12:15": 2,
+      "12:45": 1,
+      "13:30": 1,
+      "14:45": 1,
+      "17:00": 1,
+      "17:15": 1,
+      "18:30": 2
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "05:00": 2,
+      "05:15": 1,
+      "05:30": 2,
+      "05:45": 4,
+      "06:00": 6,
+      "06:15": 2,
+      "06:30": 7,
+      "06:45": 7,
+      "07:00": 11,
+      "07:15": 7,
+      "07:30": 13,
+      "07:45": 1,
+      "08:00": 2,
+      "08:15": 1,
+      "08:30": 3,
+      "08:45": 1,
+      "09:15": 2,
+      "09:45": 2,
+      "11:30": 1,
+      "12:00": 1,
+      "12:15": 1,
+      "12:30": 1,
+      "12:45": 3,
+      "13:00": 2,
+      "13:15": 2,
+      "13:30": 3,
+      "14:00": 1,
+      "15:15": 1,
+      "15:45": 1,
+      "16:00": 1,
+      "16:30": 1,
+      "17:15": 1,
+      "17:30": 1,
+      "21:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "04:45": 1,
+      "05:30": 1,
+      "06:15": 1,
+      "08:45": 1,
+      "09:00": 1,
+      "10:00": 1,
+      "10:15": 1,
+      "10:30": 2,
+      "12:00": 1,
+      "12:15": 1,
+      "12:30": 2,
+      "13:00": 2,
+      "16:45": 2,
+      "17:45": 1,
+      "19:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "education",
+    "time_bins": {
+      "06:45": 1,
+      "07:00": 4,
+      "07:15": 6,
+      "07:30": 4,
+      "07:45": 8,
+      "08:00": 3,
+      "08:15": 7,
+      "12:00": 1,
+      "12:15": 1,
+      "12:30": 2,
+      "12:45": 5,
+      "13:00": 4,
+      "13:15": 4,
+      "13:30": 2,
+      "13:45": 1,
+      "14:30": 1,
+      "15:00": 1,
+      "15:15": 2,
+      "15:30": 1,
+      "17:45": 1,
+      "18:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "04:30": 1,
+      "05:45": 2,
+      "06:00": 1,
+      "06:30": 2,
+      "07:00": 1,
+      "07:15": 1,
+      "07:30": 2,
+      "07:45": 4,
+      "08:00": 6,
+      "08:15": 5,
+      "08:30": 6,
+      "08:45": 7,
+      "09:00": 3,
+      "09:15": 2,
+      "09:30": 4,
+      "09:45": 5,
+      "10:00": 8,
+      "10:15": 7,
+      "10:30": 8,
+      "10:45": 3,
+      "11:00": 8,
+      "11:15": 5,
+      "11:30": 16,
+      "11:45": 13,
+      "12:00": 10,
+      "12:15": 11,
+      "12:30": 2,
+      "12:45": 2,
+      "13:00": 3,
+      "13:15": 6,
+      "13:30": 3,
+      "13:45": 4,
+      "14:00": 5,
+      "14:15": 3,
+      "14:30": 8,
+      "14:45": 5,
+      "15:00": 4,
+      "15:15": 3,
+      "15:30": 7,
+      "15:45": 1,
+      "16:00": 5,
+      "16:15": 7,
+      "16:30": 4,
+      "16:45": 6,
+      "17:00": 8,
+      "17:15": 9,
+      "17:30": 5,
+      "17:45": 3,
+      "18:00": 8,
+      "18:15": 4,
+      "18:30": 3,
+      "18:45": 2,
+      "19:00": 2,
+      "19:15": 5,
+      "19:30": 2,
+      "19:45": 3,
+      "20:00": 5,
+      "20:15": 1,
+      "20:30": 2,
+      "20:45": 6,
+      "21:15": 1,
+      "21:30": 1,
+      "21:45": 3,
+      "22:00": 2,
+      "22:15": 1,
+      "22:30": 1,
+      "23:00": 2,
+      "23:15": 1,
+      "23:30": 3,
+      "24:00": 1,
+      "24:30": 1,
+      "25:45": 1,
+      "29:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "leisure",
+    "time_bins": {
+      "05:15": 1,
+      "06:15": 1,
+      "06:30": 4,
+      "06:45": 1,
+      "07:00": 1,
+      "07:30": 2,
+      "08:00": 1,
+      "08:15": 3,
+      "08:30": 1,
+      "08:45": 2,
+      "09:00": 4,
+      "09:15": 2,
+      "09:30": 5,
+      "09:45": 6,
+      "10:00": 3,
+      "10:15": 2,
+      "10:30": 2,
+      "10:45": 3,
+      "11:00": 2,
+      "11:15": 6,
+      "11:30": 7,
+      "11:45": 10,
+      "12:00": 6,
+      "12:15": 3,
+      "12:30": 4,
+      "12:45": 3,
+      "13:00": 6,
+      "13:15": 4,
+      "13:30": 4,
+      "13:45": 3,
+      "14:00": 2,
+      "14:15": 4,
+      "14:30": 4,
+      "14:45": 5,
+      "15:00": 6,
+      "15:15": 6,
+      "15:30": 3,
+      "15:45": 6,
+      "16:00": 2,
+      "16:15": 9,
+      "16:30": 7,
+      "16:45": 3,
+      "17:00": 4,
+      "17:15": 6,
+      "17:30": 9,
+      "17:45": 4,
+      "18:00": 4,
+      "18:15": 2,
+      "18:30": 2,
+      "18:45": 10,
+      "19:00": 5,
+      "19:15": 7,
+      "19:30": 5,
+      "19:45": 4,
+      "20:00": 4,
+      "20:15": 2,
+      "20:30": 1,
+      "20:45": 2,
+      "21:00": 1,
+      "21:30": 1,
+      "22:00": 1,
+      "22:15": 1,
+      "22:30": 1,
+      "22:45": 1,
+      "23:30": 1,
+      "24:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "other",
+    "time_bins": {
+      "06:30": 1,
+      "06:45": 1,
+      "07:00": 1,
+      "07:15": 1,
+      "07:30": 2,
+      "07:45": 2,
+      "08:00": 6,
+      "08:15": 5,
+      "08:30": 2,
+      "09:00": 2,
+      "09:15": 1,
+      "09:30": 2,
+      "09:45": 4,
+      "10:00": 1,
+      "10:30": 2,
+      "10:45": 3,
+      "11:00": 1,
+      "11:15": 1,
+      "11:30": 1,
+      "11:45": 2,
+      "12:00": 1,
+      "12:15": 1,
+      "12:30": 1,
+      "13:00": 1,
+      "13:15": 3,
+      "13:45": 1,
+      "14:00": 1,
+      "14:15": 5,
+      "14:30": 3,
+      "14:45": 1,
+      "15:00": 3,
+      "15:15": 1,
+      "15:30": 1,
+      "15:45": 1,
+      "16:00": 1,
+      "16:30": 4,
+      "16:45": 2,
+      "17:00": 1,
+      "17:15": 2,
+      "17:30": 2,
+      "18:30": 1,
+      "18:45": 1,
+      "19:00": 1,
+      "20:00": 1,
+      "21:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "shop",
+    "time_bins": {
+      "06:45": 1,
+      "07:15": 1,
+      "07:30": 1,
+      "08:00": 4,
+      "08:15": 4,
+      "08:30": 6,
+      "08:45": 1,
+      "09:00": 4,
+      "09:15": 5,
+      "09:30": 6,
+      "09:45": 7,
+      "10:00": 4,
+      "10:15": 7,
+      "10:30": 3,
+      "10:45": 3,
+      "11:00": 2,
+      "11:15": 1,
+      "11:30": 1,
+      "11:45": 7,
+      "12:00": 4,
+      "12:15": 4,
+      "12:30": 1,
+      "12:45": 3,
+      "13:00": 4,
+      "13:15": 2,
+      "13:30": 2,
+      "13:45": 4,
+      "14:00": 4,
+      "14:15": 5,
+      "14:30": 3,
+      "14:45": 3,
+      "15:00": 2,
+      "15:15": 2,
+      "15:30": 3,
+      "15:45": 4,
+      "16:00": 3,
+      "16:15": 4,
+      "16:30": 1,
+      "16:45": 4,
+      "17:00": 3,
+      "17:15": 2,
+      "17:30": 3,
+      "17:45": 3,
+      "18:30": 1,
+      "19:00": 1,
+      "19:15": 3,
+      "19:30": 1,
+      "21:30": 1,
+      "21:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "02:45": 1,
+      "04:00": 1,
+      "04:45": 1,
+      "05:00": 1,
+      "05:45": 6,
+      "06:00": 3,
+      "06:15": 3,
+      "06:30": 2,
+      "06:45": 4,
+      "07:00": 7,
+      "07:15": 3,
+      "07:30": 5,
+      "07:45": 3,
+      "08:00": 1,
+      "08:15": 2,
+      "08:30": 4,
+      "08:45": 1,
+      "09:15": 4,
+      "09:30": 1,
+      "09:45": 1,
+      "10:15": 2,
+      "10:45": 1,
+      "11:00": 4,
+      "11:15": 3,
+      "11:30": 1,
+      "11:45": 2,
+      "12:00": 4,
+      "12:15": 4,
+      "12:30": 11,
+      "12:45": 6,
+      "13:00": 9,
+      "13:15": 2,
+      "13:30": 3,
+      "13:45": 7,
+      "14:00": 1,
+      "14:15": 3,
+      "14:30": 2,
+      "14:45": 1,
+      "15:00": 5,
+      "15:30": 1,
+      "15:45": 2,
+      "16:00": 2,
+      "16:15": 1,
+      "16:45": 1,
+      "17:00": 1,
+      "17:15": 2,
+      "18:00": 1,
+      "18:15": 1,
+      "18:45": 1,
+      "19:30": 1,
+      "19:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Solothurn",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "09:30": 1,
+      "14:45": 1,
+      "21:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Solothurn",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "16:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Solothurn",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "18:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Solothurn",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "17:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "09:45": 1,
+      "11:15": 1,
+      "16:15": 1,
+      "16:30": 1,
+      "18:45": 1,
+      "20:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "leisure",
+    "time_bins": {
+      "12:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "education",
+    "time_bins": {
+      "07:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "07:00": 1,
+      "08:45": 1,
+      "09:00": 1,
+      "09:45": 1,
+      "10:30": 1,
+      "11:15": 2,
+      "11:30": 2,
+      "11:45": 2,
+      "13:00": 2,
+      "13:45": 1,
+      "14:30": 1,
+      "14:45": 1,
+      "15:00": 1,
+      "15:30": 3,
+      "15:45": 3,
+      "16:00": 1,
+      "16:15": 3,
+      "16:30": 4,
+      "17:00": 5,
+      "17:15": 6,
+      "17:45": 2,
+      "18:00": 3,
+      "18:15": 1,
+      "18:30": 2,
+      "18:45": 4,
+      "19:15": 3,
+      "19:30": 1,
+      "19:45": 3,
+      "20:00": 1,
+      "20:15": 2,
+      "21:00": 2,
+      "21:30": 2,
+      "21:45": 1,
+      "22:00": 1,
+      "23:00": 2,
+      "23:15": 1,
+      "23:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "08:15": 1,
+      "11:15": 1,
+      "12:15": 1,
+      "14:00": 1,
+      "14:15": 1,
+      "18:00": 1,
+      "20:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "06:30": 1,
+      "07:30": 1,
+      "08:15": 1,
+      "11:30": 1,
+      "15:45": 1,
+      "16:30": 1,
+      "16:45": 2,
+      "17:45": 1,
+      "18:00": 1,
+      "22:00": 2
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "07:00": 1,
+      "08:15": 1,
+      "13:00": 1,
+      "17:30": 1,
+      "17:45": 1,
+      "18:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "05:15": 1,
+      "05:30": 1,
+      "05:45": 1,
+      "06:15": 2,
+      "07:00": 2,
+      "07:45": 1,
+      "08:15": 1,
+      "08:30": 1,
+      "12:00": 1,
+      "13:30": 1,
+      "16:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "10:15": 1,
+      "11:00": 1,
+      "13:30": 1,
+      "15:30": 1,
+      "16:15": 1,
+      "16:45": 1,
+      "17:45": 2,
+      "18:00": 1,
+      "18:15": 1,
+      "19:45": 1,
+      "20:15": 1,
+      "20:45": 1,
+      "21:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "06:30": 1,
+      "11:45": 1,
+      "19:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "other",
+    "time_bins": {
+      "14:00": 1,
+      "14:30": 2,
+      "24:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "shop",
+    "time_bins": {
+      "07:30": 1,
+      "09:00": 1,
+      "11:15": 1,
+      "17:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "work",
+    "time_bins": {
+      "07:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "education",
+    "time_bins": {
+      "06:45": 1,
+      "07:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "11:00": 1,
+      "11:30": 1,
+      "14:00": 1,
+      "15:30": 1,
+      "16:15": 2,
+      "16:45": 2,
+      "17:00": 1,
+      "17:15": 3,
+      "17:45": 1,
+      "18:00": 1,
+      "19:15": 1,
+      "19:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "other",
+    "time_bins": {
+      "13:45": 1,
+      "17:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "shop",
+    "time_bins": {
+      "16:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "05:45": 1,
+      "06:15": 1,
+      "06:45": 1,
+      "07:15": 1,
+      "12:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Schwyz",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "05:00": 1,
+      "06:45": 1,
+      "10:00": 1,
+      "20:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "08:00": 1,
+      "09:15": 1,
+      "09:30": 1,
+      "10:00": 1,
+      "10:45": 1,
+      "13:00": 2,
+      "16:45": 2,
+      "17:45": 2,
+      "18:15": 1,
+      "20:30": 1,
+      "22:00": 1,
+      "23:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "St. Gallen",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "10:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Thurgau",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "10:30": 1,
+      "10:45": 1,
+      "12:45": 1,
+      "16:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Thurgau",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "12:45": 1,
+      "17:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Thurgau",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "10:30": 1,
+      "13:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Ticino",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "16:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Ticino",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "08:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Ticino",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "11:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Ticino",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "17:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Uri",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "23:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Uri",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "09:30": 1,
+      "15:15": 1,
+      "16:15": 1,
+      "16:30": 1,
+      "17:15": 1,
+      "17:30": 1,
+      "17:45": 1,
+      "18:45": 1,
+      "19:00": 2,
+      "22:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Uri",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "11:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Uri",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "05:30": 1,
+      "06:30": 1,
+      "07:30": 2,
+      "10:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Uri",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "15:00": 1,
+      "16:30": 2,
+      "19:00": 1,
+      "22:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Uri",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "20:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Uri",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "16:15": 1,
+      "17:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Uri",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "shop",
+    "time_bins": {
+      "17:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Uri",
+    "origin": "Schwyz",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "07:15": 1,
+      "14:15": 1,
+      "14:45": 1,
+      "15:30": 1,
+      "16:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Uri",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "12:00": 1,
+      "16:45": 1,
+      "17:00": 1,
+      "19:15": 1,
+      "19:30": 1,
+      "19:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Uri",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "leisure",
+    "time_bins": {
+      "10:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Valais",
+    "origin": "Schwyz",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "06:45": 1,
+      "13:30": 1,
+      "15:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Vaud",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "19:45": 1,
+      "22:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Vaud",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "07:15": 1,
+      "11:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Vaud",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "16:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Vaud",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "21:30": 1,
+      "22:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zug",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "12:00": 1,
+      "16:15": 1,
+      "18:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zug",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "work",
+    "time_bins": {
+      "12:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zug",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "education",
+    "time_bins": {
+      "06:30": 1,
+      "07:00": 1,
+      "08:45": 2
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zug",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "06:45": 1,
+      "10:00": 1,
+      "10:15": 1,
+      "10:30": 3,
+      "11:15": 1,
+      "11:45": 1,
+      "12:00": 2,
+      "12:15": 1,
+      "12:30": 2,
+      "12:45": 1,
+      "13:00": 1,
+      "14:15": 1,
+      "15:00": 1,
+      "15:15": 1,
+      "15:30": 1,
+      "15:45": 1,
+      "16:00": 2,
+      "16:30": 1,
+      "16:45": 3,
+      "17:00": 2,
+      "17:15": 6,
+      "17:30": 1,
+      "17:45": 3,
+      "18:15": 4,
+      "18:30": 1,
+      "18:45": 2,
+      "19:00": 1,
+      "19:45": 1,
+      "20:00": 2,
+      "20:15": 1,
+      "20:30": 3,
+      "20:45": 1,
+      "22:45": 1,
+      "23:00": 1,
+      "23:30": 1,
+      "24:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zug",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "08:30": 2,
+      "10:15": 1,
+      "12:30": 1,
+      "16:15": 1,
+      "16:30": 1,
+      "18:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zug",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "06:15": 1,
+      "07:15": 1,
+      "08:45": 1,
+      "15:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zug",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "14:45": 1,
+      "19:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zug",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "05:45": 1,
+      "06:15": 3,
+      "07:00": 1,
+      "07:30": 1,
+      "07:45": 1,
+      "12:00": 1,
+      "13:00": 1,
+      "13:15": 1,
+      "13:30": 1,
+      "21:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zug",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "15:30": 1,
+      "15:45": 1,
+      "16:00": 1,
+      "16:15": 1,
+      "18:15": 2,
+      "19:15": 1,
+      "20:15": 1,
+      "22:30": 1,
+      "26:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zug",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "07:45": 1,
+      "11:45": 1,
+      "15:30": 1,
+      "16:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zug",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "other",
+    "time_bins": {
+      "12:00": 1,
+      "21:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zug",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "shop",
+    "time_bins": {
+      "18:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zug",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "work",
+    "time_bins": {
+      "13:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zug",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "education",
+    "time_bins": {
+      "06:45": 1,
+      "07:00": 1,
+      "13:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zug",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "11:45": 1,
+      "13:30": 1,
+      "15:45": 1,
+      "16:30": 2,
+      "17:00": 1,
+      "17:15": 1,
+      "17:30": 1,
+      "20:45": 1,
+      "21:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zug",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "13:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zug",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "other",
+    "time_bins": {
+      "06:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zug",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "shop",
+    "time_bins": {
+      "12:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zug",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "06:15": 1,
+      "07:30": 1,
+      "07:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zug",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "07:30": 1,
+      "08:45": 1,
+      "09:45": 1,
+      "10:15": 1,
+      "10:30": 1,
+      "11:15": 1,
+      "13:30": 1,
+      "13:45": 2,
+      "14:30": 1,
+      "16:00": 1,
+      "17:30": 1,
+      "17:45": 1,
+      "19:30": 1,
+      "20:00": 1,
+      "25:00": 1,
+      "26:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zug",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "13:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "education",
+    "time_bins": {
+      "20:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "07:30": 1,
+      "12:15": 1,
+      "13:30": 1,
+      "15:15": 2,
+      "15:30": 3,
+      "15:45": 1,
+      "16:00": 3,
+      "16:15": 1,
+      "16:45": 3,
+      "17:00": 1,
+      "17:30": 1,
+      "17:45": 1,
+      "19:30": 1,
+      "20:15": 1,
+      "20:30": 1,
+      "21:00": 1,
+      "21:15": 1,
+      "23:00": 2,
+      "25:00": 1,
+      "26:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "leisure",
+    "time_bins": {
+      "11:15": 1,
+      "19:00": 1,
+      "23:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "shop",
+    "time_bins": {
+      "18:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "work",
+    "time_bins": {
+      "07:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "education",
+    "time_bins": {
+      "07:30": 1,
+      "08:00": 1,
+      "18:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "07:15": 1,
+      "08:15": 1,
+      "08:30": 1,
+      "08:45": 1,
+      "09:00": 1,
+      "09:15": 2,
+      "09:30": 2,
+      "09:45": 6,
+      "10:00": 4,
+      "10:15": 3,
+      "10:30": 2,
+      "10:45": 3,
+      "11:00": 2,
+      "11:15": 4,
+      "11:30": 4,
+      "11:45": 5,
+      "12:15": 3,
+      "12:30": 1,
+      "12:45": 2,
+      "13:00": 3,
+      "13:15": 3,
+      "13:30": 3,
+      "13:45": 4,
+      "14:00": 4,
+      "14:15": 2,
+      "14:30": 6,
+      "14:45": 6,
+      "15:00": 8,
+      "15:15": 5,
+      "15:30": 9,
+      "15:45": 5,
+      "16:00": 7,
+      "16:15": 6,
+      "16:30": 6,
+      "16:45": 17,
+      "17:00": 10,
+      "17:15": 14,
+      "17:30": 10,
+      "17:45": 16,
+      "18:00": 13,
+      "18:15": 6,
+      "18:30": 5,
+      "18:45": 8,
+      "19:00": 5,
+      "19:15": 4,
+      "19:30": 6,
+      "19:45": 3,
+      "20:00": 4,
+      "20:15": 4,
+      "20:30": 5,
+      "20:45": 2,
+      "21:00": 4,
+      "21:15": 2,
+      "21:30": 2,
+      "21:45": 10,
+      "22:00": 9,
+      "22:15": 4,
+      "22:30": 3,
+      "22:45": 3,
+      "23:00": 3,
+      "23:15": 1,
+      "23:30": 2,
+      "23:45": 1,
+      "24:00": 1,
+      "24:15": 3,
+      "24:30": 2,
+      "25:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "08:00": 1,
+      "08:30": 1,
+      "09:30": 1,
+      "10:00": 1,
+      "11:15": 1,
+      "12:15": 2,
+      "12:45": 1,
+      "13:00": 1,
+      "13:15": 2,
+      "13:30": 2,
+      "14:00": 3,
+      "14:15": 1,
+      "14:45": 1,
+      "16:00": 1,
+      "16:15": 1,
+      "16:45": 1,
+      "17:30": 1,
+      "17:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "05:15": 1,
+      "05:30": 2,
+      "06:00": 1,
+      "06:30": 2,
+      "06:45": 2,
+      "08:00": 1,
+      "08:30": 1,
+      "08:45": 2,
+      "10:00": 1,
+      "11:00": 1,
+      "11:15": 1,
+      "12:00": 1,
+      "12:45": 2,
+      "14:45": 1,
+      "15:00": 1,
+      "16:00": 1,
+      "16:30": 1,
+      "16:45": 1,
+      "17:15": 1,
+      "17:30": 2,
+      "18:30": 1,
+      "19:15": 1,
+      "20:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "08:00": 1,
+      "08:30": 1,
+      "09:30": 2,
+      "10:00": 1,
+      "10:15": 2,
+      "10:30": 1,
+      "12:45": 1,
+      "13:45": 1,
+      "15:00": 3,
+      "15:15": 1,
+      "15:30": 1,
+      "15:45": 2,
+      "16:00": 1,
+      "16:15": 2,
+      "16:30": 1,
+      "17:15": 2,
+      "18:00": 1,
+      "18:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "04:30": 2,
+      "05:00": 1,
+      "05:30": 1,
+      "05:45": 1,
+      "06:00": 3,
+      "06:15": 1,
+      "06:30": 4,
+      "06:45": 2,
+      "07:00": 4,
+      "07:15": 6,
+      "07:30": 2,
+      "07:45": 2,
+      "08:00": 4,
+      "08:15": 2,
+      "08:30": 1,
+      "09:00": 1,
+      "09:15": 1,
+      "09:30": 2,
+      "12:30": 3,
+      "13:00": 1,
+      "13:15": 1,
+      "15:15": 1,
+      "16:15": 1,
+      "17:45": 1,
+      "18:15": 1,
+      "20:15": 1,
+      "21:00": 1,
+      "23:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "education",
+    "time_bins": {
+      "08:00": 1,
+      "09:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "07:45": 1,
+      "09:00": 1,
+      "09:30": 1,
+      "10:30": 3,
+      "11:30": 2,
+      "11:45": 2,
+      "12:00": 1,
+      "12:15": 1,
+      "13:15": 1,
+      "14:00": 3,
+      "14:15": 1,
+      "14:30": 1,
+      "14:45": 1,
+      "15:00": 1,
+      "15:15": 3,
+      "15:30": 2,
+      "16:00": 2,
+      "16:15": 3,
+      "16:30": 4,
+      "16:45": 4,
+      "17:00": 3,
+      "17:15": 1,
+      "17:30": 1,
+      "18:00": 2,
+      "18:45": 1,
+      "19:00": 6,
+      "19:15": 2,
+      "19:30": 2,
+      "19:45": 11,
+      "20:00": 1,
+      "20:30": 1,
+      "20:45": 3,
+      "21:00": 1,
+      "21:15": 5,
+      "21:30": 1,
+      "21:45": 1,
+      "22:00": 3,
+      "22:15": 1,
+      "22:45": 1,
+      "23:30": 1,
+      "26:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "09:30": 1,
+      "09:45": 1,
+      "11:00": 1,
+      "13:30": 1,
+      "13:45": 1,
+      "14:15": 2,
+      "15:15": 2,
+      "15:30": 1,
+      "16:00": 1,
+      "17:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "other",
+    "time_bins": {
+      "12:00": 1,
+      "13:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "work",
+    "time_bins": {
+      "06:15": 1,
+      "07:15": 1,
+      "16:00": 2
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "education",
+    "time_bins": {
+      "06:15": 1,
+      "07:00": 1,
+      "08:00": 1,
+      "12:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "10:30": 2,
+      "10:45": 1,
+      "11:00": 2,
+      "11:30": 2,
+      "12:00": 1,
+      "12:15": 1,
+      "12:30": 2,
+      "13:00": 1,
+      "13:30": 1,
+      "13:45": 1,
+      "14:45": 2,
+      "15:00": 1,
+      "15:15": 2,
+      "15:30": 1,
+      "15:45": 1,
+      "16:00": 2,
+      "16:15": 2,
+      "16:30": 2,
+      "16:45": 2,
+      "17:00": 2,
+      "17:15": 6,
+      "17:30": 3,
+      "17:45": 1,
+      "18:00": 1,
+      "18:15": 2,
+      "18:30": 1,
+      "19:00": 3,
+      "19:15": 1,
+      "19:30": 1,
+      "20:15": 2,
+      "20:30": 4,
+      "21:30": 1,
+      "21:45": 2,
+      "22:00": 1,
+      "22:15": 1,
+      "22:30": 1,
+      "23:15": 1,
+      "23:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "06:00": 2,
+      "08:15": 1,
+      "08:30": 1,
+      "09:00": 1,
+      "11:00": 1,
+      "13:00": 1,
+      "13:15": 1,
+      "14:00": 2,
+      "14:45": 1,
+      "15:00": 1,
+      "15:15": 1,
+      "16:15": 1,
+      "19:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "other",
+    "time_bins": {
+      "08:45": 1,
+      "14:45": 1,
+      "15:15": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "shop",
+    "time_bins": {
+      "10:00": 1,
+      "10:15": 1,
+      "13:45": 1,
+      "15:15": 1,
+      "16:15": 1,
+      "16:45": 2
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "05:15": 1,
+      "05:30": 1,
+      "06:00": 2,
+      "06:15": 2,
+      "06:30": 2,
+      "06:45": 4,
+      "07:45": 1,
+      "08:15": 1,
+      "08:30": 1,
+      "08:45": 1,
+      "09:00": 1,
+      "10:30": 1,
+      "11:45": 1,
+      "13:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "09:45": 1,
+      "15:15": 1,
+      "18:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "education",
+    "time_bins": {
+      "12:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "06:45": 1,
+      "07:00": 1,
+      "07:15": 1,
+      "07:30": 2,
+      "08:15": 2,
+      "08:30": 3,
+      "08:45": 2,
+      "09:00": 1,
+      "09:30": 1,
+      "10:00": 2,
+      "10:15": 2,
+      "10:30": 2,
+      "11:00": 1,
+      "11:15": 2,
+      "11:30": 1,
+      "12:15": 2,
+      "12:45": 2,
+      "13:00": 1,
+      "13:15": 5,
+      "13:30": 4,
+      "13:45": 2,
+      "14:00": 3,
+      "14:15": 4,
+      "14:30": 3,
+      "14:45": 7,
+      "15:00": 3,
+      "15:15": 5,
+      "15:30": 2,
+      "15:45": 4,
+      "16:00": 3,
+      "16:15": 8,
+      "16:30": 6,
+      "16:45": 2,
+      "17:00": 5,
+      "17:15": 2,
+      "17:30": 5,
+      "17:45": 4,
+      "18:00": 2,
+      "18:15": 3,
+      "18:30": 3,
+      "18:45": 5,
+      "19:00": 1,
+      "19:15": 1,
+      "19:30": 5,
+      "19:45": 3,
+      "20:00": 3,
+      "20:15": 2,
+      "20:30": 1,
+      "20:45": 1,
+      "21:00": 2,
+      "21:15": 2,
+      "21:45": 2,
+      "22:00": 1,
+      "22:15": 1,
+      "22:30": 3,
+      "22:45": 4,
+      "23:00": 1,
+      "23:15": 1,
+      "23:45": 2,
+      "26:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "leisure",
+    "time_bins": {
+      "11:45": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "other",
+    "time_bins": {
+      "17:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "shop",
+    "time_bins": {
+      "12:15": 1,
+      "14:45": 1,
+      "15:00": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Zurich",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "08:15": 2,
+      "12:15": 3,
+      "12:30": 1,
+      "12:45": 1,
+      "13:15": 1,
+      "13:30": 1,
+      "14:00": 2,
+      "14:15": 1,
+      "14:30": 1
+    },
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Aargau",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "19:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Aargau",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "10:45": 1,
+      "13:30": 1,
+      "16:15": 1,
+      "16:45": 1,
+      "17:00": 1,
+      "17:30": 3,
+      "17:45": 1,
+      "18:15": 1,
+      "22:15": 1,
+      "22:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Aargau",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "07:30": 1,
+      "09:45": 1,
+      "14:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Aargau",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "09:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Aargau",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "05:30": 1,
+      "06:30": 1,
+      "07:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Aargau",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "09:45": 2,
+      "15:45": 1,
+      "16:00": 2,
+      "16:45": 2,
+      "19:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Aargau",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "16:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Aargau",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "15:45": 1,
+      "18:00": 1,
+      "20:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Aargau",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "15:00": 1,
+      "19:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Aargau",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "07:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Aargau",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "18:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Aargau",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "10:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Appenzell Ausserrhoden",
+    "mode": "car_passenger",
+    "purpose": "shop",
+    "time_bins": {
+      "07:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Appenzell Innerrhoden",
+    "mode": "car_passenger",
+    "purpose": "work",
+    "time_bins": {
+      "06:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Basel-Landschaft",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "21:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Basel-Landschaft",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "11:15": 1,
+      "19:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Basel-Landschaft",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "18:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Basel-Landschaft",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "17:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Basel-Landschaft",
+    "mode": "car_passenger",
+    "purpose": "work",
+    "time_bins": {
+      "09:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Basel-Landschaft",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "09:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Basel-Stadt",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "13:30": 1,
+      "19:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Basel-Stadt",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "16:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Basel-Stadt",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "23:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Basel-Stadt",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "17:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Bern",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "15:00": 1,
+      "18:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Bern",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "10:15": 1,
+      "15:30": 1,
+      "16:00": 1,
+      "16:15": 1,
+      "17:30": 1,
+      "17:45": 1,
+      "18:30": 1,
+      "22:30": 1,
+      "23:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Bern",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "16:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Bern",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "20:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Bern",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "07:30": 1,
+      "12:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Bern",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "15:15": 1,
+      "21:15": 1,
+      "22:15": 1,
+      "22:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Bern",
+    "mode": "car_passenger",
+    "purpose": "work",
+    "time_bins": {
+      "14:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Bern",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "10:45": 1,
+      "15:00": 1,
+      "17:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Bern",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "15:30": 1,
+      "15:45": 1,
+      "16:30": 1,
+      "17:00": 1,
+      "17:45": 1,
+      "19:00": 1,
+      "20:00": 1,
+      "20:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Bern",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "14:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Fribourg",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "17:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Fribourg",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "07:00": 1,
+      "13:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Geneve",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "12:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "education",
+    "time_bins": {
+      "07:30": 1,
+      "17:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "10:15": 1,
+      "10:30": 1,
+      "10:45": 1,
+      "11:30": 1,
+      "14:45": 1,
+      "16:00": 1,
+      "16:15": 2,
+      "16:30": 1,
+      "16:45": 1,
+      "17:00": 1,
+      "17:15": 1,
+      "21:00": 1,
+      "22:00": 1,
+      "23:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "14:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "09:45": 1,
+      "13:45": 1,
+      "17:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "06:30": 1,
+      "12:45": 1,
+      "13:45": 1,
+      "16:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "05:00": 1,
+      "06:45": 1,
+      "07:15": 1,
+      "08:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "17:30": 2
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "05:30": 1,
+      "16:00": 1,
+      "22:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "12:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "14:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "06:00": 1,
+      "07:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "05:00": 1,
+      "13:15": 1,
+      "15:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "10:15": 1,
+      "14:15": 1,
+      "15:30": 2,
+      "17:15": 1,
+      "19:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Glarus",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "07:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Graubunden",
+    "mode": "bike",
+    "purpose": "education",
+    "time_bins": {
+      "07:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Graubunden",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "10:30": 1,
+      "18:15": 1,
+      "18:45": 1,
+      "21:15": 1,
+      "23:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Graubunden",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "13:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Graubunden",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "14:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Graubunden",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "21:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Graubunden",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "14:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Graubunden",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "11:15": 1,
+      "16:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Graubunden",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "09:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Graubunden",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "11:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Jura",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "22:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Jura",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "15:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Luzern",
+    "mode": "bike",
+    "purpose": "leisure",
+    "time_bins": {
+      "17:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Luzern",
+    "mode": "car",
+    "purpose": "education",
+    "time_bins": {
+      "08:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Luzern",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "10:00": 1,
+      "10:15": 1,
+      "13:45": 1,
+      "14:30": 2,
+      "15:15": 1,
+      "15:30": 1,
+      "15:45": 1,
+      "16:00": 2,
+      "16:15": 1,
+      "16:30": 2,
+      "16:45": 3,
+      "17:00": 1,
+      "17:15": 2,
+      "17:45": 3,
+      "19:15": 1,
+      "20:00": 2,
+      "20:45": 1,
+      "22:00": 1,
+      "23:15": 1,
+      "23:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Luzern",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "07:45": 2,
+      "08:00": 1,
+      "08:45": 1,
+      "10:30": 1,
+      "11:00": 1,
+      "12:00": 1,
+      "12:30": 1,
+      "13:30": 1,
+      "14:30": 2,
+      "15:45": 1,
+      "16:30": 2,
+      "16:45": 1,
+      "17:30": 1,
+      "17:45": 1,
+      "18:00": 2,
+      "18:45": 1,
+      "19:00": 1,
+      "19:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Luzern",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "07:00": 1,
+      "07:45": 1,
+      "10:15": 1,
+      "13:15": 1,
+      "14:15": 3,
+      "15:30": 2,
+      "16:00": 1,
+      "16:30": 2,
+      "16:45": 2,
+      "17:00": 1,
+      "17:30": 1,
+      "19:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Luzern",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "09:30": 1,
+      "13:30": 2,
+      "15:30": 1,
+      "15:45": 1,
+      "16:30": 1,
+      "17:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Luzern",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "05:30": 1,
+      "06:30": 1,
+      "06:45": 2,
+      "07:00": 2,
+      "07:45": 1,
+      "08:00": 1,
+      "08:45": 1,
+      "09:15": 1,
+      "12:15": 1,
+      "12:45": 1,
+      "13:00": 1,
+      "13:30": 2,
+      "13:45": 1,
+      "14:00": 2,
+      "14:15": 1,
+      "15:15": 1,
+      "16:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Luzern",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "14:00": 1,
+      "16:15": 1,
+      "20:15": 1,
+      "20:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Luzern",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "10:15": 1,
+      "10:30": 1,
+      "11:30": 1,
+      "13:00": 1,
+      "14:15": 1,
+      "15:45": 1,
+      "16:15": 1,
+      "18:15": 1,
+      "18:45": 1,
+      "19:00": 1,
+      "19:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Luzern",
+    "mode": "car_passenger",
+    "purpose": "shop",
+    "time_bins": {
+      "07:30": 1,
+      "10:30": 1,
+      "12:00": 1,
+      "13:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Luzern",
+    "mode": "car_passenger",
+    "purpose": "work",
+    "time_bins": {
+      "06:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Luzern",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "11:15": 1,
+      "12:00": 1,
+      "12:30": 1,
+      "16:00": 1,
+      "16:30": 1,
+      "16:45": 1,
+      "17:30": 1,
+      "18:00": 1,
+      "19:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Luzern",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "08:00": 1,
+      "11:15": 1,
+      "16:15": 2
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Luzern",
+    "mode": "pt",
+    "purpose": "other",
+    "time_bins": {
+      "06:15": 1,
+      "16:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Luzern",
+    "mode": "pt",
+    "purpose": "shop",
+    "time_bins": {
+      "10:00": 1,
+      "17:00": 1,
+      "17:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Luzern",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "04:30": 1,
+      "06:15": 1,
+      "07:15": 1,
+      "08:00": 1,
+      "09:30": 1,
+      "12:30": 1,
+      "13:15": 2
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Luzern",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "12:15": 1,
+      "13:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Luzern",
+    "mode": "walk",
+    "purpose": "leisure",
+    "time_bins": {
+      "11:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Luzern",
+    "mode": "walk",
+    "purpose": "other",
+    "time_bins": {
+      "16:00": 1,
+      "17:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Luzern",
+    "mode": "walk",
+    "purpose": "shop",
+    "time_bins": {
+      "11:45": 1,
+      "12:30": 1,
+      "15:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Luzern",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "11:45": 1,
+      "13:45": 1,
+      "15:00": 1,
+      "16:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Nidwalden",
+    "mode": "bike",
+    "purpose": "leisure",
+    "time_bins": {
+      "15:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Nidwalden",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "24:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Nidwalden",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "09:45": 1,
+      "10:00": 1,
+      "16:00": 1,
+      "17:00": 1,
+      "17:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Nidwalden",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "11:30": 1,
+      "16:00": 1,
+      "17:30": 1,
+      "19:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Nidwalden",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "12:00": 1,
+      "16:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Nidwalden",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "09:45": 1,
+      "13:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Nidwalden",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "19:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Nidwalden",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "08:30": 1,
+      "09:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Nidwalden",
+    "mode": "car_passenger",
+    "purpose": "shop",
+    "time_bins": {
+      "09:30": 1,
+      "13:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Nidwalden",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "08:45": 1,
+      "13:15": 1,
+      "15:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Nidwalden",
+    "mode": "pt",
+    "purpose": "other",
+    "time_bins": {
+      "13:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Nidwalden",
+    "mode": "pt",
+    "purpose": "shop",
+    "time_bins": {
+      "12:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Nidwalden",
+    "mode": "walk",
+    "purpose": "education",
+    "time_bins": {
+      "12:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Obwalden",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "15:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Obwalden",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "15:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Obwalden",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "14:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Obwalden",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "14:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Obwalden",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "09:00": 1,
+      "12:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Obwalden",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "05:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Obwalden",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "26:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Obwalden",
+    "mode": "car_passenger",
+    "purpose": "shop",
+    "time_bins": {
+      "16:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Obwalden",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "11:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Obwalden",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "12:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schaffhausen",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "14:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schaffhausen",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "23:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schaffhausen",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "13:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schaffhausen",
+    "mode": "pt",
+    "purpose": "shop",
+    "time_bins": {
+      "08:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schaffhausen",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "12:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schaffhausen",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "12:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "education",
+    "time_bins": {
+      "06:00": 1,
+      "06:30": 1,
+      "06:45": 2,
+      "07:00": 3,
+      "07:15": 6,
+      "07:30": 7,
+      "07:45": 4,
+      "08:00": 6,
+      "08:15": 3,
+      "12:45": 2,
+      "13:00": 6,
+      "13:15": 3,
+      "13:30": 8,
+      "13:45": 2,
+      "18:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "05:30": 1,
+      "08:30": 1,
+      "08:45": 1,
+      "10:45": 1,
+      "11:00": 3,
+      "11:15": 3,
+      "11:30": 5,
+      "11:45": 5,
+      "12:00": 5,
+      "12:15": 1,
+      "12:30": 1,
+      "13:30": 2,
+      "14:00": 1,
+      "14:30": 2,
+      "14:45": 1,
+      "15:00": 4,
+      "15:15": 7,
+      "15:30": 5,
+      "15:45": 1,
+      "16:15": 4,
+      "16:30": 3,
+      "17:30": 1,
+      "17:45": 1,
+      "18:00": 1,
+      "18:15": 2,
+      "18:30": 1,
+      "19:00": 1,
+      "19:30": 2,
+      "20:15": 1,
+      "20:45": 1,
+      "22:00": 1,
+      "22:30": 1,
+      "23:00": 1,
+      "23:30": 1,
+      "24:00": 1,
+      "25:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "leisure",
+    "time_bins": {
+      "07:30": 1,
+      "08:30": 1,
+      "10:00": 1,
+      "11:15": 1,
+      "11:30": 1,
+      "11:45": 1,
+      "12:00": 1,
+      "13:00": 1,
+      "13:15": 1,
+      "13:45": 1,
+      "14:00": 1,
+      "14:15": 1,
+      "14:30": 1,
+      "15:15": 1,
+      "15:30": 1,
+      "15:45": 1,
+      "16:00": 1,
+      "16:30": 1,
+      "16:45": 1,
+      "17:15": 2,
+      "17:30": 1,
+      "17:45": 1,
+      "18:00": 2,
+      "18:30": 1,
+      "18:45": 1,
+      "19:15": 2,
+      "19:30": 2,
+      "19:45": 1,
+      "20:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "other",
+    "time_bins": {
+      "06:45": 1,
+      "08:45": 1,
+      "09:00": 1,
+      "09:15": 1,
+      "13:15": 1,
+      "13:30": 1,
+      "15:15": 1,
+      "15:30": 1,
+      "16:00": 1,
+      "17:00": 1,
+      "17:15": 1,
+      "18:15": 1,
+      "19:30": 1,
+      "23:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "shop",
+    "time_bins": {
+      "08:00": 1,
+      "08:30": 1,
+      "09:30": 1,
+      "10:30": 1,
+      "13:30": 2,
+      "14:15": 1,
+      "14:30": 1,
+      "15:30": 1,
+      "16:30": 1,
+      "17:00": 1,
+      "17:30": 1,
+      "19:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "work",
+    "time_bins": {
+      "03:45": 1,
+      "06:15": 1,
+      "07:30": 2,
+      "07:45": 1,
+      "09:00": 1,
+      "10:00": 2,
+      "15:15": 1,
+      "16:30": 1,
+      "18:00": 1,
+      "18:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "education",
+    "time_bins": {
+      "06:15": 1,
+      "06:30": 2,
+      "06:45": 1,
+      "07:00": 2,
+      "07:45": 1,
+      "08:15": 1,
+      "11:45": 1,
+      "12:00": 1,
+      "13:00": 1,
+      "17:15": 1,
+      "17:45": 1,
+      "18:45": 1,
+      "19:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "06:15": 1,
+      "06:30": 1,
+      "06:45": 1,
+      "07:00": 2,
+      "07:30": 3,
+      "07:45": 3,
+      "08:00": 4,
+      "08:15": 1,
+      "08:30": 1,
+      "08:45": 2,
+      "09:00": 5,
+      "09:15": 3,
+      "09:30": 6,
+      "09:45": 8,
+      "10:00": 5,
+      "10:15": 5,
+      "10:30": 9,
+      "10:45": 7,
+      "11:00": 13,
+      "11:15": 13,
+      "11:30": 12,
+      "11:45": 11,
+      "12:00": 13,
+      "12:15": 20,
+      "12:30": 9,
+      "12:45": 3,
+      "13:00": 3,
+      "13:15": 3,
+      "13:30": 6,
+      "13:45": 5,
+      "14:00": 3,
+      "14:15": 5,
+      "14:30": 3,
+      "14:45": 3,
+      "15:00": 9,
+      "15:15": 8,
+      "15:30": 9,
+      "15:45": 5,
+      "16:00": 5,
+      "16:15": 12,
+      "16:30": 11,
+      "16:45": 12,
+      "17:00": 19,
+      "17:15": 12,
+      "17:30": 14,
+      "17:45": 4,
+      "18:00": 5,
+      "18:15": 8,
+      "18:30": 12,
+      "18:45": 6,
+      "19:00": 4,
+      "19:15": 4,
+      "19:30": 1,
+      "19:45": 3,
+      "20:00": 3,
+      "20:15": 4,
+      "20:30": 2,
+      "20:45": 5,
+      "21:00": 3,
+      "21:15": 3,
+      "21:30": 3,
+      "21:45": 5,
+      "22:00": 3,
+      "22:15": 3,
+      "22:30": 2,
+      "22:45": 1,
+      "23:00": 2,
+      "23:15": 2,
+      "23:45": 1,
+      "24:15": 2,
+      "25:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "04:30": 2,
+      "05:45": 2,
+      "06:00": 2,
+      "06:15": 1,
+      "06:30": 1,
+      "07:15": 3,
+      "07:30": 3,
+      "07:45": 5,
+      "08:00": 5,
+      "08:15": 5,
+      "08:30": 7,
+      "08:45": 7,
+      "09:00": 2,
+      "09:15": 11,
+      "09:30": 4,
+      "09:45": 2,
+      "10:00": 1,
+      "10:15": 3,
+      "10:30": 7,
+      "10:45": 2,
+      "11:00": 2,
+      "11:15": 4,
+      "11:30": 8,
+      "11:45": 10,
+      "12:00": 6,
+      "12:15": 8,
+      "12:30": 1,
+      "12:45": 4,
+      "13:00": 4,
+      "13:15": 3,
+      "13:30": 14,
+      "13:45": 12,
+      "14:00": 3,
+      "14:15": 4,
+      "14:30": 3,
+      "14:45": 1,
+      "15:15": 3,
+      "15:30": 1,
+      "15:45": 2,
+      "16:00": 5,
+      "16:15": 8,
+      "16:30": 4,
+      "16:45": 5,
+      "17:00": 4,
+      "17:15": 2,
+      "17:30": 8,
+      "17:45": 7,
+      "18:00": 8,
+      "18:15": 7,
+      "18:30": 8,
+      "18:45": 13,
+      "19:00": 7,
+      "19:15": 6,
+      "19:30": 6,
+      "19:45": 4,
+      "20:00": 4,
+      "20:15": 5,
+      "20:30": 7,
+      "20:45": 4,
+      "21:30": 1,
+      "21:45": 1,
+      "22:00": 1,
+      "22:45": 1,
+      "23:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "05:45": 1,
+      "06:00": 1,
+      "06:15": 3,
+      "06:30": 4,
+      "06:45": 1,
+      "07:00": 8,
+      "07:15": 4,
+      "07:30": 5,
+      "07:45": 3,
+      "08:00": 3,
+      "08:15": 5,
+      "08:45": 7,
+      "09:00": 3,
+      "09:15": 4,
+      "09:30": 2,
+      "09:45": 3,
+      "10:00": 6,
+      "10:15": 6,
+      "10:30": 2,
+      "10:45": 4,
+      "11:00": 4,
+      "11:15": 4,
+      "11:30": 3,
+      "11:45": 2,
+      "12:00": 1,
+      "12:15": 3,
+      "12:30": 4,
+      "12:45": 5,
+      "13:00": 3,
+      "13:15": 7,
+      "13:30": 5,
+      "13:45": 9,
+      "14:00": 2,
+      "14:15": 3,
+      "14:30": 1,
+      "14:45": 2,
+      "15:00": 4,
+      "15:15": 10,
+      "15:30": 3,
+      "15:45": 3,
+      "16:00": 9,
+      "16:15": 7,
+      "16:30": 5,
+      "16:45": 7,
+      "17:00": 4,
+      "17:15": 4,
+      "17:30": 4,
+      "17:45": 2,
+      "18:00": 3,
+      "18:15": 6,
+      "18:30": 7,
+      "18:45": 2,
+      "19:00": 2,
+      "19:15": 1,
+      "19:45": 2,
+      "20:00": 1,
+      "20:15": 2,
+      "20:45": 2,
+      "21:00": 1,
+      "21:30": 2,
+      "21:45": 1,
+      "22:00": 2,
+      "22:15": 1,
+      "23:15": 1,
+      "23:30": 1,
+      "23:45": 1,
+      "24:15": 1,
+      "24:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "06:00": 1,
+      "06:15": 1,
+      "06:45": 1,
+      "07:00": 1,
+      "07:15": 1,
+      "07:30": 2,
+      "07:45": 7,
+      "08:00": 4,
+      "08:15": 4,
+      "08:30": 6,
+      "08:45": 8,
+      "09:00": 14,
+      "09:15": 6,
+      "09:30": 9,
+      "09:45": 5,
+      "10:00": 3,
+      "10:15": 9,
+      "10:30": 5,
+      "10:45": 2,
+      "11:00": 4,
+      "11:15": 4,
+      "11:30": 4,
+      "11:45": 5,
+      "12:00": 4,
+      "12:15": 1,
+      "12:30": 3,
+      "12:45": 5,
+      "13:00": 8,
+      "13:15": 5,
+      "13:30": 8,
+      "13:45": 10,
+      "14:00": 9,
+      "14:15": 5,
+      "14:30": 1,
+      "14:45": 2,
+      "15:00": 5,
+      "15:30": 5,
+      "15:45": 4,
+      "16:00": 6,
+      "16:15": 11,
+      "16:30": 4,
+      "16:45": 7,
+      "17:00": 7,
+      "17:15": 5,
+      "17:30": 2,
+      "17:45": 3,
+      "18:00": 1,
+      "18:15": 3,
+      "18:30": 2,
+      "18:45": 1,
+      "19:00": 1,
+      "19:30": 2,
+      "22:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "02:30": 1,
+      "03:30": 1,
+      "03:45": 1,
+      "04:00": 1,
+      "04:15": 2,
+      "04:30": 1,
+      "04:45": 4,
+      "05:00": 9,
+      "05:15": 5,
+      "05:30": 10,
+      "05:45": 15,
+      "06:00": 21,
+      "06:15": 31,
+      "06:30": 32,
+      "06:45": 23,
+      "07:00": 20,
+      "07:15": 27,
+      "07:30": 17,
+      "07:45": 12,
+      "08:00": 13,
+      "08:15": 13,
+      "08:30": 10,
+      "08:45": 6,
+      "09:00": 7,
+      "09:15": 9,
+      "09:30": 5,
+      "09:45": 3,
+      "10:00": 2,
+      "10:15": 5,
+      "10:30": 2,
+      "10:45": 2,
+      "11:00": 2,
+      "11:15": 2,
+      "11:30": 2,
+      "11:45": 1,
+      "12:00": 4,
+      "12:15": 8,
+      "12:30": 4,
+      "12:45": 12,
+      "13:00": 22,
+      "13:15": 14,
+      "13:30": 3,
+      "13:45": 7,
+      "14:00": 2,
+      "14:15": 4,
+      "14:30": 3,
+      "14:45": 4,
+      "15:00": 5,
+      "15:15": 1,
+      "15:45": 2,
+      "16:00": 2,
+      "16:15": 1,
+      "16:30": 3,
+      "16:45": 5,
+      "17:00": 3,
+      "17:30": 1,
+      "17:45": 3,
+      "18:00": 2,
+      "18:15": 2,
+      "18:30": 1,
+      "20:00": 1,
+      "20:30": 1,
+      "23:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "education",
+    "time_bins": {
+      "06:30": 2,
+      "07:00": 2,
+      "07:30": 2,
+      "07:45": 1,
+      "08:00": 3,
+      "08:15": 3,
+      "10:15": 1,
+      "12:15": 1,
+      "18:00": 1,
+      "18:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "09:00": 1,
+      "09:45": 1,
+      "10:15": 1,
+      "10:30": 1,
+      "10:45": 3,
+      "11:00": 2,
+      "11:15": 1,
+      "11:30": 2,
+      "11:45": 1,
+      "12:00": 4,
+      "12:15": 1,
+      "12:30": 1,
+      "12:45": 1,
+      "13:30": 1,
+      "13:45": 1,
+      "14:00": 1,
+      "14:15": 2,
+      "14:30": 2,
+      "14:45": 1,
+      "15:00": 1,
+      "15:15": 2,
+      "15:45": 1,
+      "16:00": 1,
+      "16:15": 1,
+      "16:30": 4,
+      "16:45": 3,
+      "17:00": 3,
+      "17:15": 2,
+      "17:30": 4,
+      "18:00": 4,
+      "18:15": 1,
+      "18:45": 2,
+      "19:00": 2,
+      "19:30": 1,
+      "19:45": 1,
+      "20:15": 3,
+      "20:30": 2,
+      "20:45": 1,
+      "22:30": 1,
+      "23:00": 2,
+      "23:15": 1,
+      "23:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "07:15": 1,
+      "08:30": 1,
+      "08:45": 3,
+      "09:00": 2,
+      "09:15": 2,
+      "09:30": 3,
+      "10:15": 1,
+      "10:30": 1,
+      "11:00": 3,
+      "11:30": 2,
+      "11:45": 1,
+      "12:15": 3,
+      "12:30": 1,
+      "12:45": 3,
+      "13:00": 1,
+      "13:15": 2,
+      "13:30": 3,
+      "14:00": 1,
+      "14:30": 3,
+      "14:45": 2,
+      "15:00": 1,
+      "15:15": 1,
+      "15:30": 4,
+      "15:45": 5,
+      "16:00": 3,
+      "16:15": 2,
+      "16:30": 1,
+      "16:45": 1,
+      "17:15": 4,
+      "17:30": 5,
+      "17:45": 4,
+      "18:00": 7,
+      "18:15": 4,
+      "18:30": 4,
+      "18:45": 4,
+      "19:00": 4,
+      "19:15": 2,
+      "19:30": 2,
+      "19:45": 1,
+      "20:15": 3,
+      "20:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "other",
+    "time_bins": {
+      "06:30": 1,
+      "07:30": 1,
+      "07:45": 2,
+      "08:00": 1,
+      "08:15": 1,
+      "08:45": 1,
+      "09:45": 1,
+      "10:00": 1,
+      "10:15": 2,
+      "10:45": 1,
+      "11:15": 1,
+      "13:00": 1,
+      "13:15": 1,
+      "13:30": 1,
+      "13:45": 2,
+      "14:45": 1,
+      "15:15": 2,
+      "16:30": 1,
+      "16:45": 1,
+      "17:00": 1,
+      "18:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "shop",
+    "time_bins": {
+      "07:15": 1,
+      "07:30": 1,
+      "07:45": 1,
+      "08:00": 2,
+      "08:15": 1,
+      "08:30": 1,
+      "08:45": 1,
+      "09:00": 1,
+      "09:15": 2,
+      "09:30": 1,
+      "09:45": 1,
+      "10:00": 3,
+      "10:15": 1,
+      "10:45": 1,
+      "11:00": 1,
+      "11:15": 1,
+      "12:15": 1,
+      "13:00": 1,
+      "13:15": 1,
+      "13:30": 5,
+      "13:45": 2,
+      "14:00": 1,
+      "14:15": 2,
+      "14:30": 3,
+      "14:45": 1,
+      "15:30": 3,
+      "16:00": 2,
+      "16:15": 1,
+      "17:00": 1,
+      "17:30": 1,
+      "17:45": 1,
+      "18:15": 2,
+      "19:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "work",
+    "time_bins": {
+      "04:30": 1,
+      "04:45": 1,
+      "05:15": 1,
+      "05:30": 1,
+      "05:45": 1,
+      "06:00": 4,
+      "06:15": 4,
+      "06:30": 1,
+      "06:45": 4,
+      "07:00": 2,
+      "08:30": 1,
+      "10:15": 1,
+      "10:30": 1,
+      "11:30": 1,
+      "12:30": 1,
+      "12:45": 1,
+      "13:00": 2,
+      "13:15": 2,
+      "13:30": 1,
+      "14:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "education",
+    "time_bins": {
+      "05:45": 2,
+      "06:30": 2,
+      "06:45": 3,
+      "07:00": 4,
+      "07:15": 4,
+      "07:30": 5,
+      "07:45": 2,
+      "08:00": 3,
+      "08:15": 2,
+      "08:30": 2,
+      "09:00": 1,
+      "09:15": 1,
+      "09:45": 1,
+      "10:15": 1,
+      "10:30": 1,
+      "11:45": 1,
+      "12:30": 3,
+      "12:45": 1,
+      "13:00": 1,
+      "13:15": 3,
+      "13:30": 1,
+      "13:45": 2,
+      "14:30": 1,
+      "14:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "09:15": 2,
+      "09:30": 2,
+      "09:45": 1,
+      "10:30": 1,
+      "10:45": 1,
+      "11:00": 2,
+      "11:45": 6,
+      "12:00": 4,
+      "12:15": 4,
+      "12:45": 1,
+      "13:00": 1,
+      "13:30": 1,
+      "14:15": 1,
+      "14:30": 2,
+      "15:00": 2,
+      "15:30": 2,
+      "15:45": 1,
+      "16:00": 1,
+      "16:15": 4,
+      "16:30": 3,
+      "16:45": 2,
+      "17:00": 4,
+      "17:15": 1,
+      "17:30": 3,
+      "17:45": 2,
+      "18:00": 4,
+      "18:30": 3,
+      "18:45": 3,
+      "19:00": 3,
+      "19:15": 1,
+      "19:45": 1,
+      "20:30": 1,
+      "20:45": 1,
+      "21:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "07:15": 1,
+      "07:30": 1,
+      "07:45": 1,
+      "08:00": 2,
+      "08:15": 1,
+      "08:45": 1,
+      "09:00": 1,
+      "09:30": 1,
+      "10:00": 2,
+      "10:30": 1,
+      "10:45": 1,
+      "11:00": 3,
+      "11:15": 2,
+      "11:30": 6,
+      "12:30": 1,
+      "12:45": 1,
+      "13:00": 1,
+      "13:15": 4,
+      "13:30": 1,
+      "13:45": 1,
+      "14:00": 1,
+      "14:45": 2,
+      "15:15": 1,
+      "15:45": 1,
+      "16:30": 2,
+      "16:45": 1,
+      "17:00": 2,
+      "17:30": 1,
+      "18:00": 2,
+      "18:15": 1,
+      "18:45": 2,
+      "19:15": 2
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "other",
+    "time_bins": {
+      "07:15": 1,
+      "08:00": 1,
+      "08:45": 1,
+      "09:15": 1,
+      "09:30": 1,
+      "10:45": 1,
+      "12:15": 1,
+      "12:30": 1,
+      "12:45": 1,
+      "13:30": 3,
+      "13:45": 1,
+      "14:45": 1,
+      "15:30": 1,
+      "16:15": 1,
+      "17:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "shop",
+    "time_bins": {
+      "09:00": 1,
+      "09:15": 1,
+      "09:30": 2,
+      "11:00": 1,
+      "12:15": 2,
+      "12:45": 1,
+      "13:30": 1,
+      "14:45": 1,
+      "17:00": 1,
+      "17:15": 1,
+      "18:30": 2
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "05:00": 2,
+      "05:15": 1,
+      "05:30": 2,
+      "05:45": 4,
+      "06:00": 6,
+      "06:15": 2,
+      "06:30": 7,
+      "06:45": 7,
+      "07:00": 11,
+      "07:15": 7,
+      "07:30": 13,
+      "07:45": 1,
+      "08:00": 2,
+      "08:15": 1,
+      "08:30": 3,
+      "08:45": 1,
+      "09:15": 2,
+      "09:45": 2,
+      "11:30": 1,
+      "12:00": 1,
+      "12:15": 1,
+      "12:30": 1,
+      "12:45": 3,
+      "13:00": 2,
+      "13:15": 2,
+      "13:30": 3,
+      "14:00": 1,
+      "15:15": 1,
+      "15:45": 1,
+      "16:00": 1,
+      "16:30": 1,
+      "17:15": 1,
+      "17:30": 1,
+      "21:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "04:45": 1,
+      "05:30": 1,
+      "06:15": 1,
+      "08:45": 1,
+      "09:00": 1,
+      "10:00": 1,
+      "10:15": 1,
+      "10:30": 2,
+      "12:00": 1,
+      "12:15": 1,
+      "12:30": 2,
+      "13:00": 2,
+      "16:45": 2,
+      "17:45": 1,
+      "19:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "education",
+    "time_bins": {
+      "06:45": 1,
+      "07:00": 4,
+      "07:15": 6,
+      "07:30": 4,
+      "07:45": 8,
+      "08:00": 3,
+      "08:15": 7,
+      "12:00": 1,
+      "12:15": 1,
+      "12:30": 2,
+      "12:45": 5,
+      "13:00": 4,
+      "13:15": 4,
+      "13:30": 2,
+      "13:45": 1,
+      "14:30": 1,
+      "15:00": 1,
+      "15:15": 2,
+      "15:30": 1,
+      "17:45": 1,
+      "18:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "04:30": 1,
+      "05:45": 2,
+      "06:00": 1,
+      "06:30": 2,
+      "07:00": 1,
+      "07:15": 1,
+      "07:30": 2,
+      "07:45": 4,
+      "08:00": 6,
+      "08:15": 5,
+      "08:30": 6,
+      "08:45": 7,
+      "09:00": 3,
+      "09:15": 2,
+      "09:30": 4,
+      "09:45": 5,
+      "10:00": 8,
+      "10:15": 7,
+      "10:30": 8,
+      "10:45": 3,
+      "11:00": 8,
+      "11:15": 5,
+      "11:30": 16,
+      "11:45": 13,
+      "12:00": 10,
+      "12:15": 11,
+      "12:30": 2,
+      "12:45": 2,
+      "13:00": 3,
+      "13:15": 6,
+      "13:30": 3,
+      "13:45": 4,
+      "14:00": 5,
+      "14:15": 3,
+      "14:30": 8,
+      "14:45": 5,
+      "15:00": 4,
+      "15:15": 3,
+      "15:30": 7,
+      "15:45": 1,
+      "16:00": 5,
+      "16:15": 7,
+      "16:30": 4,
+      "16:45": 6,
+      "17:00": 8,
+      "17:15": 9,
+      "17:30": 5,
+      "17:45": 3,
+      "18:00": 8,
+      "18:15": 4,
+      "18:30": 3,
+      "18:45": 2,
+      "19:00": 2,
+      "19:15": 5,
+      "19:30": 2,
+      "19:45": 3,
+      "20:00": 5,
+      "20:15": 1,
+      "20:30": 2,
+      "20:45": 6,
+      "21:15": 1,
+      "21:30": 1,
+      "21:45": 3,
+      "22:00": 2,
+      "22:15": 1,
+      "22:30": 1,
+      "23:00": 2,
+      "23:15": 1,
+      "23:30": 3,
+      "24:00": 1,
+      "24:30": 1,
+      "25:45": 1,
+      "29:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "leisure",
+    "time_bins": {
+      "05:15": 1,
+      "06:15": 1,
+      "06:30": 4,
+      "06:45": 1,
+      "07:00": 1,
+      "07:30": 2,
+      "08:00": 1,
+      "08:15": 3,
+      "08:30": 1,
+      "08:45": 2,
+      "09:00": 4,
+      "09:15": 2,
+      "09:30": 5,
+      "09:45": 6,
+      "10:00": 3,
+      "10:15": 2,
+      "10:30": 2,
+      "10:45": 3,
+      "11:00": 2,
+      "11:15": 6,
+      "11:30": 7,
+      "11:45": 10,
+      "12:00": 6,
+      "12:15": 3,
+      "12:30": 4,
+      "12:45": 3,
+      "13:00": 6,
+      "13:15": 4,
+      "13:30": 4,
+      "13:45": 3,
+      "14:00": 2,
+      "14:15": 4,
+      "14:30": 4,
+      "14:45": 5,
+      "15:00": 6,
+      "15:15": 6,
+      "15:30": 3,
+      "15:45": 6,
+      "16:00": 2,
+      "16:15": 9,
+      "16:30": 7,
+      "16:45": 3,
+      "17:00": 4,
+      "17:15": 6,
+      "17:30": 9,
+      "17:45": 4,
+      "18:00": 4,
+      "18:15": 2,
+      "18:30": 2,
+      "18:45": 10,
+      "19:00": 5,
+      "19:15": 7,
+      "19:30": 5,
+      "19:45": 4,
+      "20:00": 4,
+      "20:15": 2,
+      "20:30": 1,
+      "20:45": 2,
+      "21:00": 1,
+      "21:30": 1,
+      "22:00": 1,
+      "22:15": 1,
+      "22:30": 1,
+      "22:45": 1,
+      "23:30": 1,
+      "24:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "other",
+    "time_bins": {
+      "06:30": 1,
+      "06:45": 1,
+      "07:00": 1,
+      "07:15": 1,
+      "07:30": 2,
+      "07:45": 2,
+      "08:00": 6,
+      "08:15": 5,
+      "08:30": 2,
+      "09:00": 2,
+      "09:15": 1,
+      "09:30": 2,
+      "09:45": 4,
+      "10:00": 1,
+      "10:30": 2,
+      "10:45": 3,
+      "11:00": 1,
+      "11:15": 1,
+      "11:30": 1,
+      "11:45": 2,
+      "12:00": 1,
+      "12:15": 1,
+      "12:30": 1,
+      "13:00": 1,
+      "13:15": 3,
+      "13:45": 1,
+      "14:00": 1,
+      "14:15": 5,
+      "14:30": 3,
+      "14:45": 1,
+      "15:00": 3,
+      "15:15": 1,
+      "15:30": 1,
+      "15:45": 1,
+      "16:00": 1,
+      "16:30": 4,
+      "16:45": 2,
+      "17:00": 1,
+      "17:15": 2,
+      "17:30": 2,
+      "18:30": 1,
+      "18:45": 1,
+      "19:00": 1,
+      "20:00": 1,
+      "21:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "shop",
+    "time_bins": {
+      "06:45": 1,
+      "07:15": 1,
+      "07:30": 1,
+      "08:00": 4,
+      "08:15": 4,
+      "08:30": 6,
+      "08:45": 1,
+      "09:00": 4,
+      "09:15": 5,
+      "09:30": 6,
+      "09:45": 7,
+      "10:00": 4,
+      "10:15": 7,
+      "10:30": 3,
+      "10:45": 3,
+      "11:00": 2,
+      "11:15": 1,
+      "11:30": 1,
+      "11:45": 7,
+      "12:00": 4,
+      "12:15": 4,
+      "12:30": 1,
+      "12:45": 3,
+      "13:00": 4,
+      "13:15": 2,
+      "13:30": 2,
+      "13:45": 4,
+      "14:00": 4,
+      "14:15": 5,
+      "14:30": 3,
+      "14:45": 3,
+      "15:00": 2,
+      "15:15": 2,
+      "15:30": 3,
+      "15:45": 4,
+      "16:00": 3,
+      "16:15": 4,
+      "16:30": 1,
+      "16:45": 4,
+      "17:00": 3,
+      "17:15": 2,
+      "17:30": 3,
+      "17:45": 3,
+      "18:30": 1,
+      "19:00": 1,
+      "19:15": 3,
+      "19:30": 1,
+      "21:30": 1,
+      "21:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "02:45": 1,
+      "04:00": 1,
+      "04:45": 1,
+      "05:00": 1,
+      "05:45": 6,
+      "06:00": 3,
+      "06:15": 3,
+      "06:30": 2,
+      "06:45": 4,
+      "07:00": 7,
+      "07:15": 3,
+      "07:30": 5,
+      "07:45": 3,
+      "08:00": 1,
+      "08:15": 2,
+      "08:30": 4,
+      "08:45": 1,
+      "09:15": 4,
+      "09:30": 1,
+      "09:45": 1,
+      "10:15": 2,
+      "10:45": 1,
+      "11:00": 4,
+      "11:15": 3,
+      "11:30": 1,
+      "11:45": 2,
+      "12:00": 4,
+      "12:15": 4,
+      "12:30": 11,
+      "12:45": 6,
+      "13:00": 9,
+      "13:15": 2,
+      "13:30": 3,
+      "13:45": 7,
+      "14:00": 1,
+      "14:15": 3,
+      "14:30": 2,
+      "14:45": 1,
+      "15:00": 5,
+      "15:30": 1,
+      "15:45": 2,
+      "16:00": 2,
+      "16:15": 1,
+      "16:45": 1,
+      "17:00": 1,
+      "17:15": 2,
+      "18:00": 1,
+      "18:15": 1,
+      "18:45": 1,
+      "19:30": 1,
+      "19:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Solothurn",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "15:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Solothurn",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "15:30": 1,
+      "21:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Solothurn",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "07:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Solothurn",
+    "mode": "car_passenger",
+    "purpose": "shop",
+    "time_bins": {
+      "13:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Solothurn",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "18:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Solothurn",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "07:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "bike",
+    "purpose": "education",
+    "time_bins": {
+      "08:00": 1,
+      "13:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "11:00": 1,
+      "17:45": 1,
+      "24:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "bike",
+    "purpose": "leisure",
+    "time_bins": {
+      "15:30": 1,
+      "16:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "bike",
+    "purpose": "other",
+    "time_bins": {
+      "15:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "bike",
+    "purpose": "shop",
+    "time_bins": {
+      "08:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "bike",
+    "purpose": "work",
+    "time_bins": {
+      "06:45": 1,
+      "07:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "car",
+    "purpose": "education",
+    "time_bins": {
+      "08:15": 1,
+      "17:00": 1,
+      "19:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "09:15": 1,
+      "09:30": 2,
+      "09:45": 1,
+      "10:00": 1,
+      "10:15": 2,
+      "10:45": 1,
+      "11:00": 1,
+      "11:15": 1,
+      "12:00": 1,
+      "12:30": 1,
+      "13:00": 1,
+      "13:45": 1,
+      "14:00": 1,
+      "14:45": 1,
+      "15:15": 2,
+      "15:30": 1,
+      "15:45": 1,
+      "16:30": 1,
+      "16:45": 1,
+      "17:00": 1,
+      "17:45": 1,
+      "18:30": 1,
+      "19:15": 1,
+      "20:30": 1,
+      "20:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "08:15": 1,
+      "08:45": 2,
+      "09:15": 2,
+      "10:15": 1,
+      "10:45": 1,
+      "11:00": 1,
+      "11:15": 1,
+      "11:30": 2,
+      "12:30": 1,
+      "13:00": 1,
+      "14:15": 1,
+      "15:45": 2,
+      "16:00": 1,
+      "17:00": 1,
+      "17:30": 1,
+      "18:00": 1,
+      "19:00": 1,
+      "19:15": 1,
+      "19:45": 1,
+      "20:30": 1,
+      "21:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "07:00": 1,
+      "08:45": 2,
+      "09:30": 1,
+      "13:45": 2,
+      "14:30": 1,
+      "15:00": 1,
+      "15:15": 1,
+      "16:30": 1,
+      "16:45": 1,
+      "17:15": 1,
+      "18:00": 1,
+      "18:45": 1,
+      "21:30": 1,
+      "22:15": 1,
+      "23:00": 1,
+      "24:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "06:30": 1,
+      "09:30": 1,
+      "12:15": 1,
+      "13:30": 1,
+      "14:15": 1,
+      "14:45": 1,
+      "16:15": 1,
+      "17:15": 1,
+      "18:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "03:45": 1,
+      "04:45": 1,
+      "05:30": 1,
+      "05:45": 1,
+      "06:00": 1,
+      "06:30": 2,
+      "06:45": 2,
+      "07:00": 1,
+      "07:15": 2,
+      "07:30": 4,
+      "07:45": 1,
+      "08:15": 1,
+      "09:15": 1,
+      "12:15": 1,
+      "12:30": 1,
+      "12:45": 2,
+      "13:00": 1,
+      "15:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "car_passenger",
+    "purpose": "education",
+    "time_bins": {
+      "07:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "12:15": 1,
+      "15:30": 1,
+      "18:30": 1,
+      "19:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "09:15": 1,
+      "13:15": 1,
+      "14:45": 1,
+      "15:15": 1,
+      "17:30": 1,
+      "18:15": 1,
+      "20:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "car_passenger",
+    "purpose": "other",
+    "time_bins": {
+      "15:15": 1,
+      "16:00": 1,
+      "17:15": 1,
+      "20:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "car_passenger",
+    "purpose": "shop",
+    "time_bins": {
+      "10:00": 1,
+      "12:15": 1,
+      "13:30": 1,
+      "14:00": 1,
+      "14:15": 1,
+      "16:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "car_passenger",
+    "purpose": "work",
+    "time_bins": {
+      "12:45": 1,
+      "13:00": 1,
+      "17:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "pt",
+    "purpose": "education",
+    "time_bins": {
+      "06:15": 1,
+      "06:45": 1,
+      "07:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "10:30": 1,
+      "12:30": 1,
+      "14:30": 1,
+      "15:00": 1,
+      "16:30": 1,
+      "17:00": 1,
+      "17:30": 1,
+      "17:45": 1,
+      "18:15": 1,
+      "19:00": 1,
+      "19:15": 1,
+      "23:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "06:45": 1,
+      "13:15": 1,
+      "19:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "pt",
+    "purpose": "other",
+    "time_bins": {
+      "09:15": 1,
+      "19:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "06:00": 1,
+      "06:15": 2,
+      "06:45": 2,
+      "08:15": 1,
+      "09:00": 1,
+      "09:30": 1,
+      "10:30": 1,
+      "11:00": 1,
+      "15:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "09:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "walk",
+    "purpose": "education",
+    "time_bins": {
+      "12:30": 1,
+      "12:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "walk",
+    "purpose": "leisure",
+    "time_bins": {
+      "09:45": 1,
+      "16:00": 1,
+      "18:15": 1,
+      "21:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "St. Gallen",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "12:00": 2,
+      "12:15": 1,
+      "13:15": 1,
+      "16:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Thurgau",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "17:30": 2
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Thurgau",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "07:45": 1,
+      "12:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Thurgau",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "14:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Thurgau",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "08:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Thurgau",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "18:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Thurgau",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "07:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Thurgau",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "22:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Ticino",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "13:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Ticino",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "05:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Ticino",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "08:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Uri",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "09:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Uri",
+    "mode": "bike",
+    "purpose": "leisure",
+    "time_bins": {
+      "20:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Uri",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "10:45": 1,
+      "11:15": 1,
+      "15:45": 1,
+      "16:00": 2,
+      "16:30": 1,
+      "17:00": 1,
+      "17:15": 1,
+      "17:30": 1,
+      "17:45": 1,
+      "18:15": 2,
+      "19:00": 1,
+      "20:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Uri",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "09:15": 1,
+      "12:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Uri",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "13:15": 1,
+      "15:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Uri",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "11:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Uri",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "13:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Uri",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "20:15": 1,
+      "20:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Uri",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "11:30": 1,
+      "18:15": 1,
+      "18:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Uri",
+    "mode": "car_passenger",
+    "purpose": "other",
+    "time_bins": {
+      "15:00": 1,
+      "16:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Uri",
+    "mode": "car_passenger",
+    "purpose": "work",
+    "time_bins": {
+      "17:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Uri",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "16:45": 1,
+      "18:00": 1,
+      "18:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Uri",
+    "mode": "pt",
+    "purpose": "other",
+    "time_bins": {
+      "11:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Uri",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "01:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Uri",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "07:45": 1,
+      "22:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Uri",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "10:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Valais",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "10:45": 1,
+      "12:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Vaud",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "15:00": 1,
+      "21:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Vaud",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "18:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Vaud",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "15:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Vaud",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "18:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Vaud",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "17:00": 1,
+      "21:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Vaud",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "09:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zug",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "14:45": 1,
+      "15:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zug",
+    "mode": "bike",
+    "purpose": "leisure",
+    "time_bins": {
+      "16:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zug",
+    "mode": "bike",
+    "purpose": "other",
+    "time_bins": {
+      "09:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zug",
+    "mode": "bike",
+    "purpose": "shop",
+    "time_bins": {
+      "12:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zug",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "10:00": 1,
+      "11:15": 2,
+      "12:00": 1,
+      "13:15": 1,
+      "13:45": 1,
+      "14:15": 1,
+      "14:45": 1,
+      "15:30": 2,
+      "16:15": 2,
+      "16:45": 1,
+      "17:00": 2,
+      "17:15": 5,
+      "17:30": 3,
+      "17:45": 1,
+      "18:15": 1,
+      "19:30": 2,
+      "20:00": 1,
+      "21:15": 1,
+      "22:00": 1,
+      "23:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zug",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "07:30": 2,
+      "09:00": 1,
+      "09:30": 1,
+      "10:00": 1,
+      "11:00": 1,
+      "11:30": 2,
+      "12:00": 1,
+      "13:30": 1,
+      "14:00": 2,
+      "14:45": 2,
+      "15:00": 1,
+      "17:00": 1,
+      "17:15": 1,
+      "17:45": 1,
+      "18:30": 1,
+      "19:00": 2,
+      "19:45": 1,
+      "21:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zug",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "09:00": 1,
+      "10:15": 1,
+      "11:00": 2,
+      "13:00": 1,
+      "14:30": 1,
+      "15:15": 1,
+      "15:30": 1,
+      "16:00": 3,
+      "16:30": 1,
+      "17:00": 1,
+      "17:45": 1,
+      "18:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zug",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "08:45": 1,
+      "09:00": 1,
+      "10:00": 1,
+      "11:00": 1,
+      "11:30": 1,
+      "15:15": 1,
+      "16:30": 1,
+      "17:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zug",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "04:45": 1,
+      "05:15": 1,
+      "05:30": 1,
+      "05:45": 1,
+      "06:00": 1,
+      "06:45": 1,
+      "07:45": 2,
+      "08:00": 2,
+      "08:30": 1,
+      "08:45": 1,
+      "09:00": 1,
+      "10:15": 1,
+      "11:00": 1,
+      "13:00": 1,
+      "17:15": 1,
+      "18:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zug",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "08:45": 1,
+      "12:45": 1,
+      "14:45": 1,
+      "18:30": 2,
+      "22:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zug",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "08:15": 1,
+      "11:15": 1,
+      "12:00": 2,
+      "13:45": 2,
+      "14:30": 2,
+      "16:30": 1,
+      "17:00": 1,
+      "18:15": 1,
+      "19:00": 1,
+      "22:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zug",
+    "mode": "car_passenger",
+    "purpose": "other",
+    "time_bins": {
+      "09:00": 1,
+      "10:30": 1,
+      "16:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zug",
+    "mode": "car_passenger",
+    "purpose": "shop",
+    "time_bins": {
+      "11:15": 1,
+      "13:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zug",
+    "mode": "car_passenger",
+    "purpose": "work",
+    "time_bins": {
+      "13:15": 1,
+      "14:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zug",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "10:45": 1,
+      "11:30": 1,
+      "11:45": 1,
+      "12:15": 2,
+      "13:45": 1,
+      "15:45": 3,
+      "17:30": 1,
+      "17:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zug",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "10:15": 1,
+      "11:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zug",
+    "mode": "pt",
+    "purpose": "other",
+    "time_bins": {
+      "15:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zug",
+    "mode": "pt",
+    "purpose": "shop",
+    "time_bins": {
+      "10:15": 1,
+      "15:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zug",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "04:30": 1,
+      "06:00": 1,
+      "07:30": 2
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zug",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "16:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zug",
+    "mode": "walk",
+    "purpose": "education",
+    "time_bins": {
+      "08:45": 1,
+      "12:15": 1,
+      "12:30": 1,
+      "12:45": 1,
+      "13:45": 1,
+      "14:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zug",
+    "mode": "walk",
+    "purpose": "leisure",
+    "time_bins": {
+      "15:30": 1,
+      "20:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zug",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "07:45": 1,
+      "12:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "bike",
+    "purpose": "home",
+    "time_bins": {
+      "06:00": 1,
+      "08:30": 1,
+      "09:30": 1,
+      "11:15": 1,
+      "11:30": 1,
+      "11:45": 1,
+      "12:00": 1,
+      "14:30": 1,
+      "14:45": 1,
+      "15:00": 1,
+      "15:30": 2,
+      "15:45": 1,
+      "16:30": 2,
+      "16:45": 1,
+      "17:00": 1,
+      "17:15": 2,
+      "17:30": 1,
+      "18:15": 3,
+      "18:30": 1,
+      "18:45": 1,
+      "19:30": 1,
+      "20:00": 2,
+      "20:45": 2,
+      "21:00": 1,
+      "21:15": 1,
+      "21:45": 1,
+      "22:00": 1,
+      "23:45": 1,
+      "24:45": 1,
+      "28:00": 1,
+      "28:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "bike",
+    "purpose": "leisure",
+    "time_bins": {
+      "21:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "bike",
+    "purpose": "other",
+    "time_bins": {
+      "16:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "bike",
+    "purpose": "shop",
+    "time_bins": {
+      "09:45": 1,
+      "19:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "car",
+    "purpose": "education",
+    "time_bins": {
+      "13:00": 1,
+      "13:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "car",
+    "purpose": "home",
+    "time_bins": {
+      "06:45": 1,
+      "07:45": 1,
+      "08:30": 1,
+      "08:45": 1,
+      "09:30": 4,
+      "09:45": 3,
+      "10:00": 3,
+      "10:15": 2,
+      "10:30": 3,
+      "10:45": 3,
+      "11:15": 6,
+      "11:30": 1,
+      "11:45": 1,
+      "12:00": 3,
+      "12:15": 5,
+      "12:30": 1,
+      "12:45": 1,
+      "13:00": 2,
+      "13:15": 1,
+      "13:30": 3,
+      "14:00": 2,
+      "14:15": 2,
+      "14:30": 1,
+      "14:45": 3,
+      "15:00": 8,
+      "15:15": 4,
+      "15:30": 7,
+      "15:45": 5,
+      "16:00": 4,
+      "16:15": 9,
+      "16:30": 8,
+      "16:45": 10,
+      "17:00": 7,
+      "17:15": 12,
+      "17:30": 9,
+      "17:45": 9,
+      "18:00": 11,
+      "18:15": 5,
+      "18:30": 3,
+      "18:45": 4,
+      "19:00": 5,
+      "19:15": 5,
+      "19:30": 3,
+      "19:45": 7,
+      "20:00": 4,
+      "20:15": 2,
+      "20:30": 1,
+      "20:45": 4,
+      "21:00": 2,
+      "21:15": 4,
+      "21:30": 3,
+      "21:45": 5,
+      "22:00": 5,
+      "22:15": 2,
+      "22:30": 6,
+      "22:45": 2,
+      "23:00": 3,
+      "23:15": 1,
+      "23:30": 3,
+      "24:00": 2,
+      "24:15": 2,
+      "24:30": 1,
+      "24:45": 1,
+      "26:15": 1,
+      "29:15": 2
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "car",
+    "purpose": "leisure",
+    "time_bins": {
+      "07:45": 1,
+      "08:15": 2,
+      "11:15": 1,
+      "11:30": 3,
+      "11:45": 2,
+      "12:00": 1,
+      "12:15": 3,
+      "13:00": 1,
+      "13:45": 2,
+      "14:30": 2,
+      "14:45": 1,
+      "15:00": 1,
+      "15:15": 1,
+      "17:00": 1,
+      "17:15": 1,
+      "17:30": 1,
+      "18:15": 1,
+      "18:30": 1,
+      "18:45": 3,
+      "19:15": 1,
+      "19:30": 1,
+      "19:45": 1,
+      "20:15": 1,
+      "21:30": 1,
+      "23:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "car",
+    "purpose": "other",
+    "time_bins": {
+      "06:45": 1,
+      "08:00": 1,
+      "08:30": 1,
+      "08:45": 1,
+      "09:45": 1,
+      "11:30": 1,
+      "12:30": 1,
+      "13:15": 1,
+      "13:30": 1,
+      "14:15": 2,
+      "14:30": 2,
+      "14:45": 2,
+      "15:00": 1,
+      "15:45": 1,
+      "16:00": 2,
+      "16:15": 3,
+      "16:30": 3,
+      "17:15": 1,
+      "17:30": 1,
+      "17:45": 1,
+      "18:15": 1,
+      "18:45": 1,
+      "22:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "car",
+    "purpose": "shop",
+    "time_bins": {
+      "07:00": 1,
+      "08:00": 1,
+      "08:15": 1,
+      "09:00": 3,
+      "10:30": 1,
+      "11:30": 1,
+      "12:00": 1,
+      "12:30": 2,
+      "12:45": 1,
+      "14:30": 3,
+      "15:30": 2,
+      "16:15": 1,
+      "16:30": 1,
+      "16:45": 1,
+      "17:00": 1,
+      "17:30": 2,
+      "18:15": 1,
+      "19:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "car",
+    "purpose": "work",
+    "time_bins": {
+      "03:30": 1,
+      "05:15": 1,
+      "05:45": 1,
+      "06:00": 3,
+      "06:15": 3,
+      "06:30": 2,
+      "06:45": 2,
+      "07:00": 1,
+      "07:15": 1,
+      "07:45": 2,
+      "08:00": 1,
+      "08:15": 1,
+      "09:15": 2,
+      "09:45": 1,
+      "11:00": 1,
+      "11:30": 1,
+      "12:15": 1,
+      "12:30": 2,
+      "12:45": 2,
+      "13:00": 1,
+      "13:15": 2,
+      "13:30": 1,
+      "14:00": 1,
+      "14:15": 1,
+      "17:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "car_passenger",
+    "purpose": "education",
+    "time_bins": {
+      "16:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "car_passenger",
+    "purpose": "home",
+    "time_bins": {
+      "09:15": 1,
+      "09:30": 1,
+      "10:30": 1,
+      "11:45": 1,
+      "12:00": 2,
+      "14:00": 2,
+      "14:30": 1,
+      "15:15": 1,
+      "15:30": 2,
+      "15:45": 3,
+      "16:00": 1,
+      "16:15": 1,
+      "16:30": 2,
+      "16:45": 1,
+      "17:00": 1,
+      "17:30": 1,
+      "17:45": 2,
+      "18:00": 3,
+      "18:15": 1,
+      "18:30": 1,
+      "18:45": 1,
+      "19:00": 2,
+      "19:15": 2,
+      "19:45": 1,
+      "20:15": 1,
+      "20:30": 2,
+      "20:45": 2,
+      "21:00": 2,
+      "21:15": 1,
+      "21:45": 1,
+      "22:00": 4,
+      "22:15": 2,
+      "22:30": 1,
+      "23:00": 1,
+      "24:45": 1,
+      "28:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "car_passenger",
+    "purpose": "leisure",
+    "time_bins": {
+      "09:15": 1,
+      "14:45": 1,
+      "15:00": 1,
+      "17:45": 1,
+      "20:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "car_passenger",
+    "purpose": "other",
+    "time_bins": {
+      "11:00": 1,
+      "15:30": 1,
+      "16:15": 1,
+      "17:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "car_passenger",
+    "purpose": "shop",
+    "time_bins": {
+      "09:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "car_passenger",
+    "purpose": "work",
+    "time_bins": {
+      "16:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "pt",
+    "purpose": "education",
+    "time_bins": {
+      "07:45": 1,
+      "08:15": 1,
+      "12:30": 1,
+      "18:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "pt",
+    "purpose": "home",
+    "time_bins": {
+      "10:00": 2,
+      "10:15": 1,
+      "10:30": 1,
+      "11:00": 3,
+      "11:15": 1,
+      "11:30": 1,
+      "11:45": 5,
+      "12:00": 1,
+      "12:15": 1,
+      "13:15": 1,
+      "13:30": 1,
+      "14:30": 1,
+      "14:45": 1,
+      "15:00": 2,
+      "15:15": 1,
+      "15:45": 3,
+      "16:00": 1,
+      "16:15": 5,
+      "16:30": 4,
+      "16:45": 6,
+      "17:00": 7,
+      "17:15": 9,
+      "17:30": 9,
+      "17:45": 7,
+      "18:00": 5,
+      "18:15": 3,
+      "18:30": 5,
+      "18:45": 2,
+      "19:00": 2,
+      "19:30": 2,
+      "19:45": 1,
+      "20:00": 6,
+      "20:15": 2,
+      "20:30": 1,
+      "21:15": 1,
+      "21:45": 1,
+      "22:15": 3,
+      "22:45": 3,
+      "23:00": 1,
+      "23:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "pt",
+    "purpose": "leisure",
+    "time_bins": {
+      "05:45": 1,
+      "12:45": 1,
+      "13:15": 1,
+      "15:30": 1,
+      "16:15": 1,
+      "17:15": 1,
+      "17:30": 1,
+      "19:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "pt",
+    "purpose": "other",
+    "time_bins": {
+      "12:15": 1,
+      "13:00": 1,
+      "17:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "pt",
+    "purpose": "shop",
+    "time_bins": {
+      "07:00": 1,
+      "09:30": 1,
+      "15:00": 1,
+      "17:00": 1,
+      "17:45": 1,
+      "18:00": 1,
+      "18:45": 1,
+      "19:00": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "pt",
+    "purpose": "work",
+    "time_bins": {
+      "05:15": 1,
+      "05:30": 1,
+      "06:00": 1,
+      "06:45": 1,
+      "07:00": 1,
+      "07:30": 2,
+      "07:45": 1,
+      "09:00": 1,
+      "09:30": 1,
+      "14:00": 1,
+      "15:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "truck",
+    "purpose": "freight_unloading",
+    "time_bins": {
+      "08:00": 1,
+      "08:45": 1,
+      "09:15": 1,
+      "17:15": 1,
+      "19:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "walk",
+    "purpose": "education",
+    "time_bins": {
+      "10:00": 1,
+      "12:00": 1,
+      "14:30": 1,
+      "16:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "walk",
+    "purpose": "home",
+    "time_bins": {
+      "06:45": 1,
+      "07:45": 1,
+      "08:00": 2,
+      "08:15": 1,
+      "08:30": 2,
+      "08:45": 3,
+      "09:00": 1,
+      "09:15": 1,
+      "09:30": 4,
+      "09:45": 5,
+      "10:00": 2,
+      "10:15": 1,
+      "10:30": 3,
+      "10:45": 2,
+      "11:00": 1,
+      "11:15": 1,
+      "11:30": 3,
+      "11:45": 2,
+      "12:00": 2,
+      "12:15": 1,
+      "12:30": 1,
+      "12:45": 1,
+      "13:00": 2,
+      "13:15": 1,
+      "13:30": 2,
+      "13:45": 1,
+      "14:00": 1,
+      "14:15": 4,
+      "14:30": 6,
+      "14:45": 3,
+      "15:00": 2,
+      "15:15": 3,
+      "15:30": 4,
+      "15:45": 2,
+      "16:00": 5,
+      "16:15": 3,
+      "16:30": 2,
+      "16:45": 3,
+      "17:00": 1,
+      "17:15": 3,
+      "17:30": 8,
+      "17:45": 5,
+      "18:00": 3,
+      "18:15": 5,
+      "18:30": 2,
+      "18:45": 3,
+      "19:00": 2,
+      "19:30": 6,
+      "19:45": 6,
+      "20:00": 2,
+      "20:15": 2,
+      "20:30": 3,
+      "20:45": 2,
+      "21:00": 4,
+      "21:15": 5,
+      "21:30": 1,
+      "21:45": 4,
+      "22:00": 6,
+      "22:15": 2,
+      "22:30": 1,
+      "22:45": 3,
+      "23:00": 1,
+      "23:45": 1,
+      "24:15": 1,
+      "25:15": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "walk",
+    "purpose": "leisure",
+    "time_bins": {
+      "09:00": 1,
+      "11:00": 1,
+      "11:30": 1,
+      "12:30": 1,
+      "13:30": 1,
+      "14:00": 1,
+      "18:00": 1,
+      "18:15": 1,
+      "19:45": 1,
+      "20:15": 1,
+      "20:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "walk",
+    "purpose": "other",
+    "time_bins": {
+      "07:15": 1,
+      "18:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "walk",
+    "purpose": "shop",
+    "time_bins": {
+      "12:00": 1,
+      "15:15": 1,
+      "16:30": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Zurich",
+    "mode": "walk",
+    "purpose": "work",
+    "time_bins": {
+      "07:15": 1,
+      "07:30": 2,
+      "09:00": 1,
+      "10:15": 2,
+      "12:00": 3,
+      "12:15": 1,
+      "12:30": 3,
+      "12:45": 2,
+      "13:00": 1,
+      "13:15": 3,
+      "13:30": 2,
+      "14:30": 1,
+      "15:00": 1,
+      "15:30": 1,
+      "15:45": 1,
+      "16:15": 1,
+      "16:30": 1,
+      "26:45": 1
+    },
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "freight_unloading",
+    "time_bins": {},
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "pt",
+    "purpose": "freight_unloading",
+    "time_bins": {},
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "freight_unloading",
+    "time_bins": {},
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "walk",
+    "purpose": "freight_unloading",
+    "time_bins": {},
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "freight_unloading",
+    "time_bins": {},
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car_passenger",
+    "purpose": "freight_unloading",
+    "time_bins": {},
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "freight_unloading",
+    "time_bins": {},
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "car",
+    "purpose": "freight_unloading",
+    "time_bins": {},
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "freight_unloading",
+    "time_bins": {},
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "bike",
+    "purpose": "freight_unloading",
+    "time_bins": {},
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "truck",
+    "purpose": "leisure",
+    "time_bins": {},
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "truck",
+    "purpose": "leisure",
+    "time_bins": {},
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "truck",
+    "purpose": "home",
+    "time_bins": {},
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "truck",
+    "purpose": "home",
+    "time_bins": {},
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "truck",
+    "purpose": "shop",
+    "time_bins": {},
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "truck",
+    "purpose": "shop",
+    "time_bins": {},
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "truck",
+    "purpose": "work",
+    "time_bins": {},
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "truck",
+    "purpose": "work",
+    "time_bins": {},
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "truck",
+    "purpose": "education",
+    "time_bins": {},
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "truck",
+    "purpose": "education",
+    "time_bins": {},
+    "role": "destination"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "truck",
+    "purpose": "other",
+    "time_bins": {},
+    "role": "origin"
+  },
+  {
+    "destination": "Schwyz",
+    "origin": "Schwyz",
+    "mode": "truck",
+    "purpose": "other",
+    "time_bins": {},
+    "role": "destination"
+  }
+]

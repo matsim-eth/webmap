@@ -50,6 +50,9 @@ function App() {
 
   // time range for filtering volumes
   const [timeRange, setTimeRange] = useState([0, 96]);
+
+  // state for destination data (from Sidebar to Map)
+  const [destinationData, setDestinationData] = useState(null);
   
   // Pass selected mode/dataset from sidebar to map
   const updateMapChoropleth = (mode, dataset) => {
@@ -124,6 +127,7 @@ function App() {
     hoveredRouteId={hoveredRouteId}
     showStopVolumeSymbology={showStopVolumeSymbology}
     showMajorRoadsOnly={showMajorRoadsOnly}
+    selectedDestinationData={destinationData} // from sidebar
     timeRange={timeRange}
     aggCol={aggCol}
     />
@@ -156,6 +160,7 @@ function App() {
     setShowStopVolumeSymbology={setShowStopVolumeSymbology}
     showMajorRoadsOnly={showMajorRoadsOnly}
     setShowMajorRoadsOnly={setShowMajorRoadsOnly}
+    setDestinationData={setDestinationData} // to map
     timeRange={timeRange}       
     setTimeRange={setTimeRange}       
     />
