@@ -46,7 +46,7 @@ function App() {
   const [showStopVolumeSymbology, setShowStopVolumeSymbology] = useState(false);
   
   // Pass showing major roads toggle (volumes module)
-  const [showMajorRoadsOnly, setShowMajorRoadsOnly] = useState(false);
+  const [showMajorRoadsOnly, setShowMajorRoadsOnly] = useState(true);
 
   // time range for filtering volumes
   const [timeRange, setTimeRange] = useState([0, 96]);
@@ -83,7 +83,7 @@ function App() {
     setVisualizeLinkId(null)
 
     setTimeRange([0, 96]); // Reset time range to default
-    setShowMajorRoadsOnly(false); // Reset major roads toggle
+    setShowMajorRoadsOnly(true); // Reset major roads toggle
     setShowStopVolumeSymbology(false); // Reset stop volume symbology toggle
     
     // Reset to map center
