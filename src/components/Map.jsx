@@ -998,9 +998,6 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
             map.setFilter(id, modeFilter);
           }
         });
-        
-        setHighlightedLineId(null);
-        setHighlightedRouteIds([]);
       })
       .catch(err => {
         console.error("Error loading transit data:", err);
@@ -1023,6 +1020,8 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
         if (map.getLayer(ROUTE_LAYER_ID)) map.removeLayer(ROUTE_LAYER_ID);
         if (map.getSource(ROUTE_SOURCE_ID)) map.removeSource(ROUTE_SOURCE_ID);
         if (map.getLayer("inter-cantonal-stops")) map.removeLayer("inter-cantonal-stops");
+        if (map.getLayer("inter-cantonal-stops-label")) map.removeLayer("inter-cantonal-stops-label");
+        if (map.getLayer("inter-cantonal-stops-hitbox")) map.removeLayer("inter-cantonal-stops-hitbox");
         if (map.getSource("inter-cantonal-stops")) map.removeSource("inter-cantonal-stops");
         return;
       }
@@ -1038,30 +1037,73 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
         );
         
         if (matched.length === 0) return;
+
+                
+        const newData = {
+          type: "FeatureCollection",
+          features: matched,
+        };
+        
+        if (map.getSource(ROUTE_SOURCE_ID)) {
+          map.getSource(ROUTE_SOURCE_ID).setData(newData);
+        } else {
+          map.addSource(ROUTE_SOURCE_ID, {
+            type: "geojson",
+            data: newData,
+          });
+          
+          map.addLayer(
+            {
+              id: ROUTE_LAYER_ID,
+              type: "line",
+              source: ROUTE_SOURCE_ID,
+              layout: {
+                "line-join": "round",
+                "line-cap": "round",
+              },
+              paint: {
+                "line-color": "#007AFF",
+                "line-width": 2,
+              },
+            },
+            "transit-stops-layer"
+          );
+        }
         
         const interCantonalStopsGeo = await loadWithFallback("matsim/transit/stops_by_canton/inter_cantonal_stops.geojson");
         
         if (interCantonalStopsGeo && searchCanton) {
+          const relevantRouteIds = hoveredRouteId
+          ? [hoveredRouteId]
+          : highlightedRouteIds;
+          
           const outOfCantonStops = interCantonalStopsGeo.features.filter(f => {
-            const props = f.properties;
-            const stopCanton = props.assigned_canton;
-            const servesLineOrRoute = props.lines.some(l => {
-              const isSameLine = l.line_id === highlightedLineId;
-              const isSameRoute = hoveredRouteId ? l.route_id === hoveredRouteId : true;
-              return isSameLine && isSameRoute;
-            });
-            return servesLineOrRoute && stopCanton !== searchCanton;
+            const stopCanton = f.properties.assigned_canton;
+            
+            // Safely parse `lines` array
+            let linesList = [];
+            try {
+              linesList = JSON.parse(f.properties.lines);
+            } catch (e) {
+              linesList = f.properties.lines || [];
+            }
+            
+            const servesRelevantRoute = linesList.some(l =>
+              l.line_id === highlightedLineId && relevantRouteIds.includes(l.route_id)
+            );
+            
+            return servesRelevantRoute && stopCanton !== searchCanton;
           });
           
-          const sourceId = "inter-cantonal-stops";
-          const layerId = "inter-cantonal-stops";
           
           // Cleanup first if already exists
-          if (map.getLayer(layerId)) map.removeLayer(layerId);
-          if (map.getSource(sourceId)) map.removeSource(sourceId);
+          if (map.getLayer("inter-cantonal-stops")) map.removeLayer("inter-cantonal-stops");
+          if (map.getLayer("inter-cantonal-stops-label")) map.removeLayer("inter-cantonal-stops-label");
+          if (map.getLayer("inter-cantonal-stops-hitbox")) map.removeLayer("inter-cantonal-stops-hitbox");
+          if (map.getSource("inter-cantonal-stops")) map.removeSource("inter-cantonal-stops");
           
           if (outOfCantonStops.length > 0) {
-            map.addSource(sourceId, {
+            map.addSource("inter-cantonal-stops", {
               type: "geojson",
               data: {
                 type: "FeatureCollection",
@@ -1070,9 +1112,9 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
             });
             
             map.addLayer({
-              id: layerId,
+              id: "inter-cantonal-stops",
               type: "circle",
-              source: sourceId,
+              source: "inter-cantonal-stops",
               paint: {
                 "circle-radius": showStopVolumeSymbology
                 ? [
@@ -1088,9 +1130,47 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
                 "circle-stroke-color": "#333",
                 "circle-stroke-width": 1
               }
+            }, "transit-stops-layer");
+            
+            map.addLayer({
+              id: "inter-cantonal-stops-label",
+              type: "symbol",
+              source: "inter-cantonal-stops",
+              layout: {
+                "text-field": ["get", "name"],
+                "text-size": 12,
+                "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+                "text-offset": [0, -0.8],
+                "text-anchor": "bottom-left"
+              },
+              paint: {
+                "text-color": "#222",
+                "text-halo-color": "#ffffff",
+                "text-halo-width": 1
+              },
+              minzoom: 14
             });
             
-            map.on("click", "inter-cantonal-stops", (e) => {
+            map.addLayer({
+              id: "inter-cantonal-stops-hitbox",
+              type: "circle",
+              source: "inter-cantonal-stops",
+              paint: {
+                "circle-radius": showStopVolumeSymbology
+                ? [
+                  "interpolate", ["linear"], ["get", "volume"],
+                  0, 10,      // larger than visible
+                  100, 10,
+                  500, 15,
+                  2500, 18,
+                  10000, 23
+                ]
+                : 10,
+                "circle-opacity": 0 // invisible
+              }
+            });
+            
+            map.on("click", "inter-cantonal-stops-hitbox", (e) => {
               const f = e.features?.[0];
               if (!f) return;
               
@@ -1109,7 +1189,7 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
               
               suppressNextSearchZoom.current = true;
               setClickedCanton(assigned_canton);
-
+              
               // delay re-selecting until the canton is loaded
               setTimeout(() => {         
                 const updatedRouteIds = JSON.parse(lines)
@@ -1156,41 +1236,10 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
                     "circle-color": "#00ffff",
                   }
                 }, "transit-stops-layer");
-              }, 800); // slight delay to let new canton data load
+              }, 500); // slight delay to let new canton data load
             });
             
           }
-        }
-        
-        const newData = {
-          type: "FeatureCollection",
-          features: matched,
-        };
-        
-        if (map.getSource(ROUTE_SOURCE_ID)) {
-          map.getSource(ROUTE_SOURCE_ID).setData(newData);
-        } else {
-          map.addSource(ROUTE_SOURCE_ID, {
-            type: "geojson",
-            data: newData,
-          });
-          
-          map.addLayer(
-            {
-              id: ROUTE_LAYER_ID,
-              type: "line",
-              source: ROUTE_SOURCE_ID,
-              layout: {
-                "line-join": "round",
-                "line-cap": "round",
-              },
-              paint: {
-                "line-color": "#007AFF",
-                "line-width": 2,
-              },
-            },
-            "transit-stops-layer"
-          );
         }
       };
       
