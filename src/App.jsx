@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import Map from "./components/Map";
+import Map from "./components/Map_refactor";
 import Sidebar from "./components/Sidebar";
 import CantonSearch from "./components/CantonSearch";
 import "./App.css";

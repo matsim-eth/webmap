@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 export default function useMapbox(accessToken) {
   const mapRef = useRef(null);
