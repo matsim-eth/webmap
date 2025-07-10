@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import "./Loading.css" // loading screen for network
 import useMapbox from './map/useMapbox';
 import useCantons             from './map/useCantons';
 import useNetworkLayers       from './map/useNetworkLayers';
@@ -19,29 +20,34 @@ export default function Map(props) {
     searchCanton:         props.searchCanton,
     isSidebarOpen:        props.isSidebarOpen,
     isGraphExpanded:      props.isGraphExpanded,
-    suppressNextSearchZoom: suppressNextSearchZoom
+    suppressNextSearchZoom
   });
 
-  // useNetworkLayers({
-  //   mapRef,
-  //   canton:               props.clickedCanton,
-  //   dataURL:              props.dataURL,
-  //   selectedNetworkModes: props.selectedNetworkModes,
-  //   showMajorRoadsOnly:   props.showMajorRoadsOnly,
-  //   timeRange:            props.timeRange,
-  //   visualizeLinkId:      props.visualizeLinkId,
-  //   setSelectedNetworkFeature: props.setSelectedNetworkFeature,
-  //   isGraphExpanded:      props.isGraphExpanded
-  // });
+const { isLoading } = useNetworkLayers({
+    mapRef,
+    searchCanton: props.searchCanton,          
+    dataURL: props.dataURL,
+    selectedNetworkModes: props.selectedNetworkModes,
+    showMajorRoadsOnly:   props.showMajorRoadsOnly,
+    timeRange:            props.timeRange,
+    visualizeLinkId:      props.visualizeLinkId,
+    setSelectedNetworkFeature: props.setSelectedNetworkFeature,
+    isGraphExpanded:      props.isGraphExpanded,
+  });
 
   // useTransitStops({ /* copy-paste your old transit args */ });
   // useChoropleth({ /* copy-paste your choropleth args */ });
   // useMapPadding({ mapRef, isSidebarOpen: props.isSidebarOpen, isGraphExpanded: props.isGraphExpanded });
 
-  return (
-    <>
-      {props.isLoadingNetwork && <div className="map-loading-overlay">…</div>}
-      <div ref={mapContainerRef} style={{ width:'100%',height:'100%' }}/>
-    </>
-  );
+return (
+  <>
+    {isLoading && (
+      <div className="map-loading-overlay">
+        <div className="spinner" />
+        <div className="loading-text">Loading network…</div>
+      </div>
+    )}
+    <div ref={mapContainerRef} style={{ width:'100%',height:'100%' }}/>
+  </>
+);
 }
