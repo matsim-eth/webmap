@@ -26,20 +26,20 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
     const [maxSharePerMode, setMaxSharePerMode] = useState(null);
     
     // Add map loading when loading network
-    const [isLoadingNetwork, setIsLoadingNetwork] = useState(false);
+    const [isLoadingNetwork, setIsLoadingNetwork] = useState(false); //moved
     
     // Keep track of select network modes
-    const selectedNetworkModesRef = useRef(selectedNetworkModes);
+    const selectedNetworkModesRef = useRef(selectedNetworkModes); //moved
     
     // Save volume data for when filtering with sidebar
-    const [linkVolumeData, setLinkVolumeData] = useState(null);
+    const [linkVolumeData, setLinkVolumeData] = useState(null); //moved
     
     // Save unfiltered volume data for all links
-    const [originalNetworkGeoJSON, setOriginalNetworkGeoJSON] = useState(null);
+    const [originalNetworkGeoJSON, setOriginalNetworkGeoJSON] = useState(null); //moved
     
     const loadWithFallback = useLoadWithFallback(dataURL);
     
-    const suppressNextSearchZoom = useRef(false);
+    const suppressNextSearchZoom = useRef(false); // moved
     
     // Store canton number to name mapping
     const cantonNumToNameRef = useRef({});
