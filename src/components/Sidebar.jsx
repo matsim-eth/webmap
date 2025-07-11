@@ -41,7 +41,7 @@ const Sidebar = ({
   isOpen, toggleSidebar, onExpandGraph, resetMapView,
   
   // Map State
-  canton, setCanton, 
+  canton,
   
   // Choropleth Module
   updateMapChoropleth,
@@ -62,7 +62,10 @@ const Sidebar = ({
   timeRange, setTimeRange,
   
   // Plot Aggregation Column
-  selectedAggCol, setSelectedAggCol
+  selectedAggCol, setSelectedAggCol,
+
+  // Reset Map State
+  setResetMapTrigger
 }) => {
   
   // ======================= INITIALIZE VARIABLES =======================
@@ -116,7 +119,8 @@ const Sidebar = ({
   
   // Handle reset button click
   const handleReset = () => {
-    setCanton(null);
+    setResetMapTrigger(prev => !prev); // trigger reset in map hooks
+
     setSelectedDataset("Microcensus");
     setSelectedMode("None");
     setSelectedNetworkModes(["all"]);
@@ -133,7 +137,6 @@ const Sidebar = ({
     clearFileMap();
     setDataURL("https://matsim-eth.github.io/webmap/data/");
     setInputURL(""); // clears the text field if you’re using it
-    
   };
   
   
@@ -188,6 +191,8 @@ const Sidebar = ({
     }
   }, [canton]);
   
+  // ======================== DESTINATION MODULE =======================
+
   // Handle outflow data from DestinationZones and pass to Map
   const handleTotalOutflowChange = (outflowData) => {
     setDestinationOutflowData(outflowData);

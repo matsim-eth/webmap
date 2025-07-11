@@ -206,5 +206,15 @@ export default function useCantons({
             duration:1000
           });
         }, [mapRef, searchCanton, isSidebarOpen, setClickedCanton, suppressNextSearchZoom]);
+        
+        // 5) Reset selected canton border if searchCanton is cleared
+        useEffect(() => {
+          const map = mapRef.current;
+          if (!map || searchCanton !== null) return;
+          
+          if (map.getLayer("selected-canton-border")) {
+            map.setFilter("selected-canton-border", ["==", "NAME", ""]);
+          }
+        }, [searchCanton, mapRef]);
       }
       

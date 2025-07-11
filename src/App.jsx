@@ -59,27 +59,15 @@ function App() {
     setSelectedMode(mode);
     setSelectedDataset(dataset);
   };
+
+  // Handle map reset if button clicked in sidebar
+  const [resetMapTrigger, setResetMapTrigger] = useState(false);
   
   // Handle map reset if button clicked in sidebar
   const resetMapView = () => {
-    // Reset selected canton
-    if (mapRef.current.getLayer("selected-canton-border")) {
-      mapRef.current.setFilter("selected-canton-border", ["==", "NAME", ""]);
-    }
     
-    // Remove network layers
-    if (mapRef.current.getLayer("network-layer")) {
-      mapRef.current.removeLayer("network-layer");
-      mapRef.current.removeLayer("click-network-layer");
-    }
-    
-    if (mapRef.current.getLayer("network-highlight")) {
-      mapRef.current.removeLayer("network-highlight");
-    }
-    
-    if (mapRef.current.getLayer("ant-line")) {
-      mapRef.current.removeLayer("ant-line");
-    }
+    // Reset canton
+    setClickedCanton(null)
     
     // Reset selected network, 
     setSelectedNetworkFeature(null)
@@ -91,13 +79,6 @@ function App() {
     setTimeRange([0, 96]); // Reset time range to default
     setShowMajorRoadsOnly(true); // Reset major roads toggle
     setShowStopVolumeSymbology(false); // Reset stop volume symbology toggle
-    
-    // Reset to map center
-    mapRef.current.easeTo({
-      center: [8.1642, 46.7592], // Initial coordinates
-      zoom: 7, // Initial zoom level
-      duration: 1000, // Smooth transition
-    });
   };
   
   return (
@@ -133,6 +114,7 @@ function App() {
     selectedDestinationData={destinationData} // from sidebar
     timeRange={timeRange}
     aggCol={aggCol}
+    resetMapTrigger={resetMapTrigger} // from sidebar, to reset map
     />
     
     <Sidebar
@@ -141,7 +123,6 @@ function App() {
     isOpen={isSidebarOpen} // to map
     toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} // to map
     onExpandGraph={setIsGraphExpanded} // to map
-    setCanton={setClickedCanton} // from map
     resetMapView={resetMapView} // to app
     updateMapChoropleth={updateMapChoropleth} // to map
     selectedAggCol={aggCol}
@@ -165,7 +146,8 @@ function App() {
     setShowMajorRoadsOnly={setShowMajorRoadsOnly}
     setDestinationData={setDestinationData} // to map
     timeRange={timeRange}       
-    setTimeRange={setTimeRange}       
+    setTimeRange={setTimeRange}  
+    setResetMapTrigger={setResetMapTrigger} // to map
     />
     
     <NetworkLegend
