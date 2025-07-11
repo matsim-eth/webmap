@@ -56,5 +56,11 @@ To test this functionality without running a MATSim simulation, a data sample is
 
 ### Alternatives
 
-Alternatively, if your MATSim outputs are hosted on the web, you can set a Data Source URL to upload the data. For example, if the data is stored under the url `https://raw.githubusercontent.com/matsim-eth/webmap/refs/heads/main/public/data/departure_times.json`, input `https://raw.githubusercontent.com/matsim-eth/webmap/refs/heads/main/public/data` as the input url. Please note that this data must be structured in the same way as it is in the pipeline output.
+Alternatively, if your MATSim outputs are hosted on the web, you can set a Data Source URL to upload the data. For example, if the data is stored under the url 
+
+`https://raw.githubusercontent.com/matsim-eth/webmap/refs/heads/main/public/data/departure_times.json`, 
+
+input `https://raw.githubusercontent.com/matsim-eth/webmap/refs/heads/main/public/data` as the input url.
+
+Please note that this data must be structured in the same way as it is in the pipeline output.
 
