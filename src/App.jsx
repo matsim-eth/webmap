@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import Map from "./components/Map_refactor";
+import Map from "./components/Map";
 import Sidebar from "./components/Sidebar";
 import CantonSearch from "./components/CantonSearch";
 import "./App.css";
@@ -68,7 +68,7 @@ function App() {
     
     // Reset canton
     setClickedCanton(null)
-    
+
     // Reset selected network, 
     setSelectedNetworkFeature(null)
     setVisualizeLinkId(null)
@@ -130,6 +130,7 @@ function App() {
     selectedNetworkModes={selectedNetworkModes} // to map
     setSelectedNetworkModes={setSelectedNetworkModes} // to change value
     selectedNetworkFeature={selectedNetworkFeature} // from map
+    visualizeLinkId={visualizeLinkId} // from map
     setVisualizeLinkId={setVisualizeLinkId} // to map
     dataURL={dataURL}
     setDataURL={setDataURL}

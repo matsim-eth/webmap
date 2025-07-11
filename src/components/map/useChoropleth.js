@@ -1,16 +1,14 @@
 import { useEffect, useState } from 'react';
-import { useLoadWithFallback } from '../../utils/useLoadWithFallback';
 
 export default function useChoropleth({
   mapRef,
-  dataURL,
+  loadWithFallback,
   selectedMode,
   isGraphExpanded,
   selectedDataset,
   aggCol,
 }) {
   
-  const loadWithFallback = useLoadWithFallback(dataURL);
   const [modeShareData, setModeShareData] = useState(null);
   const [maxSharePerMode, setMaxSharePerMode] = useState(null);
   
