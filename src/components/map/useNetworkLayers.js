@@ -11,6 +11,7 @@ export default function useNetworkLayers({
   visualizeLinkId,
   setSelectedNetworkFeature,
   isGraphExpanded,
+  resetMapTrigger
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [linkVolumeData, setLinkVolumeData] = useState(null);
@@ -556,6 +557,33 @@ map.on("click", "click-network-layer", (e) => {
                           }
                         }
                       }, [searchCanton]); // only update when searchCanton updates
+
+                      useEffect(() => {
+  if (!mapRef.current) return;
+
+  // Remove all network layers and sources
+  const map = mapRef.current;
+
+  const layersToRemove = [
+    "network-layer", "click-network-layer", "ant-line", "network-highlight"
+  ];
+  const sourcesToRemove = [
+    "network-source", "ant-path", "network-highlight"
+  ];
+
+  layersToRemove.forEach(id => {
+    if (map.getLayer(id)) map.removeLayer(id);
+  });
+
+  sourcesToRemove.forEach(id => {
+    if (map.getSource(id)) map.removeSource(id);
+  });
+
+  // Reset internal state if needed
+  originalNetworkGeoJSON.current = null;
+  setLinkVolumeData(null);
+  setSelectedNetworkFeature(null);
+}, [resetMapTrigger]);
                       
                       
   return { isLoading };

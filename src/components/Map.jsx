@@ -20,10 +20,10 @@ const Map = ({ mapRef, setClickedCanton, isSidebarOpen, isGraphExpanded, searchC
     const graphExpandedRef = useRef(isGraphExpanded);
     
     // Set modeshare data values
-    const [modeShareData, setModeShareData] = useState(null);
+    const [modeShareData, setModeShareData] = useState(null); // moved
     
     // Set max pct of each mode (for choropleth normalization)
-    const [maxSharePerMode, setMaxSharePerMode] = useState(null);
+    const [maxSharePerMode, setMaxSharePerMode] = useState(null); // moved
     
     // Add map loading when loading network
     const [isLoadingNetwork, setIsLoadingNetwork] = useState(false); //moved
