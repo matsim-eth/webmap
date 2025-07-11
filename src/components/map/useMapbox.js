@@ -3,14 +3,19 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 export default function useMapbox(accessToken) {
+
+  // define map references
   const mapRef = useRef(null);
   const mapContainerRef = useRef(null);
-  const [mapReady, setMapReady] = useState(false);
+
+  // indicates when map is ready to be used
+  const [mapReady, setMapReady] = useState(false); 
   
   useEffect(() => {
     if (!mapRef.current && mapContainerRef.current) {
       mapboxgl.accessToken = accessToken;
       
+      // initialize the map
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,
         style: 'mapbox://styles/mapbox/light-v10',
@@ -22,10 +27,6 @@ export default function useMapbox(accessToken) {
         setMapReady(true);
       });
     }
-    
-    return () => {
-      // Optional: clean up only on full page unload
-    };
   }, [accessToken]);
   
   return { mapRef, mapContainerRef, mapReady };

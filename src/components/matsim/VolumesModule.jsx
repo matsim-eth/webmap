@@ -8,6 +8,7 @@ import "rc-slider/assets/index.css";
 const VolumesModule = ({
     selectedNetworkFeature,
     selectedGraph,
+    visualizeLinkId,
     setVisualizeLinkId,
     canton,
     timeRange,
@@ -79,6 +80,7 @@ const VolumesModule = ({
     {selectedNetworkFeature ? (
         <SegmentVolumeHistogram
         linkId={selectedNetworkFeature.map(f => f.id)}
+        visualizeLinkId={visualizeLinkId}
         setVisualizeLinkId={setVisualizeLinkId}
         canton={canton}
         timeRange={timeRange}

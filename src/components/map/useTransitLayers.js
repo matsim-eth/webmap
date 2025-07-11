@@ -1,0 +1,66 @@
+import { useEffect } from 'react';
+
+import useTransitStops from './useTransitStops';
+import useTransitLines from './useTransitLines';
+
+export default function useTransitLayers({
+  mapRef,
+  loadWithFallback,
+  searchCanton,
+  selectedTransitModes,
+  showStopVolumeSymbology,
+  setSelectedTransitStop,
+  setHighlightedLineId,
+  highlightedLineId,
+  highlightedRouteIds,
+  setHighlightedRouteIds,
+  hoveredRouteId,
+  isGraphExpanded,
+  suppressNextSearchZoom,
+  setClickedCanton
+}) {
+  
+  // Add transit stops and interactions
+  useTransitStops({
+    mapRef,
+    searchCanton,
+    isGraphExpanded,
+    loadWithFallback,
+    showStopVolumeSymbology,
+    selectedTransitModes,
+    setSelectedTransitStop,
+    setHighlightedLineId,
+    setHighlightedRouteIds
+  });
+
+  // Add transit lines and interactions
+  useTransitLines(
+    mapRef, 
+    highlightedRouteIds,
+    highlightedLineId,
+    hoveredRouteId,
+    isGraphExpanded,
+    loadWithFallback,
+    searchCanton,
+    showStopVolumeSymbology,
+    setClickedCanton,
+    setHighlightedLineId,
+    setHighlightedRouteIds,
+    setSelectedTransitStop,
+    suppressNextSearchZoom
+    )
+  
+  // if canton changed, remove current transit layers, reset selected stop
+  useEffect(() => {
+    const map = mapRef.current;
+    if (searchCanton && map) {
+      
+      if (isGraphExpanded === "Transit") {
+        if (map.getLayer("transit-highlight-layer")) map.removeLayer("transit-highlight-layer");
+        if (map.getSource("transit-highlight")) map.removeSource("transit-highlight");
+        
+        setSelectedTransitStop(null);
+      }
+    }
+  }, [searchCanton]); // only update when searchCanton updates
+}

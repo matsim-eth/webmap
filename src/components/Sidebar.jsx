@@ -47,8 +47,8 @@ const Sidebar = ({
   updateMapChoropleth,
   
   // Network/Volumes Module
-  selectedNetworkModes, setSelectedNetworkModes, selectedNetworkFeature, setVisualizeLinkId,
-  showMajorRoadsOnly, setShowMajorRoadsOnly, 
+  selectedNetworkModes, setSelectedNetworkModes, selectedNetworkFeature, visualizeLinkId,
+  setVisualizeLinkId, showMajorRoadsOnly, setShowMajorRoadsOnly, 
   
   // Transit Module
   selectedTransitModes, setSelectedTransitModes, selectedTransitStop, highlightedLineId, 
@@ -316,6 +316,7 @@ const Sidebar = ({
             <VolumesModule
             selectedNetworkFeature={selectedNetworkFeature}
             selectedGraph={selectedGraph}
+            visualizeLinkId={visualizeLinkId}
             setVisualizeLinkId={setVisualizeLinkId}
             canton={canton}
             timeRange={timeRange}

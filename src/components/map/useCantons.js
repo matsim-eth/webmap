@@ -4,39 +4,45 @@ import bboxCache from '../../utils/bboxCanton.json';
 export default function useCantons({
   mapRef,
   mapReady,
-  dataURL,
   setClickedCanton,
   searchCanton,
   isSidebarOpen,
   isGraphExpanded,
-  suppressNextSearchZoom
+  suppressNextSearchZoom,
+  graphExpandedRef
 }) {
-  const graphExpandedRef = useRef(isGraphExpanded);
-  useEffect(() => { graphExpandedRef.current = isGraphExpanded }, [isGraphExpanded]);
-  
-  // 1) load cantons
-  
+
+  // 1) load cantons + add layers
   useEffect(() => {
-    if (!mapReady) return;
+    if (!mapReady) return; // only run when map is ready
     const map = mapRef.current;
-    if (!map || !dataURL) return;
+    if (!map) return;
     
-    fetch(`${dataURL}TLM_KANTONSGEBIET.geojson`)
+    // canton geojson will always stay same, no need to load from loadWithFallback / dataURL
+    fetch(`https://matsim-eth.github.io/webmap/data/TLM_KANTONSGEBIET.geojson`)
     .then(r => r.json())
     .then(geojson => {
+      
+      // add mapbox canton source
       map.addSource('cantons', { type: 'geojson', data: geojson });
+      
+      // canton fill
       map.addLayer({
         id: 'canton-fill',
         type: 'fill',
         source: 'cantons',
         paint: { 'fill-color': '#A07CC5','fill-opacity': 0.15 }
       });
+      
+      // canton border
       map.addLayer({
         id: 'canton-borders',
         type: 'line',
         source: 'cantons',
         paint: { 'line-color': '#000','line-width': 1 }
       });
+      
+      // selected canton border
       map.addLayer({
         id: 'selected-canton-border',
         type: 'line',
@@ -44,6 +50,8 @@ export default function useCantons({
         paint: { 'line-color': '#F00','line-width': 2 },
         filter: ['==','NAME','']
       });
+      
+      // canton highlight on hover
       map.addLayer({
         id: 'canton-highlight',
         type: 'line',
@@ -53,20 +61,11 @@ export default function useCantons({
       });
     })
     .catch(err => console.error('Cantons load error', err));
-    
-    // cleanup on URL change / unmount
-    return () => {
-      const map = mapRef.current;
-      if (!map) return;
-      ['canton-highlight','selected-canton-border','canton-borders','canton-fill']
-      .forEach(id => map.getLayer(id) && map.removeLayer(id));
-      map.getSource('cantons') && map.removeSource('cantons');
-    };
-  }, [mapRef, mapReady, dataURL]);
+  }, [mapRef, mapReady]);
   
-  // click / hover
+  // 2) zoom to canton on click on layer (with correct padding)
   useEffect(() => {
-    if (!mapReady) return;
+    if (!mapReady) return; // only run when map is ready
     const map = mapRef.current;
     if (!map) return;
     
@@ -136,7 +135,7 @@ export default function useCantons({
       suppressNextSearchZoom
     ]);
     
-    // 2) hover highlight
+    // 3) hover highlight
     useEffect(() => {
       if (!mapReady) return;
       const map = mapRef.current;
@@ -162,59 +161,14 @@ export default function useCantons({
       };
     }, [mapRef, mapReady]);
     
-    // 3) sidebar padding on resize
+    // 4) Reset selected canton border if searchCanton is cleared
     useEffect(() => {
       const map = mapRef.current;
-      if (!map) return;
-      let right=50;
-      if (isSidebarOpen) {
-        if (['Graph 3','Graph 4'].includes(isGraphExpanded)) right=950;
-        else if (['Graph 1','Graph 2','Graph 5','Graph 6','Graph 7','Graph 8','Graph 9','Volumes','Transit','Destination']
-          .includes(isGraphExpanded)) right=650;
-          else right=350;
-        }
-        map.easeTo({ padding:{top:50,bottom:50,left:50,right}, duration:600 });
-      }, [mapRef, isSidebarOpen, isGraphExpanded]);
+      if (!map || searchCanton !== null) return;
       
-      // 4) search‐based zoom
-      useEffect(() => {
-        const map = mapRef.current;
-        if (!map || !searchCanton) return;
-        
-        if (suppressNextSearchZoom.current) {
-          suppressNextSearchZoom.current = false;
-          console.log('suppressing search zoom');
-          return;
-        }
-        
-        const bbox = bboxCache[searchCanton];
-        if (!bbox) return;
-        setClickedCanton(searchCanton);
-        map.setFilter('selected-canton-border',['==','NAME',searchCanton]);
-        
-        let right=50;
-        if (isSidebarOpen) {
-          if (['Graph 3','Graph 4'].includes(graphExpandedRef.current)) right=950;
-          else if (['Graph 1','Graph 2','Graph 5','Graph 6','Graph 7','Graph 8','Graph 9','Volumes','Transit','Destination']
-            .includes(graphExpandedRef.current)) right=650;
-            else right=350;
-          }
-          
-          map.fitBounds(bbox, {
-            padding:{top:50,bottom:50,left:50,right},
-            maxZoom:10,
-            duration:1000
-          });
-        }, [mapRef, searchCanton, isSidebarOpen, setClickedCanton, suppressNextSearchZoom]);
-        
-        // 5) Reset selected canton border if searchCanton is cleared
-        useEffect(() => {
-          const map = mapRef.current;
-          if (!map || searchCanton !== null) return;
-          
-          if (map.getLayer("selected-canton-border")) {
-            map.setFilter("selected-canton-border", ["==", "NAME", ""]);
-          }
-        }, [searchCanton, mapRef]);
+      if (map.getLayer("selected-canton-border")) {
+        map.setFilter("selected-canton-border", ["==", "NAME", ""]);
       }
-      
+    }, [searchCanton, mapRef]);
+  }
+  

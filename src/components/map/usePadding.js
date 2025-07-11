@@ -1,0 +1,87 @@
+import { useEffect, useRef } from 'react';
+import bboxCache from '../../utils/bboxCanton.json';
+
+export default function useCantons({
+  mapRef,
+  setClickedCanton,
+  searchCanton,
+  isSidebarOpen,
+  isGraphExpanded,
+  suppressNextSearchZoom,
+  graphExpandedRef
+}) {
+    
+    // 1) padding on sidebar resize
+    useEffect(() => {
+      const map = mapRef.current;
+      if (!map) return;
+      
+      let rightPadding = 50;
+      
+      if (isSidebarOpen) {
+        const wideGraphs = ['Graph 3', 'Graph 4'];
+        const mediumGraphs = [
+          'Graph 1', 'Graph 2', 'Graph 5', 'Graph 6', 'Graph 7', 
+          'Graph 8', 'Graph 9', 'Volumes', 'Transit', 'Destination'
+        ];
+        
+        if (wideGraphs.includes(isGraphExpanded)) {
+          rightPadding = 950;
+        } else if (mediumGraphs.includes(isGraphExpanded)) {
+          rightPadding = 650;
+        } else {
+          rightPadding = 350;
+        }
+      }
+      
+      map.easeTo({
+        padding: { top: 50, bottom: 50, left: 50, right: rightPadding },
+        duration: 600,
+      });
+    }, [mapRef, isSidebarOpen, isGraphExpanded]);
+    
+    // 2) zoom to canton on search (with correct padding)
+    useEffect(() => {
+      const map = mapRef.current;
+      if (!map || !searchCanton) return;
+      
+      // if we suppress next zoom, dont do anything
+      if (suppressNextSearchZoom.current) {
+        suppressNextSearchZoom.current = false;
+        console.log('suppressing search zoom');
+        return;
+      }
+      
+      const bbox = bboxCache[searchCanton];
+      if (!bbox) return;
+      setClickedCanton(searchCanton);
+      map.setFilter('selected-canton-border',['==','NAME',searchCanton]);
+      
+      // Determine right padding based on sidebar and graph
+      let rightPadding = 50;
+      
+      if (isSidebarOpen) {
+        const wideGraphs = ['Graph 3', 'Graph 4'];
+        const mediumGraphs = [
+          'Graph 1', 'Graph 2', 'Graph 5', 'Graph 6', 'Graph 7',
+          'Graph 8', 'Graph 9', 'Volumes', 'Transit', 'Destination'
+        ];
+        
+        if (wideGraphs.includes(graphExpandedRef.current)) {
+          rightPadding = 950;
+        } else if (mediumGraphs.includes(graphExpandedRef.current)) {
+          rightPadding = 650;
+        } else {
+          rightPadding = 350;
+        }
+      }
+      
+      map.fitBounds(bbox, {
+        padding: { top: 50, bottom: 50, left: 50, right: rightPadding },
+        maxZoom: 10,
+        duration: 1000,
+      });
+      
+    }, [mapRef, searchCanton, isSidebarOpen, setClickedCanton, suppressNextSearchZoom]);
+  }
+  
