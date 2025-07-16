@@ -76,11 +76,12 @@ export default function Map(props) {
     setSelectedTransitStop:   props.setSelectedTransitStop,
     setHighlightedLineId:     props.setHighlightedLineId,
     highlightedLineId:        props.highlightedLineId,
-    highlightedRouteIds:      props.highlightedRouteIds  ,
+    highlightedRouteIds:      props.highlightedRouteIds,
     setHighlightedRouteIds:   props.setHighlightedRouteIds,
     hoveredRouteId:           props.hoveredRouteId,
     isGraphExpanded:          props.isGraphExpanded,
     setClickedCanton:         props.setClickedCanton,
+    timeRange:                props.timeRange,
     suppressNextSearchZoom
   });
   
