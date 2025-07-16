@@ -256,4 +256,22 @@ export default function useTransitLines(
             
             loadRoutes();
         }, [highlightedRouteIds, showStopVolumeSymbology, highlightedLineId, hoveredRouteId, isGraphExpanded]);
+        
+        // reset transit line and inter-cantonal stops when canton changes
+        useEffect(() => {
+            const map = mapRef.current;
+            if (!map) return;
+            
+            if(!suppressNextSearchZoom.current) {
+                // Remove transit line and inter-cantonal stop layers on canton change
+                if (map.getLayer("transit-line-highlight")) map.removeLayer("transit-line-highlight");
+                if (map.getSource("transit-line-highlight")) map.removeSource("transit-line-highlight");
+                
+                if (map.getLayer("inter-cantonal-stops")) map.removeLayer("inter-cantonal-stops");
+                if (map.getLayer("inter-cantonal-stops-label")) map.removeLayer("inter-cantonal-stops-label");
+                if (map.getLayer("inter-cantonal-stops-hitbox")) map.removeLayer("inter-cantonal-stops-hitbox");
+                if (map.getSource("inter-cantonal-stops")) map.removeSource("inter-cantonal-stops");
+            }
+        }, [searchCanton]);
+        
     }

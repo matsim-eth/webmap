@@ -19,7 +19,10 @@ export default function useTransitLayers({
   isGraphExpanded,
   suppressNextSearchZoom,
   setClickedCanton,
-  timeRange
+  timeRange,
+  setIsLoading,
+  setSelectedTransitLink,
+  showLineSymbology
 }) {
   
   // Add transit stops and interactions
@@ -34,7 +37,7 @@ export default function useTransitLayers({
     setHighlightedLineId,
     setHighlightedRouteIds
   });
-
+  
   // Add transit lines and interactions
   useTransitLines(
     mapRef, 
@@ -50,17 +53,20 @@ export default function useTransitLayers({
     setHighlightedRouteIds,
     setSelectedTransitStop,
     suppressNextSearchZoom
-    )
+  )
   
-useTransitVolumesLayer({
-  mapRef,
-  isGraphExpanded,
-  searchCanton,
-  timeRange,
-  loadWithFallback,
-  selectedTransitModes
-});
-
+  useTransitVolumesLayer({
+    mapRef,
+    isGraphExpanded,
+    searchCanton,
+    timeRange,
+    loadWithFallback,
+    selectedTransitModes,
+    setIsLoading,
+    setSelectedTransitLink,
+    showLineSymbology
+  });
+  
   // if canton changed, remove current transit layers, reset selected stop
   useEffect(() => {
     const map = mapRef.current;
@@ -71,6 +77,9 @@ useTransitVolumesLayer({
         if (map.getSource("transit-highlight")) map.removeSource("transit-highlight");
         
         setSelectedTransitStop(null);
+      } else if (isGraphExpanded !== "TransitVolumes") {
+        // for volumes: if switching away, clear state too
+        setSelectedNetworkFeature(null);
       }
     }
   }, [searchCanton]); // only update when searchCanton updates

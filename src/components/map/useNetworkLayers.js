@@ -13,9 +13,9 @@ export default function useNetworkLayers({
   setSelectedNetworkFeature,
   isGraphExpanded,
   resetMapTrigger,
-  graphExpandedRef
+  graphExpandedRef,
+  setIsLoading
 }) {
-  const [isLoading, setIsLoading] = useState(false);
   const [linkVolumeData, setLinkVolumeData] = useState(null);
   const originalNetworkGeoJSON = useRef(null);
   
@@ -476,7 +476,4 @@ export default function useNetworkLayers({
     setLinkVolumeData(null);
     setSelectedNetworkFeature(null);
   }, [resetMapTrigger]);
-  
-  
-  return { isLoading };
 }
