@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 
 import useTransitStops from './useTransitStops';
 import useTransitLines from './useTransitLines';
+import useTransitVolumesLayer from './useTransitVolumesLayer';
 
 export default function useTransitLayers({
   mapRef,
@@ -17,7 +18,8 @@ export default function useTransitLayers({
   hoveredRouteId,
   isGraphExpanded,
   suppressNextSearchZoom,
-  setClickedCanton
+  setClickedCanton,
+  timeRange
 }) {
   
   // Add transit stops and interactions
@@ -50,6 +52,15 @@ export default function useTransitLayers({
     suppressNextSearchZoom
     )
   
+useTransitVolumesLayer({
+  mapRef,
+  isGraphExpanded,
+  searchCanton,
+  timeRange,
+  loadWithFallback,
+  selectedTransitModes
+});
+
   // if canton changed, remove current transit layers, reset selected stop
   useEffect(() => {
     const map = mapRef.current;

@@ -29,6 +29,7 @@ import VolumesModule from "./matsim/VolumesModule";
 
 // Transit
 import TransitModule from "./transit/TransitModule";
+import TransitVolumesModule from "./transit/TransitVolumesModule";
 
 // Use uploaded data
 import { useLoadWithFallback } from "../utils/useLoadWithFallback";
@@ -235,6 +236,7 @@ const Sidebar = ({
           <option value="Network">MATSim Network</option>
           <option value="Volumes">Road Volumes</option>
           <option value="Transit">Transit Stops/Lines</option>
+          <option value="TransitVolumes">Transit Link Volumes</option>
           <option value="Destination">Destination Zones</option>
           <option value="Graph 1">Average Distance by {selectedAggCol.charAt(0).toUpperCase() + selectedAggCol.slice(1)}</option>
           <option value="Graph 2">Distance Distribution by {selectedAggCol.charAt(0).toUpperCase() + selectedAggCol.slice(1)}</option>
@@ -344,6 +346,19 @@ const Sidebar = ({
             setTimeRange={setTimeRange}
             />
           )}
+
+          {selectedGraph === "TransitVolumes" && (
+  <TransitVolumesModule
+              selectedTransitModes={selectedTransitModes}
+            setSelectedTransitModes={setSelectedTransitModes}
+    selectedNetworkFeature={selectedNetworkFeature}
+    selectedGraph={selectedGraph}
+    canton={canton}
+    timeRange={timeRange}
+    setTimeRange={setTimeRange}
+    availableTransitModes={availableTransitModes}
+  />
+)}
           
           </div>
         )}
