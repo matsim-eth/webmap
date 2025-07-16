@@ -31,6 +31,12 @@ function App() {
   
   // Save selected network segment properties
   const [selectedNetworkFeature, setSelectedNetworkFeature] = useState(null);
+
+  // Save selected link for transit volumes module
+  const [selectedTransitLink, setSelectedTransitLink] = useState(null);
+
+  // Show selected line for transit volumes module
+  const [showLineSymbology, setShowLineSymbology] = useState(false);
   
   // Pass selected link id to map (for ant-path visualization)
   const [visualizeLinkId, setVisualizeLinkId] = useState(null);
@@ -71,6 +77,7 @@ function App() {
 
     // Reset selected network, 
     setSelectedNetworkFeature(null)
+    setSelectedTransitLink(null);
     setVisualizeLinkId(null)
 
     // Reset current module
@@ -99,6 +106,7 @@ function App() {
     selectedDataset={selectedDataset} // from sidebar
     selectedNetworkModes={selectedNetworkModes}  // from sidebar
     setSelectedNetworkFeature={setSelectedNetworkFeature} // to sidebar
+    setSelectedTransitLink={setSelectedTransitLink} // to sidebar
     visualizeLinkId={visualizeLinkId} // from segment vol histogram via sidebar
     setVisualizeLinkId={setVisualizeLinkId} // from sidebar
     dataURL={dataURL} // from Sidebar
@@ -110,6 +118,7 @@ function App() {
     setHighlightedRouteIds = {setHighlightedRouteIds}
     hoveredRouteId={hoveredRouteId}
     showStopVolumeSymbology={showStopVolumeSymbology}
+    showLineSymbology = {showLineSymbology}
     showMajorRoadsOnly={showMajorRoadsOnly}
     selectedDestinationData={destinationData} // from sidebar
     timeRange={timeRange}
@@ -130,6 +139,7 @@ function App() {
     selectedNetworkModes={selectedNetworkModes} // to map
     setSelectedNetworkModes={setSelectedNetworkModes} // to change value
     selectedNetworkFeature={selectedNetworkFeature} // from map
+    selectedTransitLink={selectedTransitLink} // from map
     visualizeLinkId={visualizeLinkId} // from map
     setVisualizeLinkId={setVisualizeLinkId} // to map
     dataURL={dataURL}
@@ -143,6 +153,8 @@ function App() {
     setHoveredRouteId={setHoveredRouteId}
     showStopVolumeSymbology={showStopVolumeSymbology}
     setShowStopVolumeSymbology={setShowStopVolumeSymbology}
+    setShowLineSymbology={setShowLineSymbology}
+    showLineSymbology={showLineSymbology}
     showMajorRoadsOnly={showMajorRoadsOnly}
     setShowMajorRoadsOnly={setShowMajorRoadsOnly}
     setDestinationData={setDestinationData} // to map

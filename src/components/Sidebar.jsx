@@ -56,6 +56,9 @@ const Sidebar = ({
   setHighlightedLineId, setHighlightedRouteIds, setHoveredRouteId, showStopVolumeSymbology,
   setShowStopVolumeSymbology,
   
+  // Transit Link Volumes Module
+  selectedTransitLink, setShowLineSymbology, showLineSymbology,
+  
   // Destination data
   setDestinationData,
   
@@ -64,7 +67,7 @@ const Sidebar = ({
   
   // Plot Aggregation Column
   selectedAggCol, setSelectedAggCol,
-
+  
   // Reset Map State
   setResetMapTrigger
 }) => {
@@ -121,7 +124,7 @@ const Sidebar = ({
   // Handle reset button click
   const handleReset = () => {
     setResetMapTrigger(prev => !prev); // trigger reset in map hooks
-
+    
     setSelectedDataset("Microcensus");
     setSelectedMode("None");
     setSelectedNetworkModes(["all"]);
@@ -193,7 +196,7 @@ const Sidebar = ({
   }, [canton]);
   
   // ======================== DESTINATION MODULE =======================
-
+  
   // Handle outflow data from DestinationZones and pass to Map
   const handleTotalOutflowChange = (outflowData) => {
     setDestinationOutflowData(outflowData);
@@ -294,12 +297,12 @@ const Sidebar = ({
           {/* Destination Module */}
           {selectedGraph === "Destination" && (
             <div className="plot-container">
-              <DestinationZones
-              canton={canton}
-              timeRange={timeRange}
-              setTimeRange={setTimeRange}
-              onTotalOutflowChange={handleTotalOutflowChange}
-              />
+            <DestinationZones
+            canton={canton}
+            timeRange={timeRange}
+            setTimeRange={setTimeRange}
+            onTotalOutflowChange={handleTotalOutflowChange}
+            />
             </div>
           )}
           
@@ -346,19 +349,21 @@ const Sidebar = ({
             setTimeRange={setTimeRange}
             />
           )}
-
+          
           {selectedGraph === "TransitVolumes" && (
-  <TransitVolumesModule
-              selectedTransitModes={selectedTransitModes}
+            <TransitVolumesModule
+            selectedTransitModes={selectedTransitModes}
             setSelectedTransitModes={setSelectedTransitModes}
-    selectedNetworkFeature={selectedNetworkFeature}
-    selectedGraph={selectedGraph}
-    canton={canton}
-    timeRange={timeRange}
-    setTimeRange={setTimeRange}
-    availableTransitModes={availableTransitModes}
-  />
-)}
+            selectedTransitLink={selectedTransitLink}
+            selectedGraph={selectedGraph}
+            canton={canton}
+            timeRange={timeRange}
+            setTimeRange={setTimeRange}
+            availableTransitModes={availableTransitModes}
+            showLineSymbology={showLineSymbology}
+            setShowLineSymbology={setShowLineSymbology}
+            />
+          )}
           
           </div>
         )}

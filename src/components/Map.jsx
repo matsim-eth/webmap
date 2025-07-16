@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import "./Loading.css" // loading screen for network
 import { useLoadWithFallback }  from '../utils/useLoadWithFallback';
 import useMapbox                from './map/useMapbox';
@@ -16,6 +16,9 @@ export default function Map(props) {
 
   // for disabling next zoom to canton (ie when click on out-of-canton transit stop)
   const suppressNextSearchZoom = useRef(false);
+
+  // for setting loading spinner while loading transit geojson
+  const [isLoading, setIsLoading] = useState(false);
   
   // for keeping track of the current sidebar module
   const graphExpandedRef = useRef(props.isGraphExpanded);
@@ -53,7 +56,7 @@ export default function Map(props) {
     graphExpandedRef
   });
   
-  const { isLoading } = useNetworkLayers({
+  useNetworkLayers({
     mapRef,
     loadWithFallback,
     graphExpandedRef,
@@ -65,6 +68,7 @@ export default function Map(props) {
     setSelectedNetworkFeature:  props.setSelectedNetworkFeature,
     isGraphExpanded:            props.isGraphExpanded,
     resetMapTrigger:            props.resetMapTrigger,
+    setIsLoading
   });
   
   useTransitLayers({ 
@@ -82,6 +86,9 @@ export default function Map(props) {
     isGraphExpanded:          props.isGraphExpanded,
     setClickedCanton:         props.setClickedCanton,
     timeRange:                props.timeRange,
+    setSelectedTransitLink:  props.setSelectedTransitLink,
+    showLineSymbology: props.showLineSymbology,
+    setIsLoading,
     suppressNextSearchZoom
   });
   
