@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import useTransitStops from './useTransitStops';
 import useTransitLines from './useTransitLines';
 import useTransitVolumesLayer from './useTransitVolumesLayer';
+import useTransitSymbologyLayer from "./useTransitSymbologyLayer";
 
 export default function useTransitLayers({
   mapRef,
@@ -64,7 +65,18 @@ export default function useTransitLayers({
     selectedTransitModes,
     setIsLoading,
     setSelectedTransitLink,
-    showLineSymbology
+    showLineSymbology,
+    highlightedLineId 
+  });
+  
+  useTransitSymbologyLayer({
+    mapRef,
+    searchCanton,
+    isGraphExpanded,
+    highlightedLineId,
+    loadWithFallback,
+    showLineSymbology,
+    selectedTransitModes
   });
   
   // if canton changed, remove current transit layers, reset selected stop
@@ -79,7 +91,7 @@ export default function useTransitLayers({
         setSelectedTransitStop(null);
       } else if (isGraphExpanded !== "TransitVolumes") {
         // for volumes: if switching away, clear state too
-        setSelectedNetworkFeature(null);
+        setSelectedTransitLink(null);
       }
     }
   }, [searchCanton]); // only update when searchCanton updates

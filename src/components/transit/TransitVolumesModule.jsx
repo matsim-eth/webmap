@@ -14,10 +14,10 @@ const TransitVolumesModule = ({
   setSelectedTransitModes,
   canton,
   showLineSymbology,
-  setShowLineSymbology
+  setShowLineSymbology,
+  setHighlightedLineId,
+  highlightedLineId,
 }) => {
-  
-  const [highlightedLineId, setHighlightedLineId] = useState(null); 
   
   // reset selected line when canton changes
   useEffect(() => {
@@ -109,7 +109,7 @@ const TransitVolumesModule = ({
         onChange={(e) => setShowLineSymbology(e.target.checked)}
         style={{ marginRight: "0.5rem" }}
         />
-        Toggle Function TBD
+        Toggle Stops / Lines
         </label>
         
         </div>

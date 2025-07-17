@@ -85,7 +85,7 @@ const TransitLinkHistogram = ({
 
   return (
     <div className="plot-container">
-      <h4>15-Minute Volume for Transit Link {linkId}</h4>
+      <h4>Transit Volumes for Link {linkId}</h4>
       <Plot
         data={[
           {
