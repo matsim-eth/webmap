@@ -362,6 +362,8 @@ const Sidebar = ({
             availableTransitModes={availableTransitModes}
             showLineSymbology={showLineSymbology}
             setShowLineSymbology={setShowLineSymbology}
+            highlightedLineId={highlightedLineId}
+            setHighlightedLineId={setHighlightedLineId}
             />
           )}
           

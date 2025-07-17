@@ -8,7 +8,9 @@ export default function useTransitVolumesLayer({
     loadWithFallback,
     selectedTransitModes,
     setIsLoading,
-    setSelectedTransitLink 
+    setSelectedTransitLink,
+    showLineSymbology,
+    highlightedLineId
 }) {
     
     const originalGeoJSON = useRef(null);
@@ -50,6 +52,7 @@ export default function useTransitVolumesLayer({
                     freespeed,
                     modes: modes_list, // renamed to 'modes' for filtering logic
                     lines,
+                    line_ids: Object.keys(lines),
                 },
             };
         });
@@ -61,10 +64,11 @@ export default function useTransitVolumesLayer({
         
         const removeLayers = () => {
             if (map.getLayer("transit-volumes-layer")) map.removeLayer("transit-volumes-layer");
+            if (map.getLayer("transit-symbology-line")) map.removeLayer("transit-symbology-line");
             if (map.getSource("transit-volumes-source")) map.removeSource("transit-volumes-source");
             if (map.getLayer("transit-volumes-highlight")) map.removeLayer("transit-volumes-highlight");
             if (map.getSource("transit-volumes-highlight")) map.removeSource("transit-volumes-highlight");
-
+            
             setSelectedTransitLink(null);
             originalGeoJSON.current = null; 
         };
@@ -121,7 +125,7 @@ export default function useTransitVolumesLayer({
                             100, 10
                         ]
                     }
-                });
+                }, "canton-highlight");
                 
                 if (selectedTransitModes && !selectedTransitModes.includes("all")) {
                     map.setFilter("transit-volumes-layer", [
@@ -161,6 +165,7 @@ export default function useTransitVolumesLayer({
                         id: "transit-volumes-highlight",
                         type: "line",
                         source: "transit-volumes-highlight",
+                        layout: { "line-join": "round", "line-cap": "round" },
                         paint: {
                             "line-width": 6,
                             "line-color": "#00ffff",
@@ -230,4 +235,17 @@ export default function useTransitVolumesLayer({
             }
         }
     }, [selectedTransitModes]);
+    
+    // dim other lines if line selected
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || isGraphExpanded !== "TransitVolumes") return;
+        
+        const baseLayerId = "transit-volumes-layer";
+        
+        if (map.getLayer(baseLayerId)) {
+            const targetOpacity = highlightedLineId && showLineSymbology ? 0.2 : 1.0;
+            map.setPaintProperty(baseLayerId, "line-opacity", targetOpacity);
+        }
+    }, [highlightedLineId, showLineSymbology]);
 }
