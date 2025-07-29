@@ -99,7 +99,7 @@ export default function useNetworkLayers({
     
     updateNetworkFilter(selectedNetworkModesRef.current);
     
-    if (graphExpandedRef.current === "Volumes") {
+    if (graphExpandedRef.current === "Volumes") { 
       const carFilter = ["match", ["index-of", "car", ["get", "modes"]], -1, false, true];
       
       
@@ -237,7 +237,7 @@ export default function useNetworkLayers({
   }, [showMajorRoadsOnly, isGraphExpanded, originalNetworkGeoJSON]);
   
   // ADD ANT PATH TO VISUALIZE VOLUME DIRECTION
-  useAntPath(mapRef, visualizeLinkId);
+  useAntPath(mapRef, visualizeLinkId, graphExpandedRef);
   
   // handles switching between network / non-network modules on the sidebar
   useEffect(() => {

@@ -64,8 +64,14 @@ export default function useTransitVolumesLayer({
         
         const removeLayers = () => {
             if (map.getLayer("transit-volumes-layer")) map.removeLayer("transit-volumes-layer");
+            if (map.getLayer("transit-volumes-hitbox")) map.removeLayer("transit-volumes-hitbox");
             if (map.getLayer("transit-symbology-line")) map.removeLayer("transit-symbology-line");
+            
+            if (map.getLayer("ant-line")) map.removeLayer("ant-line");
+            if (map.getSource("ant-path")) map.removeSource("ant-path");
+            
             if (map.getSource("transit-volumes-source")) map.removeSource("transit-volumes-source");
+            
             if (map.getLayer("transit-volumes-highlight")) map.removeLayer("transit-volumes-highlight");
             if (map.getSource("transit-volumes-highlight")) map.removeSource("transit-volumes-highlight");
             
@@ -118,20 +124,50 @@ export default function useTransitVolumesLayer({
                             "interpolate",
                             ["linear"],
                             ["get", "filtered_volume"],
-                    0, 3,
-                    5, 5,
-                    10, 7,
-                    50, 9,
-                    100, 11
+                            0, 3,
+                            5, 5,
+                            10, 7,
+                            50, 9,
+                            100, 11
                         ]
                     }
                 }, "canton-highlight");
+                
+                map.addLayer({
+                    id: "transit-volumes-hitbox",
+                    type: "line",
+                    source: "transit-volumes-source",
+                    paint: {
+                        "line-opacity": 0,
+                        "line-width": [
+                            "interpolate",
+                            ["linear"],
+                            ["get", "filtered_volume"],
+                            0, 6,
+                            5, 8,
+                            10, 10,
+                            50, 11,
+                            100, 11
+                        ]
+                    }
+                }, "transit-volumes-layer");
                 
                 if (selectedTransitModes && !selectedTransitModes.includes("all")) {
                     map.setFilter("transit-volumes-layer", [
                         "any",
                         ...selectedTransitModes.map(mode => ["in", mode, ["get", "modes"]])
                     ]);
+                    map.setFilter("transit-volumes-hitbox", [
+                        "any",
+                        ...selectedTransitModes.map(mode => ["in", mode, ["get", "modes"]])
+                    ]);
+                    
+                    if (map.getLayer("ant-line")) {
+                        map.setFilter("ant-line", [
+                            "any",
+                            ...selectedTransitModes.map(mode => ["in", mode, ["get", "modes"]])
+                        ]);
+                    }
                 }
                 
                 const handleIdle = () => {
@@ -139,53 +175,61 @@ export default function useTransitVolumesLayer({
                     map.off("idle", handleIdle);
                 };
                 map.on("idle", handleIdle);
-                
-                map.on("click", "transit-volumes-layer", (e) => {
+                map.on("click", "transit-volumes-hitbox", (e) => {
                     if (!e.features?.length) return;
                     
-                    console.log(e.features);
-                    const clickedId = e.features[0].properties.id;
-
-
+                    const clickedIds = new Set(e.features.map(f => f.properties.id));
                     const allFeatures = map.getSource("transit-volumes-source")._data.features;
-                    const fullFeature = allFeatures.find(f => f.properties.id === clickedId);
                     
-                    if (!fullFeature) return;
+                    // Get full features from source
+                    const fullFeatures = allFeatures.filter(f => clickedIds.has(f.properties.id));
+                    if (!fullFeatures.length) return;
                     
-                    // Add highlight source and layer
+                    // Remove previous highlight
                     if (map.getLayer("transit-volumes-highlight")) map.removeLayer("transit-volumes-highlight");
                     if (map.getSource("transit-volumes-highlight")) map.removeSource("transit-volumes-highlight");
                     
+                    if (map.getLayer("ant-line")) map.removeLayer("ant-line");
+                    if (map.getSource("ant-path")) map.removeSource("ant-path");
+                    
+                    // Highlight both directions
                     map.addSource("transit-volumes-highlight", {
                         type: "geojson",
                         data: {
                             type: "FeatureCollection",
-                            features: [fullFeature]
+                            features: fullFeatures
                         }
                     });
+                    
+                    const insertBelow = map.getLayer("transit-symbology-line") // if symbology layer is active, insert below it
+                    ? "transit-symbology-line"
+                    : "transit-volumes-layer";
+                    
+                    
                     
                     map.addLayer({
                         id: "transit-volumes-highlight",
                         type: "line",
                         source: "transit-volumes-highlight",
                         paint: {
-                             "line-width": [
-                            "interpolate",
-                            ["linear"],
-                            ["get", "filtered_volume"],
-                            0, 7,
-                            5, 9,
-                            10, 11,
-                            50, 13,
-                            100, 1
-                        ],
-                            "line-color": "#00ffff",
+                            "line-width": [
+                                "interpolate",
+                                ["linear"],
+                                ["get", "filtered_volume"],
+                                0, 8,
+                                5, 10,
+                                10, 12,
+                                50, 14,
+                                100, 16
+                            ],
+                            "line-color": "#010753"
                         }
-                    }, "transit-volumes-layer");
+                    }, insertBelow);
                     
-                    setSelectedTransitLink(fullFeature.properties);
+                    // Pass full list of feature.properties[] directly — just like road volumes
+                    const featurePropsList = fullFeatures.map(f => f.properties);
+                    setSelectedTransitLink(featurePropsList); // now an array, not a dict
                 });
-                
                 
             } catch (err) {
                 console.warn("Failed to load transit volumes layer", err);
@@ -222,12 +266,31 @@ export default function useTransitVolumesLayer({
         if (map.getLayer("transit-volumes-layer")) {
             if (!selectedTransitModes || selectedTransitModes.includes("all")) {
                 map.setFilter("transit-volumes-layer", null);
+                map.setFilter("transit-volumes-hitbox", null);
             } else {
                 map.setFilter("transit-volumes-layer", [
                     "any",
                     ...selectedTransitModes.map(mode => [
                         "in", mode, ["get", "modes"]
                     ])
+                ]);
+                map.setFilter("transit-volumes-hitbox", [
+                    "any",
+                    ...selectedTransitModes.map(mode => [
+                        "in", mode, ["get", "modes"]
+                    ])
+                ]);
+            }
+        }
+        
+        if (map.getLayer("ant-line")) {
+            
+            if (!selectedTransitModes || selectedTransitModes.includes("all")) {
+                map.setFilter("ant-line", null);
+            } else {
+                map.setFilter("ant-line", [
+                    "any",
+                    ...selectedTransitModes.map(mode => ["in", mode, ["get", "modes"]])
                 ]);
             }
         }
