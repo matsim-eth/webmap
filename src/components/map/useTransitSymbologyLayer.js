@@ -154,21 +154,21 @@ stopsGeo.features.forEach((f) => {
                     "interpolate",
                     ["linear"],
                     ["get", "filtered_volume"],
-                    0, "#ffffcc",
-                    5, "#c2e699",
-                    10, "#78c679",
-                    50, "#31a354",
-                    100, "#006837",
+                        0, "#a1d99b",
+                        5, "#74c476",
+                        10, "#41ab5d",
+                        50, "#238b45",
+                        100, "#005a32",
                 ],
                 "line-width": [
                     "interpolate",
                     ["linear"],
                     ["get", "filtered_volume"],
-                    0, 1,
-                    5, 3,
-                    10, 5,
-                    50, 7,
-                    100, 10
+                    0, 3,
+                    5, 5,
+                    10, 7,
+                    50, 9,
+                    100, 11
                 ],
                 "line-opacity": 1.0
             },
@@ -178,44 +178,56 @@ stopsGeo.features.forEach((f) => {
         return () => removeLineLayer();
     }, [mapRef, isGraphExpanded, highlightedLineId, showLineSymbology]);
     
-    useEffect(() => {
-        if (!map || isGraphExpanded !== "TransitVolumes") return;
-        
-        const STOP_LAYER_ID = "transit-symbology-stops";
-        const LABEL_LAYER_ID = "transit-symbology-stops-label";
-        
+useEffect(() => {
+    if (!map || isGraphExpanded !== "TransitVolumes") return;
+
+    const STOP_LAYER_ID = "transit-symbology-stops";
+    const LABEL_LAYER_ID = "transit-symbology-stops-label";
+
+    // wrap in function so we can rerun it when the stops layer is added
+    function maskLayers() {
         if (!map.getLayer(STOP_LAYER_ID) || !map.getLayer(LABEL_LAYER_ID)) return;
-        
+
         if (highlightedLineId && showLineSymbology) {
             const matchLineExpr = ["in", highlightedLineId, ["get", "line_ids"]];
-            
+
             map.setPaintProperty(STOP_LAYER_ID, "circle-opacity", [
                 "case",
                 matchLineExpr,
-                0.9, // high opacity if on line
-                0.2  // faded out
+                0.9,
+                0.1
             ]);
-            
+
             map.setPaintProperty(STOP_LAYER_ID, "circle-stroke-opacity", [
                 "case",
                 matchLineExpr,
                 1.0,
-                0.2
+                0.1
             ]);
-            
+
             map.setPaintProperty(LABEL_LAYER_ID, "text-opacity", [
                 "case",
                 matchLineExpr,
                 1.0,
-                0.2
+                0.1
             ]);
         } else {
-            // reset to default when no line is selected or symbology is off
             map.setPaintProperty(STOP_LAYER_ID, "circle-opacity", 0.9);
             map.setPaintProperty(STOP_LAYER_ID, "circle-stroke-opacity", 1);
             map.setPaintProperty(LABEL_LAYER_ID, "text-opacity", 1);
         }
-    }, [mapRef, highlightedLineId, isGraphExpanded, showLineSymbology]);
+    }
+
+    // Try once immediately
+    maskLayers();
+
+    // Also try when the map goes idle (i.e. all layers and sources are loaded)
+    map.once("idle", maskLayers);
+
+    return () => {
+        map.off("idle", maskLayers);
+    };
+}, [mapRef, highlightedLineId, isGraphExpanded, showLineSymbology]);
     
     
 }
