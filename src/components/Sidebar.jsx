@@ -364,6 +364,8 @@ const Sidebar = ({
             setShowLineSymbology={setShowLineSymbology}
             highlightedLineId={highlightedLineId}
             setHighlightedLineId={setHighlightedLineId}
+            visualizeLinkId={visualizeLinkId}
+            setVisualizeLinkId={setVisualizeLinkId}
             />
           )}
           

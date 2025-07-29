@@ -1,12 +1,16 @@
 import { useEffect } from 'react';
 
-export default function useAntPath(mapRef, visualizeLinkId) {
-    useEffect(() => {
+export default function useAntPath(mapRef, visualizeLinkId, graphExpandedRef) {
+  useEffect(() => {
     if (!visualizeLinkId || !mapRef.current) return;
     
     const map = mapRef.current;
-    const source = map.getSource("network-source");
     
+    const currentModule = graphExpandedRef?.current;
+    const sourceId =
+    currentModule === "TransitVolumes" ? "transit-volumes-source" : "network-source";
+    
+    const source = map.getSource(sourceId);
     if (!source || !source._data) return;
     
     // Access full GeoJSON source
@@ -40,7 +44,10 @@ export default function useAntPath(mapRef, visualizeLinkId) {
           type: "LineString",
           coordinates: mergedCoords,
         },
-        properties: {},
+        properties:
+        currentModule === "TransitVolumes" // add modes only if in TransitVolumes module so we can filter by mode and hide/show ant path
+        ? { modes: feature.properties?.modes ?? [] }
+        : {},
       },
     });
     
@@ -64,7 +71,7 @@ export default function useAntPath(mapRef, visualizeLinkId) {
       [0.9, 3, 2.1, 0], [1.2, 3, 1.8, 0], [1.5, 3, 1.5, 0], [1.8, 3, 1.2, 0],
       [2.1, 3, 0.9, 0], [2.4, 3, 0.6, 0], [2.7, 3, 0.3, 0], [3, 3, 0, 0],
     ];
-
+    
     let dashArrayIdx = 0;
     let lastUpdateTime = 0;
     const frameIntervalMs = 50; // update every 50ms

@@ -17,6 +17,8 @@ const TransitVolumesModule = ({
   setShowLineSymbology,
   setHighlightedLineId,
   highlightedLineId,
+  visualizeLinkId,
+  setVisualizeLinkId
 }) => {
   
   // reset selected line when canton changes
@@ -24,19 +26,21 @@ const TransitVolumesModule = ({
     setHighlightedLineId(null);
   }, [canton]);
   
-
+  
   // keep highlightedLineId if new link also has it, else reset it
   useEffect(() => {
-    if (!selectedTransitLink || !selectedTransitLink.lines) {
+    if (!Array.isArray(selectedTransitLink) || selectedTransitLink.length === 0) {
       setHighlightedLineId(null);
       return;
     }
     
-    const currentLineIds = Object.keys(selectedTransitLink.lines);
-    if (!currentLineIds.includes(highlightedLineId)) {
-      setHighlightedLineId(null);
-    }
+    const hasLine = selectedTransitLink.some(link =>
+      link.lines && Object.keys(link.lines).includes(highlightedLineId)
+    );
+    
+    if (!hasLine) setHighlightedLineId(null);
   }, [selectedTransitLink]);
+  
   
   // Push to Map the selected transit stop mode filter
   const handleTransitModeChange = (event) => {
@@ -67,75 +71,78 @@ const TransitVolumesModule = ({
       </option>
     ))}
     </select>
-            {/* Time Range + Checkbox Row */}
-        <div style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "0.5rem 2rem 2rem 0.5rem",
-            gap: "1rem",
-        }}>
-        
-        
-        {/* Slider and label */}
-        <div style={{ flex: 1 }}>
-        <label style={{
-            fontWeight: "bold",
-            fontSize: "10pt",
-            display: "block",
-            marginBottom: "0.25rem",
-            marginLeft: "7%"
-        }}>
-        Time: {formatTimeLabel(timeRange[0])} - {formatTimeLabel(timeRange[1])}
-        </label>
-        <Slider
-        range
-        min={0}
-        max={96}
-        step={1}
-        marks={marks}
-        value={timeRange}
-        onChange={(val) => setTimeRange(val)}
-        allowCross={false}
-        style={{ marginLeft: "10%", width: "80%" }}
-        />
-        </div>
-        
-        {/* Checkbox */}
-        <label style={{ fontWeight: "bold", fontSize: "10pt", whiteSpace: "nowrap" }}>
-        <input
-        type="checkbox"
-        checked={showLineSymbology}
-        onChange={(e) => setShowLineSymbology(e.target.checked)}
-        style={{ marginRight: "0.5rem" }}
-        />
-        Toggle Stops / Lines
-        </label>
-        
-        </div>
-        
-        </div>
+    {/* Time Range + Checkbox Row */}
+    <div style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: "0.5rem 2rem 2rem 0.5rem",
+      gap: "1rem",
+    }}>
     
     
-    {/* Link Attributes Table */}
-    {selectedTransitLink && (
+    {/* Slider and label */}
+    <div style={{ flex: 1 }}>
+    <label style={{
+      fontWeight: "bold",
+      fontSize: "10pt",
+      display: "block",
+      marginBottom: "0.25rem",
+      marginLeft: "7%"
+    }}>
+    Time: {formatTimeLabel(timeRange[0])} - {formatTimeLabel(timeRange[1])}
+    </label>
+    <Slider
+    range
+    min={0}
+    max={96}
+    step={1}
+    marks={marks}
+    value={timeRange}
+    onChange={(val) => setTimeRange(val)}
+    allowCross={false}
+    style={{ marginLeft: "10%", width: "80%" }}
+    />
+    </div>
+    
+    {/* Checkbox */}
+    <label style={{ fontWeight: "bold", fontSize: "10pt", whiteSpace: "nowrap" }}>
+    <input
+    type="checkbox"
+    checked={showLineSymbology}
+    onChange={(e) => setShowLineSymbology(e.target.checked)}
+    style={{ marginRight: "0.5rem" }}
+    />
+    Toggle Stops / Lines
+    </label>
+    
+    </div>
+    
+    </div>
+    
+    {/* Link Attributes Table and Histograms */}
+    {Array.isArray(selectedTransitLink) && selectedTransitLink.length > 0 && (
       <>
       <TransitLinkAttributesTable
-      properties={selectedTransitLink}
+      propertiesList={selectedTransitLink}
       onLineClick={setHighlightedLineId}
       highlightedLineId={highlightedLineId}
       timeRange={timeRange}
       />
       
-      <TransitLinkHistogram
-      linkId={selectedTransitLink.id}
-      highlightedLineId={highlightedLineId}
-      timeRange={timeRange}
-      canton={canton}
-      />
+      {selectedTransitLink.map((props) => (
+        <TransitLinkHistogram
+        key={props.id}
+        linkId={props.id}
+        highlightedLineId={highlightedLineId}
+        timeRange={timeRange}
+        canton={canton}
+        visualizeLinkId={visualizeLinkId}
+        setVisualizeLinkId={setVisualizeLinkId}
+        />
+      ))}
       </>
     )}
-    
     </div>
   );
 };
