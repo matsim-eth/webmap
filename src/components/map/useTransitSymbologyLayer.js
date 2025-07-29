@@ -37,25 +37,25 @@ export default function useTransitSymbologyLayer({
                 const stopsGeo = await loadWithFallback(stopsPath);
                 
                 // safely parse .lines if it's a string
-stopsGeo.features.forEach((f) => {
-  let parsed = [];
-  if (typeof f.properties.lines === "string") {
-    try {
-      parsed = JSON.parse(f.properties.lines);
-    } catch {
-      parsed = [];
-    }
-  } else if (Array.isArray(f.properties.lines)) {
-    parsed = f.properties.lines;
-  }
-
-  // Ensure it’s stored as objects
-  f.properties.lines = parsed;
-
-  // 💡 Add this: flattened line_id list
-  f.properties.line_ids = parsed.map((l) => l.line_id);
-});
-
+                stopsGeo.features.forEach((f) => {
+                    let parsed = [];
+                    if (typeof f.properties.lines === "string") {
+                        try {
+                            parsed = JSON.parse(f.properties.lines);
+                        } catch {
+                            parsed = [];
+                        }
+                    } else if (Array.isArray(f.properties.lines)) {
+                        parsed = f.properties.lines;
+                    }
+                    
+                    // Ensure it’s stored as objects
+                    f.properties.lines = parsed;
+                    
+                    // Add this: flattened line_id list
+                    f.properties.line_ids = parsed.map((l) => l.line_id);
+                });
+                
                 
                 map.addSource(STOP_SOURCE_ID, {
                     type: "geojson",
@@ -154,11 +154,11 @@ stopsGeo.features.forEach((f) => {
                     "interpolate",
                     ["linear"],
                     ["get", "filtered_volume"],
-                        0, "#a1d99b",
-                        5, "#74c476",
-                        10, "#41ab5d",
-                        50, "#238b45",
-                        100, "#005a32",
+                    0, "#a1d99b",
+                    5, "#74c476",
+                    10, "#41ab5d",
+                    50, "#238b45",
+                    100, "#005a32",
                 ],
                 "line-width": [
                     "interpolate",
@@ -178,56 +178,56 @@ stopsGeo.features.forEach((f) => {
         return () => removeLineLayer();
     }, [mapRef, isGraphExpanded, highlightedLineId, showLineSymbology]);
     
-useEffect(() => {
-    if (!map || isGraphExpanded !== "TransitVolumes") return;
-
-    const STOP_LAYER_ID = "transit-symbology-stops";
-    const LABEL_LAYER_ID = "transit-symbology-stops-label";
-
-    // wrap in function so we can rerun it when the stops layer is added
-    function maskLayers() {
-        if (!map.getLayer(STOP_LAYER_ID) || !map.getLayer(LABEL_LAYER_ID)) return;
-
-        if (highlightedLineId && showLineSymbology) {
-            const matchLineExpr = ["in", highlightedLineId, ["get", "line_ids"]];
-
-            map.setPaintProperty(STOP_LAYER_ID, "circle-opacity", [
-                "case",
-                matchLineExpr,
-                0.9,
-                0.1
-            ]);
-
-            map.setPaintProperty(STOP_LAYER_ID, "circle-stroke-opacity", [
-                "case",
-                matchLineExpr,
-                1.0,
-                0.1
-            ]);
-
-            map.setPaintProperty(LABEL_LAYER_ID, "text-opacity", [
-                "case",
-                matchLineExpr,
-                1.0,
-                0.1
-            ]);
-        } else {
-            map.setPaintProperty(STOP_LAYER_ID, "circle-opacity", 0.9);
-            map.setPaintProperty(STOP_LAYER_ID, "circle-stroke-opacity", 1);
-            map.setPaintProperty(LABEL_LAYER_ID, "text-opacity", 1);
+    useEffect(() => {
+        if (!map || isGraphExpanded !== "TransitVolumes") return;
+        
+        const STOP_LAYER_ID = "transit-symbology-stops";
+        const LABEL_LAYER_ID = "transit-symbology-stops-label";
+        
+        // wrap in function so we can rerun it when the stops layer is added
+        function maskLayers() {
+            if (!map.getLayer(STOP_LAYER_ID) || !map.getLayer(LABEL_LAYER_ID)) return;
+            
+            if (highlightedLineId && showLineSymbology) {
+                const matchLineExpr = ["in", highlightedLineId, ["get", "line_ids"]];
+                
+                map.setPaintProperty(STOP_LAYER_ID, "circle-opacity", [
+                    "case",
+                    matchLineExpr,
+                    0.9,
+                    0.1
+                ]);
+                
+                map.setPaintProperty(STOP_LAYER_ID, "circle-stroke-opacity", [
+                    "case",
+                    matchLineExpr,
+                    1.0,
+                    0.1
+                ]);
+                
+                map.setPaintProperty(LABEL_LAYER_ID, "text-opacity", [
+                    "case",
+                    matchLineExpr,
+                    1.0,
+                    0.1
+                ]);
+            } else {
+                map.setPaintProperty(STOP_LAYER_ID, "circle-opacity", 0.9);
+                map.setPaintProperty(STOP_LAYER_ID, "circle-stroke-opacity", 1);
+                map.setPaintProperty(LABEL_LAYER_ID, "text-opacity", 1);
+            }
         }
-    }
-
-    // Try once immediately
-    maskLayers();
-
-    // Also try when the map goes idle (i.e. all layers and sources are loaded)
-    map.once("idle", maskLayers);
-
-    return () => {
-        map.off("idle", maskLayers);
-    };
-}, [mapRef, highlightedLineId, isGraphExpanded, showLineSymbology]);
+        
+        // Try once immediately
+        maskLayers();
+        
+        // Also try when the map goes idle (i.e. all layers and sources are loaded)
+        map.once("idle", maskLayers);
+        
+        return () => {
+            map.off("idle", maskLayers);
+        };
+    }, [mapRef, highlightedLineId, isGraphExpanded, showLineSymbology]);
     
     
 }

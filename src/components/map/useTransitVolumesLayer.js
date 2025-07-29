@@ -257,68 +257,84 @@ export default function useTransitVolumesLayer({
                 features: updatedFeatures
             });
         }
-    }, [timeRange]);
-    
-    useEffect(() => {
-        const map = mapRef.current;
-        if (!map || isGraphExpanded !== "TransitVolumes") return;
         
-        if (map.getLayer("transit-volumes-layer")) {
-            if (!selectedTransitModes || selectedTransitModes.includes("all")) {
-                map.setFilter("transit-volumes-layer", null);
-                map.setFilter("transit-volumes-hitbox", null);
-            } else {
-                map.setFilter("transit-volumes-layer", [
-                    "any",
-                    ...selectedTransitModes.map(mode => [
-                        "in", mode, ["get", "modes"]
-                    ])
-                ]);
-                map.setFilter("transit-volumes-hitbox", [
-                    "any",
-                    ...selectedTransitModes.map(mode => [
-                        "in", mode, ["get", "modes"]
-                    ])
-                ]);
-            }
-        }
-        
-        if (map.getLayer("ant-line")) {
+        // Update highlighted features (if any)
+        const highlightSource = map.getSource("transit-volumes-highlight");
+        if (highlightSource) {
+            const prevHighlightData = highlightSource._data?.features || [];
+            const prevIds = new Set(prevHighlightData.map((f) => f.properties.id.toString()));
             
-            if (!selectedTransitModes || selectedTransitModes.includes("all")) {
-                map.setFilter("ant-line", null);
-            } else {
-                map.setFilter("ant-line", [
-                    "any",
-                    ...selectedTransitModes.map(mode => ["in", mode, ["get", "modes"]])
-                ]);
-            }
-        }
+            const updatedHighlight = updatedFeatures.filter((f) =>
+                prevIds.has(f.properties.id.toString())
+        );
         
-        if (map.getLayer("transit-volumes-highlight")) {
-            if (!selectedTransitModes || selectedTransitModes.includes("all")) {
-                map.setFilter("transit-volumes-highlight", null);
-            } else {
-                map.setFilter("transit-volumes-highlight", [
-                    "any",
-                    ...selectedTransitModes.map(mode => [
-                        "in", mode, ["get", "modes"]
-                    ])
-                ]);
-            }
-        }
-    }, [selectedTransitModes]);
+        highlightSource.setData({
+            type: "FeatureCollection",
+            features: updatedHighlight
+        });
+    }
+}, [timeRange]);
+
+useEffect(() => {
+    const map = mapRef.current;
+    if (!map || isGraphExpanded !== "TransitVolumes") return;
     
-    // dim other lines if line selected
-    useEffect(() => {
-        const map = mapRef.current;
-        if (!map || isGraphExpanded !== "TransitVolumes") return;
-        
-        const baseLayerId = "transit-volumes-layer";
-        
-        if (map.getLayer(baseLayerId)) {
-            const targetOpacity = highlightedLineId && showLineSymbology ? 0.2 : 1.0;
-            map.setPaintProperty(baseLayerId, "line-opacity", targetOpacity);
+    if (map.getLayer("transit-volumes-layer")) {
+        if (!selectedTransitModes || selectedTransitModes.includes("all")) {
+            map.setFilter("transit-volumes-layer", null);
+            map.setFilter("transit-volumes-hitbox", null);
+        } else {
+            map.setFilter("transit-volumes-layer", [
+                "any",
+                ...selectedTransitModes.map(mode => [
+                    "in", mode, ["get", "modes"]
+                ])
+            ]);
+            map.setFilter("transit-volumes-hitbox", [
+                "any",
+                ...selectedTransitModes.map(mode => [
+                    "in", mode, ["get", "modes"]
+                ])
+            ]);
         }
-    }, [highlightedLineId, showLineSymbology]);
+    }
+    
+    if (map.getLayer("ant-line")) {
+        
+        if (!selectedTransitModes || selectedTransitModes.includes("all")) {
+            map.setFilter("ant-line", null);
+        } else {
+            map.setFilter("ant-line", [
+                "any",
+                ...selectedTransitModes.map(mode => ["in", mode, ["get", "modes"]])
+            ]);
+        }
+    }
+    
+    if (map.getLayer("transit-volumes-highlight")) {
+        if (!selectedTransitModes || selectedTransitModes.includes("all")) {
+            map.setFilter("transit-volumes-highlight", null);
+        } else {
+            map.setFilter("transit-volumes-highlight", [
+                "any",
+                ...selectedTransitModes.map(mode => [
+                    "in", mode, ["get", "modes"]
+                ])
+            ]);
+        }
+    }
+}, [selectedTransitModes]);
+
+// dim other lines if line selected
+useEffect(() => {
+    const map = mapRef.current;
+    if (!map || isGraphExpanded !== "TransitVolumes") return;
+    
+    const baseLayerId = "transit-volumes-layer";
+    
+    if (map.getLayer(baseLayerId)) {
+        const targetOpacity = highlightedLineId && showLineSymbology ? 0.2 : 1.0;
+        map.setPaintProperty(baseLayerId, "line-opacity", targetOpacity);
+    }
+}, [highlightedLineId, showLineSymbology]);
 }

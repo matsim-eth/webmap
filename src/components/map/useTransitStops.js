@@ -9,9 +9,10 @@ export default function useTransitStops({
   selectedTransitModes,
   setSelectedTransitStop,
   setHighlightedLineId,
-  setHighlightedRouteIds
+  setHighlightedRouteIds,
+  highlightedLineId
 }) {
-
+  
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -81,9 +82,14 @@ export default function useTransitStops({
             };
           })
         };
-        
       }
       
+              
+        updatedGeoJSON.features.forEach((f) => {
+          const lines = f.properties.lines || [];
+          f.properties.line_ids = lines.map(l => l.line_id);
+        });
+
       // === Add or update source ===
       if (map.getSource("transit-stops")) {
         map.getSource("transit-stops").setData(updatedGeoJSON);
@@ -214,7 +220,7 @@ export default function useTransitStops({
       const lineIdsAtStop = combinedLines.map(l => l.line_id);
       
       let currentHighlightedLineId = null;
-
+      
       // get current line-id from layer
       if (map.getSource("transit-line-highlight")) {
         const currentData = map.getSource("transit-line-highlight")._data;
@@ -310,4 +316,53 @@ export default function useTransitStops({
     console.error("Error loading transit data:", err);
   });
 }, [isGraphExpanded, searchCanton, showStopVolumeSymbology, selectedTransitModes]);
+
+
+useEffect(() => {
+  const map = mapRef.current;
+  if (!map || isGraphExpanded !== "Transit") return;
+  
+  const STOP_LAYER_ID = "transit-stops-layer";
+  const LABEL_LAYER_ID = "transit-stops-label";
+  
+  function updateStopMask() {
+    if (!map.getLayer(STOP_LAYER_ID) || !map.getLayer(LABEL_LAYER_ID)) return;
+    
+    if (highlightedLineId) {
+      const matchLineExpr = ["in", highlightedLineId, ["get", "line_ids"]];
+      
+      map.setPaintProperty(STOP_LAYER_ID, "circle-opacity", [
+        "case",
+        matchLineExpr,
+        1,
+        0.2,
+      ]);
+      
+      map.setPaintProperty(STOP_LAYER_ID, "circle-stroke-opacity", [
+        "case",
+        matchLineExpr,
+        1.0,
+        0.2,
+      ]);
+      
+      map.setPaintProperty(LABEL_LAYER_ID, "text-opacity", [
+        "case",
+        matchLineExpr,
+        1.0,
+        0.2,
+      ]);
+    } else {
+      map.setPaintProperty(STOP_LAYER_ID, "circle-opacity", 1);
+      map.setPaintProperty(STOP_LAYER_ID, "circle-stroke-opacity", 1.0);
+      map.setPaintProperty(LABEL_LAYER_ID, "text-opacity", 1.0);
+    }
+  }
+  
+  updateStopMask();
+  map.once("idle", updateStopMask);
+  
+  return () => {
+    map.off("idle", updateStopMask);
+  };
+}, [mapRef, isGraphExpanded, highlightedLineId]);
 }

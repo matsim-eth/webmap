@@ -36,7 +36,8 @@ export default function useTransitLayers({
     selectedTransitModes,
     setSelectedTransitStop,
     setHighlightedLineId,
-    setHighlightedRouteIds
+    setHighlightedRouteIds,
+    highlightedLineId
   });
   
   // Add transit lines and interactions
