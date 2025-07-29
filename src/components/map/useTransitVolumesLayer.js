@@ -108,21 +108,21 @@ export default function useTransitVolumesLayer({
                             "interpolate",
                             ["linear"],
                             ["get", "filtered_volume"],
-                            0, "#ffffcc",
-                            5, "#c2e699",
-                            10, "#78c679",
-                            50, "#31a354",
-                            100, "#006837",
+                            0, "#a1d99b",
+                            5, "#74c476",
+                            10, "#41ab5d",
+                            50, "#238b45",
+                            100, "#005a32",
                         ],
                         "line-width": [
                             "interpolate",
                             ["linear"],
                             ["get", "filtered_volume"],
-                            0, 1,
-                            5, 3,
-                            10, 5,
-                            50, 7,
-                            100, 10
+                    0, 3,
+                    5, 5,
+                    10, 7,
+                    50, 9,
+                    100, 11
                         ]
                     }
                 }, "canton-highlight");
@@ -143,7 +143,10 @@ export default function useTransitVolumesLayer({
                 map.on("click", "transit-volumes-layer", (e) => {
                     if (!e.features?.length) return;
                     
+                    console.log(e.features);
                     const clickedId = e.features[0].properties.id;
+
+
                     const allFeatures = map.getSource("transit-volumes-source")._data.features;
                     const fullFeature = allFeatures.find(f => f.properties.id === clickedId);
                     
@@ -165,13 +168,20 @@ export default function useTransitVolumesLayer({
                         id: "transit-volumes-highlight",
                         type: "line",
                         source: "transit-volumes-highlight",
-                        layout: { "line-join": "round", "line-cap": "round" },
                         paint: {
-                            "line-width": 6,
+                             "line-width": [
+                            "interpolate",
+                            ["linear"],
+                            ["get", "filtered_volume"],
+                            0, 7,
+                            5, 9,
+                            10, 11,
+                            50, 13,
+                            100, 1
+                        ],
                             "line-color": "#00ffff",
-                            "line-opacity": 0.85
                         }
-                    });
+                    }, "transit-volumes-layer");
                     
                     setSelectedTransitLink(fullFeature.properties);
                 });
