@@ -68,6 +68,9 @@ function App() {
 
   // Handle map reset if button clicked in sidebar
   const [resetMapTrigger, setResetMapTrigger] = useState(false);
+
+  // Set label size for network segments
+  const [labelSize, setLabelSize] = useState(11);
   
   // Handle map reset if button clicked in sidebar
   const resetMapView = () => {
@@ -124,6 +127,7 @@ function App() {
     timeRange={timeRange}
     aggCol={aggCol}
     resetMapTrigger={resetMapTrigger} // from sidebar, to reset map
+    labelSize={labelSize} // from sidebar
     />
     
     <Sidebar
@@ -161,6 +165,8 @@ function App() {
     timeRange={timeRange}       
     setTimeRange={setTimeRange}  
     setResetMapTrigger={setResetMapTrigger} // to map
+    labelSize={labelSize}
+    setLabelSize={setLabelSize} // to map
     />
     
     <NetworkLegend

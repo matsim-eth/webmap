@@ -15,6 +15,8 @@ const VolumesModule = ({
     setTimeRange,
     showMajorRoadsOnly,
     setShowMajorRoadsOnly,
+    labelSize,
+    setLabelSize
 }) => {
     
     const [filteredVolume, setFilteredVolume] = useState(null);
@@ -57,6 +59,28 @@ const VolumesModule = ({
     />
     </div>
 
+    <div style={{ padding: "0 2rem 1rem 1rem" }}>
+  <label
+    style={{
+      fontWeight: "bold",
+      fontSize: "10pt",
+      display: "block",
+      marginBottom: 6
+    }}
+  >
+    Label size: {labelSize}px
+  </label>
+  <Slider
+    min={8}
+    max={24}
+    step={1}
+    value={labelSize}
+    onChange={setLabelSize}
+    style={{ width: "50%" }}
+  />
+</div>
+
+
     {/* Checkbox */}
         <label style={{ fontWeight: "bold", fontSize: "10pt", whiteSpace: "nowrap" }}>
         <input
@@ -79,7 +103,15 @@ const VolumesModule = ({
     
     {selectedNetworkFeature ? (
         <SegmentVolumeHistogram
-        linkId={selectedNetworkFeature.map(f => f.id)}
+    linkId={(() => {
+      const per = selectedNetworkFeature[0]?.per_id;
+      const perObj =
+        typeof per === 'string'
+          ? (() => { try { return JSON.parse(per); } catch { return {}; } })()
+          : (per || {});
+      const ids = Object.keys(perObj);
+      return ids.length ? ids : [String(selectedNetworkFeature[0]?.id ?? '')];
+    })()}
         visualizeLinkId={visualizeLinkId}
         setVisualizeLinkId={setVisualizeLinkId}
         canton={canton}
