@@ -58,10 +58,15 @@ export default function useNetworkLayers({
 
   // ── Label helpers ───────────────────────────────────────────────────────
 const LABEL_IDS = ['network-label-left', 'network-label-right'];
-const offsetEm = 0.9;
+const offsetEm = 1;
 
 // west-ish if angle in (90, 180] ∪ (-180, -90]
-const westishExpr = ['any', ['>', ['get', 'angle'], 90], ['<=', ['get', 'angle'], -90]];
+const offsetPos = ['any', ['>', ['get', 'angle'], 90], ['<=', ['get', 'angle'], -90]];
+
+const setLabelVisibility = (map, visible) => {
+  const v = visible ? 'visible' : 'none';
+  LABEL_IDS.forEach(id => { if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', v); });
+};
 
 const removeLabelLayers = (map) => {
   LABEL_IDS.forEach(id => { if (map.getLayer(id)) map.removeLayer(id); });
@@ -93,7 +98,7 @@ const addLabelLayersIfMissing = (map) => {
           ['concat', ['to-string', ['round', ['number', ['get', 'right_sum'], 0]]], ' \u2192']
         ],
         'text-size': Number(labelSize) || 11,             // ← numeric, no variables
-        'text-offset': [0, ['case', westishExpr, -offsetEm, offsetEm]], // flip when west-ish
+        'text-offset': [0, ['case', offsetPos, -offsetEm, offsetEm]], // flip when west-ish
         'text-allow-overlap': true,
         'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold']
       },
@@ -119,7 +124,7 @@ const addLabelLayersIfMissing = (map) => {
           ['concat', '\u2190 ', ['to-string', ['round', ['number', ['get', 'left_sum'], 0]]]]
         ],
         'text-size': Number(labelSize) || 11,             // ← numeric, no variables
-        'text-offset': [0, ['case', westishExpr, offsetEm, -offsetEm]], // flip when west-ish
+        'text-offset': [0, ['case', offsetPos, offsetEm, -offsetEm]], // flip when west-ish
         'text-allow-overlap': true,
         'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold']
       },
@@ -239,6 +244,13 @@ const addLabelLayersIfMissing = (map) => {
         0, '#ffffb2', 6.94, '#fed976', 13.89, '#feb24c', 20.83, '#fd8d3c', 27.78, '#fc4e2a', 34.72, '#e31a1c', 41.67, '#b10026']
       }
     });
+
+    // ensure labels exist for this source
+addLabelLayersIfMissing(map);
+applyLabelFilter(map, showMajorRoadsOnly);
+
+// if we're not in Volumes, hide them now
+setLabelVisibility(map, graphExpandedRef.current === 'Volumes');
     
     updateNetworkFilter(selectedNetworkModesRef.current);
     
@@ -386,7 +398,7 @@ const addLabelLayersIfMissing = (map) => {
               ['network-layer','click-network-layer','network-highlight'].forEach(id => {
                 if (map.getLayer(id)) map.setFilter(id, null);
               });
-              removeLabelLayers(map);
+              setLabelVisibility(map, false);
             }
           } else {
             loadNetworkForCanton(canton);
