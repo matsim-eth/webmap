@@ -69,7 +69,10 @@ const Sidebar = ({
   selectedAggCol, setSelectedAggCol,
   
   // Reset Map State
-  setResetMapTrigger
+  setResetMapTrigger,
+
+  // Change font size for labels
+  labelSize, setLabelSize,
 }) => {
   
   // ======================= INITIALIZE VARIABLES =======================
@@ -80,6 +83,8 @@ const Sidebar = ({
   const [availableModes, setAvailableModes] = useState([]); // Available modes for network filter
   const [modesByCanton, setModesByCanton] = useState({}); // For mode filter (only show modes available in each canton)
   const [inputURL, setInputURL] = useState("");
+
+
   
   // Add state for destination outflow data
   const [destinationOutflowData, setDestinationOutflowData] = useState(null);
@@ -328,6 +333,8 @@ const Sidebar = ({
             setTimeRange={setTimeRange}
             showMajorRoadsOnly={showMajorRoadsOnly}
             setShowMajorRoadsOnly={setShowMajorRoadsOnly}
+            labelSize={labelSize}
+            setLabelSize={setLabelSize}
             />
           )}
           

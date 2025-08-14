@@ -222,7 +222,7 @@ export default function useTransitVolumesLayer({
                                 50, 14,
                                 100, 16
                             ],
-                            "line-color": "#010753"
+                            "line-color": "#00ffff"
                         }
                     }, insertBelow);
                     

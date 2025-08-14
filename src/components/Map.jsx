@@ -68,6 +68,7 @@ export default function Map(props) {
     setSelectedNetworkFeature:  props.setSelectedNetworkFeature,
     isGraphExpanded:            props.isGraphExpanded,
     resetMapTrigger:            props.resetMapTrigger,
+    labelSize:                  props.labelSize,
     setIsLoading
   });
   
