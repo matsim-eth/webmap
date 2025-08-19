@@ -82,6 +82,6 @@ export default function useCantons({
         duration: 1000,
       });
       
-    }, [mapRef, searchCanton, isSidebarOpen, setClickedCanton, suppressNextSearchZoom]);
+    }, [mapRef, searchCanton, setClickedCanton, suppressNextSearchZoom]);
   }
   

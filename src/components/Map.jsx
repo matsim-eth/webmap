@@ -39,7 +39,6 @@ export default function Map(props) {
     mapReady,
     setClickedCanton:     props.setClickedCanton,
     searchCanton:         props.searchCanton,
-    isSidebarOpen:        props.isSidebarOpen,
     isGraphExpanded:      props.isGraphExpanded,
     suppressNextSearchZoom,
     graphExpandedRef

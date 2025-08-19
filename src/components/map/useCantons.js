@@ -6,7 +6,6 @@ export default function useCantons({
   mapReady,
   setClickedCanton,
   searchCanton,
-  isSidebarOpen,
   isGraphExpanded,
   suppressNextSearchZoom,
   graphExpandedRef
@@ -130,7 +129,6 @@ export default function useCantons({
       mapRef,
       mapReady,
       setClickedCanton,
-      isSidebarOpen,
       isGraphExpanded,
       suppressNextSearchZoom
     ]);
