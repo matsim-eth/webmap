@@ -127,56 +127,6 @@ export default function useTransitSymbologyLayer({
     ]);
     
     
-    // === Line Layer ===
-    useEffect(() => {
-        if (!map || !highlightedLineId || !showLineSymbology || isGraphExpanded !== "TransitVolumes") return;
-        
-        const LINE_LAYER_ID = "transit-symbology-line";
-        
-        const removeLineLayer = () => {
-            if (map.getLayer(LINE_LAYER_ID)) map.removeLayer(LINE_LAYER_ID);
-        };
-        
-        if (!map.getSource("transit-volumes-source")) return;
-        
-        const filterExpr = ["in", highlightedLineId, ["get", "line_ids"]];
-        
-        map.addLayer({
-            id: "transit-symbology-line",
-            type: "line",
-            source: "transit-volumes-source",
-            layout: {
-                "line-join": "round",
-                "line-cap": "round"
-            },
-            paint: {
-                "line-color": [
-                    "interpolate",
-                    ["linear"],
-                    ["get", "filtered_volume"],
-                    0, "#a1d99b",
-                    5, "#74c476",
-                    10, "#41ab5d",
-                    50, "#238b45",
-                    100, "#005a32",
-                ],
-                "line-width": [
-                    "interpolate",
-                    ["linear"],
-                    ["get", "filtered_volume"],
-                    0, 3,
-                    5, 5,
-                    10, 7,
-                    50, 9,
-                    100, 11
-                ],
-                "line-opacity": 1.0
-            },
-            filter: filterExpr
-        }, "transit-volumes-layer");
-        
-        return () => removeLineLayer();
-    }, [mapRef, isGraphExpanded, highlightedLineId, showLineSymbology]);
     
     useEffect(() => {
         if (!map || isGraphExpanded !== "TransitVolumes") return;
