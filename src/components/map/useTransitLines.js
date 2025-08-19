@@ -88,6 +88,8 @@ export default function useTransitLines(
                     // calculate stops that are outside the current canton but on the transit line
                     const outOfCantonStops = interCantonalStopsGeo.features.filter(f => {
                         const stopCanton = f.properties.assigned_canton;
+
+                        console.log(stopCanton)
                         
                         // Safely parse lines array
                         let linesList = [];

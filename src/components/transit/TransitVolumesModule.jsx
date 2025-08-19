@@ -113,7 +113,7 @@ const TransitVolumesModule = ({
     onChange={(e) => setShowLineSymbology(e.target.checked)}
     style={{ marginRight: "0.5rem" }}
     />
-    Toggle Stops / Lines
+    Toggle Stops
     </label>
     
     </div>
@@ -130,17 +130,24 @@ const TransitVolumesModule = ({
       timeRange={timeRange}
       />
       
-      {selectedTransitLink.map((props) => (
-        <TransitLinkHistogram
-        key={props.id}
-        linkId={props.id}
-        highlightedLineId={highlightedLineId}
-        timeRange={timeRange}
-        canton={canton}
-        visualizeLinkId={visualizeLinkId}
-        setVisualizeLinkId={setVisualizeLinkId}
-        />
-      ))}
+      {selectedTransitLink.flatMap((props, idx) => {
+        const ids = Array.isArray(props.link_ids) && props.link_ids.length
+        ? props.link_ids
+        : (props.per_id ? Object.keys(props.per_id) : []);
+        const baseKey = props.link_key_join || String(idx);
+        return ids.map(id => (
+          <TransitLinkHistogram
+          key={`${baseKey}-${String(id)}`}
+          linkId={String(id)}
+          highlightedLineId={highlightedLineId}
+          timeRange={timeRange}
+          canton={canton}
+          visualizeLinkId={visualizeLinkId}
+          setVisualizeLinkId={setVisualizeLinkId}
+          />
+        ));
+      })}
+      
       </>
     )}
     </div>

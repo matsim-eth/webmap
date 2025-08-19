@@ -66,7 +66,6 @@ export default function useTransitLayers({
     selectedTransitModes,
     setIsLoading,
     setSelectedTransitLink,
-    showLineSymbology,
     highlightedLineId 
   });
   

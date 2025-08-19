@@ -8,32 +8,47 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
   const endTick = timeRange?.[1] ?? 96;
   
   // Collect common info (assuming all links share same metadata structure)
-  const linkIds = propertiesList.map((p) => p.id).join(", ");
+  const linkIds = Array.from(
+    new Set(
+      propertiesList.flatMap(p => {
+        if (Array.isArray(p.link_ids) && p.link_ids.length) return p.link_ids.map(String);
+        if (p.per_id && typeof p.per_id === "object") return Object.keys(p.per_id).map(String);
+        return p.id ? [String(p.id)] : [];
+      })
+    )
+  ).join(", ");
+  
   const length = propertiesList[0].length;
   const freespeed = propertiesList[0].freespeed;
   const allModes = Array.from(new Set(propertiesList.flatMap((p) => p.modes || [])));
+  // Build merged lines dict, preserving name + mode if present
   const allLines = {};
   
   for (const p of propertiesList) {
-    for (const [lineId, line] of Object.entries(p.lines || {})) {
+    const lines = p.lines || {};
+    for (const [lineId, line] of Object.entries(lines)) {
+      const lineName = line.line_name ?? line.lineName ?? line.name ?? null; // handle snake/camel
+      const mode = line.mode ?? null;
+      
       if (!allLines[lineId]) {
         allLines[lineId] = {
-          ...line,
-          total: line.total ?? 0,
-          timeBins: { ...(line.timeBins || {}) }
+          total: 0,
+          timeBins: {},
+          line_name: lineName,
+          mode
         };
       } else {
-        // Merge total
-        allLines[lineId].total += line.total ?? 0;
-        
-        // Merge timeBins
-        const existingBins = allLines[lineId].timeBins;
-        const newBins = line.timeBins || {};
-        
-        for (const key in newBins) {
-          existingBins[key] = (existingBins[key] ?? 0) + newBins[key];
-        }
+        if (!allLines[lineId].line_name && lineName) allLines[lineId].line_name = lineName;
+        if (!allLines[lineId].mode && mode) allLines[lineId].mode = mode;
       }
+      
+      // Merge total
+      if (typeof line.total === "number") allLines[lineId].total += line.total ?? 0;
+      
+      // Merge timeBins
+      const dest = allLines[lineId].timeBins;
+      const src = line.timeBins || {};
+      for (const key in src) dest[key] = (dest[key] ?? 0) + (src[key] ?? 0);
     }
   }
   // Total volumes
@@ -101,7 +116,7 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
       className={`mode-badge ${activeBadge === lineId ? "active" : ""}`}
       onClick={() => handleBadgeClick(lineId)}
       >
-      {line.lineName || lineId} ({line.mode})
+      {line.line_name || lineId} ({line.mode})
       </span>
     ))}
     </div>

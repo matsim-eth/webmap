@@ -311,6 +311,10 @@ export default function useTransitStops({
         map.setFilter(id, modeFilter);
       }
     });
+
+      map.setPaintProperty("transit-stops-layer", "circle-opacity", 1);
+      map.setPaintProperty("transit-stops-layer", "circle-stroke-opacity", 1.0);
+      map.setPaintProperty("transit-stops-label", "text-opacity", 1.0);
   })
   .catch(err => {
     console.error("Error loading transit data:", err);
