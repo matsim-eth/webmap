@@ -18,8 +18,43 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
     )
   ).join(", ");
   
-  const length = propertiesList[0].length;
-  const freespeed = propertiesList[0].freespeed;
+  // Helpers for dedup rows like the MATSim network table
+  const fmtNum = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? `${Math.round(n)}` : "-";
+  };
+  const fmtSpeed = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? `${Math.round(n * 3.6)} km/h` : "-"; // m/s -> km/h
+  };
+  const allEqual = (arr) => (arr.length === 0 ? true : arr.every((x) => x === arr[0]));
+
+  // Collect per_id numeric values across all selected features
+  const collectPerIdValues = (propKey) => {
+    const seen = new Map(); // id -> number
+    for (const p of propertiesList) {
+      let per = p?.per_id;
+      if (typeof per === "string") {
+        try { per = JSON.parse(per); } catch { per = null; }
+      }
+      if (!per || typeof per !== "object") continue;
+      for (const [id, obj] of Object.entries(per)) {
+        const num = Number(obj?.[propKey]);
+        if (Number.isFinite(num) && !seen.has(String(id))) {
+          seen.set(String(id), num);
+        }
+      }
+    }
+    return Array.from(seen.entries()).map(([id, num]) => ({ id, num }));
+  };
+
+  const getFirstTopLevelNumber = (propKey) => {
+    for (const p of propertiesList) {
+      const num = Number(p?.[propKey]);
+      if (Number.isFinite(num)) return num;
+    }
+    return undefined;
+  };
   const allModes = Array.from(new Set(propertiesList.flatMap((p) => p.modes || [])));
   // Build merged lines dict, preserving name + mode if present
   const allLines = {};
@@ -89,8 +124,69 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
     <tr><td>Link(s)</td><td>{linkIds}</td></tr>
     <tr><td>Modes</td><td>{allModes.join(", ")}</td></tr>
     <tr><td>Lines</td><td>{lineEntries.length}</td></tr>
-    <tr><td>Length</td><td>{length?.toFixed(1)} m</td></tr>
-    <tr><td>Freespeed</td><td>{(freespeed * 3.6).toFixed(1)} km/h</td></tr>
+    {/* Length (per-id dedup) */}
+    {(() => {
+      const vals = collectPerIdValues("length");
+      if (vals.length === 0) {
+        const top = getFirstTopLevelNumber("length");
+        return (
+          <tr>
+            <td>Length</td>
+            <td>{Number.isFinite(top) ? `${fmtNum(top)} m` : "-"}</td>
+          </tr>
+        );
+      }
+      const only = vals.map(v => v.num);
+      const equal = allEqual(only);
+      return (
+        <tr>
+          <td>Length</td>
+          <td>
+            {equal ? (
+              <div>{`${fmtNum(only[0])} m`}</div>
+            ) : (
+              vals.map(({ id, num }) => (
+                <div key={id} style={{ marginBottom: "0.25rem" }}>
+                  {`${fmtNum(num)} m`} <span style={{ color: "#888" }}>(ID: {id})</span>
+                </div>
+              ))
+            )}
+          </td>
+        </tr>
+      );
+    })()}
+
+    {/* Freespeed (per-id dedup) */}
+    {(() => {
+      const vals = collectPerIdValues("freespeed");
+      if (vals.length === 0) {
+        const top = getFirstTopLevelNumber("freespeed");
+        return (
+          <tr>
+            <td>Freespeed</td>
+            <td>{Number.isFinite(top) ? fmtSpeed(top) : "-"}</td>
+          </tr>
+        );
+      }
+      const only = vals.map(v => v.num);
+      const equal = allEqual(only);
+      return (
+        <tr>
+          <td>Freespeed</td>
+          <td>
+            {equal ? (
+              <div>{fmtSpeed(only[0])}</div>
+            ) : (
+              vals.map(({ id, num }) => (
+                <div key={id} style={{ marginBottom: "0.25rem" }}>
+                  {fmtSpeed(num)} <span style={{ color: "#888" }}>(ID: {id})</span>
+                </div>
+              ))
+            )}
+          </td>
+        </tr>
+      );
+    })()}
     <tr>
     <td>Volumes</td>
     <td>

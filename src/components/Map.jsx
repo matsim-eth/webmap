@@ -126,7 +126,7 @@ export default function Map(props) {
       {isLoading && (
         <div className="map-loading-overlay">
         <div className="spinner" />
-        <div className="loading-text">Loading network…</div>
+        <div className="loading-text">Loading network...</div>
         </div>
       )}
       <div ref={mapContainerRef} style={{ width:'100%',height:'100%' }}/>
