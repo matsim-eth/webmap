@@ -55,84 +55,89 @@ export default function useNetworkLayers({
     
     return { left, right, total: left + right };
   };
-
+  
   // ── Label helpers ───────────────────────────────────────────────────────
-const LABEL_IDS = ['network-label-left', 'network-label-right'];
-const offsetEm = 1;
-
-// west-ish if angle in (90, 180] ∪ (-180, -90]
-const offsetPos = ['any', ['>', ['get', 'angle'], 90], ['<=', ['get', 'angle'], -90]];
-
-const setLabelVisibility = (map, visible) => {
-  const v = visible ? 'visible' : 'none';
-  LABEL_IDS.forEach(id => { if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', v); });
-};
-
-const removeLabelLayers = (map) => {
-  LABEL_IDS.forEach(id => { if (map.getLayer(id)) map.removeLayer(id); });
-};
-
-const applyLabelFilter = (map, showMajorRoadsOnly) => {
-  const labelFilter = showMajorRoadsOnly ? ['>', ['get', 'capacity'], 1200] : null;
-  LABEL_IDS.forEach(id => { if (map.getLayer(id)) map.setFilter(id, labelFilter); });
-};
-
-const addLabelLayersIfMissing = (map) => {
-  if (!map.getSource('network-source')) return;
-
-  // LEFT (always ABOVE): "← NNN"
-  if (!map.getLayer('network-label-left')) {
-    map.addLayer({
-      id: 'network-label-left',
-      type: 'symbol',
-      source: 'network-source',
-      minzoom: 15,
-      layout: {
-        'symbol-placement': 'line-center',
-        'symbol-spacing': 9999999, // no repeat
-        'text-keep-upright': true,
-        'text-field': [
-          'case',
-          ['==', ['round', ['number', ['get', 'right_sum'], 0]], 0],
-          '',
-          ['concat', ['to-string', ['round', ['number', ['get', 'right_sum'], 0]]], ' \u2192']
-        ],
-        'text-size': Number(labelSize) || 11,             // ← numeric, no variables
-        'text-offset': [0, ['case', offsetPos, -offsetEm, offsetEm]], // flip when west-ish
-        'text-allow-overlap': true,
-        'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold']
-      },
-      paint: { 'text-halo-width': 1, 'text-halo-color': '#ffffff' }
-    }, 'network-layer');
-  }
-
-  // RIGHT (always BELOW): "NNN →"
-  if (!map.getLayer('network-label-right')) {
-    map.addLayer({
-      id: 'network-label-right',
-      type: 'symbol',
-      source: 'network-source',
-      minzoom: 15,
-      layout: {
-        'symbol-placement': 'line-center',
-        'symbol-spacing': 9999999,
-        'text-keep-upright': true,
-        'text-field': [
-          'case',
-          ['==', ['round', ['number', ['get', 'left_sum'], 0]], 0],
-          '',
-          ['concat', '\u2190 ', ['to-string', ['round', ['number', ['get', 'left_sum'], 0]]]]
-        ],
-        'text-size': Number(labelSize) || 11,             // ← numeric, no variables
-        'text-offset': [0, ['case', offsetPos, offsetEm, -offsetEm]], // flip when west-ish
-        'text-allow-overlap': true,
-        'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold']
-      },
-      paint: { 'text-halo-width': 1, 'text-halo-color': '#ffffff' }
-    }, 'network-layer');
-  }
-};
-
+  const LABEL_IDS = ['network-label-left', 'network-label-right'];
+  const offsetEm = 1;
+  
+  // west-ish if angle in (90, 180] ∪ (-180, -90]
+  const offsetPos = ['any', ['>', ['get', 'angle'], 90], ['<=', ['get', 'angle'], -90]];
+  
+  const setLabelVisibility = (map, visible) => {
+    const v = visible ? 'visible' : 'none';
+    LABEL_IDS.forEach(id => { if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', v); });
+  };
+  
+  const applyLabelFilter = (map, showMajorRoadsOnly) => {
+    const labelFilter = showMajorRoadsOnly ? ['>', ['get', 'capacity'], 1200] : null;
+    LABEL_IDS.forEach(id => { if (map.getLayer(id)) map.setFilter(id, labelFilter); });
+  };
+  
+  // Ensure labels in Volumes mode are always car-only (optionally major roads only)
+  const applyLabelCarAndMajorFilter = (map, showMajorRoadsOnly) => {
+    const carFilter = ['match', ['index-of', 'car', ['get', 'modes']], -1, false, true];
+    const labelFilter = showMajorRoadsOnly
+    ? ['all', carFilter, ['>', ['get', 'capacity'], 1200]]
+    : carFilter;
+    LABEL_IDS.forEach(id => { if (map.getLayer(id)) map.setFilter(id, labelFilter); });
+  };
+  
+  const addLabelLayersIfMissing = (map) => {
+    if (!map.getSource('network-source')) return;
+    
+    // LEFT (always ABOVE): "← NNN"
+    if (!map.getLayer('network-label-left')) {
+      map.addLayer({
+        id: 'network-label-left',
+        type: 'symbol',
+        source: 'network-source',
+        minzoom: 15,
+        layout: {
+          'symbol-placement': 'line-center',
+          'symbol-spacing': 9999999, // no repeat
+          'text-keep-upright': true,
+          'text-field': [
+            'case',
+            ['==', ['round', ['number', ['get', 'right_sum'], 0]], 0],
+            '',
+            ['concat', ['to-string', ['round', ['number', ['get', 'right_sum'], 0]]], ' \u2192']
+          ],
+          'text-size': Number(labelSize) || 11,             // ← numeric, no variables
+          'text-offset': [0, ['case', offsetPos, -offsetEm, offsetEm]], // flip when west-ish
+          'text-allow-overlap': true,
+          'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold']
+        },
+        paint: { 'text-halo-width': 1, 'text-halo-color': '#ffffff' }
+      }, 'network-layer');
+    }
+    
+    // RIGHT (always BELOW): "NNN →"
+    if (!map.getLayer('network-label-right')) {
+      map.addLayer({
+        id: 'network-label-right',
+        type: 'symbol',
+        source: 'network-source',
+        minzoom: 15,
+        layout: {
+          'symbol-placement': 'line-center',
+          'symbol-spacing': 9999999,
+          'text-keep-upright': true,
+          'text-field': [
+            'case',
+            ['==', ['round', ['number', ['get', 'left_sum'], 0]], 0],
+            '',
+            ['concat', '\u2190 ', ['to-string', ['round', ['number', ['get', 'left_sum'], 0]]]]
+          ],
+          'text-size': Number(labelSize) || 11,             // ← numeric, no variables
+          'text-offset': [0, ['case', offsetPos, offsetEm, -offsetEm]], // flip when west-ish
+          'text-allow-overlap': true,
+          'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold']
+        },
+        paint: { 'text-halo-width': 1, 'text-halo-color': '#ffffff' }
+      }, 'network-layer');
+    }
+  };
+  
   
   // --- LOAD NETWORK (UPDATED to use merged file) -----------------------------
   
@@ -167,55 +172,55 @@ const addLabelLayersIfMissing = (map) => {
     originalNetworkGeoJSON.current = networkGeojson;
     
     const decorateLineVolumesFromPerId = (features) => {
-  for (const f of features) {
-    if (!f?.properties) f.properties = {};
-
-    // Ensure angle exists
-    if (f.geometry?.type === 'LineString' && f.geometry.coordinates?.length > 1) {
-      if (typeof f.properties.angle !== 'number') {
-        const coords = f.geometry.coordinates;
-        const [x0, y0] = coords[0];
-        const [x1, y1] = coords[coords.length - 1];
-        const dx = x1 - x0, dy = y1 - y0;
-        f.properties.angle = (dx === 0 && dy === 0) ? null : (Math.atan2(dy, dx) * 180 / Math.PI);
+      for (const f of features) {
+        if (!f?.properties) f.properties = {};
+        
+        // Ensure angle exists
+        if (f.geometry?.type === 'LineString' && f.geometry.coordinates?.length > 1) {
+          if (typeof f.properties.angle !== 'number') {
+            const coords = f.geometry.coordinates;
+            const [x0, y0] = coords[0];
+            const [x1, y1] = coords[coords.length - 1];
+            const dx = x1 - x0, dy = y1 - y0;
+            f.properties.angle = (dx === 0 && dy === 0) ? null : (Math.atan2(dy, dx) * 180 / Math.PI);
+          }
+        } else {
+          f.properties.angle = null;
+        }
+        
+        // --- Normalize per_id: parse JSON string -> object ---
+        let perId = f.properties.per_id;
+        if (typeof perId === 'string') {
+          try {
+            perId = JSON.parse(perId);
+            f.properties.per_id = perId; // write back normalized object
+          } catch (e) {
+            console.warn('Bad per_id JSON; skipping', e, f);
+            perId = {};
+            f.properties.per_id = {};
+          }
+        } else if (!perId || typeof perId !== 'object' || Array.isArray(perId)) {
+          perId = {};
+          f.properties.per_id = {};
+        }
+        
+        // Aggregate left/right totals from per_id entries
+        let left = 0, right = 0;
+        for (const [, obj] of Object.entries(perId)) {
+          const v = Number(obj?.daily_avg_volume ?? 0);
+          if (obj?.arrow === '←') left += v;
+          else if (obj?.arrow === '→') right += v;
+        }
+        
+        // Ensure these three exist on EVERY feature
+        const fallbackTotal = left + right;
+        f.properties.daily_avg_volume = Number.isFinite(Number(f.properties.daily_avg_volume))
+        ? Number(f.properties.daily_avg_volume)
+        : fallbackTotal;
+        f.properties.left_sum = left;
+        f.properties.right_sum = right;
       }
-    } else {
-      f.properties.angle = null;
-    }
-
-    // --- Normalize per_id: parse JSON string -> object ---
-    let perId = f.properties.per_id;
-    if (typeof perId === 'string') {
-      try {
-        perId = JSON.parse(perId);
-        f.properties.per_id = perId; // write back normalized object
-      } catch (e) {
-        console.warn('Bad per_id JSON; skipping', e, f);
-        perId = {};
-        f.properties.per_id = {};
-      }
-    } else if (!perId || typeof perId !== 'object' || Array.isArray(perId)) {
-      perId = {};
-      f.properties.per_id = {};
-    }
-
-    // Aggregate left/right totals from per_id entries
-    let left = 0, right = 0;
-    for (const [, obj] of Object.entries(perId)) {
-      const v = Number(obj?.daily_avg_volume ?? 0);
-      if (obj?.arrow === '←') left += v;
-      else if (obj?.arrow === '→') right += v;
-    }
-
-    // Ensure these three exist on EVERY feature
-    const fallbackTotal = left + right;
-    f.properties.daily_avg_volume = Number.isFinite(Number(f.properties.daily_avg_volume))
-      ? Number(f.properties.daily_avg_volume)
-      : fallbackTotal;
-    f.properties.left_sum = left;
-    f.properties.right_sum = right;
-  }
-};
+    };
     
     decorateLineVolumesFromPerId(networkGeojson.features);
     map.addSource('network-source', { type: 'geojson', data: networkGeojson });
@@ -244,13 +249,17 @@ const addLabelLayersIfMissing = (map) => {
         0, '#ffffb2', 6.94, '#fed976', 13.89, '#feb24c', 20.83, '#fd8d3c', 27.78, '#fc4e2a', 34.72, '#e31a1c', 41.67, '#b10026']
       }
     });
-
+    
     // ensure labels exist for this source
-addLabelLayersIfMissing(map);
-applyLabelFilter(map, showMajorRoadsOnly);
-
-// if we're not in Volumes, hide them now
-setLabelVisibility(map, graphExpandedRef.current === 'Volumes');
+    addLabelLayersIfMissing(map);
+    if (graphExpandedRef.current === 'Volumes') {
+      applyLabelCarAndMajorFilter(map, showMajorRoadsOnly);
+    } else {
+      applyLabelFilter(map, showMajorRoadsOnly);
+    }
+    
+    // if we're not in Volumes, hide them now
+    setLabelVisibility(map, graphExpandedRef.current === 'Volumes');
     
     updateNetworkFilter(selectedNetworkModesRef.current);
     
@@ -263,11 +272,13 @@ setLabelVisibility(map, graphExpandedRef.current === 'Volumes');
       map.setFilter('click-network-layer', filter);
       map.setFilter('network-layer', filter);
       if (map.getLayer('network-highlight')) map.setFilter('network-highlight', filter);
+      // labels mirror car (+major roads) filter in Volumes
+      applyLabelCarAndMajorFilter(map, showMajorRoadsOnly);
     }
     if (graphExpandedRef.current === 'Volumes') {
-  addLabelLayersIfMissing(map);
-  applyLabelFilter(map, showMajorRoadsOnly);
-}
+      addLabelLayersIfMissing(map);
+      applyLabelCarAndMajorFilter(map, showMajorRoadsOnly);
+    }
     
     const handleIdle = () => { setIsLoading(false); map.off('idle', handleIdle); };
     map.on('idle', handleIdle);
@@ -313,6 +324,13 @@ setLabelVisibility(map, graphExpandedRef.current === 'Volumes');
       ['network-layer', 'click-network-layer', 'network-highlight'].forEach(id => {
         if (map.getLayer(id)) map.setFilter(id, null);
       });
+      // In Volumes, labels stay car-only regardless of sidebar mode filter
+      if (graphExpandedRef.current === 'Volumes') {
+        applyLabelCarAndMajorFilter(map, showMajorRoadsOnly);
+      } else {
+        // In Network, clear label filter too
+        applyLabelFilter(map, null);
+      }
     } else {
       const filter = [
         'any',
@@ -321,6 +339,13 @@ setLabelVisibility(map, graphExpandedRef.current === 'Volumes');
       ['network-layer', 'click-network-layer', 'network-highlight'].forEach(id => {
         if (map.getLayer(id)) map.setFilter(id, filter);
       });
+      if (graphExpandedRef.current === 'Volumes') {
+        // Keep labels car-only in Volumes
+        applyLabelCarAndMajorFilter(map, showMajorRoadsOnly);
+      } else {
+        // Mirror selected modes to labels in Network view
+        LABEL_IDS.forEach(id => { if (map.getLayer(id)) map.setFilter(id, filter); });
+      }
     }
   };
   
@@ -329,21 +354,21 @@ setLabelVisibility(map, graphExpandedRef.current === 'Volumes');
     selectedNetworkModesRef.current = selectedNetworkModes;
     updateNetworkFilter(selectedNetworkModes);
   }, [selectedNetworkModes]);
-
-
+  
+  
   // update label size on map
   useEffect(() => {
-  const map = mapRef.current;
-  if (!map) return;
-  if (graphExpandedRef.current !== 'Volumes') return;
-
-  const ids = ['network-label-left', 'network-label-right'];
-  ids.forEach(id => {
-    if (map.getLayer(id)) {
-      map.setLayoutProperty(id, 'text-size', Number(labelSize) || 11);
-    }
-  });
-}, [labelSize, isGraphExpanded]); 
+    const map = mapRef.current;
+    if (!map) return;
+    if (graphExpandedRef.current !== 'Volumes') return;
+    
+    const ids = ['network-label-left', 'network-label-right'];
+    ids.forEach(id => {
+      if (map.getLayer(id)) {
+        map.setLayoutProperty(id, 'text-size', Number(labelSize) || 11);
+      }
+    });
+  }, [labelSize, isGraphExpanded]); 
   
   // major roads filter changes
   useEffect(() => {
@@ -367,8 +392,8 @@ setLabelVisibility(map, graphExpandedRef.current === 'Volumes');
     
     // filter labels too
     if (graphExpandedRef.current === 'Volumes') {
-  applyLabelFilter(map, showMajorRoadsOnly);
-}
+      applyLabelCarAndMajorFilter(map, showMajorRoadsOnly);
+    }
   }, [showMajorRoadsOnly, isGraphExpanded, originalNetworkGeoJSON]);
   
   // ANT PATH (unchanged)
@@ -378,7 +403,7 @@ setLabelVisibility(map, graphExpandedRef.current === 'Volumes');
   useEffect(() => {
     const map = mapRef.current;
     const canton = searchCanton;
-
+    
     if (!map || !canton) return;
     
     const hide = () => ['network-layer','click-network-layer','network-highlight',
@@ -404,6 +429,9 @@ setLabelVisibility(map, graphExpandedRef.current === 'Volumes');
             loadNetworkForCanton(canton);
             addLabelLayersIfMissing(map);          
             applyLabelFilter(map, showMajorRoadsOnly);
+            if (graphExpandedRef.current === 'Volumes') {
+              applyLabelCarAndMajorFilter(map, showMajorRoadsOnly);
+            }
           }
         } else {
           hide();
@@ -514,4 +542,5 @@ setLabelVisibility(map, graphExpandedRef.current === 'Volumes');
           setSelectedNetworkFeature(null);
         }, [resetMapTrigger]);
       }
+      
       
