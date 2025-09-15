@@ -10,7 +10,8 @@ export default function useTransitStops({
   setSelectedTransitStop,
   setHighlightedLineId,
   setHighlightedRouteIds,
-  highlightedLineId
+  highlightedLineId,
+  suppressNextSearchZoom
 }) {
   
   useEffect(() => {
@@ -84,12 +85,12 @@ export default function useTransitStops({
         };
       }
       
-              
-        updatedGeoJSON.features.forEach((f) => {
-          const lines = f.properties.lines || [];
-          f.properties.line_ids = lines.map(l => l.line_id);
-        });
-
+      
+      updatedGeoJSON.features.forEach((f) => {
+        const lines = f.properties.lines || [];
+        f.properties.line_ids = lines.map(l => l.line_id);
+      });
+      
       // === Add or update source ===
       if (map.getSource("transit-stops")) {
         map.getSource("transit-stops").setData(updatedGeoJSON);
@@ -311,10 +312,34 @@ export default function useTransitStops({
         map.setFilter(id, modeFilter);
       }
     });
+    
+    map.setPaintProperty("transit-stops-layer", "circle-opacity", 1);
+    map.setPaintProperty("transit-stops-layer", "circle-stroke-opacity", 1.0);
+    map.setPaintProperty("transit-stops-label", "text-opacity", 1.0);
 
-      map.setPaintProperty("transit-stops-layer", "circle-opacity", 1);
-      map.setPaintProperty("transit-stops-layer", "circle-stroke-opacity", 1.0);
-      map.setPaintProperty("transit-stops-label", "text-opacity", 1.0);
+    // If this canton load was triggered by an inter-cantonal stop click and a line is selected,
+    // apply CASE-based opacity so only stops on that line are fully opaque.
+    if (suppressNextSearchZoom?.current && highlightedLineId) {
+      const hasLineHere = (updatedGeoJSON.features || []).some(
+        (f) => Array.isArray(f.properties.line_ids) && f.properties.line_ids.includes(highlightedLineId)
+      );
+      if (hasLineHere) {
+        const applyMask = () => {
+          const matchLineExpr = ["in", highlightedLineId, ["get", "line_ids"]];
+          if (map.getLayer("transit-stops-layer")) {
+            map.setPaintProperty("transit-stops-layer", "circle-opacity", ["case", matchLineExpr, 1, 0.2]);
+            map.setPaintProperty("transit-stops-layer", "circle-stroke-opacity", ["case", matchLineExpr, 1.0, 0.2]);
+          }
+          if (map.getLayer("transit-stops-label")) {
+            map.setPaintProperty("transit-stops-label", "text-opacity", ["case", matchLineExpr, 1.0, 0.2]);
+          }
+        };
+        map.once("idle", applyMask);
+        setTimeout(applyMask, 300);
+      }
+      // Clear flag so normal canton selections do not mask
+      suppressNextSearchZoom.current = false;
+    }
   })
   .catch(err => {
     console.error("Error loading transit data:", err);
