@@ -77,6 +77,15 @@ const applyLabelFilter = (map, showMajorRoadsOnly) => {
   LABEL_IDS.forEach(id => { if (map.getLayer(id)) map.setFilter(id, labelFilter); });
 };
 
+// Apply car-only (and optional major roads) filtering to label layers
+const applyLabelCarAndMajorFilter = (map, showMajorRoadsOnly) => {
+  const carFilter = ['match', ['index-of', 'car', ['get', 'modes']], -1, false, true];
+  const labelFilter = showMajorRoadsOnly
+    ? ['all', carFilter, ['>', ['get', 'capacity'], 1200]]
+    : carFilter;
+  LABEL_IDS.forEach(id => { if (map.getLayer(id)) map.setFilter(id, labelFilter); });
+};
+
 const addLabelLayersIfMissing = (map) => {
   if (!map.getSource('network-source')) return;
 
@@ -263,6 +272,8 @@ setLabelVisibility(map, graphExpandedRef.current === 'Volumes');
       map.setFilter('click-network-layer', filter);
       map.setFilter('network-layer', filter);
       if (map.getLayer('network-highlight')) map.setFilter('network-highlight', filter);
+      // ensure labels mirror car (+ major roads) filter
+      applyLabelCarAndMajorFilter(map, showMajorRoadsOnly);
     }
     if (graphExpandedRef.current === 'Volumes') {
   addLabelLayersIfMissing(map);
@@ -313,6 +324,10 @@ setLabelVisibility(map, graphExpandedRef.current === 'Volumes');
       ['network-layer', 'click-network-layer', 'network-highlight'].forEach(id => {
         if (map.getLayer(id)) map.setFilter(id, null);
       });
+      // In Volumes view, labels should still be car-only
+      if (graphExpandedRef.current === 'Volumes') {
+        applyLabelCarAndMajorFilter(map, showMajorRoadsOnly);
+      }
     } else {
       const filter = [
         'any',
@@ -321,6 +336,13 @@ setLabelVisibility(map, graphExpandedRef.current === 'Volumes');
       ['network-layer', 'click-network-layer', 'network-highlight'].forEach(id => {
         if (map.getLayer(id)) map.setFilter(id, filter);
       });
+      // In Volumes view, labels are always car-only regardless of sidebar modes
+      if (graphExpandedRef.current === 'Volumes') {
+        applyLabelCarAndMajorFilter(map, showMajorRoadsOnly);
+      } else {
+        // In Network view (if labels visible), mirror mode filter to labels
+        LABEL_IDS.forEach(id => { if (map.getLayer(id)) map.setFilter(id, filter); });
+      }
     }
   };
   
@@ -367,8 +389,9 @@ setLabelVisibility(map, graphExpandedRef.current === 'Volumes');
     
     // filter labels too
     if (graphExpandedRef.current === 'Volumes') {
-  applyLabelFilter(map, showMajorRoadsOnly);
-}
+      applyLabelFilter(map, showMajorRoadsOnly);
+      applyLabelCarAndMajorFilter(map, showMajorRoadsOnly);
+    }
   }, [showMajorRoadsOnly, isGraphExpanded, originalNetworkGeoJSON]);
   
   // ANT PATH (unchanged)
