@@ -47,8 +47,10 @@ export default function useCantons({
       
       // if we suppress next zoom, dont do anything
       if (suppressNextSearchZoom.current) {
-        suppressNextSearchZoom.current = false;
         console.log('suppressing search zoom');
+
+        // note we reset supressnextSearchZoom in useTransitStops after we apply the opacity filter to stops
+        // not corresponding to the currently selected transit line
         return;
       }
       

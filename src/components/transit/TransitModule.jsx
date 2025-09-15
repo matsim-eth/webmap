@@ -1,9 +1,10 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import TransitStopAttributesTable from "./TransitStopAttributesTable";
 import TransitStopHistogram from "./TransitStopHistogram";
 import { marks, formatTimeLabel } from "../../utils/timeSliderUtils";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
+import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
 
 
 const TransitModule = ({
@@ -23,6 +24,30 @@ const TransitModule = ({
 }) => {
     
     const [filteredStopVolumes, setFilteredStopVolumes] = useState(null); // total filtered volumes per stop
+    const loadWithFallback = useLoadWithFallback();
+
+    // If a new line is selected and its mode is not included in the current filter,
+    // reset the mode filter to "all" so the line remains visible.
+    useEffect(() => {
+        const resetIfExcluded = async () => {
+            if (!highlightedLineId) return;
+            if (!Array.isArray(selectedTransitModes)) return;
+            if (selectedTransitModes.includes("all")) return;
+            try {
+                const routes = await loadWithFallback("matsim/transit/routes/transit_routes.geojson");
+                const feat = routes?.features?.find(
+                    (f) => String(f?.properties?.line_id) === String(highlightedLineId)
+                );
+                const mode = feat?.properties?.mode && String(feat.properties.mode);
+                if (mode && !selectedTransitModes.includes(mode)) {
+                    setSelectedTransitModes(["all"]);
+                }
+            } catch (e) {
+                // ignore fetch/parse issues silently
+            }
+        };
+        resetIfExcluded();
+    }, [highlightedLineId]);
 
     // Push to Map the selected transit stop mode filter
     const handleTransitModeChange = (event) => {
@@ -111,6 +136,16 @@ const TransitModule = ({
             }}
             highlightedLineId={highlightedLineId}
             onLineClick={(lineId, routeIds) => {
+                if (lineId) {
+                  // Determine mode of the clicked line from the current stop's lines
+                  const allLines = Array.isArray(selectedTransitStop?.lines) ? selectedTransitStop.lines : [];
+                  const match = allLines.find(l => String(l?.line_id) === String(lineId));
+                  const mode = match?.mode && String(match.mode);
+                  if (mode && Array.isArray(selectedTransitModes) && !selectedTransitModes.includes('all') && !selectedTransitModes.includes(mode)) {
+                    // Reset filter to all first so the line will be visible
+                    setSelectedTransitModes(['all']);
+                  }
+                }
                 setHighlightedLineId(lineId);
                 setHighlightedRouteIds(routeIds);
             }}

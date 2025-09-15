@@ -46,27 +46,37 @@ export default function useChoropleth({
   
   // Set choropleth colours for cantons
   useEffect(() => {
-    
     const map = mapRef.current;
-    if (!map.getLayer("canton-fill")) return;
-    
-    if (selectedMode === "None" || isGraphExpanded !== "Choropleth"){
+    if (!map || !map.getLayer("canton-fill")) return;
+
+    // Reset to base style when not active or no mode selected
+    const setBaseStyle = () => {
       map.setPaintProperty("canton-fill", "fill-opacity", 0.15);
       map.setPaintProperty("canton-fill", "fill-color", "#A07CC5");
+    };
+
+    if (selectedMode === "None" || isGraphExpanded !== "Choropleth") {
+      setBaseStyle();
       return;
     }
-    
+
+    // Need data to compute color stops; if missing, fall back
+    if (!modeShareData) {
+      setBaseStyle();
+      return;
+    }
+
     // Dynamic key based on aggCol
     const key = aggCol || "mode"; // fallback for safety
     let colorStops = {};
-    
+
     if (selectedDataset === "Difference") {
-      const micro = modeShareData["Microcensus"].filter(entry => entry[key] === selectedMode);
-      const synthetic = modeShareData["Synthetic"].filter(entry => entry[key] === selectedMode);
-      
-      const microMap = Object.fromEntries(micro.map(e => [e.canton_name, e.share]));
-      const syntheticMap = Object.fromEntries(synthetic.map(e => [e.canton_name, e.share]));
-      
+      const micro = (modeShareData["Microcensus"] || []).filter((entry) => entry[key] === selectedMode);
+      const synthetic = (modeShareData["Synthetic"] || []).filter((entry) => entry[key] === selectedMode);
+
+      const microMap = Object.fromEntries(micro.map((e) => [e.canton_name, e.share]));
+      const syntheticMap = Object.fromEntries(synthetic.map((e) => [e.canton_name, e.share]));
+
       colorStops = Object.keys(microMap).reduce((acc, canton) => {
         const diff = Math.abs((syntheticMap[canton] || 0) - (microMap[canton] || 0));
         const clampedDiff = Math.min(diff, 0.1);
@@ -75,23 +85,30 @@ export default function useChoropleth({
         return acc;
       }, {});
     } else {
+      const dataset = modeShareData[selectedDataset] || [];
       const maxShare = maxSharePerMode?.[selectedMode] || 1;
-      colorStops = modeShareData[selectedDataset]
-      .filter(entry => entry[key] === selectedMode)
-      .reduce((acc, entry) => {
-        const normalizedShare = entry.share / maxShare;
-        const colorMap = (COLOR_MAPS?.[aggCol] || {});
-        acc[entry.canton_name] = `rgb(${interpolateColor("#FFFFFF", colorMap[selectedMode] || "#888", normalizedShare)})`;
-        return acc;
-      }, {});
+      const colorMap = COLOR_MAPS?.[aggCol] || {};
+      colorStops = dataset
+        .filter((entry) => entry[key] === selectedMode)
+        .reduce((acc, entry) => {
+          const normalizedShare = maxShare > 0 ? entry.share / maxShare : 0;
+          acc[entry.canton_name] = `rgb(${interpolateColor("#FFFFFF", colorMap[selectedMode] || "#888", normalizedShare)})`;
+          return acc;
+        }, {});
     }
-    
+
+    // If no stops available (e.g., mode not present for aggCol), revert to base
+    if (!colorStops || Object.keys(colorStops).length === 0) {
+      setBaseStyle();
+      return;
+    }
+
     map.setPaintProperty("canton-fill", "fill-color", [
       "case",
       ...Object.entries(colorStops).flatMap(([canton, color]) => [["==", ["get", "NAME"], canton], color]),
-      "#FFFFFF"
+      "#FFFFFF",
     ]);
-    
+
     map.setPaintProperty("canton-fill", "fill-opacity", 1.0);
   }, [modeShareData, selectedMode, selectedDataset, maxSharePerMode, aggCol, isGraphExpanded]);
 
