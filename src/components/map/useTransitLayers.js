@@ -37,7 +37,8 @@ export default function useTransitLayers({
     setSelectedTransitStop,
     setHighlightedLineId,
     setHighlightedRouteIds,
-    highlightedLineId
+    highlightedLineId,
+    suppressNextSearchZoom
   });
   
   // Add transit lines and interactions
@@ -50,6 +51,7 @@ export default function useTransitLayers({
     loadWithFallback,
     searchCanton,
     showStopVolumeSymbology,
+    selectedTransitModes,
     setClickedCanton,
     setHighlightedLineId,
     setHighlightedRouteIds,

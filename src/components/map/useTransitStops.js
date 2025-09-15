@@ -183,8 +183,9 @@ export default function useTransitStops({
         type: "circle",
         source: "transit-stops",
         paint: {
+          // Use safe fallback when volume is missing
           "circle-radius": [
-            "interpolate", ["linear"], ["get", "volume"],
+            "interpolate", ["linear"], ["to-number", ["get", "volume"], 0],
             0, 10,      // larger than visible
             100, 10,
             500, 15,
@@ -319,7 +320,10 @@ export default function useTransitStops({
 
     // If this canton load was triggered by an inter-cantonal stop click and a line is selected,
     // apply CASE-based opacity so only stops on that line are fully opaque.
+    console.log("suppressNextSearchZoom:", suppressNextSearchZoom?.current, "highlightedLineId:", highlightedLineId);
     if (suppressNextSearchZoom?.current && highlightedLineId) {
+
+      console.log("attempt to mask non-line stops");
       const hasLineHere = (updatedGeoJSON.features || []).some(
         (f) => Array.isArray(f.properties.line_ids) && f.properties.line_ids.includes(highlightedLineId)
       );
@@ -335,7 +339,7 @@ export default function useTransitStops({
           }
         };
         map.once("idle", applyMask);
-        setTimeout(applyMask, 300);
+        setTimeout(applyMask, 500);
       }
       // Clear flag so normal canton selections do not mask
       suppressNextSearchZoom.current = false;

@@ -9,6 +9,7 @@ export default function useTransitLines(
     loadWithFallback,
     searchCanton,
     showStopVolumeSymbology,
+    selectedTransitModes,
     setClickedCanton,
     setHighlightedLineId,
     setHighlightedRouteIds,
@@ -89,8 +90,6 @@ export default function useTransitLines(
                     const outOfCantonStops = interCantonalStopsGeo.features.filter(f => {
                         const stopCanton = f.properties.assigned_canton;
 
-                        console.log(stopCanton)
-                        
                         // Safely parse lines array
                         let linesList = [];
                         try {
@@ -130,7 +129,7 @@ export default function useTransitLines(
                             paint: {
                                 "circle-radius": showStopVolumeSymbology
                                 ? [
-                                    "interpolate", ["linear"], ["get", "volume"],
+                                    "interpolate", ["linear"], ["to-number", ["get", "volume"], 0],
                                     0, 3,
                                     100, 5,
                                     500, 10,
@@ -170,7 +169,7 @@ export default function useTransitLines(
                             paint: {
                                 "circle-radius": showStopVolumeSymbology
                                 ? [
-                                    "interpolate", ["linear"], ["get", "volume"],
+                                    "interpolate", ["linear"], ["to-number", ["get", "volume"], 0],
                                     0, 10,      // larger than visible
                                     100, 10,
                                     500, 15,
@@ -258,6 +257,38 @@ export default function useTransitLines(
             
             loadRoutes();
         }, [highlightedRouteIds, showStopVolumeSymbology, highlightedLineId, hoveredRouteId, isGraphExpanded]);
+
+        // Clear highlighted line if the current mode filter excludes its mode
+        useEffect(() => {
+            const map = mapRef.current;
+            if (!highlightedLineId) return;
+            if (!Array.isArray(selectedTransitModes) || selectedTransitModes.includes('all')) return;
+            if (isGraphExpanded !== 'Transit') return;
+
+            const ensure = async () => {
+                try {
+                    const routes = await loadWithFallback('matsim/transit/routes/transit_routes.geojson');
+                    const f = routes?.features?.find(r => r?.properties?.line_id === highlightedLineId);
+                    const lineMode = f?.properties?.mode && String(f.properties.mode);
+                    if (lineMode && !selectedTransitModes.includes(lineMode)) {
+                        // Clear highlight + layers
+                        setHighlightedLineId(null);
+                        setHighlightedRouteIds([]);
+                        if (map) {
+                            if (map.getLayer('transit-line-highlight')) map.removeLayer('transit-line-highlight');
+                            if (map.getSource('transit-line-highlight')) map.removeSource('transit-line-highlight');
+                            if (map.getLayer('inter-cantonal-stops')) map.removeLayer('inter-cantonal-stops');
+                            if (map.getLayer('inter-cantonal-stops-label')) map.removeLayer('inter-cantonal-stops-label');
+                            if (map.getLayer('inter-cantonal-stops-hitbox')) map.removeLayer('inter-cantonal-stops-hitbox');
+                            if (map.getSource('inter-cantonal-stops')) map.removeSource('inter-cantonal-stops');
+                        }
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            };
+            ensure();
+        }, [selectedTransitModes, highlightedLineId, isGraphExpanded]);
         
         // reset transit line and inter-cantonal stops when canton changes
         useEffect(() => {
