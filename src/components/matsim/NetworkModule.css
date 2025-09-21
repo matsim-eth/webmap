@@ -1,0 +1,27 @@
+/* Make the module a vertical flex container that can push controls to the bottom */
+.network-module-root {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;   /* left-align children by default */
+  height: 100%;           /* parent should provide a height for true bottom pinning */
+}
+
+/* Main content grows and lets the bottom controls sit at the bottom */
+.network-content {
+  flex: 1 1 auto;
+}
+
+/* Bottom controls: left-aligned, single line, sits at the bottom via margin-top:auto */
+.network-bottom-controls {
+  margin-top: auto;       /* pushes this block to the bottom of the module */
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;  /* left align */
+  gap: 8px;
+  padding-top: 8px;       /* space above buttons */
+}
+
+/* Ensure button text never wraps */
+.network-bottom-controls .search-button {
+  white-space: nowrap;
+}
