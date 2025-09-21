@@ -14,7 +14,8 @@ export default function useNetworkLayers({
   resetMapTrigger,
   graphExpandedRef,
   setIsLoading,
-  labelSize
+  labelSize,
+  setFeatureGeoJSON
 }) {
   const [linkVolumeData, setLinkVolumeData] = useState(null);
   const originalNetworkGeoJSON = useRef(null);
@@ -165,9 +166,14 @@ export default function useNetworkLayers({
       networkGeojson = await loadWithFallback(relativePath);
     } catch (error) {
       console.warn(`Failed to load network`, error);
+      // clear prop if failed
+      setFeatureGeoJSON?.(null);
       return;
     }
-    if (!networkGeojson) return;
+    if (!networkGeojson) {
+      setFeatureGeoJSON?.(null);
+      return;
+    }
     
     originalNetworkGeoJSON.current = networkGeojson;
     
@@ -223,6 +229,9 @@ export default function useNetworkLayers({
     };
     
     decorateLineVolumesFromPerId(networkGeojson.features);
+
+    setFeatureGeoJSON?.(networkGeojson);
+
     map.addSource('network-source', { type: 'geojson', data: networkGeojson });
     
     map.addLayer({
@@ -539,6 +548,7 @@ export default function useNetworkLayers({
           
           originalNetworkGeoJSON.current = null;
           setLinkVolumeData(null);
+          setFeatureGeoJSON?.(null); 
           setSelectedNetworkFeature(null);
         }, [resetMapTrigger]);
       }

@@ -26,6 +26,10 @@ function App() {
   // Intialize reference to store Mapbox instance
   const mapRef = useRef(null);
   
+  // Pass network geojson to FeatureTable
+  const [featureGeoJSON, setFeatureGeoJSON] = useState(null);
+
+
   // Matsim network modes (MatSIM network module)
   const [selectedNetworkModes, setSelectedNetworkModes] = useState(["all"]);
   
@@ -128,6 +132,7 @@ function App() {
     aggCol={aggCol}
     resetMapTrigger={resetMapTrigger} // from sidebar, to reset map
     labelSize={labelSize} // from sidebar
+    setFeatureGeoJSON={setFeatureGeoJSON}
     />
     
     <Sidebar
@@ -143,6 +148,7 @@ function App() {
     selectedNetworkModes={selectedNetworkModes} // to map
     setSelectedNetworkModes={setSelectedNetworkModes} // to change value
     selectedNetworkFeature={selectedNetworkFeature} // from map
+    setSelectedNetworkFeature={setSelectedNetworkFeature} 
     selectedTransitLink={selectedTransitLink} // from map
     visualizeLinkId={visualizeLinkId} // from map
     setVisualizeLinkId={setVisualizeLinkId} // to map
@@ -167,6 +173,7 @@ function App() {
     setResetMapTrigger={setResetMapTrigger} // to map
     labelSize={labelSize}
     setLabelSize={setLabelSize} // to map
+    featureGeoJSON={featureGeoJSON}
     />
     
     <NetworkLegend

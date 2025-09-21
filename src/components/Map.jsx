@@ -68,7 +68,8 @@ export default function Map(props) {
     isGraphExpanded:            props.isGraphExpanded,
     resetMapTrigger:            props.resetMapTrigger,
     labelSize:                  props.labelSize,
-    setIsLoading
+    setIsLoading,
+    setFeatureGeoJSON:          props.setFeatureGeoJSON,
   });
   
   useTransitLayers({ 
