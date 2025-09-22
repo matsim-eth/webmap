@@ -26,9 +26,11 @@ function App() {
   // Intialize reference to store Mapbox instance
   const mapRef = useRef(null);
   
+  // Track if table is open or not
+  const [isFeatureTableOpen, setIsFeatureTableOpen] = useState(false);
+
   // Pass network geojson to FeatureTable
   const [featureGeoJSON, setFeatureGeoJSON] = useState(null);
-
 
   // Matsim network modes (MatSIM network module)
   const [selectedNetworkModes, setSelectedNetworkModes] = useState(["all"]);
@@ -93,6 +95,8 @@ function App() {
     setTimeRange([0, 96]); // Reset time range to default
     setShowMajorRoadsOnly(true); // Reset major roads toggle
     setShowStopVolumeSymbology(false); // Reset stop volume symbology toggle
+
+    setIsFeatureTableOpen(false); // Close feature table if open
   };
   
   return (
@@ -133,6 +137,8 @@ function App() {
     resetMapTrigger={resetMapTrigger} // from sidebar, to reset map
     labelSize={labelSize} // from sidebar
     setFeatureGeoJSON={setFeatureGeoJSON}
+    isFeatureTableOpen={isFeatureTableOpen} // from sidebar
+    setIsFeatureTableOpen={setIsFeatureTableOpen}
     />
     
     <Sidebar
@@ -174,6 +180,8 @@ function App() {
     labelSize={labelSize}
     setLabelSize={setLabelSize} // to map
     featureGeoJSON={featureGeoJSON}
+    isFeatureTableOpen={isFeatureTableOpen}
+    setIsFeatureTableOpen={setIsFeatureTableOpen}
     />
     
     <NetworkLegend

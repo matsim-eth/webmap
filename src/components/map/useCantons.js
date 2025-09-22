@@ -8,9 +8,10 @@ export default function useCantons({
   searchCanton,
   isGraphExpanded,
   suppressNextSearchZoom,
-  graphExpandedRef
+  graphExpandedRef,
+  setIsFeatureTableOpen
 }) {
-
+  
   // 1) load cantons + add layers
   useEffect(() => {
     if (!mapReady) return; // only run when map is ready
@@ -67,6 +68,7 @@ export default function useCantons({
     if (!mapReady) return; // only run when map is ready
     const map = mapRef.current;
     if (!map) return;
+
     
     const handleMapClick = (e) => {
       
@@ -82,6 +84,7 @@ export default function useCantons({
         const cantonBbox = bboxCache[cantonName];
         
         setClickedCanton(cantonName);
+        setIsFeatureTableOpen(false);
         
         // Show the red border only for the selected canton
         map.setFilter('selected-canton-border', ['==', 'NAME', cantonName]);
@@ -95,7 +98,8 @@ export default function useCantons({
         let rightPadding = 50; // Default for collapsed sidebar
         
         
-        if (graphExpandedRef.current === "Graph 3" || graphExpandedRef.current === "Graph 4") {
+        if (graphExpandedRef.current === "Graph 3" || graphExpandedRef.current === "Graph 4"
+        ) {
           rightPadding = 950; // Adjust for 900px width
         } else if (
           graphExpandedRef.current === "Graph 1" 
@@ -113,6 +117,7 @@ export default function useCantons({
             rightPadding = 350; // Default open sidebar
           }
           
+          console.log('Zooming to canton with right padding:', rightPadding);
           map.fitBounds(cantonBbox, {
             padding: { top: 50, bottom: 50, left: 50, right: rightPadding },
             maxZoom: 10,
