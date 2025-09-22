@@ -165,8 +165,8 @@ const FeatureTable = ({
       const columns = [
         { data: "segmentLabel", title: "Segment IDs" },
         { data: "directionId",  title: "Direction" },
-        { data: { _: "length_fmt",    sort: "length"    }, title: "Length (m)" },
-        { data: { _: "freeSpeed_fmt", sort: "freeSpeed" }, title: "Free Speed (km/h)" },
+        { data: { _: "length_fmt",    sort: "length"    }, title: "Length [m]" },
+        { data: { _: "freeSpeed_fmt", sort: "freeSpeed" }, title: "Free Speed [km/h]" },
         { data: { _: "capacity_fmt",  sort: "capacity"  }, title: "Capacity" },
         { data: { _: "dailyAvg_fmt",  sort: "dailyAvg"  }, title: "Avg Daily Volume" },
         {
