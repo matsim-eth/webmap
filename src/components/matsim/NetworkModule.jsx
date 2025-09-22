@@ -68,14 +68,13 @@ const NetworkModule = ({
 
   useEffect(() => () => onFocusNetworkFeature?.(null), [onFocusNetworkFeature]);
 
-  useEffect(() => {
+  const ensureRowsForCanton = useCallback(() => {
     if (!canton || !featureGeoJSON) {
-      setRowsReady(true);
       setTableRows([]);
+      setRowsReady(false);
       onTableRowsChange?.(false);
       return;
     }
-    setRowsReady(false);
     const cacheKey = canton;
     const cached = cachedRowsRef.current.get(cacheKey);
     if (cached && cached.source === featureGeoJSON) {
@@ -90,6 +89,35 @@ const NetworkModule = ({
     setRowsReady(true);
     onTableRowsChange?.(builtRows.length > 0);
   }, [canton, featureGeoJSON, onTableRowsChange]);
+
+  useEffect(() => {
+    if (!canton || !featureGeoJSON) {
+      if (!canton) {
+        cachedRowsRef.current.clear();
+      }
+      setTableRows([]);
+      setRowsReady(false);
+      onTableRowsChange?.(false);
+      return;
+    }
+    const cached = cachedRowsRef.current.get(canton);
+    if (cached && cached.source === featureGeoJSON) {
+      setTableRows(cached.rows);
+      setRowsReady(true);
+      onTableRowsChange?.(cached.rows.length > 0);
+    } else {
+      cachedRowsRef.current.delete(canton);
+      setTableRows([]);
+      setRowsReady(false);
+      onTableRowsChange?.(false);
+    }
+  }, [canton, featureGeoJSON, onTableRowsChange]);
+
+  useEffect(() => {
+    if (showTable) {
+      ensureRowsForCanton();
+    }
+  }, [showTable, ensureRowsForCanton]);
 
   const handleTableRowSelect = useCallback(
     (row) => {

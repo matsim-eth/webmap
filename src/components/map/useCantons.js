@@ -80,11 +80,12 @@ export default function useCantons({
       // (we extract prev canton by getting the current selected-canton-border)
       if (e.features.length > 0 && e.features[0].properties.NAME != map.getFilter("selected-canton-border")[2]) {
         
+        setIsFeatureTableOpen(false);
+
         const cantonName = e.features[0].properties.NAME;
         const cantonBbox = bboxCache[cantonName];
         
         setClickedCanton(cantonName);
-        setIsFeatureTableOpen(false);
         
         // Show the red border only for the selected canton
         map.setFilter('selected-canton-border', ['==', 'NAME', cantonName]);

@@ -68,7 +68,7 @@ export default function useCantons({
     }
     
     setIsFeatureTableOpen(false);
-    suppressPaddingRef.current = true;
+    suppressPaddingRef.current = true
     
     const bbox = bboxCache[searchCanton];
     if (!bbox) return;
