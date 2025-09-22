@@ -8,6 +8,7 @@ import useNetworkLayers         from './map/useNetworkLayers';
 import useTransitLayers         from './map/useTransitLayers';
 import useChoropleth            from './map/useChoropleth';
 import useDestinationZones      from './map/useDestinationZones';
+import useNetworkSelectionFocus      from './map/useNetworkSelectionFocus';
 
 export default function Map(props) {
   
@@ -32,6 +33,12 @@ export default function Map(props) {
     mapContainerRef, 
     mapReady 
   } = useMapbox(import.meta.env.VITE_MAPBOX_TOKEN);
+  
+  useEffect(() => {
+    if (props.mapRef) {
+      props.mapRef.current = mapRef.current;
+    }
+  }, [props.mapRef, mapRef, mapReady]);
   
   // add canton layers + interactions
   useCantons({
@@ -69,6 +76,7 @@ export default function Map(props) {
     timeRange:                  props.timeRange,
     visualizeLinkId:            props.visualizeLinkId,
     setSelectedNetworkFeature:  props.setSelectedNetworkFeature,
+    setNetworkSelection:        props.setNetworkSelection,
     isGraphExpanded:            props.isGraphExpanded,
     resetMapTrigger:            props.resetMapTrigger,
     labelSize:                  props.labelSize,
@@ -109,10 +117,15 @@ export default function Map(props) {
   useDestinationZones({ 
     mapRef, 
     selectedDestinationData:  props.selectedDestinationData, 
-    isGraphExpanded:          props.isGraphExpanded});
-    
-    
-    // this is placed in here so that it will overtake the other zooming effects to
+    isGraphExpanded:          props.isGraphExpanded
+  });
+
+
+  useNetworkSelectionFocus({
+    mapRef, mapReady, selection: props.networkSelection
+  });
+
+  // this is placed in here so that it will overtake the other zooming effects to
     // force it to zoom back to the original Switzerland extent
     useEffect(() => {
       if (!mapReady || !mapRef.current) return;
