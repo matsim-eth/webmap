@@ -98,9 +98,15 @@ const Sidebar = ({
   const { handleFolderUpload, fileMap, clearFileMap } = useFileContext();
   const loadWithFallback = useLoadWithFallback(dataURL);
   const fileInputRef = useRef();
+  const networkTableRef = useRef(null);
+  const [canExportNetworkTable, setCanExportNetworkTable] = useState(false);
   
   // ======================= GENERAL FEATURES (BUTTONS / DROPDOWN) =======================
   const handleGraphSelection = (event) => {
+
+    // Close feature table when switching graphs
+    setIsFeatureTableOpen(false);
+
     const graph = event.target.value;
     setSelectedGraph(graph);
     onExpandGraph(graph);
@@ -371,9 +377,12 @@ const Sidebar = ({
           {isFeatureTableOpen && (
             <button
             className="search-button secondary"
+            disabled={!canExportNetworkTable}
             onClick={() => {
-              console.log("Export Data clicked with:", selectedNetworkFeature);
-              // onExportData?.(selectedNetworkFeature);
+              const exported = networkTableRef.current?.exportCsv?.();
+              if (!exported) {
+                console.warn('Export skipped: no table data available.');
+              }
             }}
             >
             Export Data
@@ -393,7 +402,8 @@ const Sidebar = ({
         featureGeoJSON={featureGeoJSON}
 
         onFocusNetworkFeature={onFocusNetworkFeature}
-
+        featureTableRef={networkTableRef}
+        onTableRowsChange={setCanExportNetworkTable}
         />
         </>
       )}

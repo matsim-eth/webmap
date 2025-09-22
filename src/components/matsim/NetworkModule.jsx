@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import SegmentAttributesTable from "./SegmentAttributesTable";
-import FeatureTable from "../table/FeatureTable";
+import FeatureTable, { buildRowsFromGeojson } from "../table/FeatureTable";
 
 const deriveCoords = (row) => {
   if (!row) return null;
@@ -49,8 +49,13 @@ const NetworkModule = ({
   isFeatureTableOpen,
   featureGeoJSON,
   onFocusNetworkFeature,
+  featureTableRef,
+  onTableRowsChange,
 }) => {
   const [showTable, setShowTable] = useState(false);
+  const [tableRows, setTableRows] = useState([]);
+  const [rowsReady, setRowsReady] = useState(false);
+  const cachedRowsRef = useRef(new Map());
 
   useEffect(() => {
     if (isFeatureTableOpen) {
@@ -62,6 +67,29 @@ const NetworkModule = ({
   }, [isFeatureTableOpen]);
 
   useEffect(() => () => onFocusNetworkFeature?.(null), [onFocusNetworkFeature]);
+
+  useEffect(() => {
+    if (!canton || !featureGeoJSON) {
+      setRowsReady(true);
+      setTableRows([]);
+      onTableRowsChange?.(false);
+      return;
+    }
+    setRowsReady(false);
+    const cacheKey = canton;
+    const cached = cachedRowsRef.current.get(cacheKey);
+    if (cached && cached.source === featureGeoJSON) {
+      setTableRows(cached.rows);
+      setRowsReady(true);
+      onTableRowsChange?.(cached.rows.length > 0);
+      return;
+    }
+    const builtRows = buildRowsFromGeojson(featureGeoJSON);
+    cachedRowsRef.current.set(cacheKey, { source: featureGeoJSON, rows: builtRows });
+    setTableRows(builtRows);
+    setRowsReady(true);
+    onTableRowsChange?.(builtRows.length > 0);
+  }, [canton, featureGeoJSON, onTableRowsChange]);
 
   const handleTableRowSelect = useCallback(
     (row) => {
@@ -90,14 +118,16 @@ const NetworkModule = ({
     <div className="plot-container">
       {isFeatureTableOpen ? (
         <FeatureTable
+          ref={featureTableRef}
           tableId="network-feature-table"
-          geojson={featureGeoJSON}
+          rows={tableRows}
+          geojson={rowsReady ? null : featureGeoJSON}
           selectedModes={selectedNetworkModes}
           onRowClick={handleTableRowSelect}
           onSelectCoords={handleSelectCoords}
           height={360}
           useScroller
-          loading={!showTable}
+          loading={!showTable || !rowsReady}
         />
       ) : (
         <>
