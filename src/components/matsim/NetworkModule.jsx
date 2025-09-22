@@ -114,10 +114,29 @@ const NetworkModule = ({
   }, [canton, featureGeoJSON, onTableRowsChange]);
 
   useEffect(() => {
-    if (showTable) {
-      ensureRowsForCanton();
+    if (!showTable) return;
+
+    let cancelled = false;
+    const run = () => {
+      if (!cancelled) ensureRowsForCanton();
+    };
+
+    if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
+      const idleId = window.requestIdleCallback(run, { timeout: 200 });
+      return () => {
+        cancelled = true;
+        if (typeof window.cancelIdleCallback === 'function') {
+          window.cancelIdleCallback(idleId);
+        }
+      };
     }
-  }, [showTable, ensureRowsForCanton]);
+
+    const timeoutId = window.setTimeout(run, 0);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [showTable, ensureRowsForCanton, canton, featureGeoJSON]);
 
   const handleTableRowSelect = useCallback(
     (row) => {
