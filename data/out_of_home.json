@@ -51,7 +51,7 @@
             "2E": 0.02145494696452841
         }
     },
-    "St. Gallen": {
+    "StGallen": {
         "Synthetic": {
             "1L": 0.21254075509143316,
             "1S": 0.21003638425554033,
@@ -623,7 +623,7 @@
             "2O": 0.027258101666867214
         }
     },
-    "Appenzell Ausserrhoden": {
+    "AppenzellAusserrhoden": {
         "Synthetic": {
             "1L": 0.2223264540337711,
             "1S": 0.2101313320825516,
@@ -649,7 +649,7 @@
             "3W": 0.024784033227681797
         }
     },
-    "Appenzell Innerrhoden": {
+    "AppenzellInnerrhoden": {
         "Synthetic": {
             "1S": 0.23397435897435898,
             "1L": 0.1907051282051282,

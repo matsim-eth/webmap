@@ -47,7 +47,7 @@
             "H-W-L-H": 0.04437357982913971
         }
     },
-    "St. Gallen": {
+    "St.Gallen": {
         "Synthetic": {
             "H": 0.24106175514626219,
             "H-W-H": 0.23690863127482845,
@@ -575,7 +575,7 @@
             "H-E-H-E-H": 0.050410935109201166
         }
     },
-    "Appenzell Ausserrhoden": {
+    "AppenzellAusserrhoden": {
         "Synthetic": {
             "H": 0.25125628140703515,
             "H-W-H": 0.21608040201005024,
@@ -599,7 +599,7 @@
             "H-O-H": 0.038520868054930234
         }
     },
-    "Appenzell Innerrhoden": {
+    "AppenzellInnerrhoden": {
         "Synthetic": {
             "H": 0.29441624365482233,
             "H-W-H": 0.20812182741116753,

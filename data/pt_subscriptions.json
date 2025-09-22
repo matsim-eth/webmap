@@ -39,7 +39,7 @@
             "Ga": 0.11267414978008311
         }
     },
-    "St. Gallen": {
+    "St.Gallen": {
         "Synthetic": {
             "Verbund": 0.1269233266246835,
             "Halbtax": 0.3005258715834578,
@@ -479,7 +479,7 @@
             "Ga": 0.05379551093570929
         }
     },
-    "Appenzell Ausserrhoden": {
+    "AppenzellAusserrhoden": {
         "Synthetic": {
             "Verbund": 0.11682539682539683,
             "Halbtax": 0.3073015873015873,
@@ -499,7 +499,7 @@
             "Ga": 0.08582043191229777
         }
     },
-    "Appenzell Innerrhoden": {
+    "AppenzellInnerrhoden": {
         "Synthetic": {
             "Verbund": 0.0975103734439834,
             "Halbtax": 0.26348547717842324,
