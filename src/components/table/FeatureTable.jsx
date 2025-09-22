@@ -3,9 +3,9 @@ import React, { useEffect, useMemo, useRef } from "react";
 
 import $ from "jquery";
 import dt from "datatables.net-dt";
-import "datatables.net-dt/css/dataTables.dataTables.css";
+import "datatables.net-dt/css/dataTables.dataTables.css"; // base DT CSS only
 
-// Bind DT once
+// Bind DT to this jQuery instance (idempotent)
 if (!$.fn.dataTable) {
   try { dt(window, $); } catch { try { dt($); } catch {} }
 }
@@ -22,106 +22,58 @@ const fmt = (v, d = 0) => {
     ? n.toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d })
     : "-";
 };
-
-// Cheap mode match: use precomputed array if present
-const modeMatches = (row, selectedModes) => {
+const modeMatches = (rowModes, selectedModes) => {
   if (!Array.isArray(selectedModes) || selectedModes.length === 0 || selectedModes.includes("all")) return true;
-  const arr = row.modesArr || String(row.modes || "").split(",").map((m) => m.trim()).filter(Boolean);
-  if (!arr.length) return false;
-  return selectedModes.some((m) => arr.includes(m));
+  const modes = String(rowModes || "")
+    .split(",")
+    .map((m) => m.trim())
+    .filter(Boolean);
+  if (!modes.length) return false;
+  return selectedModes.some((m) => modes.includes(m));
 };
 
-// Compute bbox instead of storing full coords (less memory)
-const bboxFromGeometry = (g) => {
-  if (!g) return null;
-  let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;
-  const walk = (coords) => {
-    // coords can be [lng,lat], array of points, or nested arrays
-    if (!Array.isArray(coords)) return;
-    if (coords.length === 0) return;
-    if (typeof coords[0] === "number" && coords.length >= 2) {
-      const lng = coords[0], lat = coords[1];
-      if (Number.isFinite(lng) && Number.isFinite(lat)) {
-        if (lng < minLng) minLng = lng;
-        if (lng > maxLng) maxLng = lng;
-        if (lat < minLat) minLat = lat;
-        if (lat > maxLat) maxLat = lat;
-      }
-    } else {
-      for (const c of coords) walk(c);
-    }
-  };
-  walk(g.coordinates);
-  if (![minLng, minLat, maxLng, maxLat].every(Number.isFinite)) return null;
-  return [[minLng, minLat], [maxLng, maxLat]];
-};
-
-// Faster builder: preformats display fields, builds modesArr, stores bbox
-const buildRowsFromGeojsonFast = (geojson) => {
+const buildRowsFromGeojson = (geojson) => {
   if (!geojson?.features) return [];
-  const out = [];
-  for (let i = 0; i < geojson.features.length; i++) {
-    const feature = geojson.features[i];
+  const rows = [];
+  geojson.features.forEach((feature, featureIndex) => {
     const props = feature?.properties || {};
-    // Avoid try/catch cost unless it looks like JSON
     let per = props.per_id;
-    if (typeof per === "string" && per.length && per[0] === "{") {
-      try { per = JSON.parse(per); } catch { per = {}; }
-    }
+    if (typeof per === "string") { try { per = JSON.parse(per); } catch { per = {}; } }
     if (!per || typeof per !== "object" || Array.isArray(per)) per = {};
 
-    const tableId = Number(props.__tableId ?? i);
+    const tableId = Number(props.__tableId ?? featureIndex);
     const segmentLabel =
-      props.id ?? props.link_id ?? props.segment_id ?? props.objectid ?? props.osm_id ?? `Segment ${i + 1}`;
+      props.id ?? props.link_id ?? props.segment_id ?? props.objectid ?? props.osm_id ?? `Segment ${featureIndex + 1}`;
 
-    const modesStr = props.modes || "";
-    const modesArr = modesStr ? modesStr.split(",").map((m) => m.trim()).filter(Boolean) : [];
-
-    const bbox = bboxFromGeometry(feature?.geometry);
+    // coords for map zoom
+    const g = feature?.geometry || {};
+    const coords =
+      g.type === "LineString" ? g.coordinates :
+      g.type === "MultiLineString" ? g.coordinates.flat() :
+      null;
 
     const pushRow = (directionId, data = {}) => {
-      const length = num(data.length ?? props.length);
-      const freeSpeed = toKmh(data.freespeed ?? props.freespeed);
-      const capacity = num(data.capacity ?? props.capacity);
-      const dailyAvg = num(data.daily_avg_volume ?? props.daily_avg_volume);
-
-      out.push({
-        rowKey: `${tableId}-${directionId ?? "all"}-${out.length}`,
+      rows.push({
+        rowKey: `${tableId}-${directionId ?? "all"}-${rows.length}`,
         tableId,
         segmentLabel,
         directionId: directionId ?? null,
-
-        // raw values (optional)
-        length,
-        freeSpeed,
-        capacity,
-        dailyAvg,
-
-        // preformatted display strings (kill per-cell render cost)
-        length_fmt: fmt(length, 1),
-        freeSpeed_fmt: fmt(freeSpeed, 1),
-        capacity_fmt: fmt(capacity),
-        dailyAvg_fmt: fmt(dailyAvg),
-
-        modes: modesStr,
-        modesArr,
-
-        // use bbox instead of storing all coords
-        bbox,
-
-        // keep feature references OUT to reduce memory; re-acquire on click if needed
-        // feature,
+        length: num(data.length ?? props.length),
+        freeSpeed: toKmh(data.freespeed ?? props.freespeed),
+        capacity: num(data.capacity ?? props.capacity),
+        dailyAvg: num(data.daily_avg_volume ?? props.daily_avg_volume),
+        modes: props.modes || "",
+        coords,
+        feature,
+        featureProps: props,
       });
     };
 
     const entries = Object.entries(per);
-    if (entries.length) {
-      for (const [dir, d] of entries) pushRow(dir, d || {});
-    } else {
-      pushRow(null, {});
-    }
-  }
-  return out;
+    if (entries.length) entries.forEach(([dir, d]) => pushRow(dir, d || {}));
+    else pushRow(null, {});
+  });
+  return rows;
 };
 
 /* ---------------- component ---------------- */
@@ -130,30 +82,27 @@ const FeatureTable = ({
   rows,                    // optional (wins over geojson)
   selectedModes = ["all"],
   onRowClick,              // (row) => void
-  onSelectCoords,          // (coordsOrBbox, row) => void
+  onSelectCoords,          // (coords, row) => void
   tableId = "feature-table",
-  height = 360,
-  useScroller = true,
-  showButtons = true,
+  height = 360,            // used for Scroller
+  useScroller = true,      // true: virtual scroll; false: regular paging
+  showButtons = true,      // show Copy/CSV buttons
   pageLength = 25,
-  maxRows = 75000,
-  loading = false,
+  maxRows = 4000, //for testing //75000,
+  loading = false,        
 }) => {
   const tableRef = useRef(null);
   const dtRef = useRef(null);
-  const pluginsLoadedRef = useRef({ buttons: false, scroller: false });
 
-  // Build rows once per input, fast path
   const baseRows = useMemo(() => {
     if (Array.isArray(rows) && rows.length) return rows;
-    const built = buildRowsFromGeojsonFast(geojson);
-    return built;
+    const built = buildRowsFromGeojson(geojson);
+    if (built.length) return built;
+    return [];
   }, [rows, geojson]);
 
-  // Filter & limit
   const tableRows = useMemo(() => {
-    // cheap filtering using modesArr
-    const filtered = baseRows.filter((r) => modeMatches(r, selectedModes));
+    const filtered = baseRows.filter((r) => modeMatches(r.modes, selectedModes));
     return filtered.slice(0, maxRows);
   }, [baseRows, selectedModes, maxRows]);
 
@@ -162,17 +111,12 @@ const FeatureTable = ({
   useEffect(() => {
     let cancelled = false;
 
-    // Tear down if loading/no data
-    const ensureDestroyed = () => {
+    // If loading or no data, ensure any DT instance is torn down and skip init.
+    if (loading || hasNoData) {
       const el = tableRef.current;
       try { dtRef.current?.destroy(true); } catch {}
       dtRef.current = null;
       if (el?._dt) { try { el._dt.destroy(true); } catch {} el._dt = null; }
-    };
-
-    if (loading || hasNoData) {
-      ensureDestroyed();
-      const el = tableRef.current;
       if (el) el.innerHTML = "";
       return;
     }
@@ -181,50 +125,47 @@ const FeatureTable = ({
       const el = tableRef.current;
       if (!el) return;
 
-      // Load plugins once per app session
-      if (showButtons && !pluginsLoadedRef.current.buttons) {
+      // Destroy prior instance (avoid reinit errors)
+      if (dtRef.current) { try { dtRef.current.destroy(true); } catch {} dtRef.current = null; }
+      if (el._dt)        { try { el._dt.destroy(true); }        catch {} el._dt = null; }
+
+      // Build static header/structure
+      el.innerHTML = `
+        <thead>
+          <tr>
+            <th>Segment IDs</th>
+            <th>Direction</th>
+            <th>Length (m)</th>
+            <th>Free Speed (km/h)</th>
+            <th>Capacity</th>
+            <th>Avg Daily Volume</th>
+            <th>Modes</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
+
+      // Dynamically import plugins AFTER DataTables is bound to $
+      if (showButtons) {
         await import("datatables.net-buttons");
         await import("datatables.net-buttons/js/buttons.html5");
         await import("datatables.net-buttons-dt/css/buttons.dataTables.css");
-        pluginsLoadedRef.current.buttons = true;
       }
-      if (useScroller && !pluginsLoadedRef.current.scroller) {
+      if (useScroller) {
         await import("datatables.net-scroller");
         await import("datatables.net-scroller-dt/css/scroller.dataTables.css");
-        pluginsLoadedRef.current.scroller = true;
       }
       if (cancelled) return;
 
       const columns = [
-        { data: "segmentLabel", title: "Segment IDs" },
-        { data: "directionId",  title: "Direction" },
-        { data: "length_fmt",   title: "Length (m)" },
-        { data: "freeSpeed_fmt",title: "Free Speed (km/h)" },
-        { data: "capacity_fmt", title: "Capacity" },
-        { data: "dailyAvg_fmt", title: "Avg Daily Volume" },
-        { 
-          data: "modes",
-          title: "Modes",
-          render: (v) => (v ? String(v).replace(/,/g, ", ") : "-"),
-        },
+        { data: "segmentLabel" },
+        { data: "directionId" },
+        { data: "length",    render: (v) => fmt(v, 1) },
+        { data: "freeSpeed", render: (v) => fmt(v, 1) },
+        { data: "capacity",  render: (v) => fmt(v) },
+        { data: "dailyAvg",  render: (v) => fmt(v) },
+        { data: "modes",     render: (v) => (v ? String(v).replace(/,/g, ", ") : "-") },
       ];
-
-      // If already initialized, just update data (faster than destroy/reinit)
-      if (dtRef.current && el._dt) {
-        const instance = dtRef.current;
-        instance.clear();
-        instance.rows.add(tableRows);
-        instance.draw(false);
-        return;
-      }
-
-      // Fresh init
-      el.innerHTML = `
-        <thead>
-          <tr>${columns.map(c => `<th>${c.title}</th>`).join("")}</tr>
-        </thead>
-        <tbody></tbody>
-      `;
 
       const instance = $(el).DataTable({
         data: tableRows,
@@ -235,11 +176,11 @@ const FeatureTable = ({
         buttons: showButtons
           ? [
               { extend: "copyHtml5", title: "network_segments" },
-              { extend: "csvHtml5",  title: "network_segments" },
+              { extend: "csvHtml5", title: "network_segments" },
             ]
           : [],
         ...(useScroller
-          ? { scrollY: height, scroller: true, paging: true, deferRender: true }
+          ? { scrollY: height, scroller: true, paging: true }
           : { paging: true, pageLength }),
         rowId: (row) => row.rowKey || `row-${row.tableId}-${row.directionId ?? "all"}`,
         language: {
@@ -247,11 +188,8 @@ const FeatureTable = ({
             ? "No rows match the current filters"
             : "No segment data available",
         },
-        processing: true,
-        info: false, // cut some DOM work; set true if you want the "Showing X of Y" text
       });
 
-      // Row click handler
       const onClick = (e) => {
         const tr = e.target.closest("tr");
         if (!tr || !tr.closest("tbody")) return;
@@ -263,9 +201,7 @@ const FeatureTable = ({
         tr.classList.add("row-selected");
 
         onRowClick?.(rowData);
-
-        // Prefer bbox for fitBounds (lighter than coords)
-        onSelectCoords?.(rowData.bbox ?? null, rowData);
+        onSelectCoords?.(rowData.coords ?? null, rowData);
       };
       el.addEventListener("click", onClick);
 
@@ -279,13 +215,16 @@ const FeatureTable = ({
 
     return () => {
       cancelled = true;
-      // Do not destroy here unconditionally — allow reuse path above to be fast
+      const el = tableRef.current;
+      try { dtRef.current?.destroy(true); } catch {}
+      dtRef.current = null;
+      if (el?._dt) { try { el._dt.destroy(true); } catch {} el._dt = null; }
     };
   }, [
     loading,
     hasNoData,
-    tableRows,       // data set
-    baseRows.length, // language/emptyTable toggle
+    tableRows,
+    baseRows.length,
     selectedModes,
     useScroller,
     height,
@@ -295,10 +234,13 @@ const FeatureTable = ({
     onSelectCoords,
   ]);
 
-  // UI states handled here
+  // UI states managed here
   if (loading) {
     return (
-      <div className="w-full" style={{ height, display: "grid", placeItems: "center", opacity: 0.85 }}>
+      <div
+        className="w-full"
+        style={{ height, display: "grid", placeItems: "center", opacity: 0.85 }}
+      >
         <span>Preparing table…</span>
       </div>
     );
@@ -306,12 +248,16 @@ const FeatureTable = ({
 
   if (hasNoData) {
     return (
-      <div className="w-full" style={{ height, display: "grid", placeItems: "center", color: "#888", fontStyle: "italic" }}>
+      <div
+        className="w-full"
+        style={{ height, display: "grid", placeItems: "center", color: "#888", fontStyle: "italic" }}
+      >
         <span>No segment data available</span>
       </div>
     );
   }
 
+  // Normal DT rendering
   return (
     <div className="w-full" style={{ minHeight: 200 }}>
       <table

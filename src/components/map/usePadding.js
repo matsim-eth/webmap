@@ -9,11 +9,17 @@ export default function useCantons({
   isGraphExpanded,
   suppressNextSearchZoom,
   graphExpandedRef,
-  isFeatureTableOpen
+  isFeatureTableOpen,
+  setIsFeatureTableOpen
 }) {
+  
+  // avoid changing padding when we select new canton 
+  const suppressPaddingRef = useRef(false);
   
   // 1) padding on sidebar resize
   useEffect(() => {
+    
+    if (suppressPaddingRef.current) return;  
     const map = mapRef.current;
     if (!map) return;
     
@@ -51,7 +57,7 @@ export default function useCantons({
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !searchCanton) return;
-
+    
     // if we suppress next zoom, dont do anything
     if (suppressNextSearchZoom.current) {
       console.log('suppressing search zoom');
@@ -60,6 +66,9 @@ export default function useCantons({
       // not corresponding to the currently selected transit line
       return;
     }
+    
+    setIsFeatureTableOpen(false);
+    suppressPaddingRef.current = true;
     
     const bbox = bboxCache[searchCanton];
     if (!bbox) return;
@@ -81,7 +90,7 @@ export default function useCantons({
       } else if (mediumGraphs.includes(graphExpandedRef.current)) {
         rightPadding = 650;
       } else {
-          rightPadding = 350;
+        rightPadding = 350;
       }
     }
     
@@ -89,6 +98,10 @@ export default function useCantons({
       padding: { top: 50, bottom: 50, left: 50, right: rightPadding },
       maxZoom: 10,
       duration: 1000,
+    });
+    
+    map.once('moveend', () => {                  // re-enable after animation
+      suppressPaddingRef.current = false;
     });
     
   }, [mapRef, searchCanton, setClickedCanton, suppressNextSearchZoom]);

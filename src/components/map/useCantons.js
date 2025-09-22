@@ -117,7 +117,6 @@ export default function useCantons({
             rightPadding = 350; // Default open sidebar
           }
           
-          console.log('Zooming to canton with right padding:', rightPadding);
           map.fitBounds(cantonBbox, {
             padding: { top: 50, bottom: 50, left: 50, right: rightPadding },
             maxZoom: 10,
