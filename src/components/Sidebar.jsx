@@ -363,11 +363,7 @@ const Sidebar = ({
           <button
           className="search-button"
           onClick={() =>
-            setIsFeatureTableOpen((prev) => {
-              const next = !prev;
-              if (prev && !next) onFocusNetworkFeature?.(null);
-              return next;
-            })}
+            setIsFeatureTableOpen((prev) => !prev)}
           >
           {isFeatureTableOpen ? "Hide Table" : "Show Table"}
           </button>

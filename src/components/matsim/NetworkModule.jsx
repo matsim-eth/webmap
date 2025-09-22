@@ -58,9 +58,8 @@ const NetworkModule = ({
       return () => clearTimeout(timer);
     }
     setShowTable(false);
-    onFocusNetworkFeature?.(null);
     return undefined;
-  }, [isFeatureTableOpen, onFocusNetworkFeature]);
+  }, [isFeatureTableOpen]);
 
   useEffect(() => () => onFocusNetworkFeature?.(null), [onFocusNetworkFeature]);
 
