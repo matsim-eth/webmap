@@ -20,6 +20,10 @@
 .floating-panel.expanded { width: 600px; }
 .floating-panel.expanded-graph3 { width: 900px; }
 
+.floating-panel.feature-table-open {
+  width: 900px !important; /* override others */
+}
+
 /* Collapsed Panel */
 .floating-panel.collapsed {
   width: 50px;
@@ -105,6 +109,11 @@
 .floating-panel.open .graph-dropdown { max-width: 150px; }
 .graph-dropdown:hover,
 .graph-dropdown:focus { border-color: #0056b3; }
+
+.floating-panel.feature-table-open .graph-dropdown {
+  width: 250px !important;  /* force width to 600 */
+  max-width: none !important; /* neutralize the 150px max-width */
+}
 
 .graph-button,
 .home-button,

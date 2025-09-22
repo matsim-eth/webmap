@@ -41,6 +41,9 @@ const Sidebar = ({
   // Sidebar UI
   isOpen, toggleSidebar, onExpandGraph, resetMapView,
   
+  // Feature Table
+  isFeatureTableOpen, setIsFeatureTableOpen,
+  
   // Map State
   canton,
   
@@ -94,9 +97,6 @@ const Sidebar = ({
   const { handleFolderUpload, fileMap, clearFileMap } = useFileContext();
   const loadWithFallback = useLoadWithFallback(dataURL);
   const fileInputRef = useRef();
-  
-  // Feature Table Open/Close (Network)
-  const [isFeatureTableOpen, setIsFeatureTableOpen] = useState(false);
   
   // ======================= GENERAL FEATURES (BUTTONS / DROPDOWN) =======================
   const handleGraphSelection = (event) => {
@@ -152,7 +152,7 @@ const Sidebar = ({
       setAvailableModes([]);
     }
   }, [canton, modesByCanton]);
-  
+
   const handleModeChange = (event) => {
     const selectedOptions = Array.from(event.target.selectedOptions).map((option) => option.value);
     if (selectedOptions.includes("all") || selectedOptions.length === 0) {
@@ -201,7 +201,7 @@ const Sidebar = ({
       ? "expanded"
       : "open"
       : "collapsed"
-    }`}
+    } ${isFeatureTableOpen ? "feature-table-open" : ""}`}
     >
     <button className="toggle-button" onClick={toggleSidebar}>
     {isOpen ? "✕" : "☰"}
