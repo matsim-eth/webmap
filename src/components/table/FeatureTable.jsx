@@ -45,8 +45,6 @@ export const buildRowsFromGeojson = (geojson) => {
     if (!per || typeof per !== "object" || Array.isArray(per)) per = {};
 
     const tableId = Number(props.__tableId ?? featureIndex);
-    const segmentLabel =
-      props.id ?? props.link_id ?? props.segment_id ?? props.objectid ?? props.osm_id ?? `Segment ${featureIndex + 1}`;
 
     // coords for map zoom (kept for compatibility; if large, consider switching to bbox)
     const g = feature?.geometry || {};
@@ -64,7 +62,6 @@ export const buildRowsFromGeojson = (geojson) => {
       rows.push({
         rowKey: `${tableId}-${directionId ?? "all"}-${rows.length}`,
         tableId,
-        segmentLabel,
         directionId: directionId ?? null,
 
         // raw numbers (used for sorting)
@@ -104,7 +101,7 @@ const FeatureTable = forwardRef(({
   height = 360,            // used for Scroller
   useScroller = true,      // true: virtual scroll; false: regular paging
   pageLength = 25,
-  maxRows = 75000,          // for testing
+  maxRows = 100000,          // for testing
   loading = false,
 }, ref) => {
   const tableRef = useRef(null);
@@ -181,10 +178,9 @@ const FeatureTable = forwardRef(({
 
       // Columns: display preformatted strings, sort by raw numbers (no render fn per cell)
       const columns = [
-        { data: "segmentLabel", title: "Segment IDs" },
-        { data: "directionId",  title: "Direction" },
+        { data: "directionId",  title: "Link ID" },
         { data: { _: "length_fmt",    sort: "length"    }, title: "Length [m]" },
-        { data: { _: "freeSpeed_fmt", sort: "freeSpeed" }, title: "Free Speed [km/h]" },
+        { data: { _: "freeSpeed_fmt", sort: "freeSpeed" }, title: "Speed [km/h]" },
         { data: { _: "capacity_fmt",  sort: "capacity"  }, title: "Capacity" },
         { data: { _: "dailyAvg_fmt",  sort: "dailyAvg"  }, title: "Avg Daily Volume" },
         {

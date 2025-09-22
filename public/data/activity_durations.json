@@ -1411,7 +1411,7 @@
             }
         }
     },
-    "St. Gallen": {
+    "StGallen": {
         "Synthetic": {
             "education": {
                 "0:00:00": 9e-06,
@@ -16943,7 +16943,7 @@
             }
         }
     },
-    "Appenzell Ausserrhoden": {
+    "AppenzellAusserrhoden": {
         "Synthetic": {
             "education": {
                 "0:00:00": 1.9e-05,
@@ -17649,7 +17649,7 @@
             }
         }
     },
-    "Appenzell Innerrhoden": {
+    "AppenzellInnerrhoden": {
         "Synthetic": {
             "education": {
                 "0:00:00": 7e-06,

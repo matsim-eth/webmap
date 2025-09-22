@@ -335,7 +335,7 @@
             }
         }
     },
-    "St. Gallen": {
+    "StGallen": {
         "Synthetic": {
             "0": {
                 "Verbund": 0.168724,
@@ -4031,7 +4031,7 @@
             }
         }
     },
-    "Appenzell Ausserrhoden": {
+    "AppenzellAusserrhoden": {
         "Synthetic": {
             "0": {
                 "Verbund": 0.136364,
@@ -4199,7 +4199,7 @@
             }
         }
     },
-    "Appenzell Innerrhoden": {
+    "AppenzellInnerrhoden": {
         "Synthetic": {
             "0": {
                 "Verbund": 0.0,
