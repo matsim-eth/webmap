@@ -5,7 +5,6 @@ import CantonSearch from "./components/CantonSearch";
 import "./App.css";
 import NetworkLegend from "./components/NetworkLegend";
 import { FileProvider } from "./FileContext";
-
 function App() {
   
   const [dataURL, setDataURL] = useState("https://matsim-eth.github.io/webmap/data/");
@@ -28,19 +27,16 @@ function App() {
   
   // Track if table is open or not
   const [isFeatureTableOpen, setIsFeatureTableOpen] = useState(false);
-
   // Pass network geojson to FeatureTable
   const [featureGeoJSON, setFeatureGeoJSON] = useState(null);
-
   // Matsim network modes (MatSIM network module)
   const [selectedNetworkModes, setSelectedNetworkModes] = useState(["all"]);
   
   // Save selected network segment properties
   const [selectedNetworkFeature, setSelectedNetworkFeature] = useState(null);
-
+  const [networkSelection, setNetworkSelection] = useState(null);
   // Save selected link for transit volumes module
   const [selectedTransitLink, setSelectedTransitLink] = useState(null);
-
   // Show selected line for transit volumes module
   const [showLineSymbology, setShowLineSymbology] = useState(false);
   
@@ -59,10 +55,8 @@ function App() {
   
   // Pass showing major roads toggle (volumes module)
   const [showMajorRoadsOnly, setShowMajorRoadsOnly] = useState(true);
-
   // time range for filtering volumes
   const [timeRange, setTimeRange] = useState([0, 96]);
-
   // state for destination data (from Sidebar to Map)
   const [destinationData, setDestinationData] = useState(null);
   
@@ -71,10 +65,8 @@ function App() {
     setSelectedMode(mode);
     setSelectedDataset(dataset);
   };
-
   // Handle map reset if button clicked in sidebar
   const [resetMapTrigger, setResetMapTrigger] = useState(false);
-
   // Set label size for network segments
   const [labelSize, setLabelSize] = useState(11);
   
@@ -83,19 +75,16 @@ function App() {
     
     // Reset canton
     setClickedCanton(null)
-
     // Reset selected network, 
     setSelectedNetworkFeature(null)
+    setNetworkSelection(null)
     setSelectedTransitLink(null);
     setVisualizeLinkId(null)
-
     // Reset current module
     setIsGraphExpanded(false);
-
     setTimeRange([0, 96]); // Reset time range to default
     setShowMajorRoadsOnly(true); // Reset major roads toggle
     setShowStopVolumeSymbology(false); // Reset stop volume symbology toggle
-
     setIsFeatureTableOpen(false); // Close feature table if open
   };
   
@@ -117,6 +106,8 @@ function App() {
     selectedDataset={selectedDataset} // from sidebar
     selectedNetworkModes={selectedNetworkModes}  // from sidebar
     setSelectedNetworkFeature={setSelectedNetworkFeature} // to sidebar
+    networkSelection={networkSelection}
+    setNetworkSelection={setNetworkSelection}
     setSelectedTransitLink={setSelectedTransitLink} // to sidebar
     visualizeLinkId={visualizeLinkId} // from segment vol histogram via sidebar
     setVisualizeLinkId={setVisualizeLinkId} // from sidebar
@@ -142,7 +133,6 @@ function App() {
     />
     
     <Sidebar
-    mapRef={mapRef} //from app
     canton={clickedCanton} // from map
     isOpen={isSidebarOpen} // to map
     toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} // to map
@@ -155,6 +145,7 @@ function App() {
     setSelectedNetworkModes={setSelectedNetworkModes} // to change value
     selectedNetworkFeature={selectedNetworkFeature} // from map
     setSelectedNetworkFeature={setSelectedNetworkFeature} 
+    onFocusNetworkFeature={setNetworkSelection}
     selectedTransitLink={selectedTransitLink} // from map
     visualizeLinkId={visualizeLinkId} // from map
     setVisualizeLinkId={setVisualizeLinkId} // to map
@@ -191,5 +182,4 @@ function App() {
     </FileProvider>
   );
 }
-
 export default App;

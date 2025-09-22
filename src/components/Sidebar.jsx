@@ -36,7 +36,7 @@ import { useLoadWithFallback } from "../utils/useLoadWithFallback";
 
 const Sidebar = ({
   // Map Data
-  dataURL, setDataURL, mapRef,
+  dataURL, setDataURL,
   
   // Sidebar UI
   isOpen, toggleSidebar, onExpandGraph, resetMapView,
@@ -54,6 +54,7 @@ const Sidebar = ({
   selectedNetworkModes, setSelectedNetworkModes, selectedNetworkFeature, setSelectedNetworkFeature,
   visualizeLinkId, featureGeoJSON,
   setVisualizeLinkId, showMajorRoadsOnly, setShowMajorRoadsOnly,
+  onFocusNetworkFeature,
   
   // Transit Module
   selectedTransitModes, setSelectedTransitModes, selectedTransitStop, highlightedLineId,
@@ -361,7 +362,12 @@ const Sidebar = ({
           <div className="network-buttons-row">
           <button
           className="search-button"
-          onClick={() => setIsFeatureTableOpen((s) => !s)}
+          onClick={() =>
+            setIsFeatureTableOpen((prev) => {
+              const next = !prev;
+              if (prev && !next) onFocusNetworkFeature?.(null);
+              return next;
+            })}
           >
           {isFeatureTableOpen ? "Hide Table" : "Show Table"}
           </button>
@@ -388,8 +394,10 @@ const Sidebar = ({
         setSelectedNetworkFeature={setSelectedNetworkFeature} 
         handleModeChange={handleModeChange}
         isFeatureTableOpen={isFeatureTableOpen}
-        featureGeoJSON={featureGeoJSON}                        
-        mapRef={mapRef}                                    
+        featureGeoJSON={featureGeoJSON}
+
+        onFocusNetworkFeature={onFocusNetworkFeature}
+
         />
         </>
       )}

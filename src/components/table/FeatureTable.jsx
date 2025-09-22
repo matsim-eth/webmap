@@ -3,9 +3,9 @@ import React, { useEffect, useMemo, useRef } from "react";
 
 import $ from "jquery";
 import dt from "datatables.net-dt";
-import "datatables.net-dt/css/dataTables.dataTables.css"; // base DT CSS only
+import "datatables.net-dt/css/dataTables.dataTables.css";
 
-// Bind DT to this jQuery instance (idempotent)
+// Bind DT once
 if (!$.fn.dataTable) {
   try { dt(window, $); } catch { try { dt($); } catch {} }
 }
@@ -32,20 +32,23 @@ const modeMatches = (rowModes, selectedModes) => {
   return selectedModes.some((m) => modes.includes(m));
 };
 
+/** Faster: precompute formatted strings once per row; keep raw numbers for sort */
 const buildRowsFromGeojson = (geojson) => {
   if (!geojson?.features) return [];
   const rows = [];
   geojson.features.forEach((feature, featureIndex) => {
     const props = feature?.properties || {};
     let per = props.per_id;
-    if (typeof per === "string") { try { per = JSON.parse(per); } catch { per = {}; } }
+    if (typeof per === "string" && per.startsWith("{")) { // avoid try/catch unless looks like JSON
+      try { per = JSON.parse(per); } catch { per = {}; }
+    }
     if (!per || typeof per !== "object" || Array.isArray(per)) per = {};
 
     const tableId = Number(props.__tableId ?? featureIndex);
     const segmentLabel =
       props.id ?? props.link_id ?? props.segment_id ?? props.objectid ?? props.osm_id ?? `Segment ${featureIndex + 1}`;
 
-    // coords for map zoom
+    // coords for map zoom (kept for compatibility; if large, consider switching to bbox)
     const g = feature?.geometry || {};
     const coords =
       g.type === "LineString" ? g.coordinates :
@@ -53,15 +56,29 @@ const buildRowsFromGeojson = (geojson) => {
       null;
 
     const pushRow = (directionId, data = {}) => {
+      const length = num(data.length ?? props.length);
+      const freeSpeed = toKmh(data.freespeed ?? props.freespeed);
+      const capacity = num(data.capacity ?? props.capacity);
+      const dailyAvg = num(data.daily_avg_volume ?? props.daily_avg_volume);
+
       rows.push({
         rowKey: `${tableId}-${directionId ?? "all"}-${rows.length}`,
         tableId,
         segmentLabel,
         directionId: directionId ?? null,
-        length: num(data.length ?? props.length),
-        freeSpeed: toKmh(data.freespeed ?? props.freespeed),
-        capacity: num(data.capacity ?? props.capacity),
-        dailyAvg: num(data.daily_avg_volume ?? props.daily_avg_volume),
+
+        // raw numbers (used for sorting)
+        length,
+        freeSpeed,
+        capacity,
+        dailyAvg,
+
+        // preformatted display strings (so column render isn't called per cell)
+        length_fmt: fmt(length, 1),
+        freeSpeed_fmt: fmt(freeSpeed, 1),
+        capacity_fmt: fmt(capacity),
+        dailyAvg_fmt: fmt(dailyAvg),
+
         modes: props.modes || "",
         coords,
         feature,
@@ -88,18 +105,20 @@ const FeatureTable = ({
   useScroller = true,      // true: virtual scroll; false: regular paging
   showButtons = true,      // show Copy/CSV buttons
   pageLength = 25,
-  maxRows = 4000, //for testing //75000,
-  loading = false,        
+  maxRows = 75000,          // for testing
+  loading = false,
 }) => {
   const tableRef = useRef(null);
   const dtRef = useRef(null);
+  const pluginsLoadedRef = useRef({ buttons: false, scroller: false });
 
   const baseRows = useMemo(() => {
+    if (loading) return [];
     if (Array.isArray(rows) && rows.length) return rows;
     const built = buildRowsFromGeojson(geojson);
     if (built.length) return built;
     return [];
-  }, [rows, geojson]);
+  }, [loading, rows, geojson]);
 
   const tableRows = useMemo(() => {
     const filtered = baseRows.filter((r) => modeMatches(r.modes, selectedModes));
@@ -110,62 +129,69 @@ const FeatureTable = ({
 
   useEffect(() => {
     let cancelled = false;
+    const el = tableRef.current;
 
-    // If loading or no data, ensure any DT instance is torn down and skip init.
-    if (loading || hasNoData) {
-      const el = tableRef.current;
+    const destroyIfAny = () => {
       try { dtRef.current?.destroy(true); } catch {}
       dtRef.current = null;
       if (el?._dt) { try { el._dt.destroy(true); } catch {} el._dt = null; }
+    };
+
+    // If loading or no data, tear down and skip
+    if (loading || hasNoData) {
+      destroyIfAny();
       if (el) el.innerHTML = "";
       return;
     }
 
     const init = async () => {
-      const el = tableRef.current;
       if (!el) return;
 
-      // Destroy prior instance (avoid reinit errors)
-      if (dtRef.current) { try { dtRef.current.destroy(true); } catch {} dtRef.current = null; }
-      if (el._dt)        { try { el._dt.destroy(true); }        catch {} el._dt = null; }
-
-      // Build static header/structure
-      el.innerHTML = `
-        <thead>
-          <tr>
-            <th>Segment IDs</th>
-            <th>Direction</th>
-            <th>Length (m)</th>
-            <th>Free Speed (km/h)</th>
-            <th>Capacity</th>
-            <th>Avg Daily Volume</th>
-            <th>Modes</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      `;
-
-      // Dynamically import plugins AFTER DataTables is bound to $
-      if (showButtons) {
+      // Load plugins once (cache in ref)
+      if (showButtons && !pluginsLoadedRef.current.buttons) {
         await import("datatables.net-buttons");
         await import("datatables.net-buttons/js/buttons.html5");
         await import("datatables.net-buttons-dt/css/buttons.dataTables.css");
+        pluginsLoadedRef.current.buttons = true;
       }
-      if (useScroller) {
+      if (useScroller && !pluginsLoadedRef.current.scroller) {
         await import("datatables.net-scroller");
         await import("datatables.net-scroller-dt/css/scroller.dataTables.css");
+        pluginsLoadedRef.current.scroller = true;
       }
       if (cancelled) return;
 
+      // Columns: display preformatted strings, sort by raw numbers (no render fn per cell)
       const columns = [
-        { data: "segmentLabel" },
-        { data: "directionId" },
-        { data: "length",    render: (v) => fmt(v, 1) },
-        { data: "freeSpeed", render: (v) => fmt(v, 1) },
-        { data: "capacity",  render: (v) => fmt(v) },
-        { data: "dailyAvg",  render: (v) => fmt(v) },
-        { data: "modes",     render: (v) => (v ? String(v).replace(/,/g, ", ") : "-") },
+        { data: "segmentLabel", title: "Segment IDs" },
+        { data: "directionId",  title: "Direction" },
+        { data: { _: "length_fmt",    sort: "length"    }, title: "Length (m)" },
+        { data: { _: "freeSpeed_fmt", sort: "freeSpeed" }, title: "Free Speed (km/h)" },
+        { data: { _: "capacity_fmt",  sort: "capacity"  }, title: "Capacity" },
+        { data: { _: "dailyAvg_fmt",  sort: "dailyAvg"  }, title: "Avg Daily Volume" },
+        {
+          data: "modes",
+          title: "Modes",
+          render: (v) => (v ? String(v).replace(/,/g, ", ") : "-"),
+        },
       ];
+
+      // Fast path: if already initialized, update rows only
+      if (dtRef.current && el._dt) {
+        const instance = dtRef.current;
+        instance.clear();
+        instance.rows.add(tableRows);
+        instance.draw(false);
+        return;
+      }
+
+      // Fresh init: build header once
+      el.innerHTML = `
+        <thead>
+          <tr>${columns.map((c) => `<th>${c.title}</th>`).join("")}</tr>
+        </thead>
+        <tbody></tbody>
+      `;
 
       const instance = $(el).DataTable({
         data: tableRows,
@@ -176,11 +202,11 @@ const FeatureTable = ({
         buttons: showButtons
           ? [
               { extend: "copyHtml5", title: "network_segments" },
-              { extend: "csvHtml5", title: "network_segments" },
+              { extend: "csvHtml5",  title: "network_segments" },
             ]
           : [],
         ...(useScroller
-          ? { scrollY: height, scroller: true, paging: true }
+          ? { scrollY: height, scroller: true, paging: true, deferRender: true }
           : { paging: true, pageLength }),
         rowId: (row) => row.rowKey || `row-${row.tableId}-${row.directionId ?? "all"}`,
         language: {
@@ -188,6 +214,7 @@ const FeatureTable = ({
             ? "No rows match the current filters"
             : "No segment data available",
         },
+        processing: true,
       });
 
       const onClick = (e) => {
@@ -208,23 +235,25 @@ const FeatureTable = ({
       dtRef.current = instance;
       el._dt = instance;
 
-      return () => el.removeEventListener("click", onClick);
+      return () => {
+        el.removeEventListener("click", onClick);
+      };
     };
 
     init();
 
     return () => {
       cancelled = true;
-      const el = tableRef.current;
-      try { dtRef.current?.destroy(true); } catch {}
-      dtRef.current = null;
-      if (el?._dt) { try { el._dt.destroy(true); } catch {} el._dt = null; }
+      // Don't destroy here by default — keep instance for fast updates.
+      // It will be destroyed above when loading/hasNoData, or when component unmounts:
+      // (uncomment next lines if you want hard-destroy on unmount)
+      // destroyIfAny();
     };
   }, [
     loading,
     hasNoData,
-    tableRows,
-    baseRows.length,
+    tableRows,           // data set
+    baseRows.length,     // toggles emptyTable text
     selectedModes,
     useScroller,
     height,
@@ -237,10 +266,7 @@ const FeatureTable = ({
   // UI states managed here
   if (loading) {
     return (
-      <div
-        className="w-full"
-        style={{ height, display: "grid", placeItems: "center", opacity: 0.85 }}
-      >
+      <div className="w-full" style={{ height, display: "grid", placeItems: "center", opacity: 0.85 }}>
         <span>Preparing table…</span>
       </div>
     );
