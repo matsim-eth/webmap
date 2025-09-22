@@ -55,7 +55,8 @@ export default function Map(props) {
     isGraphExpanded:      props.isGraphExpanded,
     suppressNextSearchZoom,
     graphExpandedRef,
-    isFeatureTableOpen:  props.isFeatureTableOpen
+    isFeatureTableOpen:  props.isFeatureTableOpen,
+    setIsFeatureTableOpen: props.setIsFeatureTableOpen
   });
   
   useNetworkLayers({
