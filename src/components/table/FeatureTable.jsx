@@ -1,5 +1,5 @@
 // src/components/table/FeatureTable.jsx
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useImperativeHandle, forwardRef } from "react";
 
 import $ from "jquery";
 import dt from "datatables.net-dt";
@@ -33,7 +33,7 @@ const modeMatches = (rowModes, selectedModes) => {
 };
 
 /** Faster: precompute formatted strings once per row; keep raw numbers for sort */
-const buildRowsFromGeojson = (geojson) => {
+export const buildRowsFromGeojson = (geojson) => {
   if (!geojson?.features) return [];
   const rows = [];
   geojson.features.forEach((feature, featureIndex) => {
@@ -94,7 +94,7 @@ const buildRowsFromGeojson = (geojson) => {
 };
 
 /* ---------------- component ---------------- */
-const FeatureTable = ({
+const FeatureTable = forwardRef(({
   geojson,                 // optional
   rows,                    // optional (wins over geojson)
   selectedModes = ["all"],
@@ -103,14 +103,32 @@ const FeatureTable = ({
   tableId = "feature-table",
   height = 360,            // used for Scroller
   useScroller = true,      // true: virtual scroll; false: regular paging
-  showButtons = true,      // show Copy/CSV buttons
   pageLength = 25,
   maxRows = 75000,          // for testing
   loading = false,
-}) => {
+}, ref) => {
   const tableRef = useRef(null);
   const dtRef = useRef(null);
   const pluginsLoadedRef = useRef({ buttons: false, scroller: false });
+
+  useImperativeHandle(ref, () => ({
+    exportCsv: () => {
+      const instance = dtRef.current;
+      if (!instance?.button) return false;
+      try {
+        instance.button('.buttons-csv').trigger();
+        return true;
+      } catch (err) {
+        console.warn('FeatureTable exportCsv failed', err);
+        return false;
+      }
+    },
+  }));
+
+  const tableStyles = useMemo(() => `
+.row-selected{background-color:rgba(0,123,255,.12)!important;}
+#${tableId}_wrapper .dt-buttons{display:none!important;}
+`, [tableId]);
 
   const baseRows = useMemo(() => {
     if (loading) return [];
@@ -148,7 +166,7 @@ const FeatureTable = ({
       if (!el) return;
 
       // Load plugins once (cache in ref)
-      if (showButtons && !pluginsLoadedRef.current.buttons) {
+      if (!pluginsLoadedRef.current.buttons) {
         await import("datatables.net-buttons");
         await import("datatables.net-buttons/js/buttons.html5");
         await import("datatables.net-buttons-dt/css/buttons.dataTables.css");
@@ -198,13 +216,10 @@ const FeatureTable = ({
         columns,
         autoWidth: false,
         order: [[0, "asc"]],
-        dom: showButtons ? (useScroller ? "Bfrti" : "Bfrtip") : (useScroller ? "frti" : "frtip"),
-        buttons: showButtons
-          ? [
-              { extend: "copyHtml5", title: "network_segments" },
-              { extend: "csvHtml5",  title: "network_segments" },
-            ]
-          : [],
+        dom: useScroller ? "Bfrti" : "Bfrtip",
+        buttons: [
+          { extend: "csvHtml5", title: "network_segments" },
+        ],
         ...(useScroller
           ? { scrollY: height, scroller: true, paging: true, deferRender: true }
           : { paging: true, pageLength }),
@@ -258,7 +273,6 @@ const FeatureTable = ({
     useScroller,
     height,
     pageLength,
-    showButtons,
     onRowClick,
     onSelectCoords,
   ]);
@@ -292,9 +306,9 @@ const FeatureTable = ({
         className="display stripe hover compact"
         style={{ width: "100%" }}
       />
-      <style>{`.row-selected{background-color:rgba(0,123,255,.12)!important;}`}</style>
+      <style>{tableStyles}</style>
     </div>
   );
-};
+});
 
 export default FeatureTable;
