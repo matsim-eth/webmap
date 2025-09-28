@@ -311,8 +311,8 @@ export default function useNetworkLayers({
         type: 'line',
         source: 'network-highlight',
         paint: {
-          'line-width': ['interpolate', ['linear'], ['get', 'capacity'], 300, 5, 4000, 14],
-          'line-color': '#8affff',
+          'line-width': ['interpolate', ['linear'], ['get', 'capacity'], 300, 6, 4000, 15],
+          'line-color': '#00a2ff',
           'line-opacity': 1
         }
       }, 'network-layer');
