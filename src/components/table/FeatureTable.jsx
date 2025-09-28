@@ -1,5 +1,12 @@
-// src/components/table/FeatureTable.jsx
-import React, { useEffect, useMemo, useRef, useImperativeHandle, forwardRef } from "react";
+﻿// src/components/table/FeatureTable.jsx
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useImperativeHandle,
+  forwardRef,
+  useState,
+} from "react";
 
 import $ from "jquery";
 import dt from "datatables.net-dt";
@@ -7,7 +14,13 @@ import "datatables.net-dt/css/dataTables.dataTables.css";
 
 // Bind DT once
 if (!$.fn.dataTable) {
-  try { dt(window, $); } catch { try { dt($); } catch {} }
+  try {
+    dt(window, $);
+  } catch {
+    try {
+      dt($);
+    } catch {}
+  }
 }
 
 /* ---------------- helpers ---------------- */
@@ -19,17 +32,42 @@ const toKmh = (mps) => {
 const fmt = (v, d = 0) => {
   const n = Number(v);
   return Number.isFinite(n)
-    ? n.toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d })
+    ? n.toLocaleString(undefined, {
+        minimumFractionDigits: d,
+        maximumFractionDigits: d,
+      })
     : "-";
 };
 const modeMatches = (rowModes, selectedModes) => {
-  if (!Array.isArray(selectedModes) || selectedModes.length === 0 || selectedModes.includes("all")) return true;
+  if (
+    !Array.isArray(selectedModes) ||
+    selectedModes.length === 0 ||
+    selectedModes.includes("all")
+  )
+    return true;
   const modes = String(rowModes || "")
     .split(",")
     .map((m) => m.trim())
     .filter(Boolean);
   if (!modes.length) return false;
   return selectedModes.some((m) => modes.includes(m));
+};
+
+// CSV helpers
+const csvEscape = (v) => {
+  const s = v == null ? "" : String(v);
+  // if contains comma, quote, newline, wrap in double quotes and escape internal quotes
+  return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+};
+const downloadBlob = (blob, filename) => {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 };
 
 /** Faster: precompute formatted strings once per row; keep raw numbers for sort */
@@ -39,8 +77,12 @@ export const buildRowsFromGeojson = (geojson) => {
   geojson.features.forEach((feature, featureIndex) => {
     const props = feature?.properties || {};
     let per = props.per_id;
-    if (typeof per === "string" && per.startsWith("{")) { // avoid try/catch unless looks like JSON
-      try { per = JSON.parse(per); } catch { per = {}; }
+    if (typeof per === "string" && per.startsWith("{")) {
+      try {
+        per = JSON.parse(per);
+      } catch {
+        per = {};
+      }
     }
     if (!per || typeof per !== "object" || Array.isArray(per)) per = {};
 
@@ -49,9 +91,11 @@ export const buildRowsFromGeojson = (geojson) => {
     // coords for map zoom (kept for compatibility; if large, consider switching to bbox)
     const g = feature?.geometry || {};
     const coords =
-      g.type === "LineString" ? g.coordinates :
-      g.type === "MultiLineString" ? g.coordinates.flat() :
-      null;
+      g.type === "LineString"
+        ? g.coordinates
+        : g.type === "MultiLineString"
+        ? g.coordinates.flat()
+        : null;
 
     const pushRow = (directionId, data = {}) => {
       const length = num(data.length ?? props.length);
@@ -91,220 +135,391 @@ export const buildRowsFromGeojson = (geojson) => {
 };
 
 /* ---------------- component ---------------- */
-const FeatureTable = forwardRef(({
-  geojson,                 // optional
-  rows,                    // optional (wins over geojson)
-  selectedModes = ["all"],
-  onRowClick,              // (row) => void
-  onSelectCoords,          // (coords, row) => void
-  tableId = "feature-table",
-  height = 360,            // used for Scroller
-  useScroller = true,      // true: virtual scroll; false: regular paging
-  pageLength = 25,
-  maxRows = 100000,          // for testing
-  loading = false,
-}, ref) => {
-  const tableRef = useRef(null);
-  const dtRef = useRef(null);
-  const pluginsLoadedRef = useRef({ buttons: false, scroller: false });
-
-  useImperativeHandle(ref, () => ({
-    exportCsv: () => {
-      const instance = dtRef.current;
-      if (!instance?.button) return false;
-      try {
-        instance.button('.buttons-csv').trigger();
-        return true;
-      } catch (err) {
-        console.warn('FeatureTable exportCsv failed', err);
-        return false;
-      }
+const FeatureTable = forwardRef(
+  (
+    {
+      geojson, // optional
+      rows, // optional (wins over geojson)
+      selectedModes = ["all"],
+      onRowClick, // (row) => void
+      onSelectCoords, // (coords, row) => void
+      tableId = "feature-table",
+      height = 360, // used for Scroller
+      useScroller = true, // true: virtual scroll; false: regular paging
+      pageLength = 25,
+      maxRows = 100000, // for testing
+      loading = false,
     },
-  }));
+    ref
+  ) => {
+    const tableRef = useRef(null);
+    const dtRef = useRef(null);
+    const pluginsLoadedRef = useRef({ scroller: false });
 
-  const tableStyles = useMemo(() => `
+    const tableStyles = useMemo(
+      () => `
 .row-selected{background-color:rgba(0,123,255,.12)!important;}
 #${tableId}_wrapper .dt-buttons{display:none!important;}
-`, [tableId]);
 
-  const baseRows = useMemo(() => {
-    if (loading) return [];
-    if (Array.isArray(rows) && rows.length) return rows;
-    const built = buildRowsFromGeojson(geojson);
-    if (built.length) return built;
-    return [];
-  }, [loading, rows, geojson]);
+/* Hide the built-in filter; we provide our own toolbar */
+#${tableId}_wrapper .dataTables_filter{display:none!important;}
 
-  const tableRows = useMemo(() => {
-    const filtered = baseRows.filter((r) => modeMatches(r.modes, selectedModes));
-    return filtered.slice(0, maxRows);
-  }, [baseRows, selectedModes, maxRows]);
+/* Custom toolbar */
+#${tableId}-toolbar{
+  display:flex; align-items:center; gap:.5rem; margin:0 0 .5rem 0;
+  font-size:12px;
+}
+#${tableId}-toolbar select{
+  height:28px; padding:2px 6px;
+}
+#${tableId}-toolbar input{
+  height:28px; padding:2px 6px; min-width:220px;
+}
+#${tableId}-toolbar button{
+  height:28px; padding:2px 8px;
+}
+`,
+      [tableId]
+    );
 
-  const hasNoData = tableRows.length === 0;
+    const baseRows = useMemo(() => {
+      if (loading) return [];
+      if (Array.isArray(rows) && rows.length) return rows;
+      const built = buildRowsFromGeojson(geojson);
+      if (built.length) return built;
+      return [];
+    }, [loading, rows, geojson]);
 
-  useEffect(() => {
-    let cancelled = false;
-    const el = tableRef.current;
+    const tableRows = useMemo(() => {
+      const filtered = baseRows.filter((r) => modeMatches(r.modes, selectedModes));
+      return filtered.slice(0, maxRows);
+    }, [baseRows, selectedModes, maxRows]);
 
-    const destroyIfAny = () => {
-      try { dtRef.current?.destroy(true); } catch {}
-      dtRef.current = null;
-      if (el?._dt) { try { el._dt.destroy(true); } catch {} el._dt = null; }
-    };
+    const hasNoData = tableRows.length === 0;
 
-    // If loading or no data, tear down and skip
-    if (loading || hasNoData) {
-      destroyIfAny();
-      if (el) el.innerHTML = "";
-      return;
-    }
-
-    const init = async () => {
-      if (!el) return;
-
-      // Load plugins once (cache in ref)
-      if (!pluginsLoadedRef.current.buttons) {
-        await import("datatables.net-buttons");
-        await import("datatables.net-buttons/js/buttons.html5");
-        await import("datatables.net-buttons-dt/css/buttons.dataTables.css");
-        pluginsLoadedRef.current.buttons = true;
-      }
-      if (useScroller && !pluginsLoadedRef.current.scroller) {
-        await import("datatables.net-scroller");
-        await import("datatables.net-scroller-dt/css/scroller.dataTables.css");
-        pluginsLoadedRef.current.scroller = true;
-      }
-      if (cancelled) return;
-
-      // Columns: display preformatted strings, sort by raw numbers (no render fn per cell)
-      const columns = [
-        { data: "directionId",  title: "Link ID" },
-        { data: { _: "length_fmt",    sort: "length"    }, title: "Length [m]" },
-        { data: { _: "freeSpeed_fmt", sort: "freeSpeed" }, title: "Speed [km/h]" },
-        { data: { _: "capacity_fmt",  sort: "capacity"  }, title: "Capacity" },
-        { data: { _: "dailyAvg_fmt",  sort: "dailyAvg"  }, title: "Avg Daily Volume" },
+    // Single source of truth for columns (used by DT and the toolbar + exporter)
+    const columnDefs = useMemo(
+      () => [
+        { key: "directionId", title: "Link ID" },
+        { key: "length_fmt", title: "Length [m]" },
+        { key: "freeSpeed_fmt", title: "Speed [km/h]" },
+        { key: "capacity_fmt", title: "Capacity" },
+        { key: "dailyAvg_fmt", title: "Avg Daily Volume" },
         {
-          data: "modes",
+          key: "modes",
           title: "Modes",
           render: (v) => (v ? String(v).replace(/,/g, ", ") : "-"),
         },
-      ];
+      ],
+      []
+    );
 
-      // Fast path: if already initialized, update rows only
-      if (dtRef.current && el._dt) {
+    // DataTables columns (maps to the same keys)
+    const dtColumns = useMemo(
+      () =>
+        columnDefs.map((c) => {
+          if (c.key === "modes") {
+            return {
+              data: "modes",
+              title: c.title,
+              render: (v) => (v ? String(v).replace(/,/g, ", ") : "-"),
+            };
+          }
+          return { data: c.key, title: c.title };
+        }),
+      [columnDefs]
+    );
+
+    // Toolbar state
+    const [searchCol, setSearchCol] = useState(-1); // -1 = all columns
+    const [searchText, setSearchText] = useState("");
+
+    // Expose a native CSV exporter (no Buttons dependency)
+    useImperativeHandle(ref, () => ({
+      exportCsv: () => {
         const instance = dtRef.current;
-        instance.clear();
-        instance.rows.add(tableRows);
+        if (!instance) return false;
+
+        // Get rows currently in the table view (respecting search/filter)
+        const dataArr = instance.rows({ search: "applied" }).data().toArray();
+        if (!dataArr.length) return false;
+
+        // Build CSV header
+        const header = columnDefs.map((c) => csvEscape(c.title)).join(",");
+
+        // Build CSV rows (use displayed values; apply render for modes)
+        const lines = dataArr.map((row) => {
+          return columnDefs
+            .map((c) => {
+              let val;
+              if (c.key === "modes") {
+                val = c.render ? c.render(row.modes) : row.modes;
+              } else {
+                val = row[c.key];
+              }
+              return csvEscape(val);
+            })
+            .join(",");
+        });
+
+        const csv = [header, ...lines].join("\r\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+        const fname = `${tableId}_export.csv`;
+        downloadBlob(blob, fname);
+        return true;
+      },
+    }));
+
+    useEffect(() => {
+      let cancelled = false;
+      const el = tableRef.current;
+
+      const destroyIfAny = () => {
+        try {
+          dtRef.current?.destroy(true);
+        } catch {}
+        dtRef.current = null;
+        if (el?._dt) {
+          try {
+            el._dt.destroy(true);
+          } catch {}
+          el._dt = null;
+        }
+      };
+
+      // If loading or no data, tear down and skip
+      if (loading || hasNoData) {
+        destroyIfAny();
+        if (el) el.innerHTML = "";
+        return;
+      }
+
+      const init = async () => {
+        if (!el) return;
+
+        // Load only Scroller (no Buttons needed for column search/export)
+        if (useScroller && !pluginsLoadedRef.current.scroller) {
+          await import("datatables.net-scroller");
+          await import("datatables.net-scroller-dt/css/scroller.dataTables.css");
+          pluginsLoadedRef.current.scroller = true;
+        }
+        if (cancelled) return;
+
+        // Fast path: if already initialized, update rows only
+        if (dtRef.current && el._dt) {
+          const instance = dtRef.current;
+          instance.clear();
+          instance.rows.add(
+            // map to a simplified record that DataTables expects
+            tableRows.map((r) => ({
+              ...r,
+              // Ensure the dt data keys exist (already precomputed above)
+            }))
+          );
+          instance.draw(false);
+          return;
+        }
+
+        // Fresh init: build header once
+        el.innerHTML = `
+          <thead>
+            <tr>${dtColumns.map((c) => `<th>${c.title}</th>`).join("")}</tr>
+          </thead>
+          <tbody></tbody>
+        `;
+
+        const instance = $(el).DataTable({
+          data: tableRows,
+          columns: dtColumns,
+          autoWidth: false,
+          order: [[0, "asc"]],
+          // Remove built-in filter ('f'); we'll use our custom toolbar
+          dom: useScroller ? "rti" : "rtip",
+          ...(useScroller
+            ? { scrollY: height, scroller: true, paging: true, deferRender: true }
+            : { paging: true, pageLength }),
+          rowId: (row) =>
+            row.rowKey || `row-${row.tableId}-${row.directionId ?? "all"}`,
+          language: {
+            emptyTable: baseRows.length
+              ? "No rows match the current filters"
+              : "No segment data available",
+          },
+          processing: true,
+        });
+
+        const onClick = (e) => {
+          const tr = e.target.closest("tr");
+          if (!tr || !tr.closest("tbody")) return;
+          const rowData = instance.row(tr).data();
+          if (!rowData) return;
+
+          // selection styling
+          [...tr.parentElement.children].forEach((r) =>
+            r.classList.remove("row-selected")
+          );
+          tr.classList.add("row-selected");
+
+          onRowClick?.(rowData);
+          onSelectCoords?.(rowData.coords ?? null, rowData);
+        };
+        el.addEventListener("click", onClick);
+
+        dtRef.current = instance;
+        el._dt = instance;
+
+        return () => {
+          el.removeEventListener("click", onClick);
+        };
+      };
+
+      init();
+
+      return () => {
+        cancelled = true;
+        // keep instance for fast updates
+      };
+    }, [
+      loading,
+      hasNoData,
+      tableRows, // data set
+      baseRows.length, // toggles emptyTable text
+      selectedModes,
+      useScroller,
+      height,
+      pageLength,
+      onRowClick,
+      onSelectCoords,
+      dtColumns,
+    ]);
+
+    // Multi-term search (comma/semicolon separated)
+    const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    // Apply search whenever search state or rows change
+    useEffect(() => {
+      const instance = dtRef.current;
+      if (!instance) return;
+
+      // Clear previous searches
+      instance.columns().every(function () {
+        this.search("");
+      });
+      instance.search("");
+
+      const raw = (searchText || "").trim();
+      if (!raw) {
         instance.draw(false);
         return;
       }
 
-      // Fresh init: build header once
-      el.innerHTML = `
-        <thead>
-          <tr>${columns.map((c) => `<th>${c.title}</th>`).join("")}</tr>
-        </thead>
-        <tbody></tbody>
-      `;
+      // Split on comma or semicolon, trim, drop empties
+      const terms = raw
+        .split(/[;,]+/)
+        .map((t) => t.trim())
+        .filter(Boolean);
+      if (terms.length === 0) {
+        instance.draw(false);
+        return;
+      }
 
-      const instance = $(el).DataTable({
-        data: tableRows,
-        columns,
-        autoWidth: false,
-        order: [[0, "asc"]],
-        dom: useScroller ? "Bfrti" : "Bfrtip",
-        buttons: [
-          { extend: "csvHtml5", title: "network_segments" },
-        ],
-        ...(useScroller
-          ? { scrollY: height, scroller: true, paging: true, deferRender: true }
-          : { paging: true, pageLength }),
-        rowId: (row) => row.rowKey || `row-${row.tableId}-${row.directionId ?? "all"}`,
-        language: {
-          emptyTable: baseRows.length
-            ? "No rows match the current filters"
-            : "No segment data available",
-        },
-        processing: true,
-      });
+      // Build regex pattern:
+      // - If a specific column is selected and it's "Link ID", do exact matches: ^(?:id1|id2)$
+      // - Otherwise, do OR contains for column/global: (id1|id2)
+      const selectedTitle =
+        Number.isInteger(searchCol) && searchCol >= 0
+          ? (dtColumns[searchCol]?.title || "").toLowerCase()
+          : "";
 
-      const onClick = (e) => {
-        const tr = e.target.closest("tr");
-        if (!tr || !tr.closest("tbody")) return;
-        const rowData = instance.row(tr).data();
-        if (!rowData) return;
+      const colIsExact = selectedTitle === "link id";
+      const pattern = terms.map(escapeRegex).join("|");
+      const finalPattern = colIsExact ? `^(?:${pattern})$` : `(?:${pattern})`;
 
-        // selection styling
-        [...tr.parentElement.children].forEach((r) => r.classList.remove("row-selected"));
-        tr.classList.add("row-selected");
+      if (Number.isInteger(searchCol) && searchCol >= 0) {
+        // Column-specific search
+        instance.column(searchCol).search(finalPattern, /* regex */ true, /* smart */ false);
+      } else {
+        // Global search across all columns
+        instance.search(finalPattern, /* regex */ true, /* smart */ false);
+      }
 
-        onRowClick?.(rowData);
-        onSelectCoords?.(rowData.coords ?? null, rowData);
-      };
-      el.addEventListener("click", onClick);
+      instance.draw(false);
+    }, [searchCol, searchText, tableRows, dtColumns]);
 
-      dtRef.current = instance;
-      el._dt = instance;
+    // UI states managed here
+    if (loading) {
+      return (
+        <div
+          className="w-full"
+          style={{ height, display: "grid", placeItems: "center", opacity: 0.85 }}
+        >
+          <span>Preparing table…</span>
+        </div>
+      );
+    }
 
-      return () => {
-        el.removeEventListener("click", onClick);
-      };
-    };
+    if (hasNoData) {
+      return (
+        <div
+          className="w-full"
+          style={{
+            height,
+            display: "grid",
+            placeItems: "center",
+            color: "#888",
+            fontStyle: "italic",
+          }}
+        >
+          <span>No segment data available</span>
+        </div>
+      );
+    }
 
-    init();
-
-    return () => {
-      cancelled = true;
-      // Don't destroy here by default — keep instance for fast updates.
-      // It will be destroyed above when loading/hasNoData, or when component unmounts:
-      // (uncomment next lines if you want hard-destroy on unmount)
-      // destroyIfAny();
-    };
-  }, [
-    loading,
-    hasNoData,
-    tableRows,           // data set
-    baseRows.length,     // toggles emptyTable text
-    selectedModes,
-    useScroller,
-    height,
-    pageLength,
-    onRowClick,
-    onSelectCoords,
-  ]);
-
-  // UI states managed here
-  if (loading) {
+    // Normal DT rendering
     return (
-      <div className="w-full" style={{ height, display: "grid", placeItems: "center", opacity: 0.85 }}>
-        <span>Preparing table…</span>
+      <div className="w-full" style={{ minHeight: 200 }}>
+        {/* Custom toolbar */}
+        <div id={`${tableId}-toolbar`}>
+          <label>Search in:</label>
+          <select
+            value={String(searchCol)}
+            onChange={(e) => setSearchCol(parseInt(e.target.value, 10))}
+          >
+            <option value="-1">All columns</option>
+            {dtColumns.map((c, idx) => (
+              <option key={idx} value={idx}>
+                {c.title}
+              </option>
+            ))}
+          </select>
+          <input
+            type="text"
+            placeholder="Type to search… (; for multiple)"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+          />
+          <button
+            type="button"
+            onClick={() => {
+              setSearchText("");
+              setSearchCol(-1);
+            }}
+            title="Clear search"
+          >
+            Clear
+          </button>
+        </div>
+
+        <table
+          id={tableId}
+          ref={tableRef}
+          className="display stripe hover compact"
+          style={{ width: "100%" }}
+        />
+        <style>{tableStyles}</style>
       </div>
     );
   }
-
-  if (hasNoData) {
-    return (
-      <div
-        className="w-full"
-        style={{ height, display: "grid", placeItems: "center", color: "#888", fontStyle: "italic" }}
-      >
-        <span>No segment data available</span>
-      </div>
-    );
-  }
-
-  // Normal DT rendering
-  return (
-    <div className="w-full" style={{ minHeight: 200 }}>
-      <table
-        id={tableId}
-        ref={tableRef}
-        className="display stripe hover compact"
-        style={{ width: "100%" }}
-      />
-      <style>{tableStyles}</style>
-    </div>
-  );
-});
+);
 
 export default FeatureTable;

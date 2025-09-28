@@ -172,7 +172,7 @@ const NetworkModule = ({
           selectedModes={selectedNetworkModes}
           onRowClick={handleTableRowSelect}
           onSelectCoords={handleSelectCoords}
-          height={360}
+          height={"55vh"}
           useScroller
           loading={!showTable || !rowsReady}
         />
