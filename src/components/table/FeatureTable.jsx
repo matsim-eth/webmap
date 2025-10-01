@@ -160,7 +160,7 @@ const FeatureTable = forwardRef(
       height = 360, // used for Scroller
       useScroller = true, // true: virtual scroll; false: regular paging
       pageLength = 25,
-      maxRows = 100000, // for testing  
+      maxRows = 150000,
       loading = false,
     },
     ref
