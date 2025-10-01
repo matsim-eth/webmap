@@ -8,7 +8,7 @@ import useNetworkLayers         from './map/useNetworkLayers';
 import useTransitLayers         from './map/useTransitLayers';
 import useChoropleth            from './map/useChoropleth';
 import useDestinationZones      from './map/useDestinationZones';
-import useNetworkSelectionFocus      from './map/useNetworkSelectionFocus';
+import useFeatureSelectionFocus      from './map/useFeatureSelectionFocus';
 
 export default function Map(props) {
   
@@ -76,7 +76,6 @@ export default function Map(props) {
     timeRange:                  props.timeRange,
     visualizeLinkId:            props.visualizeLinkId,
     setSelectedNetworkFeature:  props.setSelectedNetworkFeature,
-    setNetworkSelection:        props.setNetworkSelection,
     isGraphExpanded:            props.isGraphExpanded,
     resetMapTrigger:            props.resetMapTrigger,
     labelSize:                  props.labelSize,
@@ -121,8 +120,8 @@ export default function Map(props) {
   });
 
 
-  useNetworkSelectionFocus({
-    mapRef, mapReady, selection: props.networkSelection
+  useFeatureSelectionFocus({
+    mapRef, mapReady, selection: props.featureSelection
   });
 
   // this is placed in here so that it will overtake the other zooming effects to
