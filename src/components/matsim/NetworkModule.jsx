@@ -2,40 +2,12 @@ import React, { useCallback, useEffect, useState, useRef } from "react";
 import SegmentAttributesTable from "./SegmentAttributesTable";
 import FeatureTable, { buildRowsFromGeojson } from "../table/FeatureTable";
 
-const deriveCoords = (row) => {
-  if (!row) return null;
-  const coords = row.coords;
-  if (Array.isArray(coords) && coords.length) {
-    return coords;
-  }
-  const geometry = row.feature?.geometry;
-  if (!geometry) return null;
-  if (geometry.type === "LineString" && Array.isArray(geometry.coordinates)) {
-    return geometry.coordinates;
-  }
-  if (geometry.type === "MultiLineString" && Array.isArray(geometry.coordinates)) {
-    return geometry.coordinates.flat();
-  }
-  return null;
-};
-
+// get coords and id of selected row
 const buildSelectionPayload = (row) => {
   if (!row) return null;
+  const coords= row.coords;
+  const id = row.rowKey; // add other ones if needed
   const feature = row.feature;
-  const coords = deriveCoords(row);
-  if (!feature || !coords || !coords.length) {
-    return null;
-  }
-  const props = row.featureProps || feature.properties || {};
-  const id =
-    props.id ||
-    props.link_id ||
-    props.segment_id ||
-    props.objectid ||
-    feature.id ||
-    row.segmentLabel ||
-    row.rowKey ||
-    null;
   return { id, feature, coords };
 };
 
@@ -50,46 +22,46 @@ const NetworkModule = ({
   featureGeoJSON,
   onFocusNetworkFeature,
   featureTableRef,
-  onTableRowsChange,
 }) => {
   const [showTable, setShowTable] = useState(false);
   const [tableRows, setTableRows] = useState([]);
   const [rowsReady, setRowsReady] = useState(false);
   const cachedRowsRef = useRef(new Map());
-
+  
   useEffect(() => {
     if (isFeatureTableOpen) {
-      const timer = setTimeout(() => setShowTable(true), 350);
+      // add delay so sidebar can expand first
+      const timer = setTimeout(() => setShowTable(true), 400);
       return () => clearTimeout(timer);
     }
     setShowTable(false);
-    return undefined;
   }, [isFeatureTableOpen]);
-
-  useEffect(() => () => onFocusNetworkFeature?.(null), [onFocusNetworkFeature]);
-
+  
   const ensureRowsForCanton = useCallback(() => {
+
+    // if missing canton or data, clear
     if (!canton || !featureGeoJSON) {
       setTableRows([]);
       setRowsReady(false);
-      onTableRowsChange?.(false);
       return;
     }
+
+    // cache data unless canton changed
     const cacheKey = canton;
     const cached = cachedRowsRef.current.get(cacheKey);
     if (cached && cached.source === featureGeoJSON) {
       setTableRows(cached.rows);
       setRowsReady(true);
-      onTableRowsChange?.(cached.rows.length > 0);
       return;
     }
+
+    // build rows and then cache from geojson
     const builtRows = buildRowsFromGeojson(featureGeoJSON);
     cachedRowsRef.current.set(cacheKey, { source: featureGeoJSON, rows: builtRows });
     setTableRows(builtRows);
     setRowsReady(true);
-    onTableRowsChange?.(builtRows.length > 0);
-  }, [canton, featureGeoJSON, onTableRowsChange]);
-
+  }, [canton, featureGeoJSON]);
+  
   useEffect(() => {
     if (!canton || !featureGeoJSON) {
       if (!canton) {
@@ -97,31 +69,34 @@ const NetworkModule = ({
       }
       setTableRows([]);
       setRowsReady(false);
-      onTableRowsChange?.(false);
       return;
     }
     const cached = cachedRowsRef.current.get(canton);
+
+    // use cached if available
     if (cached && cached.source === featureGeoJSON) {
       setTableRows(cached.rows);
       setRowsReady(true);
-      onTableRowsChange?.(cached.rows.length > 0);
     } else {
+    // clear cache if canton changed
       cachedRowsRef.current.delete(canton);
       setTableRows([]);
       setRowsReady(false);
-      onTableRowsChange?.(false);
     }
-  }, [canton, featureGeoJSON, onTableRowsChange]);
-
+  }, [canton, featureGeoJSON]);
+  
   useEffect(() => {
+    // table not shown, so don't build rows
     if (!showTable) return;
-
+    
+    // trigger row building in idle time
     let cancelled = false;
     const run = () => {
       if (!cancelled) ensureRowsForCanton();
     };
-
+    
     if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
+      // run when idle, but at most after 200ms
       const idleId = window.requestIdleCallback(run, { timeout: 200 });
       return () => {
         cancelled = true;
@@ -130,29 +105,32 @@ const NetworkModule = ({
         }
       };
     }
-
+    
+    // fallback for browsers without requestIdleCallback
     const timeoutId = window.setTimeout(run, 0);
     return () => {
       cancelled = true;
       window.clearTimeout(timeoutId);
     };
   }, [showTable, ensureRowsForCanton, canton, featureGeoJSON]);
-
+  
   const handleTableRowSelect = useCallback(
     (row) => {
       if (!row) return;
       const featureProps = row.featureProps || row.feature?.properties;
       if (featureProps) {
+        // sends to update attribute table on sidebar
         setSelectedNetworkFeature?.([featureProps]);
       }
       const payload = buildSelectionPayload(row);
       if (payload) {
+        // sends to zoom to feature on map
         onFocusNetworkFeature?.(payload);
       }
     },
     [onFocusNetworkFeature, setSelectedNetworkFeature]
   );
-
+  
   const handleSelectCoords = useCallback(
     (coords, row) => {
       if (!row) return;
@@ -160,52 +138,52 @@ const NetworkModule = ({
     },
     [handleTableRowSelect]
   );
-
+  
   return (
     <div className="plot-container">
-      {isFeatureTableOpen ? (
-        <FeatureTable
-          ref={featureTableRef}
-          tableId="network-feature-table"
-          rows={tableRows}
-          geojson={rowsReady ? null : featureGeoJSON}
-          selectedModes={selectedNetworkModes}
-          onRowClick={handleTableRowSelect}
-          onSelectCoords={handleSelectCoords}
-          height={"55vh"}
-          useScroller
-          loading={!showTable || !rowsReady}
-        />
+    {isFeatureTableOpen ? (
+      <FeatureTable
+      ref={featureTableRef}
+      tableId="network-feature-table"
+      rows={tableRows}
+      geojson={rowsReady ? null : featureGeoJSON}
+      selectedModes={selectedNetworkModes}
+      onRowClick={handleTableRowSelect}
+      onSelectCoords={handleSelectCoords}
+      height={"55vh"}
+      useScroller
+      loading={!showTable || !rowsReady}
+      />
+    ) : (
+      <>
+      {canton ? (
+        <div className="mode-filter-container">
+        <label className="mode-filter-label">Filter by Mode:</label>
+        <select
+        multiple
+        value={selectedNetworkModes}
+        onChange={handleModeChange}
+        className="mode-filter-select"
+        >
+        <option value="all">All</option>
+        {availableModes.map((mode) => (
+          <option key={mode} value={mode}>
+          {mode.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+          </option>
+        ))}
+        </select>
+        </div>
       ) : (
-        <>
-          {canton ? (
-            <div className="mode-filter-container">
-              <label className="mode-filter-label">Filter by Mode:</label>
-              <select
-                multiple
-                value={selectedNetworkModes}
-                onChange={handleModeChange}
-                className="mode-filter-select"
-              >
-                <option value="all">All</option>
-                {availableModes.map((mode) => (
-                  <option key={mode} value={mode}>
-                    {mode.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : (
-            <p style={{ padding: "1rem", fontStyle: "italic", color: "#555" }}>
-              Click a canton to view MATSim network links.
-            </p>
-          )}
-
-          {selectedNetworkFeature && (
-            <SegmentAttributesTable propertiesList={selectedNetworkFeature} />
-          )}
-        </>
+        <p style={{ padding: "1rem", fontStyle: "italic", color: "#555" }}>
+        Click a canton to view MATSim network links.
+        </p>
       )}
+      
+      {selectedNetworkFeature && (
+        <SegmentAttributesTable propertiesList={selectedNetworkFeature} />
+      )}
+      </>
+    )}
     </div>
   );
 };

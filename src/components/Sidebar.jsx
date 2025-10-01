@@ -99,7 +99,6 @@ const Sidebar = ({
   const loadWithFallback = useLoadWithFallback(dataURL);
   const fileInputRef = useRef();
   const networkTableRef = useRef(null);
-  const [canExportNetworkTable, setCanExportNetworkTable] = useState(false);
   
   // ======================= GENERAL FEATURES (BUTTONS / DROPDOWN) =======================
   const handleGraphSelection = (event) => {
@@ -377,7 +376,6 @@ const Sidebar = ({
           {isFeatureTableOpen && (
             <button
             className="search-button secondary"
-            disabled={!canExportNetworkTable}
             onClick={() => {
               const exported = networkTableRef.current?.exportCsv?.();
               if (!exported) {
@@ -400,10 +398,8 @@ const Sidebar = ({
         handleModeChange={handleModeChange}
         isFeatureTableOpen={isFeatureTableOpen}
         featureGeoJSON={featureGeoJSON}
-
         onFocusNetworkFeature={onFocusNetworkFeature}
         featureTableRef={networkTableRef}
-        onTableRowsChange={setCanExportNetworkTable}
         />
         </>
       )}

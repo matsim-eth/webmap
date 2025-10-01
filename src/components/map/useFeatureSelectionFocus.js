@@ -16,11 +16,10 @@ const computeBounds = (coords) => {
   return [[minLng, minLat], [maxLng, maxLat]];
 };
 
-export default function useNetworkSelectionFocus({
+export default function useFeatureSelectionFocus({
   mapRef,
   mapReady,
   selection,
-  setSelectedNetworkFeature, 
 }) {
   const lastSelectionId = useRef(null);
 
@@ -41,9 +40,6 @@ export default function useNetworkSelectionFocus({
           .setData({ type: 'FeatureCollection', features: [] });
       }
       lastSelectionId.current = null;
-      if (typeof setSelectedNetworkFeature === 'function') {
-        setSelectedNetworkFeature(null);
-      }
       return;
     }
 
@@ -83,12 +79,6 @@ export default function useNetworkSelectionFocus({
     // Only react to *new* selections
     const isNew = selectionId !== lastSelectionId.current;
 
-    if (isNew && typeof setSelectedNetworkFeature === 'function') {
-      // Sidebar expects an array of property objects
-      const props = selection.feature?.properties || {};
-      setSelectedNetworkFeature([props]);
-    }
-
     if (bounds && isNew) {
       if (map.stop) map.stop();
       map.fitBounds(bounds, {
@@ -98,5 +88,5 @@ export default function useNetworkSelectionFocus({
     }
 
     lastSelectionId.current = selectionId;
-  }, [mapRef, mapReady, selection, setSelectedNetworkFeature]);
+  }, [mapRef, mapReady, selection]);
 }

@@ -34,7 +34,7 @@ function App() {
   
   // Save selected network segment properties
   const [selectedNetworkFeature, setSelectedNetworkFeature] = useState(null);
-  const [networkSelection, setNetworkSelection] = useState(null);
+  const [featureSelection, setFeatureSelection] = useState(null);
   // Save selected link for transit volumes module
   const [selectedTransitLink, setSelectedTransitLink] = useState(null);
   // Show selected line for transit volumes module
@@ -77,7 +77,7 @@ function App() {
     setClickedCanton(null)
     // Reset selected network, 
     setSelectedNetworkFeature(null)
-    setNetworkSelection(null)
+    setFeatureSelection(null)
     setSelectedTransitLink(null);
     setVisualizeLinkId(null)
     // Reset current module
@@ -106,8 +106,7 @@ function App() {
     selectedDataset={selectedDataset} // from sidebar
     selectedNetworkModes={selectedNetworkModes}  // from sidebar
     setSelectedNetworkFeature={setSelectedNetworkFeature} // to sidebar
-    networkSelection={networkSelection}
-    setNetworkSelection={setNetworkSelection}
+    featureSelection={featureSelection}
     setSelectedTransitLink={setSelectedTransitLink} // to sidebar
     visualizeLinkId={visualizeLinkId} // from segment vol histogram via sidebar
     setVisualizeLinkId={setVisualizeLinkId} // from sidebar
@@ -145,7 +144,7 @@ function App() {
     setSelectedNetworkModes={setSelectedNetworkModes} // to change value
     selectedNetworkFeature={selectedNetworkFeature} // from map
     setSelectedNetworkFeature={setSelectedNetworkFeature} 
-    onFocusNetworkFeature={setNetworkSelection}
+    onFocusNetworkFeature={setFeatureSelection}
     selectedTransitLink={selectedTransitLink} // from map
     visualizeLinkId={visualizeLinkId} // from map
     setVisualizeLinkId={setVisualizeLinkId} // to map
