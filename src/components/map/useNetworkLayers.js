@@ -180,59 +180,66 @@ export default function useNetworkLayers({
     const addSearchableArrays = (feature) => {
       const perId = feature.properties?.per_id || {};
       
-      // Make sure perId is an object, not a string
       let perIdObj = perId;
       if (typeof perId === 'string') {
         try {
           perIdObj = JSON.parse(perId);
         } catch (e) {
-          console.warn('Failed to parse per_id JSON:', e);
           return feature;
         }
       }
       
       const keys = Object.keys(perIdObj);
       
-      // Helper for rounding
+      // Use EXACT same helper functions as FeatureTable
+      const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : null);
+      const toKmh = (mps) => {
+        const n = Number(mps);
+        return Number.isFinite(n) ? n * 3.6 : null;
+      };
       const roundTo = (value, decimals = 0) => {
         if (!Number.isFinite(value)) return value;
         const factor = Math.pow(10, decimals);
         return Math.round(value * factor) / factor;
       };
       
-      // Extract values into separate arrays (for column-specific searches)
-      const capacities = keys.map(key => perIdObj[key]?.capacity).filter(v => v != null);
-      const lengths = keys.map(key => roundTo(perIdObj[key]?.length, 1)).filter(v => v != null);
-      const freespeeds = keys.map(key => perIdObj[key]?.freespeed).filter(v => v != null);
-      const dailyAvgs = keys.map(key => perIdObj[key]?.daily_avg_volume).filter(v => v != null);
+      // Process each direction EXACTLY like FeatureTable does
+      const linkIds = [];
+      const capacities = [];
+      const lengths = [];
+      const freespeeds = [];
+      const dailyAvgs = [];
       
-      // Store individual arrays for column-specific searches
-      feature.properties.per_id_keys = keys;
-      feature.properties.per_id_capacities = capacities;
-      feature.properties.per_id_lengths = lengths;
-      feature.properties.per_id_freespeeds = freespeeds;
-      feature.properties.per_id_daily_avgs = dailyAvgs;
-      
-      // ALSO create searchable string for "all columns" search
-      const searchableValues = [];
       keys.forEach(key => {
-        const obj = perIdObj[key];
-        if (!obj) return;
+        const data = perIdObj[key];
+        if (!data) return;
         
-        searchableValues.push(key); // Link ID
-        if (obj.capacity != null) searchableValues.push(String(obj.capacity));
-        if (obj.length != null) searchableValues.push(String(roundTo(obj.length, 1)));
-        if (obj.freespeed != null) searchableValues.push(String(roundTo(obj.freespeed * 3.6, 1))); // Convert to km/h
-        if (obj.daily_avg_volume != null) searchableValues.push(String(obj.daily_avg_volume));
+        // Apply EXACT same transformations as FeatureTable
+        const length = num(data.length);
+        const freeSpeed = toKmh(data.freespeed);
+        const capacity = num(data.capacity);
+        const dailyAvg = num(data.daily_avg_volume);
+        
+        linkIds.push(key);
+        if (capacity !== null) capacities.push(String(capacity)); // No rounding
+        if (length !== null) lengths.push(String(roundTo(length, 1))); // Round to 1 decimal
+        if (freeSpeed !== null) freespeeds.push(String(roundTo(freeSpeed, 1))); // Round to 1 decimal
+        if (dailyAvg !== null) dailyAvgs.push(String(dailyAvg)); // No rounding
       });
       
-      // Add modes
-      if (feature.properties.modes) {
-        searchableValues.push(String(feature.properties.modes));
-      }
+      // Store as pipe-delimited strings
+      feature.properties.per_id_keys = linkIds.join('|');
+      feature.properties.per_id_capacities = capacities.join('|');
+      feature.properties.per_id_lengths = lengths.join('|');
+      feature.properties.per_id_freespeeds = freespeeds.join('|');
+      feature.properties.per_id_daily_avgs = dailyAvgs.join('|');
       
-      // Create searchable string with pipe separator
-      feature.properties.searchable_text = searchableValues.join('|').toLowerCase();
+      // Create searchable text
+      const allValues = [...linkIds, ...capacities, ...lengths, ...freespeeds, ...dailyAvgs];
+      if (feature.properties.modes) {
+        allValues.push(String(feature.properties.modes));
+      }
+      feature.properties.searchable_text = allValues.join('|').toLowerCase();
       
       return feature;
     };
