@@ -22,6 +22,7 @@ const NetworkModule = ({
   featureGeoJSON,
   onFocusNetworkFeature,
   featureTableRef,
+  setTableFilterQuery
 }) => {
   const [showTable, setShowTable] = useState(false);
   const [tableRows, setTableRows] = useState([]);
@@ -35,6 +36,7 @@ const NetworkModule = ({
       return () => clearTimeout(timer);
     }
     setShowTable(false);
+    setTableFilterQuery(null);
   }, [isFeatureTableOpen]);
   
   const ensureRowsForCanton = useCallback(() => {
@@ -153,6 +155,7 @@ const NetworkModule = ({
       height={"55vh"}
       useScroller
       loading={!showTable || !rowsReady}
+      setTableFilterQuery={setTableFilterQuery}
       />
     ) : (
       <>
