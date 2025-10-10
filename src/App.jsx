@@ -25,10 +25,16 @@ function App() {
   // Intialize reference to store Mapbox instance
   const mapRef = useRef(null);
   
+
+  // ------ FEATURE TABLE --------
   // Track if table is open or not
   const [isFeatureTableOpen, setIsFeatureTableOpen] = useState(false);
   // Pass network geojson to FeatureTable
   const [featureGeoJSON, setFeatureGeoJSON] = useState(null);
+  // Pass table query to filter features on map
+  const [tableFilterQuery, setTableFilterQuery] = useState(null);
+
+
   // Matsim network modes (MatSIM network module)
   const [selectedNetworkModes, setSelectedNetworkModes] = useState(["all"]);
   
@@ -129,6 +135,7 @@ function App() {
     setFeatureGeoJSON={setFeatureGeoJSON}
     isFeatureTableOpen={isFeatureTableOpen} // from sidebar
     setIsFeatureTableOpen={setIsFeatureTableOpen}
+    tableFilterQuery={tableFilterQuery}
     />
     
     <Sidebar
@@ -172,6 +179,7 @@ function App() {
     featureGeoJSON={featureGeoJSON}
     isFeatureTableOpen={isFeatureTableOpen}
     setIsFeatureTableOpen={setIsFeatureTableOpen}
+    setTableFilterQuery={setTableFilterQuery} // to map
     />
     
     <NetworkLegend

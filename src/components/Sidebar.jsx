@@ -42,7 +42,7 @@ const Sidebar = ({
   isOpen, toggleSidebar, onExpandGraph, resetMapView,
   
   // Feature Table
-  isFeatureTableOpen, setIsFeatureTableOpen,
+  isFeatureTableOpen, setIsFeatureTableOpen, setTableFilterQuery,
   
   // Map State
   canton,
@@ -98,7 +98,7 @@ const Sidebar = ({
   const { handleFolderUpload, fileMap, clearFileMap } = useFileContext();
   const loadWithFallback = useLoadWithFallback(dataURL);
   const fileInputRef = useRef();
-  const networkTableRef = useRef(null);
+  const featureTableRef = useRef(null);
   
   // ======================= GENERAL FEATURES (BUTTONS / DROPDOWN) =======================
   const handleGraphSelection = (event) => {
@@ -377,7 +377,7 @@ const Sidebar = ({
             <button
             className="search-button secondary"
             onClick={() => {
-              const exported = networkTableRef.current?.exportCsv?.();
+              const exported = featureTableRef.current?.exportCsv?.();
               if (!exported) {
                 console.warn('Export skipped: no table data available.');
               }
@@ -399,7 +399,8 @@ const Sidebar = ({
         isFeatureTableOpen={isFeatureTableOpen}
         featureGeoJSON={featureGeoJSON}
         onFocusNetworkFeature={onFocusNetworkFeature}
-        featureTableRef={networkTableRef}
+        featureTableRef={featureTableRef}
+        setTableFilterQuery={setTableFilterQuery}
         />
         </>
       )}

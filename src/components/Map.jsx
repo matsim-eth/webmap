@@ -121,7 +121,11 @@ export default function Map(props) {
 
 
   useFeatureSelectionFocus({
-    mapRef, mapReady, selection: props.featureSelection
+    mapRef, 
+    mapReady, 
+    selection:            props.featureSelection,
+    query:                props.tableFilterQuery,
+    selectedNetworkModes: props.selectedNetworkModes,
   });
 
   // this is placed in here so that it will overtake the other zooming effects to

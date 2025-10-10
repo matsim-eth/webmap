@@ -177,6 +177,66 @@ export default function useNetworkLayers({
     
     originalNetworkGeoJSON.current = networkGeojson;
     
+    const addSearchableArrays = (feature) => {
+      const perId = feature.properties?.per_id || {};
+      
+      // Make sure perId is an object, not a string
+      let perIdObj = perId;
+      if (typeof perId === 'string') {
+        try {
+          perIdObj = JSON.parse(perId);
+        } catch (e) {
+          console.warn('Failed to parse per_id JSON:', e);
+          return feature;
+        }
+      }
+      
+      const keys = Object.keys(perIdObj);
+      
+      // Helper for rounding
+      const roundTo = (value, decimals = 0) => {
+        if (!Number.isFinite(value)) return value;
+        const factor = Math.pow(10, decimals);
+        return Math.round(value * factor) / factor;
+      };
+      
+      // Extract values into separate arrays (for column-specific searches)
+      const capacities = keys.map(key => perIdObj[key]?.capacity).filter(v => v != null);
+      const lengths = keys.map(key => roundTo(perIdObj[key]?.length, 1)).filter(v => v != null);
+      const freespeeds = keys.map(key => perIdObj[key]?.freespeed).filter(v => v != null);
+      const dailyAvgs = keys.map(key => perIdObj[key]?.daily_avg_volume).filter(v => v != null);
+      
+      // Store individual arrays for column-specific searches
+      feature.properties.per_id_keys = keys;
+      feature.properties.per_id_capacities = capacities;
+      feature.properties.per_id_lengths = lengths;
+      feature.properties.per_id_freespeeds = freespeeds;
+      feature.properties.per_id_daily_avgs = dailyAvgs;
+      
+      // ALSO create searchable string for "all columns" search
+      const searchableValues = [];
+      keys.forEach(key => {
+        const obj = perIdObj[key];
+        if (!obj) return;
+        
+        searchableValues.push(key); // Link ID
+        if (obj.capacity != null) searchableValues.push(String(obj.capacity));
+        if (obj.length != null) searchableValues.push(String(roundTo(obj.length, 1)));
+        if (obj.freespeed != null) searchableValues.push(String(roundTo(obj.freespeed * 3.6, 1))); // Convert to km/h
+        if (obj.daily_avg_volume != null) searchableValues.push(String(obj.daily_avg_volume));
+      });
+      
+      // Add modes
+      if (feature.properties.modes) {
+        searchableValues.push(String(feature.properties.modes));
+      }
+      
+      // Create searchable string with pipe separator
+      feature.properties.searchable_text = searchableValues.join('|').toLowerCase();
+      
+      return feature;
+    };
+    
     const decorateLineVolumesFromPerId = (features) => {
       for (const f of features) {
         if (!f?.properties) f.properties = {};
@@ -225,13 +285,15 @@ export default function useNetworkLayers({
         : fallbackTotal;
         f.properties.left_sum = left;
         f.properties.right_sum = right;
+        
+        addSearchableArrays(f);
       }
     };
     
     decorateLineVolumesFromPerId(networkGeojson.features);
-
+    
     setFeatureGeoJSON?.(networkGeojson);
-
+    
     map.addSource('network-source', { type: 'geojson', data: networkGeojson });
     
     map.addLayer({
@@ -552,5 +614,4 @@ export default function useNetworkLayers({
           setSelectedNetworkFeature(null);
         }, [resetMapTrigger]);
       }
-      
-      
+

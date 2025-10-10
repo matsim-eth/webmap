@@ -86,7 +86,7 @@ export const buildRowsFromGeojson = (geojson) => {
   const rows = [];
   geojson.features.forEach((feature, featureIndex) => {
     const props = feature?.properties || {};
-
+    
     // handle per_id dictionary (split one feature into multiple rows per direction)
     let per = props.per_id;
     if (typeof per === "string" && per.startsWith("{")) {
@@ -110,6 +110,13 @@ export const buildRowsFromGeojson = (geojson) => {
     ? g.coordinates.flat()
     : null;
     
+    const roundTo = (value, decimals = 0) => {
+  if (!Number.isFinite(value)) return value;
+  const factor = Math.pow(10, decimals);
+  return Math.round(value * factor) / factor;
+};
+
+
     const pushRow = (directionId, data = {}) => {
       const length = num(data.length);
       const freeSpeed = toKmh(data.freespeed);
@@ -120,19 +127,10 @@ export const buildRowsFromGeojson = (geojson) => {
         rowKey: `${tableId}-${directionId ?? "all"}-${rows.length}`,
         tableId,
         directionId: directionId ?? null,
-        
-        // raw numbers (used for sorting)
-        length,
-        freeSpeed,
+        length: length ? roundTo(length, 1) : length, // Round to 1 decimal
+        freeSpeed: freeSpeed ? roundTo(freeSpeed, 1) : freeSpeed,
         capacity,
         dailyAvg,
-        
-        // preformatted display strings (so column render isn't called per cell)
-        length_fmt: fmt(length, 1),
-        freeSpeed_fmt: fmt(freeSpeed, 1),
-        capacity_fmt: fmt(capacity),
-        dailyAvg_fmt: fmt(dailyAvg),
-        
         modes: props.modes || "",
         coords,
         feature,
@@ -162,6 +160,7 @@ const FeatureTable = forwardRef(
       pageLength = 25,
       maxRows = 150000,
       loading = false,
+      setTableFilterQuery
     },
     ref
   ) => {
@@ -170,7 +169,7 @@ const FeatureTable = forwardRef(
     const pluginsLoadedRef = useRef({ scroller: false });
     
     const tableStyles = useMemo(
-                () => `
+      () => `
           .row-selected{background-color:rgba(0,123,255,.12)!important;}
           #${tableId}_wrapper .dt-buttons{display:none!important;}
                 
@@ -214,10 +213,10 @@ const FeatureTable = forwardRef(
     const columnDefs = useMemo(
       () => [
         { key: "directionId", title: "Link ID" },
-        { key: "length_fmt", title: "Length [m]" },
-        { key: "freeSpeed_fmt", title: "Speed [km/h]" },
-        { key: "capacity_fmt", title: "Capacity" },
-        { key: "dailyAvg_fmt", title: "Avg Daily Volume" },
+        { key: "length", title: "Length [m]" },        
+        { key: "freeSpeed", title: "Speed [km/h]" },   
+        { key: "capacity", title: "Capacity" },        
+        { key: "dailyAvg", title: "Avg Daily Volume" }, 
         {
           key: "modes",
           title: "Modes",
@@ -236,22 +235,36 @@ const FeatureTable = forwardRef(
       }, [value, delay]);
       return debounced;
     };
-
+    
     // DataTables columns (maps to the same keys)
     const dtColumns = useMemo(
-      () =>
-        columnDefs.map((c) => {
-        if (c.key === "modes") {
-          return {
-            data: "modes",
-            title: c.title,
-            render: (v) => (v ? String(v).replace(/,/g, ", ") : "-"),
-          };
-        }
-        return { data: c.key, title: c.title };
-      }),
-      [columnDefs]
+      () => [
+        { data: "directionId", title: "Link ID" },
+        {
+          data: "length",
+          title: "Length [m]",
+        },
+        {
+          data: "freeSpeed",
+          title: "Speed [km/h]",
+        },
+        {
+          data: "capacity",
+          title: "Capacity",
+        },
+        {
+          data: "dailyAvg",
+          title: "Avg Daily Volume",
+        },
+        {
+          data: "modes",
+          title: "Modes",
+          render: (v) => (v ? String(v).replace(/,/g, ", ") : "-"),
+        },
+      ],
+      []
     );
+    
     
     // Toolbar state
     const [searchCol, setSearchCol] = useState(-1); // -1 = all columns
@@ -332,17 +345,32 @@ const FeatureTable = forwardRef(
         // Fast path: if already initialized, update rows only
         if (dtRef.current && el._dt) {
           const instance = dtRef.current;
-          instance.clear();
-          instance.rows.add(
-            // map to a simplified record that DataTables expects
-            tableRows.map((r) => ({
-              ...r,
-              // Ensure the dt data keys exist (already precomputed above)
-            }))
-          );
-          instance.draw(false);
+          try {
+            // Check if table is still valid before operations
+            if (!instance.settings || !instance.settings()[0]) {
+              throw new Error("Table instance invalid");
+            }
+            
+            instance.clear();
+            instance.rows.add(
+              tableRows.map((r) => ({
+                ...r,
+              }))
+            );
+            
+            // Safe redraw guard with additional checks
+            if (instance.settings()[0]) {
+              instance.draw(false);
+            }
+          } catch (e) {
+            console.warn("Table update failed, reinitializing:", e);
+            // Force reinitialization if update fails
+            destroyIfAny();
+          }
+          
           return;
         }
+        
         
         // Fresh init: build header once
         el.innerHTML = `
@@ -425,50 +453,131 @@ const FeatureTable = forwardRef(
       const instance = dtRef.current;
       if (!instance) return;
       
-      // Clear previous searches
-      instance.columns().every(function () {
-        this.search("");
-      });
-      instance.search("");
+      // Add safety check to prevent operations on destroyed table
+      try {
+        if (!instance.settings || !instance.settings()[0]) return;
+        
+        // Clear previous searches
+        instance.columns().every(function () {
+          this.search("");
+        });
+        instance.search("");
+        
+        const raw = (searchText || "").trim();
+        if (!raw) {
+          instance.draw(false);
+          return;
+        }
+        
+        // Split on comma or semicolon, trim, drop empties
+        const terms = raw
+        .split(/[;,]+/)
+        .map((t) => t.trim())
+        .filter(Boolean);
+        if (terms.length === 0) {
+          instance.draw(false);
+          return;
+        }
+        
+        // Build regex pattern:
+        // For numeric columns, search against raw values, not formatted ones
+        const selectedTitle =
+  Number.isInteger(searchCol) && searchCol >= 0
+    ? (dtColumns[searchCol]?.title || "").toLowerCase()
+    : "";
+
+// Exact match logic:
+// - Link ID column: exact match
+// - Other specific columns: exact match  
+// - Modes column: contains match
+// - ALL COLUMNS search: contains match
+const colIsExact = Number.isInteger(searchCol) && searchCol >= 0 && selectedTitle !== "modes";
+
+// For numeric searches, don't escape regex - allow direct numeric matching
+const isNumericCol = ["capacity", "length", "freespeed", "dailyavg"].includes(
+  dtColumns[searchCol]?.data || ""
+);
+
+let pattern;
+if (isNumericCol) {
+  // For numeric columns, convert comma-separated numbers and create exact matches
+  const numTerms = terms.map(t => t.replace(/,/g, '')).filter(t => !isNaN(Number(t)));
+  pattern = numTerms.length ? `^(${numTerms.join('|')})$` : terms.map(escapeRegex).join("|");
+} else if (selectedTitle === "modes" || searchCol === -1) {
+  // Modes column OR all columns search: use contains matching
+  pattern = terms.map(escapeRegex).join("|");
+} else {
+  // Other specific text columns (like Link ID): use exact matching
+  pattern = terms.map(escapeRegex).join("|");
+}
+
+const finalPattern = colIsExact ? `^(?:${pattern})$` : `(?:${pattern})`;
+
+        if (Number.isInteger(searchCol) && searchCol >= 0) {
+          // Column-specific search
+          instance.column(searchCol).search(finalPattern, /* regex */ true, /* smart */ false);
+        } else {
+          // Global search across all columns
+          instance.search(finalPattern, /* regex */ true, /* smart */ false);
+        }
+        
+        instance.draw(false);
+      } catch (error) {
+        console.warn("Search operation failed:", error);
+        // Optionally clear the search to prevent stuck states
+        if (instance.settings && instance.settings()[0]) {
+          try {
+            instance.search("").draw(false);
+          } catch {}
+        }
+      }
+    }, [searchCol, debouncedSearch, tableRows, dtColumns]);
+    
+    // send the table search query to map to filter features
+    useEffect(() => {
+      const instance = dtRef.current;
+      if (!instance) return;
       
       const raw = (searchText || "").trim();
       if (!raw) {
-        instance.draw(false);
+        setTableFilterQuery?.(null);
+        console.log("Cleared filter query (sent null)");
         return;
       }
       
-      // Split on comma or semicolon, trim, drop empties
-      const terms = raw
-      .split(/[;,]+/)
-      .map((t) => t.trim())
-      .filter(Boolean);
-      if (terms.length === 0) {
-        instance.draw(false);
-        return;
-      }
+      // --- Determine which column is being searched ---
+      let column = null;
+      let type = "string";
+      let colKey = null;
       
-      // Build regex pattern:
-      // - If a specific column is selected and it's "Link ID", do exact matches: ^(?:id1|id2)$
-      // - Otherwise, do OR contains for column/global: (id1|id2)
-      const selectedTitle =
-      Number.isInteger(searchCol) && searchCol >= 0
-      ? (dtColumns[searchCol]?.title || "").toLowerCase()
-      : "";
-      
-      const colIsExact = selectedTitle === "link id";
-      const pattern = terms.map(escapeRegex).join("|");
-      const finalPattern = colIsExact ? `^(?:${pattern})$` : `(?:${pattern})`;
-      
+      // If a specific column is selected (not "All columns")
       if (Number.isInteger(searchCol) && searchCol >= 0) {
-        // Column-specific search
-        instance.column(searchCol).search(finalPattern, /* regex */ true, /* smart */ false);
-      } else {
-        // Global search across all columns
-        instance.search(finalPattern, /* regex */ true, /* smart */ false);
+        colKey = dtColumns[searchCol]?.data || null;
+        column = colKey;
       }
       
-      instance.draw(false);
-    }, [searchCol, debouncedSearch, tableRows, dtColumns]);
+      // --- Detect numeric columns ---
+      const numericCols = ["length", "freeSpeed", "capacity", "dailyAvg"];
+      if (colKey && numericCols.includes(colKey)) {
+        type = "number";
+      }
+      
+      // --- Try to convert numeric input ---
+      let value = raw.replace(/,/g, "").trim();
+      const asNum = Number(value);
+      if (!isNaN(asNum) && value !== "") value = asNum;
+      
+      // --- If global search and looks numeric, mark as number ---
+      if (!colKey && !isNaN(Number(value))) {
+        type = "number";
+      }
+      
+      // --- Build and emit query ---
+      const query = { column, value, type };
+      console.log("Table filter query →", query);
+      
+      setTableFilterQuery?.(query);
+    }, [debouncedSearch, searchCol]);
     
     // UI states managed here
     if (loading) {
