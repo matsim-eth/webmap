@@ -111,12 +111,12 @@ export const buildRowsFromGeojson = (geojson) => {
     : null;
     
     const roundTo = (value, decimals = 0) => {
-  if (!Number.isFinite(value)) return value;
-  const factor = Math.pow(10, decimals);
-  return Math.round(value * factor) / factor;
-};
-
-
+      if (!Number.isFinite(value)) return value;
+      const factor = Math.pow(10, decimals);
+      return Math.round(value * factor) / factor;
+    };
+    
+    
     const pushRow = (directionId, data = {}) => {
       const length = num(data.length);
       const freeSpeed = toKmh(data.freespeed);
@@ -482,37 +482,37 @@ const FeatureTable = forwardRef(
         // Build regex pattern:
         // For numeric columns, search against raw values, not formatted ones
         const selectedTitle =
-  Number.isInteger(searchCol) && searchCol >= 0
-    ? (dtColumns[searchCol]?.title || "").toLowerCase()
-    : "";
-
-// Exact match logic:
-// - Link ID column: exact match
-// - Other specific columns: exact match  
-// - Modes column: contains match
-// - ALL COLUMNS search: contains match
-const colIsExact = Number.isInteger(searchCol) && searchCol >= 0 && selectedTitle !== "modes";
-
-// For numeric searches, don't escape regex - allow direct numeric matching
-const isNumericCol = ["capacity", "length", "freespeed", "dailyavg"].includes(
-  dtColumns[searchCol]?.data || ""
-);
-
-let pattern;
-if (isNumericCol) {
-  // For numeric columns, convert comma-separated numbers and create exact matches
-  const numTerms = terms.map(t => t.replace(/,/g, '')).filter(t => !isNaN(Number(t)));
-  pattern = numTerms.length ? `^(${numTerms.join('|')})$` : terms.map(escapeRegex).join("|");
-} else if (selectedTitle === "modes" || searchCol === -1) {
-  // Modes column OR all columns search: use contains matching
-  pattern = terms.map(escapeRegex).join("|");
-} else {
-  // Other specific text columns (like Link ID): use exact matching
-  pattern = terms.map(escapeRegex).join("|");
-}
-
-const finalPattern = colIsExact ? `^(?:${pattern})$` : `(?:${pattern})`;
-
+        Number.isInteger(searchCol) && searchCol >= 0
+        ? (dtColumns[searchCol]?.title || "").toLowerCase()
+        : "";
+        
+        // Exact match logic:
+        // - Link ID column: exact match
+        // - Other specific columns: exact match  
+        // - Modes column: contains match
+        // - ALL COLUMNS search: contains match
+        const colIsExact = Number.isInteger(searchCol) && searchCol >= 0 && selectedTitle !== "modes";
+        
+        // For numeric searches, don't escape regex - allow direct numeric matching
+        const isNumericCol = ["capacity", "length", "freespeed", "dailyavg"].includes(
+          dtColumns[searchCol]?.data || ""
+        );
+        
+        let pattern;
+        if (isNumericCol) {
+          // For numeric columns, convert comma-separated numbers and create exact matches
+          const numTerms = terms.map(t => t.replace(/,/g, '')).filter(t => !isNaN(Number(t)));
+          pattern = numTerms.length ? `^(${numTerms.join('|')})$` : terms.map(escapeRegex).join("|");
+        } else if (selectedTitle === "modes" || searchCol === -1) {
+          // Modes column OR all columns search: use contains matching
+          pattern = terms.map(escapeRegex).join("|");
+        } else {
+          // Other specific text columns (like Link ID): use exact matching
+          pattern = terms.map(escapeRegex).join("|");
+        }
+        
+        const finalPattern = colIsExact ? `^(?:${pattern})$` : `(?:${pattern})`;
+        
         if (Number.isInteger(searchCol) && searchCol >= 0) {
           // Column-specific search
           instance.column(searchCol).search(finalPattern, /* regex */ true, /* smart */ false);
@@ -541,40 +541,20 @@ const finalPattern = colIsExact ? `^(?:${pattern})$` : `(?:${pattern})`;
       const raw = (searchText || "").trim();
       if (!raw) {
         setTableFilterQuery?.(null);
-        console.log("Cleared filter query (sent null)");
         return;
       }
       
       // --- Determine which column is being searched ---
       let column = null;
-      let type = "string";
-      let colKey = null;
       
       // If a specific column is selected (not "All columns")
       if (Number.isInteger(searchCol) && searchCol >= 0) {
-        colKey = dtColumns[searchCol]?.data || null;
+        const colKey = dtColumns[searchCol]?.data || null;
         column = colKey;
       }
       
-      // --- Detect numeric columns ---
-      const numericCols = ["length", "freeSpeed", "capacity", "dailyAvg"];
-      if (colKey && numericCols.includes(colKey)) {
-        type = "number";
-      }
-      
-      // --- Try to convert numeric input ---
-      let value = raw.replace(/,/g, "").trim();
-      const asNum = Number(value);
-      if (!isNaN(asNum) && value !== "") value = asNum;
-      
-      // --- If global search and looks numeric, mark as number ---
-      if (!colKey && !isNaN(Number(value))) {
-        type = "number";
-      }
-      
-      // --- Build and emit query ---
-      const query = { column, value, type };
-      console.log("Table filter query →", query);
+      // --- Build and emit query  ---
+      const query = { column, value: raw };
       
       setTableFilterQuery?.(query);
     }, [debouncedSearch, searchCol]);

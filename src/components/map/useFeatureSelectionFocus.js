@@ -117,18 +117,23 @@ export default function useFeatureSelectionFocus({
     let tableFilter = null;
     
     if (query) {
-      let { column, value, type } = query;
+      let { column, value } = query;
       
       if (column && value) {
-        // Column-specific search - EXACT MATCH
-        const val = String(value);
+        // Column-specific search - handle semicolon-separated values with OR logic
+        const values = String(value).split(/[;,]/).map(v => v.trim()).filter(v => v);
         
         if (column === "modes") {
-          // Modes: contains match
-          const valLower = val.toLowerCase();
-          tableFilter = [">=", ["index-of", valLower, ["downcase", ["to-string", ["get", "modes"]]]], 0];
+          // Modes: contains match for any of the values
+          const filters = values.map(val => {
+            const valLower = val.toLowerCase();
+            return [">=", ["index-of", valLower, ["downcase", ["to-string", ["get", "modes"]]]], 0];
+          });
+          
+          tableFilter = filters.length > 1 ? ["any", ...filters] : filters[0];
+          
         } else {
-          // Other columns: exact match in pipe-delimited strings
+          // Other columns: exact match for any of the values in pipe-delimited strings
           const columnMap = {
             "capacity": "per_id_capacities",
             "length": "per_id_lengths", 
@@ -139,8 +144,8 @@ export default function useFeatureSelectionFocus({
           
           const propName = columnMap[column];
           if (propName) {
-            // Simple exact match within pipe-delimited string
-            tableFilter = [
+            // Create exact match conditions for each value
+            const valueFilters = values.map(val => [
               "any",
               // Single value (no pipes)
               ["==", ["get", propName], val],
@@ -148,14 +153,29 @@ export default function useFeatureSelectionFocus({
               ["==", ["index-of", `${val}|`, ["get", propName]], 0],
               // Value in middle or end  
               [">=", ["index-of", `|${val}`, ["get", propName]], 0]
-            ];
+            ]);
+            
+            // Combine with OR logic (any value matches)
+            tableFilter = valueFilters.length > 1 ? ["any", ...valueFilters] : valueFilters[0];
           }
         }
         
       } else if (!column && value) {
-        // All columns search - CONTAINS match
-        const val = String(value).toLowerCase();
-        tableFilter = [">=", ["index-of", val, ["get", "searchable_text"]], 0];
+        // All columns search - handle semicolon-separated values with OR logic
+        const values = String(value).split(/[;,]/).map(v => v.trim().toLowerCase()).filter(v => v);
+        
+        if (values.length === 1) {
+          // Single value - simple contains
+          tableFilter = [">=", ["index-of", values[0], ["get", "searchable_text"]], 0];
+        } else {
+          // Multiple values - OR logic (feature must contain ANY of the terms)
+          const valueFilters = values.map(val => 
+            [">=", ["index-of", val, ["get", "searchable_text"]], 0]
+          );
+          
+          // Use OR logic for "all columns" too
+          tableFilter = ["any", ...valueFilters];
+        }
       }
     }
     
