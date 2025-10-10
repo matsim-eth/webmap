@@ -126,6 +126,8 @@ export default function Map(props) {
     selection:            props.featureSelection,
     query:                props.tableFilterQuery,
     selectedNetworkModes: props.selectedNetworkModes,
+    isGraphExpanded:      props.isGraphExpanded,
+    showMajorRoadsOnly:   props.showMajorRoadsOnly,
   });
 
   // this is placed in here so that it will overtake the other zooming effects to

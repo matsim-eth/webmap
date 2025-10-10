@@ -1,12 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import SegmentAttributesTable from "./SegmentAttributesTable";
 import SegmentVolumeHistogram from "./SegmentVolumeHistogram";
+import FeatureTable, { buildRowsFromGeojson } from "../table/FeatureTable";
 import { marks, formatTimeLabel } from "../../utils/timeSliderUtils";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 
+// get coords and id of selected row
+const buildSelectionPayload = (row) => {
+  if (!row) return null;
+  const coords= row.coords;
+  const id = row.rowKey; // add other ones if needed
+  const feature = row.feature;
+  return { id, feature, coords };
+};
+
 const VolumesModule = ({
   selectedNetworkFeature,
+  setSelectedNetworkFeature,
   selectedGraph,
   visualizeLinkId,
   setVisualizeLinkId,
@@ -16,15 +27,154 @@ const VolumesModule = ({
   showMajorRoadsOnly,
   setShowMajorRoadsOnly,
   labelSize,
-  setLabelSize
+  setLabelSize,
+  isFeatureTableOpen,
+  featureGeoJSON,
+  onFocusNetworkFeature,
+  featureTableRef,
+  setTableFilterQuery,
+  selectedNetworkModes
 }) => {
   
   const [filteredVolume, setFilteredVolume] = useState(null);
+  const [showTable, setShowTable] = useState(false);
+  const [tableRows, setTableRows] = useState([]);
+  const [rowsReady, setRowsReady] = useState(false);
+  const cachedRowsRef = useRef(new Map());
+  
+  useEffect(() => {
+    if (isFeatureTableOpen) {
+      // add delay so sidebar can expand first
+      const timer = setTimeout(() => setShowTable(true), 400);
+      return () => clearTimeout(timer);
+    }
+    setShowTable(false);
+    setTableFilterQuery(null);
+  }, [isFeatureTableOpen]);
+  
+  const ensureRowsForCanton = useCallback(() => {
+
+    // if missing canton or data, clear
+    if (!canton || !featureGeoJSON) {
+      setTableRows([]);
+      setRowsReady(false);
+      return;
+    }
+
+    // cache data unless canton changed
+    const cacheKey = canton;
+    const cached = cachedRowsRef.current.get(cacheKey);
+    if (cached && cached.source === featureGeoJSON) {
+      setTableRows(cached.rows);
+      setRowsReady(true);
+      return;
+    }
+
+    // build rows and then cache from geojson
+    const builtRows = buildRowsFromGeojson(featureGeoJSON);
+    cachedRowsRef.current.set(cacheKey, { source: featureGeoJSON, rows: builtRows });
+    setTableRows(builtRows);
+    setRowsReady(true);
+  }, [canton, featureGeoJSON]);
+  
+  useEffect(() => {
+    if (!canton || !featureGeoJSON) {
+      if (!canton) {
+        cachedRowsRef.current.clear();
+      }
+      setTableRows([]);
+      setRowsReady(false);
+      return;
+    }
+    const cached = cachedRowsRef.current.get(canton);
+
+    // use cached if available
+    if (cached && cached.source === featureGeoJSON) {
+      setTableRows(cached.rows);
+      setRowsReady(true);
+    } else {
+    // clear cache if canton changed
+      cachedRowsRef.current.delete(canton);
+      setTableRows([]);
+      setRowsReady(false);
+    }
+  }, [canton, featureGeoJSON]);
+  
+  useEffect(() => {
+    // table not shown, so don't build rows
+    if (!showTable) return;
+    
+    // trigger row building in idle time
+    let cancelled = false;
+    const run = () => {
+      if (!cancelled) ensureRowsForCanton();
+    };
+    
+    if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
+      // run when idle, but at most after 200ms
+      const idleId = window.requestIdleCallback(run, { timeout: 200 });
+      return () => {
+        cancelled = true;
+        if (typeof window.cancelIdleCallback === 'function') {
+          window.cancelIdleCallback(idleId);
+        }
+      };
+    }
+    
+    // fallback for browsers without requestIdleCallback
+    const timeoutId = window.setTimeout(run, 0);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [showTable, ensureRowsForCanton, canton, featureGeoJSON]);
+  
+  const handleTableRowSelect = useCallback(
+    (row) => {
+      if (!row) return;
+      const featureProps = row.featureProps || row.feature?.properties;
+      if (featureProps) {
+        // sends to update attribute table on sidebar
+        setSelectedNetworkFeature?.([featureProps]);
+      }
+      const payload = buildSelectionPayload(row);
+      if (payload) {
+        // sends to zoom to feature on map
+        onFocusNetworkFeature?.(payload);
+      }
+    },
+    [onFocusNetworkFeature, setSelectedNetworkFeature]
+  );
+  
+  const handleSelectCoords = useCallback(
+    (coords, row) => {
+      if (!row) return;
+      handleTableRowSelect({ ...row, coords: coords || row.coords });
+    },
+    [handleTableRowSelect]
+  );
   
   
   return (
     
     <div className="plot-container">
+    {isFeatureTableOpen ? (
+      <FeatureTable
+      ref={featureTableRef}
+      tableId="volumes-feature-table"
+      rows={tableRows}
+      geojson={rowsReady ? null : featureGeoJSON}
+      selectedModes={selectedNetworkModes}
+      onRowClick={handleTableRowSelect}
+      onSelectCoords={handleSelectCoords}
+      height={"55vh"}
+      useScroller
+      loading={!showTable || !rowsReady}
+      setTableFilterQuery={setTableFilterQuery}
+      showMajorRoadsOnly={showMajorRoadsOnly}
+      />
+    ) : (
+      <>
     {/* Time Range Slider UI — shared with Transit */}
     <div
     style={{
@@ -123,8 +273,11 @@ const VolumesModule = ({
       Click a canton and/or segment to see hourly volumes.
       </p>
     )}
+    </>
+    )}
     </div>
   );
 }
 
 export default VolumesModule;
+

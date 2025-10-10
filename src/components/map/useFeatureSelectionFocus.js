@@ -21,7 +21,9 @@ export default function useFeatureSelectionFocus({
   mapReady,
   selection,
   query,
-  selectedNetworkModes
+  selectedNetworkModes,
+  isGraphExpanded,
+  showMajorRoadsOnly
 }) {
   const lastSelectionId = useRef(null);
   
@@ -96,7 +98,8 @@ export default function useFeatureSelectionFocus({
     const map = mapRef?.current;
     if (!mapReady || !map) return;
     
-    const layerIds = ["network-layer", "click-network-layer", "network-highlight"];
+    const layerIds = ["network-layer", "click-network-layer", "network-highlight", 
+                      "network-label-left", "network-label-right", "ant-line"];
     
     // --- Build mode filter ---
     let modeFilter = null;
@@ -145,15 +148,36 @@ export default function useFeatureSelectionFocus({
           const propName = columnMap[column];
           if (propName) {
             // Create exact match conditions for each value
-            const valueFilters = values.map(val => [
-              "any",
-              // Single value (no pipes)
-              ["==", ["get", propName], val],
-              // Value at start
-              ["==", ["index-of", `${val}|`, ["get", propName]], 0],
-              // Value in middle or end  
-              [">=", ["index-of", `|${val}`, ["get", propName]], 0]
-            ]);
+            const valueFilters = values.map(val => {
+              // For exact matching in pipe-delimited strings, we need to ensure:
+              // 1. Value is the entire property (no pipes)
+              // 2. Value is at start followed by pipe: "val|..."
+              // 3. Value is after pipe and before another pipe: "|val|"
+              // 4. Value is at end after pipe: "|val"
+              
+              return [
+                "any",
+                // Entire property is just this value (no pipes)
+                ["==", ["get", propName], val],
+                // Value at start followed by pipe
+                ["==", ["index-of", `${val}|`, ["get", propName]], 0],
+                // Value in middle: preceded AND followed by pipe
+                [">=", ["index-of", `|${val}|`, ["get", propName]], 0],
+                // Value at end: preceded by pipe, ends the string
+                [
+                  "all",
+                  [">=", ["index-of", `|${val}`, ["get", propName]], 0],
+                  // Ensure this is at the end by checking the position
+                  ["==",
+                    ["+",
+                      ["index-of", `|${val}`, ["get", propName]],
+                      ["length", `|${val}`]
+                    ],
+                    ["length", ["get", propName]]
+                  ]
+                ]
+              ];
+            });
             
             // Combine with OR logic (any value matches)
             tableFilter = valueFilters.length > 1 ? ["any", ...valueFilters] : valueFilters[0];
@@ -183,13 +207,30 @@ export default function useFeatureSelectionFocus({
     layerIds.forEach((id) => {
       if (!map.getLayer(id)) return;
       
-      const combined =
-      modeFilter && tableFilter
-      ? ["all", modeFilter, tableFilter]
-      : modeFilter || tableFilter || null;
+      // Build combined filter based on context
+      let combined = null;
+      
+      // If we're in Volumes mode and have no table query, apply car + optional major roads filter
+      if (isGraphExpanded === 'Volumes' && !query) {
+        const carFilter = ["match", ["index-of", "car", ["get", "modes"]], -1, false, true];
+        if (showMajorRoadsOnly) {
+          combined = ["all", carFilter, [">", ["get", "capacity"], 1200]];
+        } else {
+          combined = carFilter;
+        }
+      } else {
+        // Normal filter logic: combine mode filter and table filter
+        if (modeFilter && tableFilter) {
+          combined = ["all", modeFilter, tableFilter];
+        } else if (modeFilter) {
+          combined = modeFilter;
+        } else if (tableFilter) {
+          combined = tableFilter;
+        }
+      }
       
       map.setFilter(id, combined);
     });
-  }, [mapRef, mapReady, query, selectedNetworkModes]);
+  }, [mapRef, mapReady, query, selectedNetworkModes, isGraphExpanded, showMajorRoadsOnly]);
   
 }

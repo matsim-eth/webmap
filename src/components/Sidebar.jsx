@@ -407,8 +407,37 @@ const Sidebar = ({
       
       {/* Road Volume Module */}
       {selectedGraph === "Volumes" && (
+        <>
+        {/* Buttons ABOVE the module */}
+        {canton && (
+          <div className="network-buttons-row">
+          <button
+          className="search-button"
+          onClick={() =>
+            setIsFeatureTableOpen((prev) => !prev)}
+          >
+          {isFeatureTableOpen ? "Hide Table" : "Show Table"}
+          </button>
+          
+          {isFeatureTableOpen && (
+            <button
+            className="search-button secondary"
+            onClick={() => {
+              const exported = featureTableRef.current?.exportCsv?.();
+              if (!exported) {
+                console.warn('Export skipped: no table data available.');
+              }
+            }}
+            >
+            Export Data
+            </button>
+          )}
+          </div>
+        )}
+        
         <VolumesModule
         selectedNetworkFeature={selectedNetworkFeature}
+        setSelectedNetworkFeature={setSelectedNetworkFeature}
         selectedGraph={selectedGraph}
         visualizeLinkId={visualizeLinkId}
         setVisualizeLinkId={setVisualizeLinkId}
@@ -419,7 +448,14 @@ const Sidebar = ({
         setShowMajorRoadsOnly={setShowMajorRoadsOnly}
         labelSize={labelSize}
         setLabelSize={setLabelSize}
+        isFeatureTableOpen={isFeatureTableOpen}
+        featureGeoJSON={featureGeoJSON}
+        onFocusNetworkFeature={onFocusNetworkFeature}
+        featureTableRef={featureTableRef}
+        setTableFilterQuery={setTableFilterQuery}
+        selectedNetworkModes={selectedNetworkModes}
         />
+        </>
       )}
       
       {/* Transit Module */}
