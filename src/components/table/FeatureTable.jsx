@@ -160,7 +160,8 @@ const FeatureTable = forwardRef(
       pageLength = 25,
       maxRows = 150000,
       loading = false,
-      setTableFilterQuery
+      setTableFilterQuery,
+      showMajorRoadsOnly = false // filter by capacity > 1200
     },
     ref
   ) => {
@@ -203,9 +204,18 @@ const FeatureTable = forwardRef(
     }, [loading, rows, geojson]);
     
     const tableRows = useMemo(() => {
-      const filtered = baseRows.filter((r) => modeMatches(r.modes, selectedModes));
+      let filtered = baseRows.filter((r) => modeMatches(r.modes, selectedModes));
+      
+      // Apply major roads filter (capacity > 1200)
+      if (showMajorRoadsOnly) {
+        filtered = filtered.filter((r) => {
+          const capacity = Number(r.capacity);
+          return Number.isFinite(capacity) && capacity > 1200;
+        });
+      }
+      
       return filtered.slice(0, maxRows);
-    }, [baseRows, selectedModes, maxRows]);
+    }, [baseRows, selectedModes, maxRows, showMajorRoadsOnly]);
     
     const hasNoData = tableRows.length === 0;
     
