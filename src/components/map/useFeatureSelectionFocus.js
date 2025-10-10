@@ -118,62 +118,42 @@ export default function useFeatureSelectionFocus({
     
     if (query) {
       let { column, value, type } = query;
-
-      if (type === "number" && Number.isFinite(+value) && column) {
-        // Column-specific numeric search - use specific arrays
-        const numValue = +value;
-        
-        const columnMap = {
-          "capacity": "per_id_capacities",
-          "length": "per_id_lengths", 
-          "freeSpeed": "per_id_freespeeds",
-          "dailyAvg": "per_id_daily_avgs"
-        };
-        
-        const arrayPropName = columnMap[column];
-        if (arrayPropName) {
-          let searchValue = numValue;
-          if (column === "freeSpeed") {
-            searchValue = numValue / 3.6; // Convert km/h to m/s
-          }
-          
-          // Use 'in' for exact match in specific column
-          tableFilter = ["in", searchValue, ["get", arrayPropName]];
-        }
-        
-      } else if (column === "directionId" && value) {
-        // Link ID search - use specific array
-        tableFilter = ["in", String(value), ["get", "per_id_keys"]];
-        
-      } else if (column === "modes" && value) {
-        // Modes search - use modes property  
-        const val = String(value).toLowerCase();
-        tableFilter = [">=", ["index-of", val, ["downcase", ["to-string", ["get", "modes"]]]], 0];
-        
-      } else if (column && value) {
-        // Other specific column searches - use appropriate array
+      
+      if (column && value) {
+        // Column-specific search - EXACT MATCH
         const val = String(value);
-        const columnMap = {
-          "capacity": "per_id_capacities",
-          "length": "per_id_lengths", 
-          "freeSpeed": "per_id_freespeeds", 
-          "dailyAvg": "per_id_daily_avgs",
-          "directionId": "per_id_keys"
-        };
         
-        const arrayPropName = columnMap[column];
-        if (arrayPropName) {
-          // For specific columns, try both exact and contains
-          if (type === "number") {
-            tableFilter = ["in", Number(val), ["get", arrayPropName]];
-          } else {
-            // Convert array to string and search within it
-            tableFilter = [">=", ["index-of", val.toLowerCase(), ["downcase", ["to-string", ["get", arrayPropName]]]], 0];
+        if (column === "modes") {
+          // Modes: contains match
+          const valLower = val.toLowerCase();
+          tableFilter = [">=", ["index-of", valLower, ["downcase", ["to-string", ["get", "modes"]]]], 0];
+        } else {
+          // Other columns: exact match in pipe-delimited strings
+          const columnMap = {
+            "capacity": "per_id_capacities",
+            "length": "per_id_lengths", 
+            "freeSpeed": "per_id_freespeeds",
+            "dailyAvg": "per_id_daily_avgs",
+            "directionId": "per_id_keys"
+          };
+          
+          const propName = columnMap[column];
+          if (propName) {
+            // Simple exact match within pipe-delimited string
+            tableFilter = [
+              "any",
+              // Single value (no pipes)
+              ["==", ["get", propName], val],
+              // Value at start
+              ["==", ["index-of", `${val}|`, ["get", propName]], 0],
+              // Value in middle or end  
+              [">=", ["index-of", `|${val}`, ["get", propName]], 0]
+            ];
           }
         }
         
       } else if (!column && value) {
-        // ALL COLUMNS search - use the searchable_text string
+        // All columns search - CONTAINS match
         const val = String(value).toLowerCase();
         tableFilter = [">=", ["index-of", val, ["get", "searchable_text"]], 0];
       }
