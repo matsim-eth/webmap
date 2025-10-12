@@ -13,6 +13,7 @@ const buildSelectionPayload = (row) => {
 
 const NetworkModule = ({
   canton,
+  selectedGraph,
   selectedNetworkModes,
   availableModes,
   selectedNetworkFeature,
@@ -58,7 +59,7 @@ const NetworkModule = ({
     }
 
     // build rows and then cache from geojson
-    const builtRows = buildRowsFromGeojson(featureGeoJSON);
+    const builtRows = buildRowsFromGeojson(featureGeoJSON, selectedGraph);
     cachedRowsRef.current.set(cacheKey, { source: featureGeoJSON, rows: builtRows });
     setTableRows(builtRows);
     setRowsReady(true);
@@ -146,6 +147,7 @@ const NetworkModule = ({
     {isFeatureTableOpen ? (
       <FeatureTable
       ref={featureTableRef}
+      selectedGraph={selectedGraph}
       tableId="network-feature-table"
       rows={tableRows}
       geojson={rowsReady ? null : featureGeoJSON}

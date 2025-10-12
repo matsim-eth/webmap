@@ -34,17 +34,6 @@ const toKmh = (mps) => {
   return Number.isFinite(n) ? n * 3.6 : null;
 };
 
-
-const fmt = (v, d = 0) => {
-  const n = Number(v);
-  return Number.isFinite(n)
-  ? n.toLocaleString(undefined, {
-    minimumFractionDigits: d,
-    maximumFractionDigits: d,
-  })
-  : "-";
-};
-
 // match row modes against selected modes
 const modeMatches = (rowModes, selectedModes) => {
   if (
@@ -62,7 +51,6 @@ const modeMatches = (rowModes, selectedModes) => {
 };
 
 // CSV helpers
-
 const csvEscape = (v) => {
   const s = v == null ? "" : String(v);
   // if contains comma, quote, newline, wrap in double quotes and escape internal quotes
@@ -81,8 +69,9 @@ const downloadBlob = (blob, filename) => {
 };
 
 /** Faster: precompute formatted strings once per row; keep raw numbers for sort */
-export const buildRowsFromGeojson = (geojson) => {
+export const buildRowsFromGeojson = (geojson, selectedGraph = null) => {
   if (!geojson.features) return [];
+  
   const rows = [];
   geojson.features.forEach((feature, featureIndex) => {
     const props = feature?.properties || {};
@@ -121,7 +110,28 @@ export const buildRowsFromGeojson = (geojson) => {
       const length = num(data.length);
       const freeSpeed = toKmh(data.freespeed);
       const capacity = num(data.capacity);
-      const dailyAvg = num(data.daily_avg_volume);
+      const totalVol = num(data.daily_avg_volume);
+      
+      // Only calculate filtered volume for Volumes module
+      let filteredVolume = null;
+      if (selectedGraph === 'Volumes') {
+        if (data.arrow === '←') {
+          // Left arrow = left_sum
+          filteredVolume = num(props.left_sum);
+        } else if (data.arrow === '→') {
+          // Right arrow = right_sum
+          filteredVolume = num(props.right_sum);
+        }
+      }
+      
+      // Calculate total capacity for the feature (sum of all directions)
+      let totalCapacity = 0;
+      if (per && typeof per === 'object') {
+        for (const [, d] of Object.entries(per)) {
+          const cap = num(d?.capacity);
+          if (cap !== null) totalCapacity += cap;
+        }
+      }
       
       rows.push({
         rowKey: `${tableId}-${directionId ?? "all"}-${rows.length}`,
@@ -130,7 +140,9 @@ export const buildRowsFromGeojson = (geojson) => {
         length: length ? roundTo(length, 1) : length, // Round to 1 decimal
         freeSpeed: freeSpeed ? roundTo(freeSpeed, 1) : freeSpeed,
         capacity,
-        dailyAvg,
+        totalCapacity, // sum of both directions
+        totalVol,
+        filteredVolume: filteredVolume ? roundTo(filteredVolume, 1) : filteredVolume,
         modes: props.modes || "",
         coords,
         feature,
@@ -149,6 +161,7 @@ export const buildRowsFromGeojson = (geojson) => {
 const FeatureTable = forwardRef(
   (
     {
+      selectedGraph,
       geojson, // optional
       rows, // optional (wins over geojson)
       selectedModes = ["all"],
@@ -198,19 +211,19 @@ const FeatureTable = forwardRef(
     const baseRows = useMemo(() => {
       if (loading) return [];
       if (Array.isArray(rows) && rows.length) return rows;
-      const built = buildRowsFromGeojson(geojson);
+      const built = buildRowsFromGeojson(geojson, selectedGraph);
       if (built.length) return built;
       return [];
-    }, [loading, rows, geojson]);
+    }, [loading, rows, geojson, selectedGraph]);
     
     const tableRows = useMemo(() => {
       let filtered = baseRows.filter((r) => modeMatches(r.modes, selectedModes));
       
-      // Apply major roads filter (capacity > 1200)
+      // Apply major roads filter (totalCapacity > 1200)
       if (showMajorRoadsOnly) {
         filtered = filtered.filter((r) => {
-          const capacity = Number(r.capacity);
-          return Number.isFinite(capacity) && capacity > 1200;
+          const totalCap = Number(r.totalCapacity);
+          return Number.isFinite(totalCap) && totalCap > 1200;
         });
       }
       
@@ -221,19 +234,31 @@ const FeatureTable = forwardRef(
     
     // Single source of truth for columns (used by DT and the toolbar + exporter)
     const columnDefs = useMemo(
-      () => [
-        { key: "directionId", title: "Link ID" },
-        { key: "length", title: "Length [m]" },        
-        { key: "freeSpeed", title: "Speed [km/h]" },   
-        { key: "capacity", title: "Capacity" },        
-        { key: "dailyAvg", title: "Avg Daily Volume" }, 
-        {
+      () => {
+        console.log('columnDefs - selectedGraph:', selectedGraph);
+        
+        const cols = [
+          { key: "directionId", title: "Link ID" },
+          { key: "length", title: "Length [m]" },        
+          { key: "freeSpeed", title: "Speed [km/h]" },   
+          { key: "capacity", title: "Capacity" },        
+          { key: "totalVol", title: "Total Daily Volume" },
+        ];
+        
+        // Only add filtered volume column for Volumes module
+        if (selectedGraph === 'Volumes') {
+          cols.push({ key: "filteredVolume", title: "Filtered Volume" });
+        }
+        
+        cols.push({
           key: "modes",
           title: "Modes",
           render: (v) => (v ? String(v).replace(/,/g, ", ") : "-"),
-        },
-      ],
-      []
+        });
+        
+        return cols;
+      },
+      [selectedGraph]
     );
     
     // Simple debounce hook
@@ -248,31 +273,29 @@ const FeatureTable = forwardRef(
     
     // DataTables columns (maps to the same keys)
     const dtColumns = useMemo(
-      () => [
-        { data: "directionId", title: "Link ID" },
-        {
-          data: "length",
-          title: "Length [m]",
-        },
-        {
-          data: "freeSpeed",
-          title: "Speed [km/h]",
-        },
-        {
-          data: "capacity",
-          title: "Capacity",
-        },
-        {
-          data: "dailyAvg",
-          title: "Avg Daily Volume",
-        },
-        {
+      () => {
+        const cols = [
+          { data: "directionId", title: "Link ID" },
+          { data: "length", title: "Length [m]" },
+          { data: "freeSpeed", title: "Speed [km/h]" },
+          { data: "capacity", title: "Capacity" },
+          { data: "totalVol", title: "Total Daily Volume" },
+        ];
+        
+        // Only add filtered volume column for Volumes module
+        if (selectedGraph === 'Volumes') {
+          cols.push({ data: "filteredVolume", title: "Filtered Volume" });
+        }
+        
+        cols.push({
           data: "modes",
           title: "Modes",
           render: (v) => (v ? String(v).replace(/,/g, ", ") : "-"),
-        },
-      ],
-      []
+        });
+        
+        return cols;
+      },
+      [selectedGraph]
     );
     
     
@@ -504,7 +527,7 @@ const FeatureTable = forwardRef(
         const colIsExact = Number.isInteger(searchCol) && searchCol >= 0 && selectedTitle !== "modes";
         
         // For numeric searches, don't escape regex - allow direct numeric matching
-        const isNumericCol = ["capacity", "length", "freespeed", "dailyavg"].includes(
+        const isNumericCol = ["capacity", "length", "freespeed", "totalvol", "filteredvolume"].includes(
           dtColumns[searchCol]?.data || ""
         );
         
