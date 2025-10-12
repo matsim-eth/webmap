@@ -40,7 +40,6 @@ const VolumesModule = ({
   const [showTable, setShowTable] = useState(false);
   const [tableRows, setTableRows] = useState([]);
   const [rowsReady, setRowsReady] = useState(false);
-  const cachedRowsRef = useRef(new Map());
   
   useEffect(() => {
     if (isFeatureTableOpen) {
@@ -61,43 +60,23 @@ const VolumesModule = ({
       return;
     }
 
-    // cache data unless canton changed
-    const cacheKey = canton;
-    const cached = cachedRowsRef.current.get(cacheKey);
-    if (cached && cached.source === featureGeoJSON) {
-      setTableRows(cached.rows);
-      setRowsReady(true);
-      return;
-    }
-
-    // build rows and then cache from geojson
-    const builtRows = buildRowsFromGeojson(featureGeoJSON);
-    cachedRowsRef.current.set(cacheKey, { source: featureGeoJSON, rows: builtRows });
+    // In Volumes module, always rebuild rows (no caching due to timeRange changes)
+    // build rows directly from geojson
+    const builtRows = buildRowsFromGeojson(featureGeoJSON, selectedGraph);
     setTableRows(builtRows);
     setRowsReady(true);
-  }, [canton, featureGeoJSON]);
+  }, [canton, featureGeoJSON, selectedGraph]);
   
   useEffect(() => {
     if (!canton || !featureGeoJSON) {
-      if (!canton) {
-        cachedRowsRef.current.clear();
-      }
       setTableRows([]);
       setRowsReady(false);
       return;
     }
-    const cached = cachedRowsRef.current.get(canton);
-
-    // use cached if available
-    if (cached && cached.source === featureGeoJSON) {
-      setTableRows(cached.rows);
-      setRowsReady(true);
-    } else {
-    // clear cache if canton changed
-      cachedRowsRef.current.delete(canton);
-      setTableRows([]);
-      setRowsReady(false);
-    }
+    
+    // In Volumes module, always rebuild when geojson changes (no caching)
+    setTableRows([]);
+    setRowsReady(false);
   }, [canton, featureGeoJSON]);
   
   useEffect(() => {
@@ -172,6 +151,7 @@ const VolumesModule = ({
       loading={!showTable || !rowsReady}
       setTableFilterQuery={setTableFilterQuery}
       showMajorRoadsOnly={showMajorRoadsOnly}
+      selectedGraph={selectedGraph}
       />
     ) : (
       <>

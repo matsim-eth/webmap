@@ -391,6 +391,7 @@ const Sidebar = ({
         
         <NetworkModule
         canton={canton}
+        selectedGraph={selectedGraph}
         selectedNetworkModes={selectedNetworkModes}
         availableModes={availableModes}
         selectedNetworkFeature={selectedNetworkFeature}

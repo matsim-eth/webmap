@@ -135,13 +135,47 @@ export default function useFeatureSelectionFocus({
           
           tableFilter = filters.length > 1 ? ["any", ...filters] : filters[0];
           
+        } else if (column === "filteredVolume") {
+          // Filtered Volume: check left_sum OR right_sum directly (numeric properties)
+          // Use tolerance-based matching for floating point values
+          const numericValues = values
+            .map(v => v.replace(/,/g, ''))
+            .filter(v => !isNaN(Number(v)))
+            .map(v => Number(v));
+          
+          if (numericValues.length > 0) {
+            const tolerance = 0.05; // 0.05 tolerance for rounding
+            
+            const volumeFilters = numericValues.map(val => {
+              const minVal = val - tolerance;
+              const maxVal = val + tolerance;
+              
+              return [
+                "any",
+                // Match left_sum within tolerance
+                [
+                  "all",
+                  [">=", ["number", ["get", "left_sum"], 0], minVal],
+                  ["<=", ["number", ["get", "left_sum"], 0], maxVal]
+                ],
+                // Match right_sum within tolerance
+                [
+                  "all",
+                  [">=", ["number", ["get", "right_sum"], 0], minVal],
+                  ["<=", ["number", ["get", "right_sum"], 0], maxVal]
+                ]
+              ];
+            });
+            
+            tableFilter = volumeFilters.length > 1 ? ["any", ...volumeFilters] : volumeFilters[0];
+          }
         } else {
           // Other columns: exact match for any of the values in pipe-delimited strings
           const columnMap = {
             "capacity": "per_id_capacities",
             "length": "per_id_lengths", 
             "freeSpeed": "per_id_freespeeds",
-            "dailyAvg": "per_id_daily_avgs",
+            "totalVol": "per_id_daily_avgs",
             "directionId": "per_id_keys"
           };
           
@@ -210,22 +244,31 @@ export default function useFeatureSelectionFocus({
       // Build combined filter based on context
       let combined = null;
       
-      // If we're in Volumes mode and have no table query, apply car + optional major roads filter
-      if (isGraphExpanded === 'Volumes' && !query) {
+      // Start with base filters (mode + table)
+      if (modeFilter && tableFilter) {
+        combined = ["all", modeFilter, tableFilter];
+      } else if (modeFilter) {
+        combined = modeFilter;
+      } else if (tableFilter) {
+        combined = tableFilter;
+      }
+      
+      // If we're in Volumes mode, enforce additional filters
+      if (isGraphExpanded === 'Volumes') {
         const carFilter = ["match", ["index-of", "car", ["get", "modes"]], -1, false, true];
+        const majorRoadsFilter = [">", ["get", "capacity"], 1200];
+        
+        // Build Volumes-specific filters
+        let volumesFilters = [carFilter];
         if (showMajorRoadsOnly) {
-          combined = ["all", carFilter, [">", ["get", "capacity"], 1200]];
-        } else {
-          combined = carFilter;
+          volumesFilters.push(majorRoadsFilter);
         }
-      } else {
-        // Normal filter logic: combine mode filter and table filter
-        if (modeFilter && tableFilter) {
-          combined = ["all", modeFilter, tableFilter];
-        } else if (modeFilter) {
-          combined = modeFilter;
-        } else if (tableFilter) {
-          combined = tableFilter;
+        
+        // Combine with existing filters
+        if (combined) {
+          combined = ["all", combined, ...volumesFilters];
+        } else {
+          combined = volumesFilters.length > 1 ? ["all", ...volumesFilters] : volumesFilters[0];
         }
       }
       
