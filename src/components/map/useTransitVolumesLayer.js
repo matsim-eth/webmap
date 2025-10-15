@@ -66,15 +66,6 @@ export default function useTransitVolumesLayer({
     return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
   }
   
-  const mergeLineBins = (dst, src) => {
-    // src: { timeBins: { "HH:MM": number }, ... }
-    if (!src?.timeBins) return;
-    const tb = src.timeBins;
-    for (const t in tb) {
-      dst[t] = (dst[t] ?? 0) + (tb[t] ?? 0);
-    }
-  };
-  
   const linesToObject = (entry) => {
     const out = {};
     if (Array.isArray(entry?.lines)) {
@@ -138,21 +129,21 @@ export default function useTransitVolumesLayer({
     const features = [];
     
     for (const f of networkGeo.features) {
-      // normalize per_id
-      let perId = f?.properties?.per_id ?? {};
-      if (typeof perId === "string") {
-        try {
-          perId = JSON.parse(perId);
-        } catch {
-          perId = {};
-        }
-      }
-      const perIds = Object.keys(perId);
-      if (perIds.length === 0) continue;
+      // Parse pipe-separated strings
+      const keys = (f?.properties?.per_id_keys || "").split("|").filter(Boolean);
+      const arrows = (f?.properties?.per_id_arrows || "").split("|").filter(Boolean);
+      
+      if (keys.length === 0) continue;
+      
+      // Build a lookup map for arrows by key
+      const arrowMap = {};
+      keys.forEach((key, index) => {
+        arrowMap[key] = arrows[index];
+      });
       
       // match only ids present in volumeJSON (try raw id; if not found, try cleaned)
       const matchedIds = [];
-      for (const raw of perIds) {
+      for (const raw of keys) {
         const rawStr = String(raw);
         if (volumeJSON[rawStr]) matchedIds.push(rawStr);
         else {
@@ -212,12 +203,12 @@ export default function useTransitVolumesLayer({
           unionModes(modesUnion, entry.modes_list);
         }
         
-        // Split into left/right using the *raw* per_id key for arrow if possible
+        // Split into left/right using the arrow from pipe-separated data
         // Try raw id first; if not present (because we matched a "cleaned" id),
         // try the cleaned key too.
         const arrow =
-        perId[id]?.arrow ??
-        perId[cleanLinkId(id)]?.arrow ??
+        arrowMap[id] ??
+        arrowMap[cleanLinkId(id)] ??
         null;
         
         if (arrow === "←") left += thisWindow;
