@@ -76,16 +76,14 @@ export const buildRowsFromGeojson = (geojson, selectedGraph = null) => {
   geojson.features.forEach((feature, featureIndex) => {
     const props = feature?.properties || {};
     
-    // handle per_id dictionary (split one feature into multiple rows per direction)
-    let per = props.per_id;
-    if (typeof per === "string" && per.startsWith("{")) {
-      try {
-        per = JSON.parse(per);
-      } catch {
-        per = {};
-      }
-    }
-    if (!per || typeof per !== "object" || Array.isArray(per)) per = {};
+    // Parse pipe-separated strings into arrays
+    const keys = (props.per_id_keys || "").split("|").filter(Boolean);
+    const capacities = (props.per_id_capacities || "").split("|").filter(Boolean);
+    const lengths = (props.per_id_lengths || "").split("|").filter(Boolean);
+    const freespeeds = (props.per_id_freespeeds || "").split("|").filter(Boolean);
+    const daily_avgs = (props.per_id_daily_avgs || "").split("|").filter(Boolean);
+    const arrows = (props.per_id_arrows || "").split("|").filter(Boolean);
+    const directions = (props.per_id_directions || "").split("|").filter(Boolean);
     
     // allocate a tableId for rowKey generation
     const tableId = Number(featureIndex);
@@ -105,20 +103,22 @@ export const buildRowsFromGeojson = (geojson, selectedGraph = null) => {
       return Math.round(value * factor) / factor;
     };
     
-    
-    const pushRow = (directionId, data = {}) => {
-      const length = num(data.length);
-      const freeSpeed = toKmh(data.freespeed);
-      const capacity = num(data.capacity);
-      const totalVol = num(data.daily_avg_volume);
+    const pushRow = (index) => {
+      const directionId = keys[index] || null;
+      const length = num(lengths[index]);
+      const freeSpeed = toKmh(freespeeds[index]);
+      const capacity = num(capacities[index]);
+      const totalVol = num(daily_avgs[index]);
+      const arrow = arrows[index] || null;
+      const direction = directions[index] || null;
       
       // Only calculate filtered volume for Volumes module
       let filteredVolume = null;
       if (selectedGraph === 'Volumes') {
-        if (data.arrow === '←') {
+        if (arrow === '←') {
           // Left arrow = left_sum
           filteredVolume = num(props.left_sum);
-        } else if (data.arrow === '→') {
+        } else if (arrow === '→') {
           // Right arrow = right_sum
           filteredVolume = num(props.right_sum);
         }
@@ -126,12 +126,10 @@ export const buildRowsFromGeojson = (geojson, selectedGraph = null) => {
       
       // Calculate total capacity for the feature (sum of all directions)
       let totalCapacity = 0;
-      if (per && typeof per === 'object') {
-        for (const [, d] of Object.entries(per)) {
-          const cap = num(d?.capacity);
-          if (cap !== null) totalCapacity += cap;
-        }
-      }
+      capacities.forEach(cap => {
+        const c = num(cap);
+        if (c !== null) totalCapacity += c;
+      });
       
       rows.push({
         rowKey: `${tableId}-${directionId ?? "all"}-${rows.length}`,
@@ -147,12 +145,18 @@ export const buildRowsFromGeojson = (geojson, selectedGraph = null) => {
         coords,
         feature,
         featureProps: props,
+        arrow,
+        direction
       });
     };
     
-    const entries = Object.entries(per);
-    if (entries.length) entries.forEach(([dir, d]) => pushRow(dir, d || {}));
-    else pushRow(null, {});
+    // Create a row for each direction
+    if (keys.length > 0) {
+      keys.forEach((_, index) => pushRow(index));
+    } else {
+      // Fallback if no per_id data
+      pushRow(0);
+    }
   });
   return rows;
 };

@@ -29,10 +29,16 @@ export default function useNetworkLayers({
   
   // recompute per-id volumes for a feature based on linkVolumeData + timeRange
   const recomputeVolumesForFeature = (f, startHour, endHour) => {
-    const perId = f.properties?.per_id || {};
+    const props = f.properties || {};
+    
+    // Parse pipe-separated strings
+    const keys = (props.per_id_keys || "").split("|").filter(Boolean);
+    const arrows = (props.per_id_arrows || "").split("|").filter(Boolean);
+    const daily_avgs = (props.per_id_daily_avgs || "").split("|").filter(Boolean);
+    
     let left = 0, right = 0;
     
-    for (const [id, obj] of Object.entries(perId)) {
+    keys.forEach((id, index) => {
       const hourly = linkVolumeData?.[id.toString()];
       let s = 0;
       if (hourly) {
@@ -41,11 +47,13 @@ export default function useNetworkLayers({
           s += hourly[key] ?? 0;
         }
       } else {
-        s = Number(obj?.daily_avg_volume ?? 0);
+        s = Number(daily_avgs[index] ?? 0);
       }
-      if (obj?.arrow === '←') left += s;
-      else if (obj?.arrow === '→') right += s;
-    }
+      
+      const arrow = arrows[index];
+      if (arrow === '←') left += s;
+      else if (arrow === '→') right += s;
+    });
     
     f.properties = {
       ...f.properties,
@@ -176,74 +184,7 @@ export default function useNetworkLayers({
     }
     
     originalNetworkGeoJSON.current = networkGeojson;
-    
-    const addSearchableArrays = (feature) => {
-      const perId = feature.properties?.per_id || {};
-      
-      let perIdObj = perId;
-      if (typeof perId === 'string') {
-        try {
-          perIdObj = JSON.parse(perId);
-        } catch (e) {
-          return feature;
-        }
-      }
-      
-      const keys = Object.keys(perIdObj);
-      
-      // Use EXACT same helper functions as FeatureTable
-      const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : null);
-      const toKmh = (mps) => {
-        const n = Number(mps);
-        return Number.isFinite(n) ? n * 3.6 : null;
-      };
-      const roundTo = (value, decimals = 0) => {
-        if (!Number.isFinite(value)) return value;
-        const factor = Math.pow(10, decimals);
-        return Math.round(value * factor) / factor;
-      };
-      
-      // Process each direction EXACTLY like FeatureTable does
-      const linkIds = [];
-      const capacities = [];
-      const lengths = [];
-      const freespeeds = [];
-      const dailyAvgs = [];
-      
-      keys.forEach(key => {
-        const data = perIdObj[key];
-        if (!data) return;
-        
-        // Apply EXACT same transformations as FeatureTable
-        const length = num(data.length);
-        const freeSpeed = toKmh(data.freespeed);
-        const capacity = num(data.capacity);
-        const dailyAvg = num(data.daily_avg_volume);
-        
-        linkIds.push(key);
-        if (capacity !== null) capacities.push(String(capacity)); // No rounding
-        if (length !== null) lengths.push(String(roundTo(length, 1))); // Round to 1 decimal
-        if (freeSpeed !== null) freespeeds.push(String(roundTo(freeSpeed, 1))); // Round to 1 decimal
-        if (dailyAvg !== null) dailyAvgs.push(String(dailyAvg)); // No rounding
-      });
-      
-      // Store as pipe-delimited strings
-      feature.properties.per_id_keys = linkIds.join('|');
-      feature.properties.per_id_capacities = capacities.join('|');
-      feature.properties.per_id_lengths = lengths.join('|');
-      feature.properties.per_id_freespeeds = freespeeds.join('|');
-      feature.properties.per_id_daily_avgs = dailyAvgs.join('|');
-      
-      // Create searchable text
-      const allValues = [...linkIds, ...capacities, ...lengths, ...freespeeds, ...dailyAvgs];
-      if (feature.properties.modes) {
-        allValues.push(String(feature.properties.modes));
-      }
-      feature.properties.searchable_text = allValues.join('|').toLowerCase();
-      
-      return feature;
-    };
-    
+
     const decorateLineVolumesFromPerId = (features) => {
       for (const f of features) {
         if (!f?.properties) f.properties = {};
@@ -261,29 +202,17 @@ export default function useNetworkLayers({
           f.properties.angle = null;
         }
         
-        // --- Normalize per_id: parse JSON string -> object ---
-        let perId = f.properties.per_id;
-        if (typeof perId === 'string') {
-          try {
-            perId = JSON.parse(perId);
-            f.properties.per_id = perId; // write back normalized object
-          } catch (e) {
-            console.warn('Bad per_id JSON; skipping', e, f);
-            perId = {};
-            f.properties.per_id = {};
-          }
-        } else if (!perId || typeof perId !== 'object' || Array.isArray(perId)) {
-          perId = {};
-          f.properties.per_id = {};
-        }
+        // Parse pipe-separated strings
+        const arrows = (f.properties.per_id_arrows || "").split("|").filter(Boolean);
+        const daily_avgs = (f.properties.per_id_daily_avgs || "").split("|").filter(Boolean);
         
         // Aggregate left/right totals from per_id entries
         let left = 0, right = 0;
-        for (const [, obj] of Object.entries(perId)) {
-          const v = Number(obj?.daily_avg_volume ?? 0);
-          if (obj?.arrow === '←') left += v;
-          else if (obj?.arrow === '→') right += v;
-        }
+        arrows.forEach((arrow, index) => {
+          const v = Number(daily_avgs[index] ?? 0);
+          if (arrow === '←') left += v;
+          else if (arrow === '→') right += v;
+        });
         
         // Ensure these three exist on EVERY feature
         const fallbackTotal = left + right;
@@ -292,8 +221,6 @@ export default function useNetworkLayers({
         : fallbackTotal;
         f.properties.left_sum = left;
         f.properties.right_sum = right;
-        
-        addSearchableArrays(f);
       }
     };
     
@@ -324,7 +251,7 @@ export default function useNetworkLayers({
         ? ['interpolate', ['linear'], ['get', 'daily_avg_volume'],
         0, '#ffffcc', 50, '#c2e699', 100, '#78c679', 250, '#31a354', 500, '#006837']
         : ['interpolate', ['linear'], ['get', 'freespeed'],
-        0, '#ffffb2', 6.94, '#fed976', 13.89, '#feb24c', 20.83, '#fd8d3c', 27.78, '#fc4e2a', 34.72, '#e31a1c', 41.67, '#b10026']
+        0, '#ffffb2', 25, '#fed976', 50, '#feb24c', 75, '#fd8d3c', 100, '#fc4e2a', 125, '#e31a1c', 150, '#b10026']
       }
     });
     
@@ -521,7 +448,7 @@ export default function useNetworkLayers({
         ? ['interpolate', ['linear'], ['get', 'daily_avg_volume'],
         0, '#ffffcc', 50, '#c2e699', 100, '#78c679', 250, '#31a354', 500, '#006837']
         : ['interpolate', ['linear'], ['get', 'freespeed'],
-        0, '#ffffb2', 6.94, '#fed976', 13.89, '#feb24c', 20.83, '#fd8d3c', 27.78, '#fc4e2a', 34.72, '#e31a1c', 41.67, '#b10026'];
+        0, '#ffffb2', 25, '#fed976', 50, '#feb24c', 75, '#fd8d3c', 100, '#fc4e2a', 125, '#e31a1c', 150, '#b10026']
         
         map.setPaintProperty('network-layer', 'line-color', colorRamp);
         

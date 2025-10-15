@@ -5,10 +5,6 @@ const fmtNum = (v) => {
   const n = Number(v);
   return Number.isFinite(n) ? `${Math.round(n)}` : "-";
 };
-const fmtSpeed = (v) => {
-  const n = Number(v);
-  return Number.isFinite(n) ? `${Math.round(n * 3.6)} km/h` : "-"; // m/s -> km/h
-};
 const allEqual = (arr) => (arr.length === 0 ? true : arr.every((x) => x === arr[0]));
 
 const SegmentAttributesTable = ({ propertiesList, selectedGraph, filteredVolume }) => {
@@ -16,19 +12,33 @@ const SegmentAttributesTable = ({ propertiesList, selectedGraph, filteredVolume 
   
   const top = propertiesList[0] || {};
   
-  // Normalize per_id (can arrive as a JSON string)
-  let perId = top.per_id || {};
-  if (typeof perId === "string") {
-    try { perId = JSON.parse(perId); } catch { perId = {}; }
-  }
-  const perIdEntries = Object.entries(perId); // [ [id, obj], ... ]
+  // Parse pipe-separated strings into arrays
+  const keys = (top.per_id_keys || "").split("|").filter(Boolean);
+  const capacities = (top.per_id_capacities || "").split("|").filter(Boolean);
+  const lengths = (top.per_id_lengths || "").split("|").filter(Boolean);
+  const freespeeds = (top.per_id_freespeeds || "").split("|").filter(Boolean);
+  const daily_avgs = (top.per_id_daily_avgs || "").split("|").filter(Boolean);
+  const permlanes = (top.per_id_permlanes || "").split("|").filter(Boolean);
+  
+  // Build array of objects for easier processing (similar to old per_id entries)
+  const perIdEntries = keys.map((id, index) => [
+    id,
+    {
+      capacity: capacities[index],
+      length: lengths[index],
+      freespeed: freespeeds[index],
+      daily_avg_volume: daily_avgs[index],
+      permlanes: permlanes[index]
+    }
+  ]);
+  
   const hasFiltered = filteredVolume && typeof filteredVolume === "object";
   const filteredTotal = hasFiltered
   ? perIdEntries.reduce((acc, [id]) => acc + (Number(filteredVolume?.[String(id)]) || 0), 0)
   : null;
   
   // Deduped row renderer
-  const renderDedupRow = (label, field, { isSpeed = false, unit = "", useFilteredVolume = false } = {}) => {
+  const renderDedupRow = (label, field, { unit = "", useFilteredVolume = false } = {}) => {
     const vals = perIdEntries
     .map(([id, obj]) => {
       const raw = useFilteredVolume ? filteredVolume?.[String(id)] : obj?.[field];
@@ -37,7 +47,7 @@ const SegmentAttributesTable = ({ propertiesList, selectedGraph, filteredVolume 
     })
     .filter(Boolean);
     
-    const fmt = isSpeed ? fmtSpeed : (x) => (unit ? `${fmtNum(x)}${unit}` : fmtNum(x));
+    const fmt = (x) => (unit ? `${fmtNum(x)} ${unit}` : fmtNum(x));
     
     if (vals.length === 0) {
       return (
@@ -75,8 +85,8 @@ const SegmentAttributesTable = ({ propertiesList, selectedGraph, filteredVolume 
     <table>
     <tbody>
     {/* Per-direction fields first (deduped) */}
-    {renderDedupRow("Length", "length", { unit: " m" })}
-    {renderDedupRow("Free Speed", "freespeed", { isSpeed: true })}
+    {renderDedupRow("Length", "length", { unit: "m" })}
+    {renderDedupRow("Free Speed", "freespeed", { unit: "km/h" })}
     {renderDedupRow("Capacity (per direction)", "capacity")}
     {renderDedupRow("Lanes (per direction)", "permlanes")}
     
