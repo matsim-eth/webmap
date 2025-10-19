@@ -226,6 +226,33 @@ export default function useNetworkLayers({
     
     decorateLineVolumesFromPerId(networkGeojson.features);
     
+    // Add min/max properties for pipe-delimited fields to enable proper filtering
+    networkGeojson.features.forEach(f => {
+      // Helper to parse pipe-delimited numbers and get min/max
+      const getMinMax = (pipeStr) => {
+        const values = (pipeStr || "").split("|").filter(Boolean).map(Number).filter(v => !isNaN(v));
+        if (values.length === 0) return { min: null, max: null };
+        return { min: Math.min(...values), max: Math.max(...values) };
+      };
+      
+      // Process each pipe-delimited property
+      const capacities = getMinMax(f.properties.per_id_capacities);
+      f.properties.capacity_min = capacities.min;
+      f.properties.capacity_max = capacities.max;
+      
+      const lengths = getMinMax(f.properties.per_id_lengths);
+      f.properties.length_min = lengths.min;
+      f.properties.length_max = lengths.max;
+      
+      const speeds = getMinMax(f.properties.per_id_freespeeds);
+      f.properties.freespeed_min = speeds.min;
+      f.properties.freespeed_max = speeds.max;
+      
+      const volumes = getMinMax(f.properties.per_id_daily_avgs);
+      f.properties.volume_min = volumes.min;
+      f.properties.volume_max = volumes.max;
+    });
+    
     setFeatureGeoJSON?.(networkGeojson);
     
     map.addSource('network-source', { type: 'geojson', data: networkGeojson });

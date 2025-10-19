@@ -506,6 +506,54 @@ const FeatureTable = forwardRef(
           return;
         }
         
+        // Determine column info
+        const selectedTitle =
+        Number.isInteger(searchCol) && searchCol >= 0
+        ? (dtColumns[searchCol]?.title || "").toLowerCase()
+        : "";
+        
+        // Only allow comparison operators for specific numeric columns (not "All columns")
+        const isNumericCol = searchCol >= 0 && ["capacity", "length", "freeSpeed", "totalVol", "filteredVolume"].includes(
+          dtColumns[searchCol]?.data || ""
+        );
+        
+        // Check for comparison operators (>, <, >=, <=) in numeric columns
+        if (isNumericCol && /^(>=?|<=?)\s*[0-9.,]+$/.test(raw)) {
+          const match = raw.match(/^(>=?|<=?)\s*([0-9.,]+)$/);
+          if (match) {
+            const operator = match[1];
+            const value = parseFloat(match[2].replace(/,/g, ''));
+            
+            if (!isNaN(value)) {
+              // Use custom filter function for comparisons
+              $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                if (settings.nTable !== instance.table().node()) return true;
+                
+                const cellValue = parseFloat(data[searchCol]);
+                if (isNaN(cellValue)) return false;
+                
+                switch(operator) {
+                  case '>': return cellValue > value;
+                  case '<': return cellValue < value;
+                  case '>=': return cellValue >= value;
+                  case '<=': return cellValue <= value;
+                  default: return true;
+                }
+              });
+              
+              instance.draw(false);
+              
+              // Clean up custom filter after draw
+              setTimeout(() => {
+                $.fn.dataTable.ext.search.pop();
+              }, 0);
+              
+              return;
+            }
+          }
+        }
+        
+        // Original logic for non-comparison searches
         // Split on comma or semicolon, trim, drop empties
         const terms = raw
         .split(/[;,]+/)
@@ -518,10 +566,6 @@ const FeatureTable = forwardRef(
         
         // Build regex pattern:
         // For numeric columns, search against raw values, not formatted ones
-        const selectedTitle =
-        Number.isInteger(searchCol) && searchCol >= 0
-        ? (dtColumns[searchCol]?.title || "").toLowerCase()
-        : "";
         
         // Exact match logic:
         // - Link ID column: exact match
@@ -529,11 +573,6 @@ const FeatureTable = forwardRef(
         // - Modes column: contains match
         // - ALL COLUMNS search: contains match
         const colIsExact = Number.isInteger(searchCol) && searchCol >= 0 && selectedTitle !== "modes";
-        
-        // For numeric searches, don't escape regex - allow direct numeric matching
-        const isNumericCol = ["capacity", "length", "freespeed", "totalvol", "filteredvolume"].includes(
-          dtColumns[searchCol]?.data || ""
-        );
         
         let pattern;
         if (isNumericCol) {
