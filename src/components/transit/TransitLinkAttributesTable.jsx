@@ -12,7 +12,9 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
     new Set(
       propertiesList.flatMap(p => {
         if (Array.isArray(p.link_ids) && p.link_ids.length) return p.link_ids.map(String);
-        if (p.per_id && typeof p.per_id === "object") return Object.keys(p.per_id).map(String);
+        if (p.per_id_keys && typeof p.per_id_keys === "string") {
+          return p.per_id_keys.split("|").filter(Boolean).map(String);
+        }
         return p.id ? [String(p.id)] : [];
       })
     )
@@ -29,21 +31,19 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
   };
   const allEqual = (arr) => (arr.length === 0 ? true : arr.every((x) => x === arr[0]));
 
-  // Collect per_id numeric values across all selected features
+  // Collect per_id numeric values across all selected features using pipe-separated format
   const collectPerIdValues = (propKey) => {
     const seen = new Map(); // id -> number
     for (const p of propertiesList) {
-      let per = p?.per_id;
-      if (typeof per === "string") {
-        try { per = JSON.parse(per); } catch { per = null; }
-      }
-      if (!per || typeof per !== "object") continue;
-      for (const [id, obj] of Object.entries(per)) {
-        const num = Number(obj?.[propKey]);
+      const keys = (p?.per_id_keys || "").split("|").filter(Boolean);
+      const values = (p?.[propKey] || "").split("|").filter(Boolean);
+      
+      keys.forEach((id, index) => {
+        const num = Number(values[index]);
         if (Number.isFinite(num) && !seen.has(String(id))) {
           seen.set(String(id), num);
         }
-      }
+      });
     }
     return Array.from(seen.entries()).map(([id, num]) => ({ id, num }));
   };

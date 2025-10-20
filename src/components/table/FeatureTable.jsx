@@ -239,7 +239,6 @@ const FeatureTable = forwardRef(
     // Single source of truth for columns (used by DT and the toolbar + exporter)
     const columnDefs = useMemo(
       () => {
-        console.log('columnDefs - selectedGraph:', selectedGraph);
         
         const cols = [
           { key: "directionId", title: "Link ID" },
