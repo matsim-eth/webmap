@@ -133,7 +133,7 @@ const TransitVolumesModule = ({
       {selectedTransitLink.flatMap((props, idx) => {
         const ids = Array.isArray(props.link_ids) && props.link_ids.length
         ? props.link_ids
-        : (props.per_id ? Object.keys(props.per_id) : []);
+        : (props.per_id_keys ? props.per_id_keys.split("|").filter(Boolean) : []);
         const baseKey = props.link_key_join || String(idx);
         return ids.map(id => (
           <TransitLinkHistogram

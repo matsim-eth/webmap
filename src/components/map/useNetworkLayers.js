@@ -41,12 +41,13 @@ export default function useNetworkLayers({
     keys.forEach((id, index) => {
       const hourly = linkVolumeData?.[id.toString()];
       let s = 0;
-      if (hourly) {
+      if (hourly && Array.isArray(hourly) && hourly.length === 24) {
+        // Sum volumes from startHour to endHour using array indexing
         for (let h = startHour; h < endHour; h++) {
-          const key = `HRS${h}-${h + 1}avg`;
-          s += hourly[key] ?? 0;
+          s += hourly[h] ?? 0;
         }
       } else {
+        // Fallback to daily average if hourly data not available
         s = Number(daily_avgs[index] ?? 0);
       }
       
@@ -527,9 +528,9 @@ export default function useNetworkLayers({
         const startHour = Math.floor((timeRange?.[0] ?? 0) / 4);
         const endHour   = Math.ceil((timeRange?.[1] ?? 96) / 4);
         
-        // update line features’ total volume
+        // update line features' total volume
         const updatedLineFeatures = source._data.features.map(f => {
-          if (!f?.properties?.per_id) return f; // nothing to recompute
+          if (!f?.properties?.per_id_keys) return f; // nothing to recompute
           recomputeVolumesForFeature(f, startHour, endHour);
           return f;
         });
