@@ -130,15 +130,21 @@ const TransitVolumesModule = ({
       timeRange={timeRange}
       />
       
-      {selectedTransitLink.flatMap((props, idx) => {
-        const ids = Array.isArray(props.link_ids) && props.link_ids.length
-        ? props.link_ids
-        : (props.per_id_keys ? props.per_id_keys.split("|").filter(Boolean) : []);
-        const baseKey = props.link_key_join || String(idx);
-        return ids.map(id => (
+      {(() => {
+        // Collect all unique link IDs across all selected segments
+        const allLinkIds = new Set();
+        selectedTransitLink.forEach(props => {
+          const ids = Array.isArray(props.link_ids) && props.link_ids.length
+            ? props.link_ids
+            : (props.per_id_keys ? props.per_id_keys.split("|").filter(Boolean) : []);
+          ids.forEach(id => allLinkIds.add(String(id)));
+        });
+        
+        // Create one histogram per unique link ID
+        return Array.from(allLinkIds).map(id => (
           <TransitLinkHistogram
-          key={`${baseKey}-${String(id)}`}
-          linkId={String(id)}
+          key={`transit-hist-${id}`}
+          linkId={id}
           highlightedLineId={highlightedLineId}
           timeRange={timeRange}
           canton={canton}
@@ -146,7 +152,7 @@ const TransitVolumesModule = ({
           setVisualizeLinkId={setVisualizeLinkId}
           />
         ));
-      })}
+      })()}
       
       </>
     )}

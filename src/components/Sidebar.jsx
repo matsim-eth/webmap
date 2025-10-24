@@ -147,12 +147,12 @@ const Sidebar = ({
     loadWithFallback("modes_by_canton.json")
     .then((data) => setModesByCanton(data))
     .catch((err) => console.error("Failed to load modes_by_canton.json", err));
-  }, [dataURL]);
+  }, [dataURL, fileMap]);
   
   useEffect(() => {
     if (canton && modesByCanton[canton]) {
       setAvailableModes(
-        modesByCanton[canton].filter((mode) => !["car_passenger", "truck", "train", "other", "pt"].includes(mode))
+        modesByCanton[canton].filter((mode) => !["car_passenger", "truck", "train", "other", "pt", "taxi"].includes(mode))
       );
     } else {
       setAvailableModes([]);
@@ -173,7 +173,7 @@ const Sidebar = ({
     loadWithFallback("matsim/transit/transit_modes_by_canton.json")
     .then((data) => setTransitModesByCanton(data))
     .catch((err) => console.error("Failed to load transit modes:", err));
-  }, [dataURL]);
+  }, [dataURL, fileMap]);
   
   useEffect(() => {
     if (canton && transitModesByCanton[canton]) {
