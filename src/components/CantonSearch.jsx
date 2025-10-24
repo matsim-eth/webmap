@@ -101,9 +101,22 @@ const CantonSearch = ({ onSearch, map }) => {
             
             setSearchMarker(newMarker);
             
+            // Fade out and remove marker after 3 seconds
+            setTimeout(() => {
+                const markerElement = newMarker.getElement();
+                if (markerElement) {
+                    markerElement.style.transition = 'opacity 0.5s';
+                    markerElement.style.opacity = '0';
+                    setTimeout(() => {
+                        newMarker.remove();
+                        setSearchMarker(null);
+                    }, 500); // Remove after fade completes
+                }
+            }, 3000);
+            
             map.flyTo({
                 center: [lon, lat],
-                zoom: 14,
+                zoom: 16,
                 duration: 1500
             });
             setSearchTerm('');
