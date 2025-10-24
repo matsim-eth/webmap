@@ -32,11 +32,17 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
   const allEqual = (arr) => (arr.length === 0 ? true : arr.every((x) => x === arr[0]));
 
   // Collect per_id numeric values across all selected features using pipe-separated format
-  const collectPerIdValues = (propKey) => {
+    const collectPerIdValues = (propKey) => {
     const seen = new Map(); // id -> number
     for (const p of propertiesList) {
-      const keys = (p?.per_id_keys || "").split("|").filter(Boolean);
-      const values = (p?.[propKey] || "").split("|").filter(Boolean);
+      const keysRaw = p?.per_id_keys;
+      const valuesRaw = p?.[propKey];
+      
+      // Skip if either property doesn't exist or isn't a string
+      if (typeof keysRaw !== "string" || typeof valuesRaw !== "string") continue;
+      
+      const keys = keysRaw.split("|").filter(Boolean);
+      const values = valuesRaw.split("|").filter(Boolean);
       
       keys.forEach((id, index) => {
         const num = Number(values[index]);
