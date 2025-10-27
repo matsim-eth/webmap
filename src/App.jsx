@@ -33,6 +33,14 @@ function App() {
   const [featureGeoJSON, setFeatureGeoJSON] = useState(null);
   // Pass table query to filter features on map
   const [tableFilterQuery, setTableFilterQuery] = useState(null);
+  
+  // ------ TRANSIT FEATURE TABLE --------
+  // Track if transit table is open or not
+  const [isTransitFeatureTableOpen, setIsTransitFeatureTableOpen] = useState(false);
+  // Pass transit geojson to FeatureTable
+  const [transitFeatureGeoJSON, setTransitFeatureGeoJSON] = useState(null);
+  // Pass table query to filter transit features on map
+  const [transitTableFilterQuery, setTransitTableFilterQuery] = useState(null);
 
 
   // Matsim network modes (MatSIM network module)
@@ -43,6 +51,7 @@ function App() {
   const [featureSelection, setFeatureSelection] = useState(null);
   // Save selected link for transit volumes module
   const [selectedTransitLink, setSelectedTransitLink] = useState(null);
+  const [transitFeatureSelection, setTransitFeatureSelection] = useState(null);
   // Show selected line for transit volumes module
   const [showLineSymbology, setShowLineSymbology] = useState(false);
   
@@ -85,6 +94,7 @@ function App() {
     setSelectedNetworkFeature(null)
     setFeatureSelection(null)
     setSelectedTransitLink(null);
+    setTransitFeatureSelection(null);
     setVisualizeLinkId(null)
     // Reset current module
     setIsGraphExpanded(false);
@@ -92,6 +102,7 @@ function App() {
     setShowMajorRoadsOnly(true); // Reset major roads toggle
     setShowStopVolumeSymbology(false); // Reset stop volume symbology toggle
     setIsFeatureTableOpen(false); // Close feature table if open
+    setIsTransitFeatureTableOpen(false); // Close transit feature table if open
   };
   
   return (
@@ -114,6 +125,7 @@ function App() {
     setSelectedNetworkFeature={setSelectedNetworkFeature} // to sidebar
     featureSelection={featureSelection}
     setSelectedTransitLink={setSelectedTransitLink} // to sidebar
+    transitFeatureSelection={transitFeatureSelection}
     visualizeLinkId={visualizeLinkId} // from segment vol histogram via sidebar
     setVisualizeLinkId={setVisualizeLinkId} // from sidebar
     dataURL={dataURL} // from Sidebar
@@ -136,6 +148,10 @@ function App() {
     isFeatureTableOpen={isFeatureTableOpen} // from sidebar
     setIsFeatureTableOpen={setIsFeatureTableOpen}
     tableFilterQuery={tableFilterQuery}
+    setTransitFeatureGeoJSON={setTransitFeatureGeoJSON}
+    isTransitFeatureTableOpen={isTransitFeatureTableOpen}
+    setIsTransitFeatureTableOpen={setIsTransitFeatureTableOpen}
+    transitTableFilterQuery={transitTableFilterQuery}
     />
     
     <Sidebar
@@ -152,7 +168,9 @@ function App() {
     selectedNetworkFeature={selectedNetworkFeature} // from map
     setSelectedNetworkFeature={setSelectedNetworkFeature} 
     onFocusNetworkFeature={setFeatureSelection}
+    onFocusTransitFeature={setTransitFeatureSelection}
     selectedTransitLink={selectedTransitLink} // from map
+    setSelectedTransitLink={setSelectedTransitLink} // to transit volumes module
     visualizeLinkId={visualizeLinkId} // from map
     setVisualizeLinkId={setVisualizeLinkId} // to map
     dataURL={dataURL}
@@ -180,6 +198,10 @@ function App() {
     isFeatureTableOpen={isFeatureTableOpen}
     setIsFeatureTableOpen={setIsFeatureTableOpen}
     setTableFilterQuery={setTableFilterQuery} // to map
+    transitFeatureGeoJSON={transitFeatureGeoJSON}
+    isTransitFeatureTableOpen={isTransitFeatureTableOpen}
+    setIsTransitFeatureTableOpen={setIsTransitFeatureTableOpen}
+    setTransitTableFilterQuery={setTransitTableFilterQuery}
     />
     
     <NetworkLegend

@@ -23,7 +23,9 @@ export default function useTransitLayers({
   timeRange,
   setIsLoading,
   setSelectedTransitLink,
-  showLineSymbology
+  showLineSymbology,
+  setTransitFeatureGeoJSON,
+  transitTableFilterQuery
 }) {
   
   // Add transit stops and interactions
@@ -68,7 +70,9 @@ export default function useTransitLayers({
     selectedTransitModes,
     setIsLoading,
     setSelectedTransitLink,
-    highlightedLineId 
+    highlightedLineId,
+    setTransitFeatureGeoJSON,
+    transitTableFilterQuery
   });
   
   useTransitSymbologyLayer({

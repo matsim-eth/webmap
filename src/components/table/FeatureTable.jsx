@@ -108,13 +108,26 @@ export const buildRowsFromGeojson = (geojson, selectedGraph = null) => {
       const length = num(lengths[index]);
       const freeSpeed = toKmh(freespeeds[index]);
       const capacity = num(capacities[index]);
-      const totalVol = num(daily_avgs[index]);
       const arrow = arrows[index] || null;
       const direction = directions[index] || null;
       
-      // Only calculate filtered volume for Volumes module
+      // For TransitVolumes, use directional total volumes; otherwise use daily_avgs
+      let totalVol;
+      if (selectedGraph === 'TransitVolumes') {
+        if (arrow === '←') {
+          totalVol = props.total_left;
+        } else if (arrow === '→') {
+          totalVol = props.total_right;
+        } else {
+          totalVol = props.total_volume; // fallback to combined if no arrow
+        }
+      } else {
+        totalVol = num(daily_avgs[index]);
+      }
+      
+      // Calculate filtered volume for Volumes and TransitVolumes modules
       let filteredVolume = null;
-      if (selectedGraph === 'Volumes') {
+      if (selectedGraph === 'Volumes' || selectedGraph === 'TransitVolumes') {
         if (arrow === '←') {
           // Left arrow = left_sum
           filteredVolume = num(props.left_sum);
@@ -244,12 +257,12 @@ const FeatureTable = forwardRef(
           { key: "directionId", title: "Link ID" },
           { key: "length", title: "Length [m]" },        
           { key: "freeSpeed", title: "Speed [km/h]" },   
-          { key: "capacity", title: "Capacity" },        
+          { key: "capacity", title: "Capacity" },
           { key: "totalVol", title: "Total Daily Volume" },
         ];
         
-        // Only add filtered volume column for Volumes module
-        if (selectedGraph === 'Volumes') {
+        // Add filtered volume column for Volumes and TransitVolumes modules
+        if (selectedGraph === 'Volumes' || selectedGraph === 'TransitVolumes') {
           cols.push({ key: "filteredVolume", title: "Filtered Volume" });
         }
         
@@ -285,8 +298,8 @@ const FeatureTable = forwardRef(
           { data: "totalVol", title: "Total Daily Volume" },
         ];
         
-        // Only add filtered volume column for Volumes module
-        if (selectedGraph === 'Volumes') {
+        // Add filtered volume column for Volumes and TransitVolumes modules
+        if (selectedGraph === 'Volumes' || selectedGraph === 'TransitVolumes') {
           cols.push({ data: "filteredVolume", title: "Filtered Volume" });
         }
         

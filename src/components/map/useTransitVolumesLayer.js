@@ -10,6 +10,8 @@ export default function useTransitVolumesLayer({
   setIsLoading,
   setSelectedTransitLink,
   highlightedLineId,
+  setTransitFeatureGeoJSON,
+  transitTableFilterQuery
 }) {
   const originalGeoJSON = useRef(null);
   
@@ -157,6 +159,7 @@ export default function useTransitVolumesLayer({
       let totalAllBins = 0;       // sum across all bins and lines (full day)
       let windowSum = 0;          // sum across window (used for filtered_volume)
       let left = 0, right = 0;    // directional window sums
+      let totalLeft = 0, totalRight = 0; // directional full-day sums
       
       const mergedLines = {};     // { lineId: { timeBins: { 'HH:MM': sum } } }
       const modesUnion = new Set();
@@ -174,8 +177,24 @@ export default function useTransitVolumesLayer({
         ? (allLines[filterLineId] ? { [filterLineId]: allLines[filterLineId] } : {})
         : allLines;
         
+        // Get the arrow for this link ID
+        const arrow =
+          arrowMap[id] ??
+          arrowMap[cleanLinkId(id)] ??
+          null;
+        
         // Sum full-day total
-        totalAllBins += Number(entry.linkTotal ?? 0);
+        const linkTotal = Number(entry.linkTotal ?? 0);
+        totalAllBins += linkTotal;
+        
+        // Split full-day total by direction
+        if (arrow === "←") totalLeft += linkTotal;
+        else if (arrow === "→") totalRight += linkTotal;
+        else {
+          // fallback: split evenly if arrow missing
+          totalLeft += linkTotal / 2;
+          totalRight += linkTotal / 2;
+        }
         
         // Sum window across ACTIVE lines only (selected line if set)
         let thisWindow = 0;
@@ -203,14 +222,7 @@ export default function useTransitVolumesLayer({
           unionModes(modesUnion, entry.modes_list);
         }
         
-        // Split into left/right using the arrow from pipe-separated data
-        // Try raw id first; if not present (because we matched a "cleaned" id),
-        // try the cleaned key too.
-        const arrow =
-        arrowMap[id] ??
-        arrowMap[cleanLinkId(id)] ??
-        null;
-        
+        // Split window into left/right using the arrow
         if (arrow === "←") left += thisWindow;
         else if (arrow === "→") right += thisWindow;
         else {
@@ -234,6 +246,10 @@ export default function useTransitVolumesLayer({
           total_volume: totalAllBins,
           filtered_volume: windowSum,
           
+          // Add directional total volumes for table
+          total_left: totalLeft,
+          total_right: totalRight,
+          
           // keep these for filtering & sidebar
           modes: Array.from(modesUnion),
           lines: mergedLines,
@@ -254,19 +270,28 @@ export default function useTransitVolumesLayer({
     if (!map || isGraphExpanded !== "TransitVolumes" || !searchCanton) return;
     
     const removeLayers = () => {
+      // Remove click handler first
+      if (map.getLayer("transit-volumes-hitbox")) {
+        map.off("click", "transit-volumes-hitbox", handleTransitVolumeClick);
+      }
+      
       [
         "transit-volumes-layer",
         "transit-volumes-hitbox",
         "transit-symbology-line",
-        "transit-volumes-highlight",
         "transit-volumes-label-left",
         "transit-volumes-label-right",
         "ant-line",
       ].forEach((id) => map.getLayer(id) && map.removeLayer(id));
       
-      ["transit-volumes-source", "transit-volumes-highlight", "ant-path"].forEach(
+      ["transit-volumes-source", "ant-path"].forEach(
         (id) => map.getSource(id) && map.removeSource(id)
       );
+      
+      // Clear network-highlight instead of removing it (shared with network)
+      if (map.getSource("network-highlight")) {
+        map.getSource("network-highlight").setData({ type: "FeatureCollection", features: [] });
+      }
       
       setSelectedTransitLink(null);
       originalGeoJSON.current = null;
@@ -349,6 +374,87 @@ export default function useTransitVolumesLayer({
       }
     };
     
+    // Define click handler function so it can be properly removed
+    const handleTransitVolumeClick = (e) => {
+      if (!e.features?.length) return;
+      
+      // Identify by our stable key
+      const clickedKeys = new Set(
+        e.features.map((f) => f?.properties?.link_key_join).filter(Boolean)
+      );
+      const allFeatures =
+        map.getSource("transit-volumes-source")?._data?.features || [];
+      const fullFeatures = clickedKeys.size
+        ? allFeatures.filter((f) => clickedKeys.has(f?.properties?.link_key_join))
+        : e.features;
+      
+      if (!fullFeatures.length) return;
+      
+      // Use shared network-highlight - ensure it exists and is properly positioned
+      if (!map.getSource("network-highlight")) {
+        // Create source
+        map.addSource("network-highlight", {
+          type: "geojson",
+          data: { type: "FeatureCollection", features: fullFeatures },
+        });
+      } else {
+        // Update existing source
+        map.getSource("network-highlight").setData({
+          type: "FeatureCollection",
+          features: fullFeatures,
+        });
+      }
+      
+      // Ensure layer exists and is properly positioned
+      if (!map.getLayer("network-highlight")) {
+        // Position before transit-volumes-layer
+        let beforeLayer = null;
+        if (map.getLayer('transit-volumes-layer')) beforeLayer = 'transit-volumes-layer';
+        else if (map.getLayer('network-layer')) beforeLayer = 'network-layer';
+        
+        map.addLayer(
+          {
+            id: "network-highlight",
+            type: "line",
+            source: "network-highlight",
+            paint: {
+              "line-width": [
+                "interpolate",
+                ["linear"],
+                ["get", "daily_avg_volume"],
+                0, 8,
+                10, 10,
+                50, 12,
+                100, 14,
+                250, 16,
+              ],
+              "line-color": "#00a2ff",
+            },
+          },
+          beforeLayer
+        );
+      } else {
+        // Layer exists - make sure it's visible and has correct paint
+        map.setLayoutProperty("network-highlight", "visibility", "visible");
+        // Update paint to work with transit data
+        map.setPaintProperty("network-highlight", "line-color", "#00a2ff");
+        map.setPaintProperty("network-highlight", "line-width", [
+          "interpolate",
+          ["linear"],
+          ["get", "daily_avg_volume"],
+          0, 8,
+          10, 10,
+          50, 12,
+          100, 14,
+          250, 16,
+        ]);
+      }
+      
+      // Sidebar: pass properties array
+      console.log("Transit link clicked:", fullFeatures.map((f) => f.properties));
+      setSelectedTransitLink(fullFeatures.map((f) => f.properties));
+    };
+    
     const init = async () => {
       removeLayers();
       
@@ -364,6 +470,14 @@ export default function useTransitVolumesLayer({
         originalGeoJSON.current = { geo: networkGeo, volumes: volumeJSON };
         
         const updatedFeatures = computeFilteredFeatures(networkGeo, volumeJSON, timeRange, highlightedLineId);
+        
+        // Export the GeoJSON for the feature table
+        if (setTransitFeatureGeoJSON) {
+          setTransitFeatureGeoJSON({
+            type: "FeatureCollection",
+            features: updatedFeatures,
+          });
+        }
         
         map.addSource("transit-volumes-source", {
           type: "geojson",
@@ -452,58 +566,13 @@ export default function useTransitVolumesLayer({
         };
         map.on("idle", handleIdle);
         
-        // Click to highlight + sidebar
-        map.on("click", "transit-volumes-hitbox", (e) => {
-          if (!e.features?.length) return;
-          
-          // Identify by our stable key
-          const clickedKeys = new Set(
-            e.features.map((f) => f?.properties?.link_key_join).filter(Boolean)
-          );
-          const allFeatures =
-          map.getSource("transit-volumes-source")._data.features || [];
-          const fullFeatures = clickedKeys.size
-          ? allFeatures.filter((f) => clickedKeys.has(f?.properties?.link_key_join))
-          : e.features;
-          
-          if (!fullFeatures.length) return;
-          
-          if (map.getLayer("transit-volumes-highlight"))
-            map.removeLayer("transit-volumes-highlight");
-          if (map.getSource("transit-volumes-highlight"))
-            map.removeSource("transit-volumes-highlight");
-          
-          map.addSource("transit-volumes-highlight", {
-            type: "geojson",
-            data: { type: "FeatureCollection", features: fullFeatures },
-          });
-          
-          map.addLayer(
-            {
-              id: "transit-volumes-highlight",
-              type: "line",
-              source: "transit-volumes-highlight",
-              paint: {
-                "line-width": [
-                  "interpolate",
-                  ["linear"],
-                  ["get", "daily_avg_volume"],
-                  0, 8,
-                  10, 10,
-                  50, 12,
-                  100, 14,
-                  250, 16,
-                ],
-                "line-color": "#00ffff",
-              },
-            },
-            "transit-volumes-layer"
-          );
-          
-          // Sidebar: pass properties array
-          console.log(fullFeatures.map((f) => f.properties));
-          setSelectedTransitLink(fullFeatures.map((f) => f.properties));
-        });
+        // Remove any existing click handler first
+        if (map.getLayer("transit-volumes-hitbox")) {
+          map.off("click", "transit-volumes-hitbox", handleTransitVolumeClick);
+        }
+        
+        // Add click handler
+        map.on("click", "transit-volumes-hitbox", handleTransitVolumeClick);
       } catch (err) {
         console.warn("Failed to load transit volumes layer", err);
       }
@@ -529,8 +598,11 @@ export default function useTransitVolumesLayer({
       source.setData({ type: "FeatureCollection", features: updatedFeatures });
     }
     
-    // keep highlights “in sync” with new props
-    const highlightSource = map.getSource("transit-volumes-highlight");
+    // Also update the table GeoJSON so filteredVolume shows correct values
+    setTransitFeatureGeoJSON?.({ type: "FeatureCollection", features: updatedFeatures });
+    
+    // keep highlights "in sync" with new props (using shared network-highlight)
+    const highlightSource = map.getSource("network-highlight");
     if (highlightSource) {
       const prevHighlight = highlightSource._data?.features || [];
       const prevKeys = new Set(
@@ -538,13 +610,13 @@ export default function useTransitVolumesLayer({
       );
       const updatedHighlight = updatedFeatures.filter((f) =>
         prevKeys.has(f?.properties?.link_key_join)
-    );
-    highlightSource.setData({
-      type: "FeatureCollection",
-      features: updatedHighlight,
-    });
-  }
-}, [timeRange, highlightedLineId]);
+      );
+      highlightSource.setData({
+        type: "FeatureCollection",
+        features: updatedHighlight,
+      });
+    }
+  }, [timeRange, highlightedLineId]);
 
 // ----- respond to mode filter changes (also labels) ------------------------
 useEffect(() => {
@@ -585,5 +657,183 @@ useEffect(() => {
     if (map.getLayer(id)) map.setFilter(id, combinedFilter);
   });
 }, [selectedTransitModes, highlightedLineId, isGraphExpanded]);
+
+// ----- respond to table filter changes --------------------------------------
+useEffect(() => {
+  const map = mapRef.current;
+  if (!map || isGraphExpanded !== "TransitVolumes") return;
+  
+  // 1) Build the mode filter
+  const modeFilter =
+    selectedTransitModes && !selectedTransitModes.includes("all")
+      ? [
+          "any",
+          ...selectedTransitModes.map((mode) => ["in", mode, ["get", "modes"]]),
+        ]
+      : null;
+  
+  // 2) Build the line filter
+  const lineFilter = highlightedLineId
+    ? ["in", highlightedLineId, ["get", "line_ids"]]
+    : null;
+  
+  // 3) Build the table filter
+  let tableFilter = null;
+  if (transitTableFilterQuery) {
+    let { column, value } = transitTableFilterQuery;
+    
+    if (column && value) {
+      // Handle comparison operators for numeric columns
+      const numericColumns = ["capacity", "length", "freeSpeed", "totalVol", "filteredVolume"];
+      const isNumericCol = numericColumns.includes(column);
+      
+      if (isNumericCol && /^(>=?|<=?)\s*[0-9.,]+$/.test(value)) {
+        const match = value.match(/^(>=?|<=?)\s*([0-9.,]+)$/);
+        if (match) {
+          const operator = match[1];
+          const numValue = parseFloat(match[2].replace(/,/g, ''));
+          
+          if (!isNaN(numValue)) {
+            if (column === "filteredVolume") {
+              const leftFilter = operator === '>' ? [">", ["number", ["get", "left_sum"], 0], numValue]
+                : operator === '<' ? ["<", ["number", ["get", "left_sum"], 0], numValue]
+                : operator === '>=' ? [">=", ["number", ["get", "left_sum"], 0], numValue]
+                : operator === '<=' ? ["<=", ["number", ["get", "left_sum"], 0], numValue]
+                : ["==", ["number", ["get", "left_sum"], 0], numValue];
+              
+              const rightFilter = operator === '>' ? [">", ["number", ["get", "right_sum"], 0], numValue]
+                : operator === '<' ? ["<", ["number", ["get", "right_sum"], 0], numValue]
+                : operator === '>=' ? [">=", ["number", ["get", "right_sum"], 0], numValue]
+                : operator === '<=' ? ["<=", ["number", ["get", "right_sum"], 0], numValue]
+                : ["==", ["number", ["get", "right_sum"], 0], numValue];
+              
+              tableFilter = ["any", leftFilter, rightFilter];
+            } else {
+              // For pipe-delimited properties
+              const propMap = {
+                capacity: "per_id_capacities",
+                length: "per_id_lengths",
+                freeSpeed: "per_id_freespeeds",
+                totalVol: "per_id_daily_avgs"
+              };
+              
+              const propName = propMap[column];
+              if (propName) {
+                // Simple approach: check if string representation contains value
+                const valueStr = String(numValue);
+                tableFilter = [">=", ["index-of", valueStr, ["to-string", ["get", propName]]], 0];
+              }
+            }
+          }
+        }
+      }
+      
+      // If no comparison operator match, proceed with normal logic
+      if (!tableFilter) {
+        const values = String(value).split(/[;,]/).map(v => v.trim()).filter(v => v);
+        
+        if (column === "modes") {
+          const filters = values.map(val => {
+            const valLower = val.toLowerCase();
+            return [">=", ["index-of", valLower, ["downcase", ["to-string", ["get", "modes"]]]], 0];
+          });
+          tableFilter = filters.length > 1 ? ["any", ...filters] : filters[0];
+        } else if (column === "filteredVolume") {
+          const numericValues = values
+            .map(v => v.replace(/,/g, ''))
+            .filter(v => !isNaN(Number(v)))
+            .map(v => Number(v));
+          
+          if (numericValues.length > 0) {
+            const tolerance = 0.05;
+            const volumeFilters = numericValues.map(val => {
+              const minVal = val - tolerance;
+              const maxVal = val + tolerance;
+              
+              return [
+                "any",
+                [
+                  "all",
+                  [">=", ["number", ["get", "left_sum"], 0], minVal],
+                  ["<=", ["number", ["get", "left_sum"], 0], maxVal]
+                ],
+                [
+                  "all",
+                  [">=", ["number", ["get", "right_sum"], 0], minVal],
+                  ["<=", ["number", ["get", "right_sum"], 0], maxVal]
+                ]
+              ];
+            });
+            
+            tableFilter = volumeFilters.length > 1 ? ["any", ...volumeFilters] : volumeFilters[0];
+          }
+        } else {
+          const columnMap = {
+            capacity: "per_id_capacities",
+            length: "per_id_lengths",
+            freeSpeed: "per_id_freespeeds",
+            totalVol: "per_id_daily_avgs",
+            directionId: "per_id_keys"
+          };
+          
+          const propName = columnMap[column];
+          if (propName) {
+            const valueFilters = values.map(val => {
+              return [
+                "any",
+                ["==", ["get", propName], val],
+                ["==", ["index-of", `${val}|`, ["get", propName]], 0],
+                [">=", ["index-of", `|${val}|`, ["get", propName]], 0],
+                [
+                  "all",
+                  [">=", ["index-of", `|${val}`, ["get", propName]], 0],
+                  ["==",
+                    ["+",
+                      ["index-of", `|${val}`, ["get", propName]],
+                      ["length", `|${val}`]
+                    ],
+                    ["length", ["get", propName]]
+                  ]
+                ]
+              ];
+            });
+            
+            tableFilter = valueFilters.length > 1 ? ["any", ...valueFilters] : valueFilters[0];
+          }
+        }
+      }
+    } else if (!column && value) {
+      // All columns search
+      const values = String(value).split(/[;,]/).map(v => v.trim().toLowerCase()).filter(v => v);
+      
+      if (values.length === 1) {
+        tableFilter = [">=", ["index-of", values[0], ["get", "searchable_text"]], 0];
+      } else {
+        const valueFilters = values.map(val => 
+          [">=", ["index-of", val, ["get", "searchable_text"]], 0]
+        );
+        tableFilter = ["any", ...valueFilters];
+      }
+    }
+  }
+  
+  // 4) Combine all filters
+  const filters = [modeFilter, lineFilter, tableFilter].filter(Boolean);
+  const combinedFilter = filters.length > 1 ? ["all", ...filters] : filters[0] || null;
+  
+  // Apply to all layers
+  const layerIds = [
+    "transit-volumes-layer",
+    "transit-volumes-hitbox",
+    "transit-volumes-highlight",
+    "transit-volumes-label-left",
+    "transit-volumes-label-right",
+    "ant-line",
+  ];
+  
+  layerIds.forEach((id) => {
+    if (map.getLayer(id)) map.setFilter(id, combinedFilter);
+  });
+}, [selectedTransitModes, highlightedLineId, isGraphExpanded, transitTableFilterQuery]);
 
 }

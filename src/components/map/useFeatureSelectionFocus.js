@@ -101,6 +101,10 @@ export default function useFeatureSelectionFocus({
 }) {
   const lastSelectionId = useRef(null);
   
+  // Always use the shared network-highlight source and layer
+  const HIGHLIGHT_SOURCE = HIGHLIGHT_SOURCE_ID;
+  const HIGHLIGHT_LAYER = HIGHLIGHT_LAYER_ID;
+  
   useEffect(() => {
     const map = mapRef?.current;
     if (!mapReady || !map) return;
@@ -112,9 +116,9 @@ export default function useFeatureSelectionFocus({
       !Array.isArray(selection.coords) ||
       !selection.coords.length
     ) {
-      if (map.getSource(HIGHLIGHT_SOURCE_ID)) {
+      if (map.getSource(HIGHLIGHT_SOURCE)) {
         map
-        .getSource(HIGHLIGHT_SOURCE_ID)
+        .getSource(HIGHLIGHT_SOURCE)
         .setData({ type: 'FeatureCollection', features: [] });
       }
       lastSelectionId.current = null;
@@ -123,25 +127,30 @@ export default function useFeatureSelectionFocus({
     
     // Update highlight source/layer
     const featureCollection = { type: 'FeatureCollection', features: [selection.feature] };
-    if (map.getSource(HIGHLIGHT_SOURCE_ID)) {
-      map.getSource(HIGHLIGHT_SOURCE_ID).setData(featureCollection);
+    if (map.getSource(HIGHLIGHT_SOURCE)) {
+      map.getSource(HIGHLIGHT_SOURCE).setData(featureCollection);
     } else {
-      map.addSource(HIGHLIGHT_SOURCE_ID, { type: 'geojson', data: featureCollection });
+      map.addSource(HIGHLIGHT_SOURCE, { type: 'geojson', data: featureCollection });
     }
     
-    if (!map.getLayer(HIGHLIGHT_LAYER_ID)) {
+    if (!map.getLayer(HIGHLIGHT_LAYER)) {
+      // Position before network-layer if it exists, otherwise transit-volumes-layer, otherwise at top
+      let beforeLayer = null;
+      if (map.getLayer('network-layer')) beforeLayer = 'network-layer';
+      else if (map.getLayer('transit-volumes-layer')) beforeLayer = 'transit-volumes-layer';
+      
       map.addLayer(
         {
-          id: HIGHLIGHT_LAYER_ID,
+          id: HIGHLIGHT_LAYER,
           type: 'line',
-          source: HIGHLIGHT_SOURCE_ID,
+          source: HIGHLIGHT_SOURCE,
           paint: {
             'line-width': ['interpolate', ['linear'], ['get', 'capacity'], 300, 6, 4000, 15],
             'line-color': '#00a2ff',
             'line-opacity': 1,
           },
         },
-        'network-layer'
+        beforeLayer
       );
     }
     
@@ -172,22 +181,39 @@ export default function useFeatureSelectionFocus({
     const map = mapRef?.current;
     if (!mapReady || !map) return;
     
-    const layerIds = ["network-layer", "click-network-layer", "network-highlight", 
-                      "network-label-left", "network-label-right", "ant-line"];
+    // Detect which layers are present to determine if we're filtering network or transit
+    const isTransitMode = isGraphExpanded === 'Transit' || isGraphExpanded === 'TransitVolumes';
+    
+    // Define layer IDs based on what's actually visible
+    // Note: network-highlight is now shared between network and transit modes
+    const layerIds = isTransitMode 
+      ? ["transit-volumes-layer", "transit-volumes-hitbox", "network-highlight", 
+         "transit-volumes-label-left", "transit-volumes-label-right", "ant-line"]
+      : ["network-layer", "click-network-layer", "network-highlight", 
+         "network-label-left", "network-label-right", "ant-line"];
     
     // --- Build mode filter ---
     let modeFilter = null;
     if (Array.isArray(selectedNetworkModes) && !selectedNetworkModes.includes("all")) {
-      modeFilter = [
-        "any",
-        ...selectedNetworkModes.map((mode) => [
-          "match",
-          ["index-of", mode, ["get", "modes"]],
-          -1,
-          false,
-          true,
-        ]),
-      ];
+      if (isTransitMode) {
+        // Transit mode filter
+        modeFilter = [
+          "any",
+          ...selectedNetworkModes.map((mode) => ["in", mode, ["get", "modes"]]),
+        ];
+      } else {
+        // Network mode filter
+        modeFilter = [
+          "any",
+          ...selectedNetworkModes.map((mode) => [
+            "match",
+            ["index-of", mode, ["get", "modes"]],
+            -1,
+            false,
+            true,
+          ]),
+        ];
+      }
     }
     
     // --- Build table search filter ---
@@ -359,8 +385,8 @@ export default function useFeatureSelectionFocus({
         combined = tableFilter;
       }
       
-      // If we're in Volumes mode, enforce additional filters
-      if (isGraphExpanded === 'Volumes') {
+      // If we're in Volumes mode (not transit), enforce additional filters
+      if (!isTransitMode && isGraphExpanded === 'Volumes') {
         const carFilter = ["match", ["index-of", "car", ["get", "modes"]], -1, false, true];
         const majorRoadsFilter = [">", ["get", "capacity"], 1200];
         
