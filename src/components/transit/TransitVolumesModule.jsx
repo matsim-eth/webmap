@@ -30,7 +30,7 @@ const TransitVolumesModule = ({
   highlightedLineId,
   visualizeLinkId,
   setVisualizeLinkId,
-  isTransitFeatureTableOpen,
+  isFeatureTableOpen,
   transitFeatureGeoJSON,
   transitFeatureTableRef,
   setTransitTableFilterQuery,
@@ -64,14 +64,14 @@ const TransitVolumesModule = ({
   const [rowsReady, setRowsReady] = useState(false);
   
   useEffect(() => {
-    if (isTransitFeatureTableOpen) {
+    if (isFeatureTableOpen) {
       // add delay so sidebar can expand first
       const timer = setTimeout(() => setShowTable(true), 400);
       return () => clearTimeout(timer);
     }
     setShowTable(false);
     setTransitTableFilterQuery(null);
-  }, [isTransitFeatureTableOpen]);
+  }, [isFeatureTableOpen]);
   
   const ensureRowsForCanton = useCallback(() => {
     // if missing canton or data, clear
@@ -164,7 +164,7 @@ const TransitVolumesModule = ({
   
   return (
     <div className="plot-container">
-    {isTransitFeatureTableOpen ? (
+    {isFeatureTableOpen ? (
       <FeatureTable
       ref={transitFeatureTableRef}
       tableId="transit-volumes-feature-table"

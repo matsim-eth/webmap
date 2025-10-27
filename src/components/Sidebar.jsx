@@ -41,11 +41,11 @@ const Sidebar = ({
   // Sidebar UI
   isOpen, toggleSidebar, onExpandGraph, resetMapView,
   
-  // Feature Table
+  // Feature Table (shared by Network/Volumes and TransitVolumes)
   isFeatureTableOpen, setIsFeatureTableOpen, setTableFilterQuery,
   
-  // Transit Feature Table
-  isTransitFeatureTableOpen, setIsTransitFeatureTableOpen, setTransitTableFilterQuery,
+  // Transit Feature Table data
+  setTransitTableFilterQuery,
   transitFeatureGeoJSON,
   
   // Map State
@@ -109,9 +109,8 @@ const Sidebar = ({
   // ======================= GENERAL FEATURES (BUTTONS / DROPDOWN) =======================
   const handleGraphSelection = (event) => {
 
-    // Close feature tables when switching graphs
+    // Close feature table when switching graphs
     setIsFeatureTableOpen(false);
-    setIsTransitFeatureTableOpen(false);
 
     const graph = event.target.value;
     setSelectedGraph(graph);
@@ -214,7 +213,7 @@ const Sidebar = ({
       ? "expanded"
       : "open"
       : "collapsed"
-    } ${isFeatureTableOpen || isTransitFeatureTableOpen ? "feature-table-open" : ""}`}
+    } ${isFeatureTableOpen ? "feature-table-open" : ""}`}
     >
     <button className="toggle-button" onClick={toggleSidebar}>
     {isOpen ? "✕" : "☰"}
@@ -493,12 +492,12 @@ const Sidebar = ({
           <button
           className="search-button"
           onClick={() =>
-            setIsTransitFeatureTableOpen((prev) => !prev)}
+            setIsFeatureTableOpen((prev) => !prev)}
           >
-          {isTransitFeatureTableOpen ? "Hide Table" : "Show Table"}
+          {isFeatureTableOpen ? "Hide Table" : "Show Table"}
           </button>
           
-          {isTransitFeatureTableOpen && (
+          {isFeatureTableOpen && (
             <button
             className="search-button secondary"
             onClick={() => {
@@ -529,7 +528,7 @@ const Sidebar = ({
         setHighlightedLineId={setHighlightedLineId}
         visualizeLinkId={visualizeLinkId}
         setVisualizeLinkId={setVisualizeLinkId}
-        isTransitFeatureTableOpen={isTransitFeatureTableOpen}
+        isFeatureTableOpen={isFeatureTableOpen}
         transitFeatureGeoJSON={transitFeatureGeoJSON}
         transitFeatureTableRef={transitFeatureTableRef}
         setTransitTableFilterQuery={setTransitTableFilterQuery}

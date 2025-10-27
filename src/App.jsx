@@ -35,8 +35,7 @@ function App() {
   const [tableFilterQuery, setTableFilterQuery] = useState(null);
   
   // ------ TRANSIT FEATURE TABLE --------
-  // Track if transit table is open or not
-  const [isTransitFeatureTableOpen, setIsTransitFeatureTableOpen] = useState(false);
+  // (Uses shared isFeatureTableOpen state)
   // Pass transit geojson to FeatureTable
   const [transitFeatureGeoJSON, setTransitFeatureGeoJSON] = useState(null);
   // Pass table query to filter transit features on map
@@ -102,7 +101,6 @@ function App() {
     setShowMajorRoadsOnly(true); // Reset major roads toggle
     setShowStopVolumeSymbology(false); // Reset stop volume symbology toggle
     setIsFeatureTableOpen(false); // Close feature table if open
-    setIsTransitFeatureTableOpen(false); // Close transit feature table if open
   };
   
   return (
@@ -149,8 +147,6 @@ function App() {
     setIsFeatureTableOpen={setIsFeatureTableOpen}
     tableFilterQuery={tableFilterQuery}
     setTransitFeatureGeoJSON={setTransitFeatureGeoJSON}
-    isTransitFeatureTableOpen={isTransitFeatureTableOpen}
-    setIsTransitFeatureTableOpen={setIsTransitFeatureTableOpen}
     transitTableFilterQuery={transitTableFilterQuery}
     />
     
@@ -199,8 +195,6 @@ function App() {
     setIsFeatureTableOpen={setIsFeatureTableOpen}
     setTableFilterQuery={setTableFilterQuery} // to map
     transitFeatureGeoJSON={transitFeatureGeoJSON}
-    isTransitFeatureTableOpen={isTransitFeatureTableOpen}
-    setIsTransitFeatureTableOpen={setIsTransitFeatureTableOpen}
     setTransitTableFilterQuery={setTransitTableFilterQuery}
     />
     
