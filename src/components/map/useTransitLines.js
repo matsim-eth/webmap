@@ -21,11 +21,15 @@ export default function useTransitLines(
         const map = mapRef.current;
         if (!map) return;
         
-        // remove current transit layers and sources
+        // remove current transit line highlight (now using network-highlight)
         if (!highlightedRouteIds || highlightedRouteIds.length === 0 ||
             !highlightedLineId || isGraphExpanded !== "Transit") {
-                if (map.getLayer("transit-line-highlight")) map.removeLayer("transit-line-highlight");
-                if (map.getSource("transit-line-highlight")) map.removeSource("transit-line-highlight");
+                if (map.getLayer("network-highlight")) {
+                    // Clear the shared highlight when leaving Transit mode or clearing selection
+                    if (map.getSource("network-highlight")) {
+                        map.getSource("network-highlight").setData({ type: "FeatureCollection", features: [] });
+                    }
+                }
                 if (map.getLayer("inter-cantonal-stops")) map.removeLayer("inter-cantonal-stops");
                 if (map.getLayer("inter-cantonal-stops-label")) map.removeLayer("inter-cantonal-stops-label");
                 if (map.getLayer("inter-cantonal-stops-hitbox")) map.removeLayer("inter-cantonal-stops-hitbox");
@@ -52,29 +56,35 @@ export default function useTransitLines(
                     features: matched,
                 };
                 
-                if (map.getSource("transit-line-highlight")) {
-                    map.getSource("transit-line-highlight").setData(newData);
+                // Use the shared network-highlight source instead of transit-line-highlight
+                if (map.getSource("network-highlight")) {
+                    map.getSource("network-highlight").setData(newData);
                 } else {
-                    map.addSource("transit-line-highlight", {
+                    map.addSource("network-highlight", {
                         type: "geojson",
                         data: newData,
                     });
                     
+                    // Position before transit-stops-layer if it exists
+                    let beforeLayer = null;
+                    if (map.getLayer('transit-stops-layer')) beforeLayer = 'transit-stops-layer';
+                    else if (map.getLayer('network-layer')) beforeLayer = 'network-layer';
+                    
                     map.addLayer(
                         {
-                            id: "transit-line-highlight",
+                            id: "network-highlight",
                             type: "line",
-                            source: "transit-line-highlight",
+                            source: "network-highlight",
                             layout: {
                                 "line-join": "round",
                                 "line-cap": "round",
                             },
                             paint: {
-                                "line-color": "#007AFF",
+                                "line-color": "#00a2ff",
                                 "line-width": 2,
                             },
                         },
-                        "transit-stops-layer"
+                        beforeLayer
                     );
                 }
                 
@@ -275,8 +285,9 @@ export default function useTransitLines(
                         setHighlightedLineId(null);
                         setHighlightedRouteIds([]);
                         if (map) {
-                            if (map.getLayer('transit-line-highlight')) map.removeLayer('transit-line-highlight');
-                            if (map.getSource('transit-line-highlight')) map.removeSource('transit-line-highlight');
+                            if (map.getSource('network-highlight')) {
+                                map.getSource('network-highlight').setData({ type: "FeatureCollection", features: [] });
+                            }
                             if (map.getLayer('inter-cantonal-stops')) map.removeLayer('inter-cantonal-stops');
                             if (map.getLayer('inter-cantonal-stops-label')) map.removeLayer('inter-cantonal-stops-label');
                             if (map.getLayer('inter-cantonal-stops-hitbox')) map.removeLayer('inter-cantonal-stops-hitbox');
@@ -296,9 +307,10 @@ export default function useTransitLines(
             if (!map) return;
             
             if(!suppressNextSearchZoom.current) {
-                // Remove transit line and inter-cantonal stop layers on canton change
-                if (map.getLayer("transit-line-highlight")) map.removeLayer("transit-line-highlight");
-                if (map.getSource("transit-line-highlight")) map.removeSource("transit-line-highlight");
+                // Clear the shared highlight on canton change
+                if (map.getSource("network-highlight")) {
+                    map.getSource("network-highlight").setData({ type: "FeatureCollection", features: [] });
+                }
                 
                 if (map.getLayer("inter-cantonal-stops")) map.removeLayer("inter-cantonal-stops");
                 if (map.getLayer("inter-cantonal-stops-label")) map.removeLayer("inter-cantonal-stops-label");

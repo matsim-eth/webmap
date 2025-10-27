@@ -44,6 +44,10 @@ const Sidebar = ({
   // Feature Table
   isFeatureTableOpen, setIsFeatureTableOpen, setTableFilterQuery,
   
+  // Transit Feature Table
+  isTransitFeatureTableOpen, setIsTransitFeatureTableOpen, setTransitTableFilterQuery,
+  transitFeatureGeoJSON,
+  
   // Map State
   canton,
   
@@ -62,7 +66,8 @@ const Sidebar = ({
   setShowStopVolumeSymbology,
   
   // Transit Link Volumes Module
-  selectedTransitLink, setShowLineSymbology, showLineSymbology,
+  selectedTransitLink, setSelectedTransitLink, setShowLineSymbology, showLineSymbology,
+  onFocusTransitFeature,
   
   // Destination data
   setDestinationData,
@@ -99,12 +104,14 @@ const Sidebar = ({
   const loadWithFallback = useLoadWithFallback(dataURL);
   const fileInputRef = useRef();
   const featureTableRef = useRef(null);
+  const transitFeatureTableRef = useRef(null);
   
   // ======================= GENERAL FEATURES (BUTTONS / DROPDOWN) =======================
   const handleGraphSelection = (event) => {
 
-    // Close feature table when switching graphs
+    // Close feature tables when switching graphs
     setIsFeatureTableOpen(false);
+    setIsTransitFeatureTableOpen(false);
 
     const graph = event.target.value;
     setSelectedGraph(graph);
@@ -207,7 +214,7 @@ const Sidebar = ({
       ? "expanded"
       : "open"
       : "collapsed"
-    } ${isFeatureTableOpen ? "feature-table-open" : ""}`}
+    } ${isFeatureTableOpen || isTransitFeatureTableOpen ? "feature-table-open" : ""}`}
     >
     <button className="toggle-button" onClick={toggleSidebar}>
     {isOpen ? "✕" : "☰"}
@@ -479,6 +486,34 @@ const Sidebar = ({
       )}
       
       {selectedGraph === "TransitVolumes" && (
+        <>
+        {/* Buttons ABOVE the module */}
+        {canton && (
+          <div className="network-buttons-row">
+          <button
+          className="search-button"
+          onClick={() =>
+            setIsTransitFeatureTableOpen((prev) => !prev)}
+          >
+          {isTransitFeatureTableOpen ? "Hide Table" : "Show Table"}
+          </button>
+          
+          {isTransitFeatureTableOpen && (
+            <button
+            className="search-button secondary"
+            onClick={() => {
+              const exported = transitFeatureTableRef.current?.exportCsv?.();
+              if (!exported) {
+                console.warn('Export skipped: no table data available.');
+              }
+            }}
+            >
+            Export Data
+            </button>
+          )}
+          </div>
+        )}
+        
         <TransitVolumesModule
         selectedTransitModes={selectedTransitModes}
         setSelectedTransitModes={setSelectedTransitModes}
@@ -494,7 +529,14 @@ const Sidebar = ({
         setHighlightedLineId={setHighlightedLineId}
         visualizeLinkId={visualizeLinkId}
         setVisualizeLinkId={setVisualizeLinkId}
+        isTransitFeatureTableOpen={isTransitFeatureTableOpen}
+        transitFeatureGeoJSON={transitFeatureGeoJSON}
+        transitFeatureTableRef={transitFeatureTableRef}
+        setTransitTableFilterQuery={setTransitTableFilterQuery}
+        setSelectedTransitLink={setSelectedTransitLink}
+        onFocusTransitFeature={onFocusTransitFeature}
         />
+        </>
       )}
       </div>
       

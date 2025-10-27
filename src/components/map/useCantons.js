@@ -9,7 +9,8 @@ export default function useCantons({
   isGraphExpanded,
   suppressNextSearchZoom,
   graphExpandedRef,
-  setIsFeatureTableOpen
+  setIsFeatureTableOpen,
+  setIsTransitFeatureTableOpen
 }) {
   
   // 1) load cantons + add layers
@@ -81,6 +82,7 @@ export default function useCantons({
       if (e.features.length > 0 && e.features[0].properties.NAME != map.getFilter("selected-canton-border")[2]) {
         
         setIsFeatureTableOpen(false);
+        setIsTransitFeatureTableOpen(false);
 
         const cantonName = e.features[0].properties.NAME;
         const cantonBbox = bboxCache[cantonName];

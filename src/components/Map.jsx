@@ -50,7 +50,8 @@ export default function Map(props) {
     suppressNextSearchZoom,
     graphExpandedRef,
     setIsFeatureTableOpen: props.setIsFeatureTableOpen,
-    isFeatureTableOpen:   props.isFeatureTableOpen
+    isFeatureTableOpen:   props.isFeatureTableOpen,
+    setIsTransitFeatureTableOpen: props.setIsTransitFeatureTableOpen
   });
   
   // pan map depending on sidebar state (keeps map in centre regardless of sidebar width)
@@ -63,7 +64,9 @@ export default function Map(props) {
     suppressNextSearchZoom,
     graphExpandedRef,
     isFeatureTableOpen:  props.isFeatureTableOpen,
-    setIsFeatureTableOpen: props.setIsFeatureTableOpen
+    setIsFeatureTableOpen: props.setIsFeatureTableOpen,
+    isTransitFeatureTableOpen: props.isTransitFeatureTableOpen,
+    setIsTransitFeatureTableOpen: props.setIsTransitFeatureTableOpen
   });
   
   useNetworkLayers({
@@ -101,7 +104,9 @@ export default function Map(props) {
     setSelectedTransitLink:  props.setSelectedTransitLink,
     showLineSymbology: props.showLineSymbology,
     setIsLoading,
-    suppressNextSearchZoom
+    suppressNextSearchZoom,
+    setTransitFeatureGeoJSON: props.setTransitFeatureGeoJSON,
+    transitTableFilterQuery:  props.transitTableFilterQuery
   });
   
   useChoropleth({ 
@@ -119,13 +124,19 @@ export default function Map(props) {
     isGraphExpanded:          props.isGraphExpanded
   });
 
+  // Combined feature selection focus for both network and transit (uses shared network-highlight)
+  // Determine which selection/query/modes to use based on current module
+  const isTransitMode = props.isGraphExpanded === 'Transit' || props.isGraphExpanded === 'TransitVolumes';
+  const activeSelection = isTransitMode ? props.transitFeatureSelection : props.featureSelection;
+  const activeQuery = isTransitMode ? props.transitTableFilterQuery : props.tableFilterQuery;
+  const activeModes = isTransitMode ? props.selectedTransitModes : props.selectedNetworkModes;
 
   useFeatureSelectionFocus({
     mapRef, 
     mapReady, 
-    selection:            props.featureSelection,
-    query:                props.tableFilterQuery,
-    selectedNetworkModes: props.selectedNetworkModes,
+    selection:            activeSelection,
+    query:                activeQuery,
+    selectedNetworkModes: activeModes,
     isGraphExpanded:      props.isGraphExpanded,
     showMajorRoadsOnly:   props.showMajorRoadsOnly,
   });
