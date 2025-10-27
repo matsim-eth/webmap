@@ -10,9 +10,7 @@ export default function useCantons({
   suppressNextSearchZoom,
   graphExpandedRef,
   isFeatureTableOpen,
-  setIsFeatureTableOpen,
-  isTransitFeatureTableOpen,
-  setIsTransitFeatureTableOpen
+  setIsFeatureTableOpen
 }) {
   
   // avoid changing padding when we select new canton 
@@ -36,12 +34,9 @@ export default function useCantons({
       
       if (wideGraphs.includes(isGraphExpanded)) {
         rightPadding = 950;
-      } else if (isGraphExpanded === 'Volumes') {
-        // Volumes module: 950px when table open, 650px otherwise
+      } else if (isGraphExpanded === 'Volumes' || isGraphExpanded === 'TransitVolumes') {
+        // Volumes/TransitVolumes modules: 950px when table open, 650px otherwise
         rightPadding = isFeatureTableOpen ? 950 : 650;
-      } else if (isGraphExpanded === 'TransitVolumes') {
-        // TransitVolumes module: 950px when table open, 650px otherwise
-        rightPadding = isTransitFeatureTableOpen ? 950 : 650;
       } else if (mediumGraphs.includes(isGraphExpanded)) {
         rightPadding = 650;
       } else {
@@ -58,7 +53,7 @@ export default function useCantons({
       padding: { top: 50, bottom: 50, left: 50, right: rightPadding },
       duration: 600,
     });
-  }, [mapRef, isSidebarOpen, isGraphExpanded, isFeatureTableOpen, isTransitFeatureTableOpen]);
+  }, [mapRef, isSidebarOpen, isGraphExpanded, isFeatureTableOpen]);
   
   // 2) zoom to canton on search (with correct padding)
   useEffect(() => {
@@ -75,7 +70,6 @@ export default function useCantons({
     }
     
     setIsFeatureTableOpen(false);
-    setIsTransitFeatureTableOpen(false);
     suppressPaddingRef.current = true
     
     const bbox = bboxCache[searchCanton];

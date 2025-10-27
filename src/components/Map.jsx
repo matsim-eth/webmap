@@ -50,8 +50,7 @@ export default function Map(props) {
     suppressNextSearchZoom,
     graphExpandedRef,
     setIsFeatureTableOpen: props.setIsFeatureTableOpen,
-    isFeatureTableOpen:   props.isFeatureTableOpen,
-    setIsTransitFeatureTableOpen: props.setIsTransitFeatureTableOpen
+    isFeatureTableOpen:   props.isFeatureTableOpen
   });
   
   // pan map depending on sidebar state (keeps map in centre regardless of sidebar width)
@@ -64,9 +63,7 @@ export default function Map(props) {
     suppressNextSearchZoom,
     graphExpandedRef,
     isFeatureTableOpen:  props.isFeatureTableOpen,
-    setIsFeatureTableOpen: props.setIsFeatureTableOpen,
-    isTransitFeatureTableOpen: props.isTransitFeatureTableOpen,
-    setIsTransitFeatureTableOpen: props.setIsTransitFeatureTableOpen
+    setIsFeatureTableOpen: props.setIsFeatureTableOpen
   });
   
   useNetworkLayers({
