@@ -31,9 +31,9 @@ const TransitVolumesModule = ({
   visualizeLinkId,
   setVisualizeLinkId,
   isFeatureTableOpen,
-  transitFeatureGeoJSON,
+  featureGeoJSON,
   transitFeatureTableRef,
-  setTransitTableFilterQuery,
+  setTableFilterQuery,
   selectedGraph,
   onFocusTransitFeature
 }) => {
@@ -70,25 +70,25 @@ const TransitVolumesModule = ({
       return () => clearTimeout(timer);
     }
     setShowTable(false);
-    setTransitTableFilterQuery(null);
+    setTableFilterQuery(null);
   }, [isFeatureTableOpen]);
   
   const ensureRowsForCanton = useCallback(() => {
     // if missing canton or data, clear
-    if (!canton || !transitFeatureGeoJSON) {
+    if (!canton || !featureGeoJSON) {
       setTableRows([]);
       setRowsReady(false);
       return;
     }
 
     // In TransitVolumes module, always rebuild rows (no caching due to timeRange changes)
-    const builtRows = buildRowsFromGeojson(transitFeatureGeoJSON, selectedGraph);
+    const builtRows = buildRowsFromGeojson(featureGeoJSON, selectedGraph);
     setTableRows(builtRows);
     setRowsReady(true);
-  }, [canton, transitFeatureGeoJSON, selectedGraph]);
+  }, [canton, featureGeoJSON, selectedGraph]);
   
   useEffect(() => {
-    if (!canton || !transitFeatureGeoJSON) {
+    if (!canton || !featureGeoJSON) {
       setTableRows([]);
       setRowsReady(false);
       return;
@@ -97,7 +97,7 @@ const TransitVolumesModule = ({
     // In TransitVolumes module, always rebuild when geojson changes
     setTableRows([]);
     setRowsReady(false);
-  }, [canton, transitFeatureGeoJSON]);
+  }, [canton, featureGeoJSON]);
   
   useEffect(() => {
     // table not shown, so don't build rows
@@ -124,7 +124,7 @@ const TransitVolumesModule = ({
       cancelled = true;
       window.clearTimeout(timeoutId);
     };
-  }, [showTable, ensureRowsForCanton, canton, transitFeatureGeoJSON]);
+  }, [showTable, ensureRowsForCanton, canton, featureGeoJSON]);
   
   const handleTableRowSelect = useCallback(
     (row) => {
@@ -169,14 +169,14 @@ const TransitVolumesModule = ({
       ref={transitFeatureTableRef}
       tableId="transit-volumes-feature-table"
       rows={tableRows}
-      geojson={rowsReady ? null : transitFeatureGeoJSON}
+      geojson={rowsReady ? null : featureGeoJSON}
       selectedModes={selectedTransitModes}
       onRowClick={handleTableRowSelect}
       onSelectCoords={handleSelectCoords}
       height={"55vh"}
       useScroller
       loading={!showTable || !rowsReady}
-      setTableFilterQuery={setTransitTableFilterQuery}
+      setTableFilterQuery={setTableFilterQuery}
       showMajorRoadsOnly={false}
       selectedGraph={selectedGraph}
       />

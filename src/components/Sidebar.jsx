@@ -41,12 +41,9 @@ const Sidebar = ({
   // Sidebar UI
   isOpen, toggleSidebar, onExpandGraph, resetMapView,
   
-  // Feature Table (shared by Network/Volumes and TransitVolumes)
+  // Feature Table (shared by Network/Volumes and TransitVolumes modules)
   isFeatureTableOpen, setIsFeatureTableOpen, setTableFilterQuery,
-  
-  // Transit Feature Table data
-  setTransitTableFilterQuery,
-  transitFeatureGeoJSON,
+  featureGeoJSON,
   
   // Map State
   canton,
@@ -56,8 +53,7 @@ const Sidebar = ({
   
   // Network/Volumes Module
   selectedNetworkModes, setSelectedNetworkModes, selectedNetworkFeature, setSelectedNetworkFeature,
-  visualizeLinkId, featureGeoJSON,
-  setVisualizeLinkId, showMajorRoadsOnly, setShowMajorRoadsOnly,
+  visualizeLinkId, setVisualizeLinkId, showMajorRoadsOnly, setShowMajorRoadsOnly,
   onFocusNetworkFeature,
   
   // Transit Module
@@ -115,6 +111,12 @@ const Sidebar = ({
     const graph = event.target.value;
     setSelectedGraph(graph);
     onExpandGraph(graph);
+    
+    // Clear transit line selection when leaving Transit or TransitVolumes module
+    if (selectedGraph === "Transit" || selectedGraph === "TransitVolumes") {
+      setHighlightedLineId(null);
+      setHighlightedRouteIds([]);
+    }
     
     // Set corresponding default selected modes per module
     if (graph === "Volumes") setSelectedNetworkModes(["car"]);
@@ -529,9 +531,9 @@ const Sidebar = ({
         visualizeLinkId={visualizeLinkId}
         setVisualizeLinkId={setVisualizeLinkId}
         isFeatureTableOpen={isFeatureTableOpen}
-        transitFeatureGeoJSON={transitFeatureGeoJSON}
+        featureGeoJSON={featureGeoJSON}
         transitFeatureTableRef={transitFeatureTableRef}
-        setTransitTableFilterQuery={setTransitTableFilterQuery}
+        setTableFilterQuery={setTableFilterQuery}
         setSelectedTransitLink={setSelectedTransitLink}
         onFocusTransitFeature={onFocusTransitFeature}
         />

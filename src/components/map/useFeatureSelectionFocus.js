@@ -182,7 +182,7 @@ export default function useFeatureSelectionFocus({
     if (!mapReady || !map) return;
     
     // Detect which layers are present to determine if we're filtering network or transit
-    const isTransitMode = isGraphExpanded === 'Transit' || isGraphExpanded === 'TransitVolumes';
+    const isTransitMode = isGraphExpanded === 'TransitVolumes';
     
     // Define layer IDs based on what's actually visible
     // Note: network-highlight is now shared between network and transit modes
@@ -385,8 +385,8 @@ export default function useFeatureSelectionFocus({
         combined = tableFilter;
       }
       
-      // If we're in Volumes mode (not transit), enforce additional filters
-      if (!isTransitMode && isGraphExpanded === 'Volumes') {
+      // If we're in Volumes mode, enforce additional filters
+      if (isGraphExpanded === 'Volumes') {
         const carFilter = ["match", ["index-of", "car", ["get", "modes"]], -1, false, true];
         const majorRoadsFilter = [">", ["get", "capacity"], 1200];
         
