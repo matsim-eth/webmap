@@ -20,13 +20,18 @@ export default function useTransitStops({
     
     // remove current transit layers and sources
     const removeTransitLayers = () => {
-      ["transit-stops-layer", "transit-stops-label", "transit-highlight-layer", "transit-line-highlight", "transit-stops-hitbox"].forEach(id => {
+      ["transit-stops-layer", "transit-stops-label", "transit-highlight-layer", "transit-stops-hitbox"].forEach(id => {
         if (map.getLayer(id)) map.removeLayer(id);
       });
       
-      ["transit-stops", "transit-highlight", "transit-line-highlight"].forEach(id => {
+      ["transit-stops", "transit-highlight"].forEach(id => {
         if (map.getSource(id)) map.removeSource(id);
       });
+      
+      // Clear transit-line-display if in Transit mode (used for transit route display)
+      if (isGraphExpanded === "Transit" && map.getSource("transit-line-display")) {
+        map.getSource("transit-line-display").setData({ type: "FeatureCollection", features: [] });
+      }
       
       setSelectedTransitStop(null);
       setHighlightedLineId(null);
@@ -223,9 +228,9 @@ export default function useTransitStops({
       
       let currentHighlightedLineId = null;
       
-      // get current line-id from layer
-      if (map.getSource("transit-line-highlight")) {
-        const currentData = map.getSource("transit-line-highlight")._data;
+      // get current line-id from layer (using transit-line-display for transit routes)
+      if (map.getSource("transit-line-display")) {
+        const currentData = map.getSource("transit-line-display")._data;
         const currentFeature = currentData?.features?.[0];
         currentHighlightedLineId = currentFeature?.properties?.line_id;
       }
@@ -245,9 +250,10 @@ export default function useTransitStops({
           modes_list: combinedModes
         });
       } else {
-        // if not, reset highlighted transit line
-        if (map.getLayer("transit-line-highlight")) map.removeLayer("transit-line-highlight");
-        if (map.getSource("transit-line-highlight")) map.removeSource("transit-line-highlight");
+        // if not, reset highlighted transit line (clear transit-line-display when not keeping line)
+        if (map.getSource("transit-line-display")) {
+          map.getSource("transit-line-display").setData({ type: "FeatureCollection", features: [] });
+        }
         setHighlightedLineId(null);
         setHighlightedRouteIds([]);
       }

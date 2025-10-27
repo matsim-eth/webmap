@@ -29,17 +29,10 @@ function App() {
   // ------ FEATURE TABLE --------
   // Track if table is open or not
   const [isFeatureTableOpen, setIsFeatureTableOpen] = useState(false);
-  // Pass network geojson to FeatureTable
+  // Pass network/transit geojson to FeatureTable (used for both Network/Volumes and Transit/TransitVolumes modules)
   const [featureGeoJSON, setFeatureGeoJSON] = useState(null);
-  // Pass table query to filter features on map
+  // Pass table query to filter features on map (used for both modules)
   const [tableFilterQuery, setTableFilterQuery] = useState(null);
-  
-  // ------ TRANSIT FEATURE TABLE --------
-  // (Uses shared isFeatureTableOpen state)
-  // Pass transit geojson to FeatureTable
-  const [transitFeatureGeoJSON, setTransitFeatureGeoJSON] = useState(null);
-  // Pass table query to filter transit features on map
-  const [transitTableFilterQuery, setTransitTableFilterQuery] = useState(null);
 
 
   // Matsim network modes (MatSIM network module)
@@ -47,10 +40,10 @@ function App() {
   
   // Save selected network segment properties
   const [selectedNetworkFeature, setSelectedNetworkFeature] = useState(null);
+  // Save focus/zoom selection for map (used by both Network/Volumes and Transit/TransitVolumes modules)
   const [featureSelection, setFeatureSelection] = useState(null);
   // Save selected link for transit volumes module
   const [selectedTransitLink, setSelectedTransitLink] = useState(null);
-  const [transitFeatureSelection, setTransitFeatureSelection] = useState(null);
   // Show selected line for transit volumes module
   const [showLineSymbology, setShowLineSymbology] = useState(false);
   
@@ -93,7 +86,6 @@ function App() {
     setSelectedNetworkFeature(null)
     setFeatureSelection(null)
     setSelectedTransitLink(null);
-    setTransitFeatureSelection(null);
     setVisualizeLinkId(null)
     // Reset current module
     setIsGraphExpanded(false);
@@ -123,7 +115,6 @@ function App() {
     setSelectedNetworkFeature={setSelectedNetworkFeature} // to sidebar
     featureSelection={featureSelection}
     setSelectedTransitLink={setSelectedTransitLink} // to sidebar
-    transitFeatureSelection={transitFeatureSelection}
     visualizeLinkId={visualizeLinkId} // from segment vol histogram via sidebar
     setVisualizeLinkId={setVisualizeLinkId} // from sidebar
     dataURL={dataURL} // from Sidebar
@@ -146,8 +137,6 @@ function App() {
     isFeatureTableOpen={isFeatureTableOpen} // from sidebar
     setIsFeatureTableOpen={setIsFeatureTableOpen}
     tableFilterQuery={tableFilterQuery}
-    setTransitFeatureGeoJSON={setTransitFeatureGeoJSON}
-    transitTableFilterQuery={transitTableFilterQuery}
     />
     
     <Sidebar
@@ -164,7 +153,7 @@ function App() {
     selectedNetworkFeature={selectedNetworkFeature} // from map
     setSelectedNetworkFeature={setSelectedNetworkFeature} 
     onFocusNetworkFeature={setFeatureSelection}
-    onFocusTransitFeature={setTransitFeatureSelection}
+    onFocusTransitFeature={setFeatureSelection}
     selectedTransitLink={selectedTransitLink} // from map
     setSelectedTransitLink={setSelectedTransitLink} // to transit volumes module
     visualizeLinkId={visualizeLinkId} // from map
@@ -194,8 +183,6 @@ function App() {
     isFeatureTableOpen={isFeatureTableOpen}
     setIsFeatureTableOpen={setIsFeatureTableOpen}
     setTableFilterQuery={setTableFilterQuery} // to map
-    transitFeatureGeoJSON={transitFeatureGeoJSON}
-    setTransitTableFilterQuery={setTransitTableFilterQuery}
     />
     
     <NetworkLegend

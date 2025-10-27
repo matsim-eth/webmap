@@ -10,8 +10,8 @@ export default function useTransitVolumesLayer({
   setIsLoading,
   setSelectedTransitLink,
   highlightedLineId,
-  setTransitFeatureGeoJSON,
-  transitTableFilterQuery
+  setFeatureGeoJSON,
+  tableFilterQuery
 }) {
   const originalGeoJSON = useRef(null);
   
@@ -472,8 +472,8 @@ export default function useTransitVolumesLayer({
         const updatedFeatures = computeFilteredFeatures(networkGeo, volumeJSON, timeRange, highlightedLineId);
         
         // Export the GeoJSON for the feature table
-        if (setTransitFeatureGeoJSON) {
-          setTransitFeatureGeoJSON({
+        if (setFeatureGeoJSON) {
+          setFeatureGeoJSON({
             type: "FeatureCollection",
             features: updatedFeatures,
           });
@@ -599,7 +599,7 @@ export default function useTransitVolumesLayer({
     }
     
     // Also update the table GeoJSON so filteredVolume shows correct values
-    setTransitFeatureGeoJSON?.({ type: "FeatureCollection", features: updatedFeatures });
+    setFeatureGeoJSON?.({ type: "FeatureCollection", features: updatedFeatures });
     
     // keep highlights "in sync" with new props (using shared network-highlight)
     const highlightSource = map.getSource("network-highlight");
@@ -679,8 +679,8 @@ useEffect(() => {
   
   // 3) Build the table filter
   let tableFilter = null;
-  if (transitTableFilterQuery) {
-    let { column, value } = transitTableFilterQuery;
+  if (tableFilterQuery) {
+    let { column, value } = tableFilterQuery;
     
     if (column && value) {
       // Handle comparison operators for numeric columns
@@ -834,6 +834,6 @@ useEffect(() => {
   layerIds.forEach((id) => {
     if (map.getLayer(id)) map.setFilter(id, combinedFilter);
   });
-}, [selectedTransitModes, highlightedLineId, isGraphExpanded, transitTableFilterQuery]);
+}, [selectedTransitModes, highlightedLineId, isGraphExpanded, tableFilterQuery]);
 
 }
