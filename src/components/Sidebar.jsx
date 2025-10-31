@@ -398,6 +398,7 @@ const Sidebar = ({
           setTimeRange={setTimeRange}
           onTotalBoardingsChange={handleTotalBoardingsChange}
           selectedTransitStop={selectedTransitStop}
+          loadWithFallback={loadWithFallback}
           />
         </div>
       )}
