@@ -4,6 +4,7 @@ import { marks, formatTimeLabel } from "../../utils/timeSliderUtils";
 import cantonAlias from "../../utils/canton_alias.json";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
+import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
 
 const VEHICLE_COLORS = {
   rail: "#636efa",
@@ -13,6 +14,7 @@ const VEHICLE_COLORS = {
   all: "#1f77b4"  // default color for all vehicles
 };
 
+
 const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, selectedTransitStop }) => {
   const [plotData, setPlotData] = useState(null);
   const [transferData, setTransferData] = useState(null);
@@ -20,6 +22,7 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
   const [selectedLine, setSelectedLine] = useState('all');
   const [availableLines, setAvailableLines] = useState([]);
   const [showStopAnalysis, setShowStopAnalysis] = useState(false);
+  const loadWithFallback = useLoadWithFallback();
   
   const vehicles = [
     { value: 'all', label: 'All Vehicles' },
@@ -40,10 +43,9 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
     
     console.log('Loading PT data for canton:', canton);
     
-    // Load both boarding data and transfer data
     Promise.all([
-      fetch(`/webmap/data/boarding_data_by_line.json`).then(res => res.json()),
-      fetch(`/webmap/data/stop_transfer_data_by_canton.json`).then(res => res.json())
+      loadWithFallback('boarding_data_by_line.json'),
+      loadWithFallback('stop_transfer_data_by_canton.json')
     ])
     .then(([boardingData, transferData]) => {
       console.log('PT data loaded successfully');
@@ -55,7 +57,7 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
     .catch(err => {
       console.error("Error loading PT data:", err);
     });
-  }, [canton]);
+  }, [canton, loadWithFallback]);
 
   // Update available lines when vehicle selection changes
   useEffect(() => {
