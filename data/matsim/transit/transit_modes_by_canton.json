@@ -1,6 +1,7 @@
 {
   "Aargau": [
     "bus",
+    "ferry",
     "other",
     "rail",
     "tram"
@@ -39,6 +40,7 @@
   "Fribourg": [
     "bus",
     "cable car",
+    "ferry",
     "funicular",
     "rail"
   ],
@@ -51,14 +53,17 @@
   "Glarus": [
     "bus",
     "cable car",
+    "ferry",
     "funicular",
     "rail"
   ],
   "Graubunden": [
     "bus",
     "cable car",
+    "ferry",
     "funicular",
-    "rail"
+    "rail",
+    "tram"
   ],
   "Jura": [
     "bus",
@@ -69,11 +74,12 @@
     "cable car",
     "ferry",
     "funicular",
+    "other",
     "rail"
   ],
   "Neuchatel": [
     "bus",
-    "cable car",
+    "ferry",
     "funicular",
     "rail"
   ],
@@ -87,11 +93,13 @@
   "Obwalden": [
     "bus",
     "cable car",
+    "ferry",
     "funicular",
     "rail"
   ],
   "Schaffhausen": [
     "bus",
+    "ferry",
     "other",
     "rail"
   ],
@@ -105,6 +113,7 @@
   "Solothurn": [
     "bus",
     "cable car",
+    "ferry",
     "rail",
     "tram"
   ],
@@ -138,8 +147,10 @@
   "Valais": [
     "bus",
     "cable car",
+    "ferry",
     "funicular",
-    "rail"
+    "rail",
+    "tram"
   ],
   "Vaud": [
     "bus",
@@ -151,6 +162,7 @@
   ],
   "Zug": [
     "bus",
+    "ferry",
     "funicular",
     "rail"
   ],
