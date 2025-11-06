@@ -85,7 +85,12 @@ export default function useNetworkLayers({
   
   // Ensure labels in Volumes mode are always car-only (optionally major roads only)
   const applyLabelCarAndMajorFilter = (map, showMajorRoadsOnly) => {
-    const carFilter = ['match', ['index-of', 'car', ['get', 'modes']], -1, false, true];
+    // Match "car" but exclude "cable car"
+    const carFilter = [
+      'all',
+      ['>=', ['index-of', 'car', ['get', 'modes']], 0],  // contains "car"
+      ['==', ['index-of', 'cable car', ['get', 'modes']], -1]  // does NOT contain "cable car"
+    ];
     const labelFilter = showMajorRoadsOnly
     ? ['all', carFilter, ['>', ['get', 'capacity'], 1200]]
     : carFilter;
@@ -297,7 +302,12 @@ export default function useNetworkLayers({
     updateNetworkFilter(selectedNetworkModesRef.current);
     
     if (graphExpandedRef.current === 'Volumes') {
-      const carFilter = ['match', ['index-of', 'car', ['get', 'modes']], -1, false, true];
+      // Match "car" but exclude "cable car"
+      const carFilter = [
+        'all',
+        ['>=', ['index-of', 'car', ['get', 'modes']], 0],
+        ['==', ['index-of', 'cable car', ['get', 'modes']], -1]
+      ];
       let filter = carFilter;
       if (showMajorRoadsOnly) {
         filter = ['all', carFilter, ['>', ['get', 'capacity'], 1200]];
@@ -408,7 +418,12 @@ export default function useNetworkLayers({
     const map = mapRef.current;
     if (!map || graphExpandedRef.current !== 'Volumes') return;
     
-    const carFilter = ['match', ['index-of', 'car', ['get', 'modes']], -1, false, true];
+    // Match "car" but exclude "cable car"
+    const carFilter = [
+      'all',
+      ['>=', ['index-of', 'car', ['get', 'modes']], 0],
+      ['==', ['index-of', 'cable car', ['get', 'modes']], -1]
+    ];
     const fullFilter =
     isGraphExpanded === 'Volumes' && showMajorRoadsOnly
     ? ['all', carFilter, ['>', ['get', 'capacity'], 1200]]
@@ -537,6 +552,9 @@ export default function useNetworkLayers({
         
         const updatedGeo = { ...source._data, features: updatedLineFeatures };
         source.setData(updatedGeo);
+        
+        // Update feature table with new filtered volumes
+        setFeatureGeoJSON?.(updatedGeo);
         
       }, [timeRange, linkVolumeData, isGraphExpanded, showMajorRoadsOnly]);
       

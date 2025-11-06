@@ -352,15 +352,24 @@ export default function useFeatureSelectionFocus({
         
       } else if (!column && value) {
         // All columns search - handle semicolon-separated values with OR logic
+        // Check both searchable_text AND modes fields
         const values = String(value).split(/[;,]/).map(v => v.trim().toLowerCase()).filter(v => v);
         
         if (values.length === 1) {
-          // Single value - simple contains
-          tableFilter = [">=", ["index-of", values[0], ["get", "searchable_text"]], 0];
+          // Single value - check in searchable_text OR modes
+          tableFilter = [
+            "any",
+            [">=", ["index-of", values[0], ["get", "searchable_text"]], 0],
+            [">=", ["index-of", values[0], ["downcase", ["to-string", ["get", "modes"]]]], 0]
+          ];
         } else {
-          // Multiple values - OR logic (feature must contain ANY of the terms)
+          // Multiple values - OR logic (feature must contain ANY of the terms in searchable_text OR modes)
           const valueFilters = values.map(val => 
-            [">=", ["index-of", val, ["get", "searchable_text"]], 0]
+            [
+              "any",
+              [">=", ["index-of", val, ["get", "searchable_text"]], 0],
+              [">=", ["index-of", val, ["downcase", ["to-string", ["get", "modes"]]]], 0]
+            ]
           );
           
           // Use OR logic for "all columns" too
@@ -387,7 +396,12 @@ export default function useFeatureSelectionFocus({
       
       // If we're in Volumes mode, enforce additional filters
       if (isGraphExpanded === 'Volumes') {
-        const carFilter = ["match", ["index-of", "car", ["get", "modes"]], -1, false, true];
+        // Match "car" but exclude "cable car"
+        const carFilter = [
+          "all",
+          [">=", ["index-of", "car", ["get", "modes"]], 0],
+          ["==", ["index-of", "cable car", ["get", "modes"]], -1]
+        ];
         const majorRoadsFilter = [">", ["get", "capacity"], 1200];
         
         // Build Volumes-specific filters
