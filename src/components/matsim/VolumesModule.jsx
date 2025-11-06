@@ -234,13 +234,14 @@ const VolumesModule = ({
     {selectedNetworkFeature ? (
       <SegmentVolumeHistogram
       linkId={(() => {
-        const per = selectedNetworkFeature[0]?.per_id;
-        const perObj =
-        typeof per === 'string'
-        ? (() => { try { return JSON.parse(per); } catch { return {}; } })()
-        : (per || {});
-        const ids = Object.keys(perObj);
-        return ids.length ? ids : [String(selectedNetworkFeature[0]?.id ?? '')];
+        // Extract link IDs from pipe-separated per_id_keys
+        const perIdKeys = selectedNetworkFeature[0]?.per_id_keys;
+        if (perIdKeys && typeof perIdKeys === 'string') {
+          const ids = perIdKeys.split("|").filter(Boolean);
+          return ids.length ? ids : [String(selectedNetworkFeature[0]?.id ?? '')];
+        }
+        // Fallback to feature id if per_id_keys not available
+        return [String(selectedNetworkFeature[0]?.id ?? '')];
       })()}
       visualizeLinkId={visualizeLinkId}
       setVisualizeLinkId={setVisualizeLinkId}

@@ -23,7 +23,7 @@ const SegmentVolumeHistogram = ({
     
     loadWithFallback(`matsim/${canton}_link_traffic_volumes.json`)
     .then((raw) => {
-      // keep only requested links, map = { id: {HRS0-1avg: …, … } }
+      // keep only requested links, map = { id: [hour0, hour1, ..., hour23] }
       const mapped = Object.fromEntries(
         raw
         .filter((e) => linkIdKey.includes(e.link_id.toString()))
@@ -40,9 +40,9 @@ const SegmentVolumeHistogram = ({
 const startHour = Math.floor((timeRange?.[0] ?? 0) / 4);   // inclusive
 const endHour   = Math.ceil((timeRange?.[1] ?? 96) / 4);   // exclusive
 
-// helper to build 24 labels "00:00" … "23:00"
+// helper to build 24 labels "0:00–1:00" … "23:00–24:00"
 const fullHourLabels = Array.from({ length: 24 }, (_, h) =>
-  `${String(h).padStart(2, "0")}:00`
+  `${h}:00–${h + 1}:00`
 );
 
 const prevTotalsRef = useRef(null);
@@ -57,10 +57,15 @@ useEffect(() => {
     const hourly = volumeData[id.toString()];
     if (!hourly) continue;
     
+    // Validate array format (should have 24 values)
+    if (!Array.isArray(hourly) || hourly.length !== 24) {
+      console.warn(`Invalid hourly data for link ${id}: expected array of 24 values`);
+      continue;
+    }
+    
     let total = 0;
     for (let h = startHour; h < endHour; h++) {
-      const key = `HRS${h}-${h + 1}avg`;
-      total += hourly[key] ?? 0;
+      total += hourly[h] ?? 0;
     }
     
     totals[id] = total;
@@ -84,15 +89,16 @@ return (
     const hourly = volumeData[id.toString()];
     if (!hourly) return null;
     
-    // pad missing hours with 0 so we can slice safely
-    const padded = Array.from({ length: 24 }, (_, h) => {
-      const key = `HRS${h}-${h + 1}avg`;
-      return hourly[key] ?? 0;
-    });
+    // Validate array format
+    if (!Array.isArray(hourly) || hourly.length !== 24) {
+      console.warn(`Invalid hourly data for link ${id}: expected array of 24 values`);
+      return null;
+    }
     
+    // hourly is now already an array of 24 numeric values [hour0, hour1, ..., hour23]
     // slice by slider (converted to hours)
     const labels   = fullHourLabels.slice(startHour, endHour);
-    const values   = padded.slice(startHour,   endHour);
+    const values   = hourly.slice(startHour, endHour);
     const tickvals = labels.filter((_, i) => i % 2 === 0); // every 2 hrs
     
     return (

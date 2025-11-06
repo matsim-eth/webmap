@@ -41,8 +41,9 @@ const Sidebar = ({
   // Sidebar UI
   isOpen, toggleSidebar, onExpandGraph, resetMapView,
   
-  // Feature Table
+  // Feature Table (shared by Network/Volumes and TransitVolumes modules)
   isFeatureTableOpen, setIsFeatureTableOpen, setTableFilterQuery,
+  featureGeoJSON,
   
   // Map State
   canton,
@@ -52,8 +53,7 @@ const Sidebar = ({
   
   // Network/Volumes Module
   selectedNetworkModes, setSelectedNetworkModes, selectedNetworkFeature, setSelectedNetworkFeature,
-  visualizeLinkId, featureGeoJSON,
-  setVisualizeLinkId, showMajorRoadsOnly, setShowMajorRoadsOnly,
+  visualizeLinkId, setVisualizeLinkId, showMajorRoadsOnly, setShowMajorRoadsOnly,
   onFocusNetworkFeature,
   
   // Transit Module
@@ -62,7 +62,8 @@ const Sidebar = ({
   setShowStopVolumeSymbology,
   
   // Transit Link Volumes Module
-  selectedTransitLink, setShowLineSymbology, showLineSymbology,
+  selectedTransitLink, setSelectedTransitLink, setShowLineSymbology, showLineSymbology,
+  onFocusTransitFeature,
   
   // Destination data
   setDestinationData,
@@ -99,6 +100,7 @@ const Sidebar = ({
   const loadWithFallback = useLoadWithFallback(dataURL);
   const fileInputRef = useRef();
   const featureTableRef = useRef(null);
+  const transitFeatureTableRef = useRef(null);
   
   // ======================= GENERAL FEATURES (BUTTONS / DROPDOWN) =======================
   const handleGraphSelection = (event) => {
@@ -109,6 +111,12 @@ const Sidebar = ({
     const graph = event.target.value;
     setSelectedGraph(graph);
     onExpandGraph(graph);
+    
+    // Clear transit line selection when leaving Transit or TransitVolumes module
+    if (selectedGraph === "Transit" || selectedGraph === "TransitVolumes") {
+      setHighlightedLineId(null);
+      setHighlightedRouteIds([]);
+    }
     
     // Set corresponding default selected modes per module
     if (graph === "Volumes") setSelectedNetworkModes(["car"]);
@@ -147,12 +155,12 @@ const Sidebar = ({
     loadWithFallback("modes_by_canton.json")
     .then((data) => setModesByCanton(data))
     .catch((err) => console.error("Failed to load modes_by_canton.json", err));
-  }, [dataURL]);
+  }, [dataURL, fileMap]);
   
   useEffect(() => {
     if (canton && modesByCanton[canton]) {
       setAvailableModes(
-        modesByCanton[canton].filter((mode) => !["car_passenger", "truck", "train", "other", "pt"].includes(mode))
+        modesByCanton[canton].filter((mode) => !["car_passenger", "truck", "rail", "other", "pt", "taxi"].includes(mode))
       );
     } else {
       setAvailableModes([]);
@@ -173,7 +181,7 @@ const Sidebar = ({
     loadWithFallback("matsim/transit/transit_modes_by_canton.json")
     .then((data) => setTransitModesByCanton(data))
     .catch((err) => console.error("Failed to load transit modes:", err));
-  }, [dataURL]);
+  }, [dataURL, fileMap]);
   
   useEffect(() => {
     if (canton && transitModesByCanton[canton]) {
@@ -479,6 +487,34 @@ const Sidebar = ({
       )}
       
       {selectedGraph === "TransitVolumes" && (
+        <>
+        {/* Buttons ABOVE the module */}
+        {canton && (
+          <div className="network-buttons-row">
+          <button
+          className="search-button"
+          onClick={() =>
+            setIsFeatureTableOpen((prev) => !prev)}
+          >
+          {isFeatureTableOpen ? "Hide Table" : "Show Table"}
+          </button>
+          
+          {isFeatureTableOpen && (
+            <button
+            className="search-button secondary"
+            onClick={() => {
+              const exported = transitFeatureTableRef.current?.exportCsv?.();
+              if (!exported) {
+                console.warn('Export skipped: no table data available.');
+              }
+            }}
+            >
+            Export Data
+            </button>
+          )}
+          </div>
+        )}
+        
         <TransitVolumesModule
         selectedTransitModes={selectedTransitModes}
         setSelectedTransitModes={setSelectedTransitModes}
@@ -494,7 +530,14 @@ const Sidebar = ({
         setHighlightedLineId={setHighlightedLineId}
         visualizeLinkId={visualizeLinkId}
         setVisualizeLinkId={setVisualizeLinkId}
+        isFeatureTableOpen={isFeatureTableOpen}
+        featureGeoJSON={featureGeoJSON}
+        transitFeatureTableRef={transitFeatureTableRef}
+        setTableFilterQuery={setTableFilterQuery}
+        setSelectedTransitLink={setSelectedTransitLink}
+        onFocusTransitFeature={onFocusTransitFeature}
         />
+        </>
       )}
       </div>
       
