@@ -66,6 +66,8 @@ function App() {
   const [timeRange, setTimeRange] = useState([0, 96]);
   // state for destination data (from Sidebar to Map)
   const [destinationData, setDestinationData] = useState(null);
+  // state for boarding data (from Sidebar to Map)
+  const [boardingData, setBoardingData] = useState(null);
   
   // Pass selected mode/dataset from sidebar to map
   const updateMapChoropleth = (mode, dataset) => {
@@ -129,6 +131,7 @@ function App() {
     showLineSymbology = {showLineSymbology}
     showMajorRoadsOnly={showMajorRoadsOnly}
     selectedDestinationData={destinationData} // from sidebar
+    selectedBoardingData={boardingData} // from sidebar
     timeRange={timeRange}
     aggCol={aggCol}
     resetMapTrigger={resetMapTrigger} // from sidebar, to reset map
@@ -174,6 +177,7 @@ function App() {
     showMajorRoadsOnly={showMajorRoadsOnly}
     setShowMajorRoadsOnly={setShowMajorRoadsOnly}
     setDestinationData={setDestinationData} // to map
+    setBoardingData={setBoardingData} // to map
     timeRange={timeRange}       
     setTimeRange={setTimeRange}  
     setResetMapTrigger={setResetMapTrigger} // to map
