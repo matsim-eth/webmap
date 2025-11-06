@@ -11,8 +11,8 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 6278.0,
-            "percentage": 8.4
+            "count": 8733.0,
+            "percentage": 11.6
         },
         {
             "distance_category": "0-1000",
@@ -25,8 +25,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 7647.0,
-            "percentage": 10.2
+            "count": 6785.0,
+            "percentage": 9.0
         },
         {
             "distance_category": "0-1000",
@@ -39,8 +39,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 1641.0,
-            "percentage": 2.2
+            "count": 1798.0,
+            "percentage": 2.4
         },
         {
             "distance_category": "0-1000",
@@ -53,8 +53,8 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 578.0,
-            "percentage": 0.8
+            "count": 1412.0,
+            "percentage": 1.9
         },
         {
             "distance_category": "0-1000",
@@ -67,8 +67,8 @@
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 58691.0,
-            "percentage": 78.4
+            "count": 56490.0,
+            "percentage": 75.1
         },
         {
             "distance_category": "1000-5000",
@@ -81,8 +81,8 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 11190.0,
-            "percentage": 13.0
+            "count": 9357.0,
+            "percentage": 10.8
         },
         {
             "distance_category": "1000-5000",
@@ -95,8 +95,8 @@
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 37983.0,
-            "percentage": 44.2
+            "count": 38294.0,
+            "percentage": 44.3
         },
         {
             "distance_category": "1000-5000",
@@ -109,8 +109,8 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 8626.0,
-            "percentage": 10.0
+            "count": 8550.0,
+            "percentage": 9.9
         },
         {
             "distance_category": "1000-5000",
@@ -123,8 +123,8 @@
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 14601.0,
-            "percentage": 17.0
+            "count": 15562.0,
+            "percentage": 18.0
         },
         {
             "distance_category": "1000-5000",
@@ -137,8 +137,8 @@
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 13585.0,
-            "percentage": 15.8
+            "count": 14661.0,
+            "percentage": 17.0
         },
         {
             "distance_category": "5000-25000",
@@ -151,8 +151,8 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 2495.0,
-            "percentage": 2.9
+            "count": 4423.0,
+            "percentage": 5.3
         },
         {
             "distance_category": "5000-25000",
@@ -165,8 +165,8 @@
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 52193.0,
-            "percentage": 60.5
+            "count": 49160.0,
+            "percentage": 58.6
         },
         {
             "distance_category": "5000-25000",
@@ -179,8 +179,8 @@
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 11354.0,
-            "percentage": 13.2
+            "count": 10708.0,
+            "percentage": 12.8
         },
         {
             "distance_category": "5000-25000",
@@ -193,8 +193,8 @@
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 19509.0,
-            "percentage": 22.6
+            "count": 15288.0,
+            "percentage": 18.2
         },
         {
             "distance_category": "5000-25000",
@@ -207,8 +207,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 687.0,
-            "percentage": 0.8
+            "count": 4364.0,
+            "percentage": 5.2
         },
         {
             "distance_category": "25000+",
@@ -221,8 +221,8 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 219.0,
-            "percentage": 0.7
+            "count": 1299.0,
+            "percentage": 4.7
         },
         {
             "distance_category": "25000+",
@@ -235,8 +235,8 @@
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 17708.0,
-            "percentage": 57.8
+            "count": 15408.0,
+            "percentage": 55.5
         },
         {
             "distance_category": "25000+",
@@ -249,22 +249,22 @@
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 4438.0,
-            "percentage": 14.5
+            "count": 3934.0,
+            "percentage": 14.2
         },
         {
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Microcensus",
-            "count": 3838.8621898981214,
-            "percentage": 30.9
+            "count": 3840.1957307224156,
+            "percentage": 31.0
         },
         {
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 8205.0,
-            "percentage": 26.8
+            "count": 6527.0,
+            "percentage": 23.5
         },
         {
             "distance_category": "25000+",
@@ -277,8 +277,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 72.0,
-            "percentage": 0.2
+            "count": 599.0,
+            "percentage": 2.2
         }
     ],
     "Aargau": [
@@ -293,8 +293,8 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 416.0,
-            "percentage": 7.4
+            "count": 715.0,
+            "percentage": 13.0
         },
         {
             "distance_category": "0-1000",
@@ -307,8 +307,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 991.0,
-            "percentage": 17.7
+            "count": 695.0,
+            "percentage": 12.6
         },
         {
             "distance_category": "0-1000",
@@ -321,8 +321,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 124.0,
-            "percentage": 2.2
+            "count": 188.0,
+            "percentage": 3.4
         },
         {
             "distance_category": "0-1000",
@@ -335,8 +335,8 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 23.0,
-            "percentage": 0.4
+            "count": 66.0,
+            "percentage": 1.2
         },
         {
             "distance_category": "0-1000",
@@ -349,8 +349,8 @@
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 4059.0,
-            "percentage": 72.3
+            "count": 3853.0,
+            "percentage": 69.8
         },
         {
             "distance_category": "1000-5000",
@@ -363,22 +363,22 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 579.0,
-            "percentage": 9.8
+            "count": 571.0,
+            "percentage": 9.4
         },
         {
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Microcensus",
             "count": 1406.1253394543223,
-            "percentage": 47.9
+            "percentage": 48.0
         },
         {
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 3432.0,
-            "percentage": 57.8
+            "count": 3057.0,
+            "percentage": 50.5
         },
         {
             "distance_category": "1000-5000",
@@ -391,8 +391,8 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 619.0,
-            "percentage": 10.4
+            "count": 725.0,
+            "percentage": 12.0
         },
         {
             "distance_category": "1000-5000",
@@ -405,22 +405,22 @@
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 547.0,
-            "percentage": 9.2
+            "count": 779.0,
+            "percentage": 12.9
         },
         {
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Microcensus",
-            "count": 509.88349047981256,
-            "percentage": 17.4
+            "count": 507.8733415278866,
+            "percentage": 17.3
         },
         {
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 761.0,
-            "percentage": 12.8
+            "count": 925.0,
+            "percentage": 15.3
         },
         {
             "distance_category": "5000-25000",
@@ -433,22 +433,22 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 113.0,
-            "percentage": 1.6
+            "count": 309.0,
+            "percentage": 4.2
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 1812.4089732530806,
+            "count": 1811.2504075085437,
             "percentage": 66.7
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 4829.0,
-            "percentage": 68.5
+            "count": 4539.0,
+            "percentage": 62.2
         },
         {
             "distance_category": "5000-25000",
@@ -461,36 +461,36 @@
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 980.0,
-            "percentage": 13.9
+            "count": 931.0,
+            "percentage": 12.8
         },
         {
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Microcensus",
             "count": 422.3125495606238,
-            "percentage": 15.5
+            "percentage": 15.6
         },
         {
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 1085.0,
-            "percentage": 15.4
+            "count": 1138.0,
+            "percentage": 15.6
         },
         {
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Microcensus",
-            "count": 17.940525909656227,
-            "percentage": 0.7
+            "count": 16.781960165119287,
+            "percentage": 0.6
         },
         {
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 46.0,
-            "percentage": 0.7
+            "count": 384.0,
+            "percentage": 5.3
         },
         {
             "distance_category": "25000+",
@@ -503,22 +503,22 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 20.0,
-            "percentage": 0.8
+            "count": 103.0,
+            "percentage": 4.5
         },
         {
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Microcensus",
             "count": 588.8834914638084,
-            "percentage": 59.0
+            "percentage": 59.1
         },
         {
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 1485.0,
-            "percentage": 59.9
+            "count": 1259.0,
+            "percentage": 55.1
         },
         {
             "distance_category": "25000+",
@@ -531,22 +531,22 @@
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 338.0,
-            "percentage": 13.6
+            "count": 323.0,
+            "percentage": 14.1
         },
         {
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Microcensus",
-            "count": 275.47175377000815,
+            "count": 274.8229619548064,
             "percentage": 27.6
         },
         {
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 630.0,
-            "percentage": 25.4
+            "count": 543.0,
+            "percentage": 23.8
         },
         {
             "distance_category": "25000+",
@@ -559,8 +559,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 6.0,
-            "percentage": 0.2
+            "count": 55.0,
+            "percentage": 2.4
         }
     ],
     "AppenzellAusserrhoden": [
@@ -569,42 +569,42 @@
             "mode": "bike",
             "dataset": "Microcensus",
             "count": 17.23114915756564,
-            "percentage": 13.3
+            "percentage": 12.7
         },
         {
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 58.0,
-            "percentage": 11.2
+            "count": 54.0,
+            "percentage": 12.3
         },
         {
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 17.07942203481216,
-            "percentage": 13.1
+            "count": 22.782217048509448,
+            "percentage": 16.8
         },
         {
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 47.0,
-            "percentage": 9.0
+            "count": 46.0,
+            "percentage": 10.5
         },
         {
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Microcensus",
             "count": 2.74409358443331,
-            "percentage": 2.1
+            "percentage": 2.0
         },
         {
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 11.0,
-            "percentage": 2.1
+            "count": 8.0,
+            "percentage": 1.8
         },
         {
             "distance_category": "0-1000",
@@ -617,92 +617,92 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 0.0,
-            "percentage": 0.0
+            "count": 2.0,
+            "percentage": 0.5
         },
         {
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Microcensus",
             "count": 92.93637324438829,
-            "percentage": 71.5
+            "percentage": 68.5
         },
         {
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 404.0,
-            "percentage": 77.7
+            "count": 330.0,
+            "percentage": 75.0
         },
         {
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Microcensus",
             "count": 27.269860527050447,
-            "percentage": 12.6
+            "percentage": 11.9
         },
         {
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 75.0,
-            "percentage": 15.2
+            "count": 62.0,
+            "percentage": 12.4
         },
         {
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 89.18011664234787,
-            "percentage": 41.2
+            "count": 101.7085125541761,
+            "percentage": 44.4
         },
         {
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 224.0,
-            "percentage": 45.5
+            "count": 244.0,
+            "percentage": 48.6
         },
         {
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Microcensus",
             "count": 35.16316924880598,
-            "percentage": 16.3
+            "percentage": 15.4
         },
         {
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 56.0,
-            "percentage": 11.4
+            "count": 54.0,
+            "percentage": 10.8
         },
         {
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Microcensus",
             "count": 30.812596313722278,
-            "percentage": 14.2
+            "percentage": 13.5
         },
         {
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 49.0,
-            "percentage": 10.0
+            "count": 59.0,
+            "percentage": 11.8
         },
         {
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Microcensus",
             "count": 33.93061810611746,
-            "percentage": 15.7
+            "percentage": 14.8
         },
         {
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 88.0,
-            "percentage": 17.9
+            "count": 83.0,
+            "percentage": 16.5
         },
         {
             "distance_category": "5000-25000",
@@ -715,36 +715,36 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 20.0,
-            "percentage": 3.1
+            "count": 41.0,
+            "percentage": 5.6
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 157.48225092164932,
-            "percentage": 64.3
+            "count": 157.6995417822674,
+            "percentage": 64.5
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 420.0,
-            "percentage": 64.3
+            "count": 454.0,
+            "percentage": 62.4
         },
         {
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Microcensus",
-            "count": 38.39790993921079,
-            "percentage": 15.7
+            "count": 37.904855064476514,
+            "percentage": 15.5
         },
         {
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 96.0,
-            "percentage": 14.7
+            "count": 87.0,
+            "percentage": 12.0
         },
         {
             "distance_category": "5000-25000",
@@ -757,8 +757,8 @@
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 114.0,
-            "percentage": 17.5
+            "count": 117.0,
+            "percentage": 16.1
         },
         {
             "distance_category": "5000-25000",
@@ -771,8 +771,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 3.0,
-            "percentage": 0.5
+            "count": 28.0,
+            "percentage": 3.9
         },
         {
             "distance_category": "25000+",
@@ -786,7 +786,7 @@
             "mode": "bike",
             "dataset": "Synthetic",
             "count": 1.0,
-            "percentage": 0.6
+            "percentage": 0.7
         },
         {
             "distance_category": "25000+",
@@ -799,8 +799,8 @@
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 99.0,
-            "percentage": 61.9
+            "count": 91.0,
+            "percentage": 64.1
         },
         {
             "distance_category": "25000+",
@@ -813,8 +813,8 @@
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 31.0,
-            "percentage": 19.4
+            "count": 29.0,
+            "percentage": 20.4
         },
         {
             "distance_category": "25000+",
@@ -827,8 +827,8 @@
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 29.0,
-            "percentage": 18.1
+            "count": 20.0,
+            "percentage": 14.1
         },
         {
             "distance_category": "25000+",
@@ -841,8 +841,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 0.0,
-            "percentage": 0.0
+            "count": 1.0,
+            "percentage": 0.7
         }
     ],
     "AppenzellInnerrhoden": [
@@ -857,8 +857,8 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 15.0,
-            "percentage": 17.2
+            "count": 9.0,
+            "percentage": 8.4
         },
         {
             "distance_category": "0-1000",
@@ -871,8 +871,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 16.0,
-            "percentage": 18.4
+            "count": 20.0,
+            "percentage": 18.7
         },
         {
             "distance_category": "0-1000",
@@ -885,8 +885,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 3.0,
-            "percentage": 3.4
+            "count": 4.0,
+            "percentage": 3.7
         },
         {
             "distance_category": "0-1000",
@@ -899,8 +899,8 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 0.0,
-            "percentage": 0.0
+            "count": 2.0,
+            "percentage": 1.9
         },
         {
             "distance_category": "0-1000",
@@ -913,8 +913,8 @@
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 53.0,
-            "percentage": 60.9
+            "count": 72.0,
+            "percentage": 67.3
         },
         {
             "distance_category": "1000-5000",
@@ -927,8 +927,8 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 10.0,
-            "percentage": 9.3
+            "count": 16.0,
+            "percentage": 8.0
         },
         {
             "distance_category": "1000-5000",
@@ -941,8 +941,8 @@
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 53.0,
-            "percentage": 49.1
+            "count": 91.0,
+            "percentage": 45.7
         },
         {
             "distance_category": "1000-5000",
@@ -955,8 +955,8 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 15.0,
-            "percentage": 13.9
+            "count": 29.0,
+            "percentage": 14.6
         },
         {
             "distance_category": "1000-5000",
@@ -969,8 +969,8 @@
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 12.0,
-            "percentage": 11.1
+            "count": 20.0,
+            "percentage": 10.1
         },
         {
             "distance_category": "1000-5000",
@@ -983,8 +983,8 @@
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 18.0,
-            "percentage": 16.7
+            "count": 43.0,
+            "percentage": 21.6
         },
         {
             "distance_category": "5000-25000",
@@ -997,36 +997,36 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 11.0,
-            "percentage": 5.3
+            "count": 5.0,
+            "percentage": 2.4
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Microcensus",
             "count": 38.40942174147968,
-            "percentage": 84.4
+            "percentage": 83.5
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 128.0,
-            "percentage": 61.5
+            "count": 135.0,
+            "percentage": 65.2
         },
         {
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Microcensus",
-            "count": 6.4616433569946,
-            "percentage": 14.2
+            "count": 6.954698231728875,
+            "percentage": 15.1
         },
         {
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 29.0,
-            "percentage": 13.9
+            "count": 27.0,
+            "percentage": 13.0
         },
         {
             "distance_category": "5000-25000",
@@ -1039,8 +1039,8 @@
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 40.0,
-            "percentage": 19.2
+            "count": 34.0,
+            "percentage": 16.4
         },
         {
             "distance_category": "5000-25000",
@@ -1053,8 +1053,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 0.0,
-            "percentage": 0.0
+            "count": 6.0,
+            "percentage": 2.9
         },
         {
             "distance_category": "25000+",
@@ -1081,8 +1081,8 @@
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 43.0,
-            "percentage": 58.9
+            "count": 31.0,
+            "percentage": 42.5
         },
         {
             "distance_category": "25000+",
@@ -1095,8 +1095,8 @@
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 14.0,
-            "percentage": 19.2
+            "count": 24.0,
+            "percentage": 32.9
         },
         {
             "distance_category": "25000+",
@@ -1109,8 +1109,8 @@
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 15.0,
-            "percentage": 20.5
+            "count": 17.0,
+            "percentage": 23.3
         },
         {
             "distance_category": "25000+",
@@ -1139,22 +1139,22 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 284.0,
-            "percentage": 11.4
+            "count": 354.0,
+            "percentage": 13.4
         },
         {
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Microcensus",
             "count": 142.79618080064938,
-            "percentage": 17.0
+            "percentage": 17.1
         },
         {
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 159.0,
-            "percentage": 6.4
+            "count": 227.0,
+            "percentage": 8.6
         },
         {
             "distance_category": "0-1000",
@@ -1167,8 +1167,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 68.0,
-            "percentage": 2.7
+            "count": 60.0,
+            "percentage": 2.3
         },
         {
             "distance_category": "0-1000",
@@ -1181,92 +1181,92 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 12.0,
-            "percentage": 0.5
+            "count": 29.0,
+            "percentage": 1.1
         },
         {
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Microcensus",
-            "count": 552.0248282671577,
-            "percentage": 65.6
+            "count": 547.281274475181,
+            "percentage": 65.4
         },
         {
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 1966.0,
-            "percentage": 79.0
+            "count": 1969.0,
+            "percentage": 74.6
         },
         {
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Microcensus",
-            "count": 205.65474139456535,
+            "count": 206.72874804678992,
             "percentage": 14.7
         },
         {
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 420.0,
-            "percentage": 15.3
+            "count": 328.0,
+            "percentage": 10.9
         },
         {
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Microcensus",
             "count": 618.3635965995878,
-            "percentage": 44.2
+            "percentage": 44.1
         },
         {
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 1031.0,
-            "percentage": 37.5
+            "count": 1355.0,
+            "percentage": 45.0
         },
         {
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Microcensus",
             "count": 114.25262069013019,
-            "percentage": 8.2
+            "percentage": 8.1
         },
         {
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 290.0,
-            "percentage": 10.5
+            "count": 287.0,
+            "percentage": 9.5
         },
         {
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Microcensus",
-            "count": 201.90875966968343,
-            "percentage": 14.4
+            "count": 203.87295525013903,
+            "percentage": 14.5
         },
         {
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 525.0,
-            "percentage": 19.1
+            "count": 542.0,
+            "percentage": 18.0
         },
         {
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Microcensus",
-            "count": 258.35492630607496,
+            "count": 259.88806677295224,
             "percentage": 18.5
         },
         {
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 483.0,
-            "percentage": 17.6
+            "count": 499.0,
+            "percentage": 16.6
         },
         {
             "distance_category": "5000-25000",
@@ -1279,22 +1279,22 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 80.0,
-            "percentage": 2.6
+            "count": 192.0,
+            "percentage": 5.8
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 683.1534300967691,
-            "percentage": 57.3
+            "count": 686.6837067139309,
+            "percentage": 57.4
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 1671.0,
-            "percentage": 54.6
+            "count": 1921.0,
+            "percentage": 57.6
         },
         {
             "distance_category": "5000-25000",
@@ -1307,22 +1307,22 @@
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 414.0,
-            "percentage": 13.5
+            "count": 423.0,
+            "percentage": 12.7
         },
         {
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Microcensus",
             "count": 312.18158013196245,
-            "percentage": 26.2
+            "percentage": 26.1
         },
         {
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 877.0,
-            "percentage": 28.7
+            "count": 660.0,
+            "percentage": 19.8
         },
         {
             "distance_category": "5000-25000",
@@ -1335,8 +1335,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 18.0,
-            "percentage": 0.6
+            "count": 138.0,
+            "percentage": 4.1
         },
         {
             "distance_category": "25000+",
@@ -1349,50 +1349,50 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 5.0,
-            "percentage": 0.6
+            "count": 30.0,
+            "percentage": 4.3
         },
         {
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 147.85076702110115,
-            "percentage": 57.2
+            "count": 146.08476038363779,
+            "percentage": 56.9
         },
         {
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 402.0,
-            "percentage": 51.7
+            "count": 410.0,
+            "percentage": 58.4
         },
         {
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Microcensus",
             "count": 47.54597193607613,
-            "percentage": 18.4
+            "percentage": 18.5
         },
         {
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 131.0,
-            "percentage": 16.8
+            "count": 119.0,
+            "percentage": 17.0
         },
         {
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Microcensus",
             "count": 61.09476367020602,
-            "percentage": 23.6
+            "percentage": 23.8
         },
         {
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 240.0,
-            "percentage": 30.8
+            "count": 132.0,
+            "percentage": 18.8
         },
         {
             "distance_category": "25000+",
@@ -1405,8 +1405,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 0.0,
-            "percentage": 0.0
+            "count": 11.0,
+            "percentage": 1.6
         }
     ],
     "Basel-Stadt": [
@@ -1421,8 +1421,8 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 175.0,
-            "percentage": 8.3
+            "count": 243.0,
+            "percentage": 10.0
         },
         {
             "distance_category": "0-1000",
@@ -1435,8 +1435,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 89.0,
-            "percentage": 4.2
+            "count": 104.0,
+            "percentage": 4.3
         },
         {
             "distance_category": "0-1000",
@@ -1449,50 +1449,50 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 35.0,
-            "percentage": 1.7
+            "count": 24.0,
+            "percentage": 1.0
         },
         {
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Microcensus",
             "count": 22.66574992608842,
-            "percentage": 2.4
+            "percentage": 2.3
         },
         {
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 43.0,
-            "percentage": 2.0
+            "count": 100.0,
+            "percentage": 4.1
         },
         {
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Microcensus",
-            "count": 771.597207231574,
-            "percentage": 80.3
+            "count": 776.3407610235506,
+            "percentage": 80.4
         },
         {
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 1770.0,
-            "percentage": 83.8
+            "count": 1957.0,
+            "percentage": 80.6
         },
         {
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Microcensus",
-            "count": 412.73202343424686,
+            "count": 411.6580167820223,
             "percentage": 25.9
         },
         {
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 260.0,
-            "percentage": 9.9
+            "count": 320.0,
+            "percentage": 11.6
         },
         {
             "distance_category": "1000-5000",
@@ -1505,8 +1505,8 @@
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 795.0,
-            "percentage": 30.2
+            "count": 783.0,
+            "percentage": 28.5
         },
         {
             "distance_category": "1000-5000",
@@ -1519,36 +1519,36 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 208.0,
-            "percentage": 7.9
+            "count": 227.0,
+            "percentage": 8.3
         },
         {
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Microcensus",
-            "count": 612.9290923735159,
+            "count": 610.9648967930602,
             "percentage": 38.5
         },
         {
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 950.0,
-            "percentage": 36.1
+            "count": 863.0,
+            "percentage": 31.4
         },
         {
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Microcensus",
-            "count": 237.88435847071415,
+            "count": 236.35121800383686,
             "percentage": 14.9
         },
         {
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 417.0,
-            "percentage": 15.9
+            "count": 554.0,
+            "percentage": 20.2
         },
         {
             "distance_category": "5000-25000",
@@ -1561,22 +1561,22 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 12.0,
-            "percentage": 0.9
+            "count": 59.0,
+            "percentage": 4.5
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 316.81655634705334,
-            "percentage": 36.9
+            "count": 315.5550568815133,
+            "percentage": 36.8
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 676.0,
-            "percentage": 48.3
+            "count": 630.0,
+            "percentage": 48.2
         },
         {
             "distance_category": "5000-25000",
@@ -1589,8 +1589,8 @@
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 138.0,
-            "percentage": 9.9
+            "count": 151.0,
+            "percentage": 11.6
         },
         {
             "distance_category": "5000-25000",
@@ -1603,8 +1603,8 @@
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 570.0,
-            "percentage": 40.7
+            "count": 410.0,
+            "percentage": 31.4
         },
         {
             "distance_category": "5000-25000",
@@ -1617,8 +1617,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 3.0,
-            "percentage": 0.2
+            "count": 56.0,
+            "percentage": 4.3
         },
         {
             "distance_category": "25000+",
@@ -1631,50 +1631,50 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 2.0,
-            "percentage": 0.6
+            "count": 35.0,
+            "percentage": 11.7
         },
         {
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 104.07409881243387,
-            "percentage": 39.0
+            "count": 105.84010544989724,
+            "percentage": 39.4
         },
         {
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 186.0,
-            "percentage": 51.5
+            "count": 149.0,
+            "percentage": 50.0
         },
         {
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Microcensus",
             "count": 44.129770265556374,
-            "percentage": 16.5
+            "percentage": 16.4
         },
         {
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 44.0,
-            "percentage": 12.2
+            "count": 33.0,
+            "percentage": 11.1
         },
         {
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Microcensus",
             "count": 118.60338273070707,
-            "percentage": 44.5
+            "percentage": 44.2
         },
         {
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 129.0,
-            "percentage": 35.7
+            "count": 76.0,
+            "percentage": 25.5
         },
         {
             "distance_category": "25000+",
@@ -1687,8 +1687,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 0.0,
-            "percentage": 0.0
+            "count": 5.0,
+            "percentage": 1.7
         }
     ],
     "Bern": [
@@ -1703,8 +1703,8 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 847.0,
-            "percentage": 9.5
+            "count": 970.0,
+            "percentage": 11.5
         },
         {
             "distance_category": "0-1000",
@@ -1717,8 +1717,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 629.0,
-            "percentage": 7.1
+            "count": 825.0,
+            "percentage": 9.7
         },
         {
             "distance_category": "0-1000",
@@ -1731,8 +1731,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 229.0,
-            "percentage": 2.6
+            "count": 163.0,
+            "percentage": 1.9
         },
         {
             "distance_category": "0-1000",
@@ -1745,8 +1745,8 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 75.0,
-            "percentage": 0.8
+            "count": 131.0,
+            "percentage": 1.5
         },
         {
             "distance_category": "0-1000",
@@ -1759,8 +1759,8 @@
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 7134.0,
-            "percentage": 80.0
+            "count": 6374.0,
+            "percentage": 75.3
         },
         {
             "distance_category": "1000-5000",
@@ -1773,22 +1773,22 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 1648.0,
-            "percentage": 15.9
+            "count": 1102.0,
+            "percentage": 11.3
         },
         {
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 2342.617379412859,
+            "count": 2345.046275795818,
             "percentage": 39.9
         },
         {
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 3967.0,
-            "percentage": 38.4
+            "count": 4327.0,
+            "percentage": 44.2
         },
         {
             "distance_category": "1000-5000",
@@ -1801,8 +1801,8 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 1072.0,
-            "percentage": 10.4
+            "count": 922.0,
+            "percentage": 9.4
         },
         {
             "distance_category": "1000-5000",
@@ -1815,8 +1815,8 @@
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 1767.0,
-            "percentage": 17.1
+            "count": 1663.0,
+            "percentage": 17.0
         },
         {
             "distance_category": "1000-5000",
@@ -1829,8 +1829,8 @@
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 1884.0,
-            "percentage": 18.2
+            "count": 1770.0,
+            "percentage": 18.1
         },
         {
             "distance_category": "5000-25000",
@@ -1843,22 +1843,22 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 385.0,
-            "percentage": 3.7
+            "count": 515.0,
+            "percentage": 5.4
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 2510.632916220088,
-            "percentage": 57.5
+            "count": 2502.750077203704,
+            "percentage": 57.4
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 6203.0,
-            "percentage": 59.8
+            "count": 5591.0,
+            "percentage": 58.6
         },
         {
             "distance_category": "5000-25000",
@@ -1871,22 +1871,22 @@
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 1333.0,
-            "percentage": 12.9
+            "count": 1218.0,
+            "percentage": 12.8
         },
         {
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Microcensus",
             "count": 995.5804741180707,
-            "percentage": 22.8
+            "percentage": 22.9
         },
         {
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 2342.0,
-            "percentage": 22.6
+            "count": 1638.0,
+            "percentage": 17.2
         },
         {
             "distance_category": "5000-25000",
@@ -1899,8 +1899,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 102.0,
-            "percentage": 1.0
+            "count": 579.0,
+            "percentage": 6.1
         },
         {
             "distance_category": "25000+",
@@ -1913,22 +1913,22 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 28.0,
-            "percentage": 0.7
+            "count": 176.0,
+            "percentage": 4.7
         },
         {
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 832.0692478767132,
+            "count": 831.6145749360668,
             "percentage": 49.3
         },
         {
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 2329.0,
-            "percentage": 55.4
+            "count": 2124.0,
+            "percentage": 56.3
         },
         {
             "distance_category": "25000+",
@@ -1941,8 +1941,8 @@
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 621.0,
-            "percentage": 14.8
+            "count": 512.0,
+            "percentage": 13.6
         },
         {
             "distance_category": "25000+",
@@ -1955,8 +1955,8 @@
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 1220.0,
-            "percentage": 29.0
+            "count": 884.0,
+            "percentage": 23.4
         },
         {
             "distance_category": "25000+",
@@ -1969,8 +1969,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 8.0,
-            "percentage": 0.2
+            "count": 74.0,
+            "percentage": 2.0
         }
     ],
     "Fribourg": [
@@ -1985,8 +1985,8 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 117.0,
-            "percentage": 5.1
+            "count": 279.0,
+            "percentage": 11.7
         },
         {
             "distance_category": "0-1000",
@@ -1999,8 +1999,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 379.0,
-            "percentage": 16.5
+            "count": 312.0,
+            "percentage": 13.1
         },
         {
             "distance_category": "0-1000",
@@ -2013,8 +2013,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 108.0,
-            "percentage": 4.7
+            "count": 69.0,
+            "percentage": 2.9
         },
         {
             "distance_category": "0-1000",
@@ -2027,8 +2027,8 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 13.0,
-            "percentage": 0.6
+            "count": 31.0,
+            "percentage": 1.3
         },
         {
             "distance_category": "0-1000",
@@ -2041,8 +2041,8 @@
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 1678.0,
-            "percentage": 73.1
+            "count": 1685.0,
+            "percentage": 70.9
         },
         {
             "distance_category": "1000-5000",
@@ -2055,22 +2055,22 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 316.0,
-            "percentage": 10.4
+            "count": 256.0,
+            "percentage": 8.6
         },
         {
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 765.972378552344,
-            "percentage": 51.3
+            "count": 763.5434821693849,
+            "percentage": 51.2
         },
         {
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 1774.0,
-            "percentage": 58.3
+            "count": 1509.0,
+            "percentage": 50.9
         },
         {
             "distance_category": "1000-5000",
@@ -2083,8 +2083,8 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 313.0,
-            "percentage": 10.3
+            "count": 332.0,
+            "percentage": 11.2
         },
         {
             "distance_category": "1000-5000",
@@ -2097,22 +2097,22 @@
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 247.0,
-            "percentage": 8.1
+            "count": 355.0,
+            "percentage": 12.0
         },
         {
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Microcensus",
             "count": 303.5549292350803,
-            "percentage": 20.3
+            "percentage": 20.4
         },
         {
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 391.0,
-            "percentage": 12.9
+            "count": 510.0,
+            "percentage": 17.2
         },
         {
             "distance_category": "5000-25000",
@@ -2125,8 +2125,8 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 121.0,
-            "percentage": 3.5
+            "count": 141.0,
+            "percentage": 4.2
         },
         {
             "distance_category": "5000-25000",
@@ -2139,22 +2139,22 @@
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 2344.0,
-            "percentage": 68.6
+            "count": 2180.0,
+            "percentage": 64.2
         },
         {
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Microcensus",
-            "count": 213.8826316590188,
+            "count": 213.2084653349585,
             "percentage": 14.7
         },
         {
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 443.0,
-            "percentage": 13.0
+            "count": 473.0,
+            "percentage": 13.9
         },
         {
             "distance_category": "5000-25000",
@@ -2167,8 +2167,8 @@
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 471.0,
-            "percentage": 13.8
+            "count": 432.0,
+            "percentage": 12.7
         },
         {
             "distance_category": "5000-25000",
@@ -2181,8 +2181,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 36.0,
-            "percentage": 1.1
+            "count": 171.0,
+            "percentage": 5.0
         },
         {
             "distance_category": "25000+",
@@ -2195,8 +2195,8 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 15.0,
-            "percentage": 1.1
+            "count": 62.0,
+            "percentage": 4.8
         },
         {
             "distance_category": "25000+",
@@ -2209,8 +2209,8 @@
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 828.0,
-            "percentage": 62.8
+            "count": 755.0,
+            "percentage": 57.9
         },
         {
             "distance_category": "25000+",
@@ -2223,8 +2223,8 @@
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 212.0,
-            "percentage": 16.1
+            "count": 172.0,
+            "percentage": 13.2
         },
         {
             "distance_category": "25000+",
@@ -2237,8 +2237,8 @@
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 258.0,
-            "percentage": 19.6
+            "count": 280.0,
+            "percentage": 21.5
         },
         {
             "distance_category": "25000+",
@@ -2251,8 +2251,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 5.0,
-            "percentage": 0.4
+            "count": 34.0,
+            "percentage": 2.6
         }
     ],
     "Geneve": [
@@ -2267,8 +2267,8 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 417.0,
-            "percentage": 7.8
+            "count": 547.0,
+            "percentage": 11.2
         },
         {
             "distance_category": "0-1000",
@@ -2281,8 +2281,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 225.0,
-            "percentage": 4.2
+            "count": 218.0,
+            "percentage": 4.5
         },
         {
             "distance_category": "0-1000",
@@ -2295,8 +2295,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 65.0,
-            "percentage": 1.2
+            "count": 91.0,
+            "percentage": 1.9
         },
         {
             "distance_category": "0-1000",
@@ -2309,8 +2309,8 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 65.0,
-            "percentage": 1.2
+            "count": 128.0,
+            "percentage": 2.6
         },
         {
             "distance_category": "0-1000",
@@ -2323,8 +2323,8 @@
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 4559.0,
-            "percentage": 85.5
+            "count": 3906.0,
+            "percentage": 79.9
         },
         {
             "distance_category": "1000-5000",
@@ -2337,8 +2337,8 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 870.0,
-            "percentage": 13.2
+            "count": 768.0,
+            "percentage": 13.4
         },
         {
             "distance_category": "1000-5000",
@@ -2351,8 +2351,8 @@
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 1931.0,
-            "percentage": 29.4
+            "count": 2031.0,
+            "percentage": 35.6
         },
         {
             "distance_category": "1000-5000",
@@ -2365,7 +2365,7 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 532.0,
+            "count": 463.0,
             "percentage": 8.1
         },
         {
@@ -2379,8 +2379,8 @@
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 2120.0,
-            "percentage": 32.3
+            "count": 1286.0,
+            "percentage": 22.5
         },
         {
             "distance_category": "1000-5000",
@@ -2393,8 +2393,8 @@
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 1116.0,
-            "percentage": 17.0
+            "count": 1164.0,
+            "percentage": 20.4
         },
         {
             "distance_category": "5000-25000",
@@ -2407,22 +2407,22 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 167.0,
-            "percentage": 3.6
+            "count": 255.0,
+            "percentage": 6.8
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 928.1313846232049,
-            "percentage": 49.2
+            "count": 929.4778862435472,
+            "percentage": 49.3
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 2086.0,
-            "percentage": 45.4
+            "count": 2030.0,
+            "percentage": 54.3
         },
         {
             "distance_category": "5000-25000",
@@ -2435,8 +2435,8 @@
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 587.0,
-            "percentage": 12.8
+            "count": 466.0,
+            "percentage": 12.5
         },
         {
             "distance_category": "5000-25000",
@@ -2449,8 +2449,8 @@
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 1735.0,
-            "percentage": 37.7
+            "count": 810.0,
+            "percentage": 21.7
         },
         {
             "distance_category": "5000-25000",
@@ -2463,8 +2463,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 22.0,
-            "percentage": 0.5
+            "count": 180.0,
+            "percentage": 4.8
         },
         {
             "distance_category": "25000+",
@@ -2477,8 +2477,8 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 2.0,
-            "percentage": 0.4
+            "count": 29.0,
+            "percentage": 7.2
         },
         {
             "distance_category": "25000+",
@@ -2491,8 +2491,8 @@
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 298.0,
-            "percentage": 58.0
+            "count": 210.0,
+            "percentage": 52.5
         },
         {
             "distance_category": "25000+",
@@ -2505,8 +2505,8 @@
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 55.0,
-            "percentage": 10.7
+            "count": 47.0,
+            "percentage": 11.8
         },
         {
             "distance_category": "25000+",
@@ -2519,8 +2519,8 @@
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 158.0,
-            "percentage": 30.7
+            "count": 109.0,
+            "percentage": 27.3
         },
         {
             "distance_category": "25000+",
@@ -2533,8 +2533,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 1.0,
-            "percentage": 0.2
+            "count": 5.0,
+            "percentage": 1.2
         }
     ],
     "Glarus": [
@@ -2549,8 +2549,8 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 14.0,
-            "percentage": 4.3
+            "count": 27.0,
+            "percentage": 7.4
         },
         {
             "distance_category": "0-1000",
@@ -2563,8 +2563,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 70.0,
-            "percentage": 21.6
+            "count": 52.0,
+            "percentage": 14.3
         },
         {
             "distance_category": "0-1000",
@@ -2577,8 +2577,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 7.0,
-            "percentage": 2.2
+            "count": 15.0,
+            "percentage": 4.1
         },
         {
             "distance_category": "0-1000",
@@ -2591,8 +2591,8 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 1.0,
-            "percentage": 0.3
+            "count": 6.0,
+            "percentage": 1.7
         },
         {
             "distance_category": "0-1000",
@@ -2605,8 +2605,8 @@
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 232.0,
-            "percentage": 71.6
+            "count": 263.0,
+            "percentage": 72.5
         },
         {
             "distance_category": "1000-5000",
@@ -2619,8 +2619,8 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 39.0,
-            "percentage": 9.3
+            "count": 23.0,
+            "percentage": 6.4
         },
         {
             "distance_category": "1000-5000",
@@ -2633,8 +2633,8 @@
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 265.0,
-            "percentage": 63.1
+            "count": 201.0,
+            "percentage": 55.7
         },
         {
             "distance_category": "1000-5000",
@@ -2647,8 +2647,8 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 56.0,
-            "percentage": 13.3
+            "count": 46.0,
+            "percentage": 12.7
         },
         {
             "distance_category": "1000-5000",
@@ -2661,8 +2661,8 @@
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 14.0,
-            "percentage": 3.3
+            "count": 38.0,
+            "percentage": 10.5
         },
         {
             "distance_category": "1000-5000",
@@ -2675,8 +2675,8 @@
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 46.0,
-            "percentage": 11.0
+            "count": 53.0,
+            "percentage": 14.7
         },
         {
             "distance_category": "5000-25000",
@@ -2689,8 +2689,8 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 7.0,
-            "percentage": 2.0
+            "count": 22.0,
+            "percentage": 5.3
         },
         {
             "distance_category": "5000-25000",
@@ -2703,8 +2703,8 @@
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 269.0,
-            "percentage": 76.6
+            "count": 260.0,
+            "percentage": 62.4
         },
         {
             "distance_category": "5000-25000",
@@ -2717,8 +2717,8 @@
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 25.0,
-            "percentage": 7.1
+            "count": 35.0,
+            "percentage": 8.4
         },
         {
             "distance_category": "5000-25000",
@@ -2731,8 +2731,8 @@
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 48.0,
-            "percentage": 13.7
+            "count": 56.0,
+            "percentage": 13.4
         },
         {
             "distance_category": "5000-25000",
@@ -2745,8 +2745,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 2.0,
-            "percentage": 0.6
+            "count": 44.0,
+            "percentage": 10.6
         },
         {
             "distance_category": "25000+",
@@ -2759,8 +2759,8 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 2.0,
-            "percentage": 1.3
+            "count": 10.0,
+            "percentage": 5.8
         },
         {
             "distance_category": "25000+",
@@ -2773,8 +2773,8 @@
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 86.0,
-            "percentage": 56.2
+            "count": 98.0,
+            "percentage": 56.6
         },
         {
             "distance_category": "25000+",
@@ -2787,8 +2787,8 @@
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 29.0,
-            "percentage": 19.0
+            "count": 19.0,
+            "percentage": 11.0
         },
         {
             "distance_category": "25000+",
@@ -2801,8 +2801,8 @@
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 35.0,
-            "percentage": 22.9
+            "count": 43.0,
+            "percentage": 24.9
         },
         {
             "distance_category": "25000+",
@@ -2815,8 +2815,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 1.0,
-            "percentage": 0.7
+            "count": 3.0,
+            "percentage": 1.7
         }
     ],
     "Graubunden": [
@@ -2831,8 +2831,8 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 91.0,
-            "percentage": 5.1
+            "count": 187.0,
+            "percentage": 10.4
         },
         {
             "distance_category": "0-1000",
@@ -2845,8 +2845,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 320.0,
-            "percentage": 17.8
+            "count": 330.0,
+            "percentage": 18.3
         },
         {
             "distance_category": "0-1000",
@@ -2859,8 +2859,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 54.0,
-            "percentage": 3.0
+            "count": 58.0,
+            "percentage": 3.2
         },
         {
             "distance_category": "0-1000",
@@ -2873,8 +2873,8 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 9.0,
-            "percentage": 0.5
+            "count": 32.0,
+            "percentage": 1.8
         },
         {
             "distance_category": "0-1000",
@@ -2887,8 +2887,8 @@
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 1326.0,
-            "percentage": 73.7
+            "count": 1192.0,
+            "percentage": 66.3
         },
         {
             "distance_category": "1000-5000",
@@ -2901,8 +2901,8 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 177.0,
-            "percentage": 8.8
+            "count": 213.0,
+            "percentage": 10.1
         },
         {
             "distance_category": "1000-5000",
@@ -2915,8 +2915,8 @@
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 1075.0,
-            "percentage": 53.8
+            "count": 1079.0,
+            "percentage": 51.3
         },
         {
             "distance_category": "1000-5000",
@@ -2929,8 +2929,8 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 250.0,
-            "percentage": 12.5
+            "count": 214.0,
+            "percentage": 10.2
         },
         {
             "distance_category": "1000-5000",
@@ -2943,8 +2943,8 @@
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 218.0,
-            "percentage": 10.9
+            "count": 298.0,
+            "percentage": 14.2
         },
         {
             "distance_category": "1000-5000",
@@ -2957,8 +2957,8 @@
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 280.0,
-            "percentage": 14.0
+            "count": 301.0,
+            "percentage": 14.3
         },
         {
             "distance_category": "5000-25000",
@@ -2971,8 +2971,8 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 50.0,
-            "percentage": 2.9
+            "count": 75.0,
+            "percentage": 4.4
         },
         {
             "distance_category": "5000-25000",
@@ -2985,8 +2985,8 @@
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 1083.0,
-            "percentage": 63.4
+            "count": 1071.0,
+            "percentage": 63.1
         },
         {
             "distance_category": "5000-25000",
@@ -2999,8 +2999,8 @@
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 255.0,
-            "percentage": 14.9
+            "count": 221.0,
+            "percentage": 13.0
         },
         {
             "distance_category": "5000-25000",
@@ -3013,8 +3013,8 @@
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 292.0,
-            "percentage": 17.1
+            "count": 239.0,
+            "percentage": 14.1
         },
         {
             "distance_category": "5000-25000",
@@ -3027,8 +3027,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 28.0,
-            "percentage": 1.6
+            "count": 92.0,
+            "percentage": 5.4
         },
         {
             "distance_category": "25000+",
@@ -3041,22 +3041,22 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 10.0,
-            "percentage": 1.2
+            "count": 30.0,
+            "percentage": 3.8
         },
         {
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 195.3154039441969,
-            "percentage": 64.7
+            "count": 194.37544328200244,
+            "percentage": 64.6
         },
         {
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 489.0,
-            "percentage": 58.8
+            "count": 492.0,
+            "percentage": 62.0
         },
         {
             "distance_category": "25000+",
@@ -3069,8 +3069,8 @@
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 136.0,
-            "percentage": 16.3
+            "count": 114.0,
+            "percentage": 14.4
         },
         {
             "distance_category": "25000+",
@@ -3083,8 +3083,8 @@
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 194.0,
-            "percentage": 23.3
+            "count": 128.0,
+            "percentage": 16.1
         },
         {
             "distance_category": "25000+",
@@ -3097,8 +3097,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 3.0,
-            "percentage": 0.4
+            "count": 30.0,
+            "percentage": 3.8
         }
     ],
     "Jura": [
@@ -3113,8 +3113,8 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 58.0,
-            "percentage": 9.4
+            "count": 47.0,
+            "percentage": 7.3
         },
         {
             "distance_category": "0-1000",
@@ -3127,8 +3127,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 80.0,
-            "percentage": 13.0
+            "count": 110.0,
+            "percentage": 17.2
         },
         {
             "distance_category": "0-1000",
@@ -3141,8 +3141,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 25.0,
-            "percentage": 4.1
+            "count": 17.0,
+            "percentage": 2.7
         },
         {
             "distance_category": "0-1000",
@@ -3155,8 +3155,8 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 4.0,
-            "percentage": 0.7
+            "count": 12.0,
+            "percentage": 1.9
         },
         {
             "distance_category": "0-1000",
@@ -3169,8 +3169,8 @@
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 447.0,
-            "percentage": 72.8
+            "count": 455.0,
+            "percentage": 71.0
         },
         {
             "distance_category": "1000-5000",
@@ -3183,8 +3183,8 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 83.0,
-            "percentage": 12.6
+            "count": 89.0,
+            "percentage": 12.1
         },
         {
             "distance_category": "1000-5000",
@@ -3197,8 +3197,8 @@
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 358.0,
-            "percentage": 54.3
+            "count": 345.0,
+            "percentage": 47.1
         },
         {
             "distance_category": "1000-5000",
@@ -3211,8 +3211,8 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 75.0,
-            "percentage": 11.4
+            "count": 87.0,
+            "percentage": 11.9
         },
         {
             "distance_category": "1000-5000",
@@ -3225,8 +3225,8 @@
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 48.0,
-            "percentage": 7.3
+            "count": 113.0,
+            "percentage": 15.4
         },
         {
             "distance_category": "1000-5000",
@@ -3239,8 +3239,8 @@
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 95.0,
-            "percentage": 14.4
+            "count": 99.0,
+            "percentage": 13.5
         },
         {
             "distance_category": "5000-25000",
@@ -3253,8 +3253,8 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 26.0,
-            "percentage": 3.7
+            "count": 40.0,
+            "percentage": 6.1
         },
         {
             "distance_category": "5000-25000",
@@ -3267,8 +3267,8 @@
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 449.0,
-            "percentage": 63.8
+            "count": 413.0,
+            "percentage": 63.1
         },
         {
             "distance_category": "5000-25000",
@@ -3281,8 +3281,8 @@
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 96.0,
-            "percentage": 13.6
+            "count": 93.0,
+            "percentage": 14.2
         },
         {
             "distance_category": "5000-25000",
@@ -3295,8 +3295,8 @@
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 123.0,
-            "percentage": 17.5
+            "count": 82.0,
+            "percentage": 12.5
         },
         {
             "distance_category": "5000-25000",
@@ -3309,8 +3309,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 10.0,
-            "percentage": 1.4
+            "count": 27.0,
+            "percentage": 4.1
         },
         {
             "distance_category": "25000+",
@@ -3323,8 +3323,8 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 1.0,
-            "percentage": 0.3
+            "count": 18.0,
+            "percentage": 5.4
         },
         {
             "distance_category": "25000+",
@@ -3337,8 +3337,8 @@
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 219.0,
-            "percentage": 62.9
+            "count": 189.0,
+            "percentage": 57.1
         },
         {
             "distance_category": "25000+",
@@ -3351,8 +3351,8 @@
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 51.0,
-            "percentage": 14.7
+            "count": 57.0,
+            "percentage": 17.2
         },
         {
             "distance_category": "25000+",
@@ -3365,8 +3365,8 @@
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 77.0,
-            "percentage": 22.1
+            "count": 62.0,
+            "percentage": 18.7
         },
         {
             "distance_category": "25000+",
@@ -3379,8 +3379,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 0.0,
-            "percentage": 0.0
+            "count": 5.0,
+            "percentage": 1.5
         }
     ],
     "Luzern": [
@@ -3395,8 +3395,8 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 285.0,
-            "percentage": 8.5
+            "count": 485.0,
+            "percentage": 13.0
         },
         {
             "distance_category": "0-1000",
@@ -3409,8 +3409,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 359.0,
-            "percentage": 10.7
+            "count": 337.0,
+            "percentage": 9.0
         },
         {
             "distance_category": "0-1000",
@@ -3423,7 +3423,7 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 60.0,
+            "count": 67.0,
             "percentage": 1.8
         },
         {
@@ -3437,8 +3437,8 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 28.0,
-            "percentage": 0.8
+            "count": 82.0,
+            "percentage": 2.2
         },
         {
             "distance_category": "0-1000",
@@ -3451,8 +3451,8 @@
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 2632.0,
-            "percentage": 78.2
+            "count": 2754.0,
+            "percentage": 73.9
         },
         {
             "distance_category": "1000-5000",
@@ -3465,8 +3465,8 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 577.0,
-            "percentage": 13.8
+            "count": 472.0,
+            "percentage": 11.4
         },
         {
             "distance_category": "1000-5000",
@@ -3479,8 +3479,8 @@
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 1908.0,
-            "percentage": 45.7
+            "count": 1797.0,
+            "percentage": 43.5
         },
         {
             "distance_category": "1000-5000",
@@ -3493,8 +3493,8 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 389.0,
-            "percentage": 9.3
+            "count": 357.0,
+            "percentage": 8.6
         },
         {
             "distance_category": "1000-5000",
@@ -3507,8 +3507,8 @@
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 682.0,
-            "percentage": 16.3
+            "count": 740.0,
+            "percentage": 17.9
         },
         {
             "distance_category": "1000-5000",
@@ -3521,64 +3521,64 @@
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 616.0,
-            "percentage": 14.8
+            "count": 766.0,
+            "percentage": 18.5
         },
         {
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Microcensus",
             "count": 79.20841247835222,
-            "percentage": 4.5
+            "percentage": 4.4
         },
         {
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 158.0,
-            "percentage": 3.6
+            "count": 232.0,
+            "percentage": 5.4
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 1191.4937601739487,
+            "count": 1194.0998262475932,
             "percentage": 67.0
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 2758.0,
-            "percentage": 62.6
+            "count": 2595.0,
+            "percentage": 60.1
         },
         {
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Microcensus",
-            "count": 177.84309567460517,
+            "count": 178.79288384270254,
             "percentage": 10.0
         },
         {
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 610.0,
-            "percentage": 13.8
+            "count": 556.0,
+            "percentage": 12.9
         },
         {
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Microcensus",
             "count": 323.0028735525478,
-            "percentage": 18.2
+            "percentage": 18.1
         },
         {
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 852.0,
-            "percentage": 19.3
+            "count": 737.0,
+            "percentage": 17.1
         },
         {
             "distance_category": "5000-25000",
@@ -3591,8 +3591,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 29.0,
-            "percentage": 0.7
+            "count": 199.0,
+            "percentage": 4.6
         },
         {
             "distance_category": "25000+",
@@ -3605,8 +3605,8 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 3.0,
-            "percentage": 0.2
+            "count": 60.0,
+            "percentage": 4.1
         },
         {
             "distance_category": "25000+",
@@ -3619,8 +3619,8 @@
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 934.0,
-            "percentage": 61.1
+            "count": 840.0,
+            "percentage": 57.3
         },
         {
             "distance_category": "25000+",
@@ -3633,8 +3633,8 @@
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 233.0,
-            "percentage": 15.2
+            "count": 213.0,
+            "percentage": 14.5
         },
         {
             "distance_category": "25000+",
@@ -3647,8 +3647,8 @@
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 356.0,
-            "percentage": 23.3
+            "count": 323.0,
+            "percentage": 22.0
         },
         {
             "distance_category": "25000+",
@@ -3661,8 +3661,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 2.0,
-            "percentage": 0.1
+            "count": 31.0,
+            "percentage": 2.1
         }
     ],
     "Neuchatel": [
@@ -3677,8 +3677,8 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 147.0,
-            "percentage": 8.6
+            "count": 160.0,
+            "percentage": 11.4
         },
         {
             "distance_category": "0-1000",
@@ -3691,8 +3691,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 159.0,
-            "percentage": 9.3
+            "count": 143.0,
+            "percentage": 10.2
         },
         {
             "distance_category": "0-1000",
@@ -3705,8 +3705,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 45.0,
-            "percentage": 2.6
+            "count": 33.0,
+            "percentage": 2.4
         },
         {
             "distance_category": "0-1000",
@@ -3719,8 +3719,8 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 20.0,
-            "percentage": 1.2
+            "count": 41.0,
+            "percentage": 2.9
         },
         {
             "distance_category": "0-1000",
@@ -3733,8 +3733,8 @@
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 1346.0,
-            "percentage": 78.4
+            "count": 1025.0,
+            "percentage": 73.1
         },
         {
             "distance_category": "1000-5000",
@@ -3747,8 +3747,8 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 225.0,
-            "percentage": 11.4
+            "count": 187.0,
+            "percentage": 10.9
         },
         {
             "distance_category": "1000-5000",
@@ -3761,8 +3761,8 @@
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 874.0,
-            "percentage": 44.4
+            "count": 741.0,
+            "percentage": 43.3
         },
         {
             "distance_category": "1000-5000",
@@ -3775,8 +3775,8 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 179.0,
-            "percentage": 9.1
+            "count": 197.0,
+            "percentage": 11.5
         },
         {
             "distance_category": "1000-5000",
@@ -3789,8 +3789,8 @@
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 377.0,
-            "percentage": 19.2
+            "count": 299.0,
+            "percentage": 17.5
         },
         {
             "distance_category": "1000-5000",
@@ -3803,8 +3803,8 @@
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 312.0,
-            "percentage": 15.9
+            "count": 288.0,
+            "percentage": 16.8
         },
         {
             "distance_category": "5000-25000",
@@ -3817,8 +3817,8 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 46.0,
-            "percentage": 2.8
+            "count": 95.0,
+            "percentage": 6.1
         },
         {
             "distance_category": "5000-25000",
@@ -3831,8 +3831,8 @@
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 1009.0,
-            "percentage": 60.7
+            "count": 891.0,
+            "percentage": 57.2
         },
         {
             "distance_category": "5000-25000",
@@ -3845,8 +3845,8 @@
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 218.0,
-            "percentage": 13.1
+            "count": 205.0,
+            "percentage": 13.2
         },
         {
             "distance_category": "5000-25000",
@@ -3859,8 +3859,8 @@
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 377.0,
-            "percentage": 22.7
+            "count": 269.0,
+            "percentage": 17.3
         },
         {
             "distance_category": "5000-25000",
@@ -3873,8 +3873,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 13.0,
-            "percentage": 0.8
+            "count": 98.0,
+            "percentage": 6.3
         },
         {
             "distance_category": "25000+",
@@ -3887,22 +3887,22 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 2.0,
-            "percentage": 0.3
+            "count": 24.0,
+            "percentage": 4.3
         },
         {
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 146.0032533449307,
+            "count": 146.45792628557712,
             "percentage": 61.6
         },
         {
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 371.0,
-            "percentage": 59.3
+            "count": 288.0,
+            "percentage": 51.9
         },
         {
             "distance_category": "25000+",
@@ -3915,7 +3915,7 @@
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 90.0,
+            "count": 80.0,
             "percentage": 14.4
         },
         {
@@ -3923,14 +3923,14 @@
             "mode": "pt",
             "dataset": "Microcensus",
             "count": 44.71864363154958,
-            "percentage": 18.9
+            "percentage": 18.8
         },
         {
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 163.0,
-            "percentage": 26.0
+            "count": 158.0,
+            "percentage": 28.5
         },
         {
             "distance_category": "25000+",
@@ -3943,8 +3943,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 0.0,
-            "percentage": 0.0
+            "count": 5.0,
+            "percentage": 0.9
         }
     ],
     "Nidwalden": [
@@ -3959,8 +3959,8 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 41.0,
-            "percentage": 11.7
+            "count": 33.0,
+            "percentage": 11.3
         },
         {
             "distance_category": "0-1000",
@@ -3973,8 +3973,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 44.0,
-            "percentage": 12.6
+            "count": 31.0,
+            "percentage": 10.7
         },
         {
             "distance_category": "0-1000",
@@ -3987,8 +3987,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 7.0,
-            "percentage": 2.0
+            "count": 10.0,
+            "percentage": 3.4
         },
         {
             "distance_category": "0-1000",
@@ -4001,8 +4001,8 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 0.0,
-            "percentage": 0.0
+            "count": 4.0,
+            "percentage": 1.4
         },
         {
             "distance_category": "0-1000",
@@ -4015,8 +4015,8 @@
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 257.0,
-            "percentage": 73.6
+            "count": 213.0,
+            "percentage": 73.2
         },
         {
             "distance_category": "1000-5000",
@@ -4029,8 +4029,8 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 70.0,
-            "percentage": 17.9
+            "count": 37.0,
+            "percentage": 11.5
         },
         {
             "distance_category": "1000-5000",
@@ -4043,8 +4043,8 @@
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 181.0,
-            "percentage": 46.3
+            "count": 168.0,
+            "percentage": 52.3
         },
         {
             "distance_category": "1000-5000",
@@ -4057,8 +4057,8 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 36.0,
-            "percentage": 9.2
+            "count": 20.0,
+            "percentage": 6.2
         },
         {
             "distance_category": "1000-5000",
@@ -4071,8 +4071,8 @@
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 30.0,
-            "percentage": 7.7
+            "count": 43.0,
+            "percentage": 13.4
         },
         {
             "distance_category": "1000-5000",
@@ -4085,78 +4085,78 @@
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 74.0,
-            "percentage": 18.9
+            "count": 53.0,
+            "percentage": 16.5
         },
         {
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Microcensus",
             "count": 7.177112141666048,
-            "percentage": 3.7
+            "percentage": 3.8
         },
         {
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 24.0,
-            "percentage": 5.1
+            "count": 15.0,
+            "percentage": 3.4
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 130.27565474852352,
-            "percentage": 67.9
+            "count": 129.89909394742878,
+            "percentage": 68.2
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 316.0,
-            "percentage": 66.5
+            "count": 274.0,
+            "percentage": 62.0
         },
         {
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Microcensus",
-            "count": 27.94690438785533,
-            "percentage": 14.6
+            "count": 26.997116219757945,
+            "percentage": 14.2
         },
         {
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 64.0,
-            "percentage": 13.5
+            "count": 45.0,
+            "percentage": 10.2
         },
         {
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Microcensus",
             "count": 25.543411249815907,
-            "percentage": 13.3
+            "percentage": 13.4
         },
         {
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 70.0,
-            "percentage": 14.7
+            "count": 78.0,
+            "percentage": 17.6
         },
         {
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Microcensus",
             "count": 0.859148175161113,
-            "percentage": 0.4
+            "percentage": 0.5
         },
         {
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 1.0,
-            "percentage": 0.2
+            "count": 30.0,
+            "percentage": 6.8
         },
         {
             "distance_category": "25000+",
@@ -4169,8 +4169,8 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 0.0,
-            "percentage": 0.0
+            "count": 4.0,
+            "percentage": 2.6
         },
         {
             "distance_category": "25000+",
@@ -4183,8 +4183,8 @@
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 117.0,
-            "percentage": 61.3
+            "count": 101.0,
+            "percentage": 66.9
         },
         {
             "distance_category": "25000+",
@@ -4197,8 +4197,8 @@
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 45.0,
-            "percentage": 23.6
+            "count": 25.0,
+            "percentage": 16.6
         },
         {
             "distance_category": "25000+",
@@ -4211,8 +4211,8 @@
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 28.0,
-            "percentage": 14.7
+            "count": 20.0,
+            "percentage": 13.2
         },
         {
             "distance_category": "25000+",
@@ -4226,7 +4226,7 @@
             "mode": "walk",
             "dataset": "Synthetic",
             "count": 1.0,
-            "percentage": 0.5
+            "percentage": 0.7
         }
     ],
     "Obwalden": [
@@ -4241,8 +4241,8 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 14.0,
-            "percentage": 5.4
+            "count": 25.0,
+            "percentage": 7.9
         },
         {
             "distance_category": "0-1000",
@@ -4255,8 +4255,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 27.0,
-            "percentage": 10.5
+            "count": 46.0,
+            "percentage": 14.6
         },
         {
             "distance_category": "0-1000",
@@ -4269,8 +4269,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 13.0,
-            "percentage": 5.1
+            "count": 6.0,
+            "percentage": 1.9
         },
         {
             "distance_category": "0-1000",
@@ -4297,8 +4297,8 @@
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 203.0,
-            "percentage": 79.0
+            "count": 238.0,
+            "percentage": 75.6
         },
         {
             "distance_category": "1000-5000",
@@ -4311,8 +4311,8 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 33.0,
-            "percentage": 9.1
+            "count": 46.0,
+            "percentage": 12.2
         },
         {
             "distance_category": "1000-5000",
@@ -4325,8 +4325,8 @@
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 206.0,
-            "percentage": 57.1
+            "count": 202.0,
+            "percentage": 53.7
         },
         {
             "distance_category": "1000-5000",
@@ -4339,8 +4339,8 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 44.0,
-            "percentage": 12.2
+            "count": 29.0,
+            "percentage": 7.7
         },
         {
             "distance_category": "1000-5000",
@@ -4353,8 +4353,8 @@
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 14.0,
-            "percentage": 3.9
+            "count": 42.0,
+            "percentage": 11.2
         },
         {
             "distance_category": "1000-5000",
@@ -4367,8 +4367,8 @@
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 64.0,
-            "percentage": 17.7
+            "count": 57.0,
+            "percentage": 15.2
         },
         {
             "distance_category": "5000-25000",
@@ -4381,8 +4381,8 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 23.0,
-            "percentage": 6.0
+            "count": 5.0,
+            "percentage": 1.6
         },
         {
             "distance_category": "5000-25000",
@@ -4395,8 +4395,8 @@
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 267.0,
-            "percentage": 69.7
+            "count": 191.0,
+            "percentage": 59.9
         },
         {
             "distance_category": "5000-25000",
@@ -4409,8 +4409,8 @@
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 44.0,
-            "percentage": 11.5
+            "count": 49.0,
+            "percentage": 15.4
         },
         {
             "distance_category": "5000-25000",
@@ -4423,8 +4423,8 @@
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 45.0,
-            "percentage": 11.7
+            "count": 57.0,
+            "percentage": 17.9
         },
         {
             "distance_category": "5000-25000",
@@ -4437,8 +4437,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 4.0,
-            "percentage": 1.0
+            "count": 17.0,
+            "percentage": 5.3
         },
         {
             "distance_category": "25000+",
@@ -4451,8 +4451,8 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 0.0,
-            "percentage": 0.0
+            "count": 8.0,
+            "percentage": 4.6
         },
         {
             "distance_category": "25000+",
@@ -4465,8 +4465,8 @@
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 118.0,
-            "percentage": 70.7
+            "count": 107.0,
+            "percentage": 61.1
         },
         {
             "distance_category": "25000+",
@@ -4479,8 +4479,8 @@
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 30.0,
-            "percentage": 18.0
+            "count": 29.0,
+            "percentage": 16.6
         },
         {
             "distance_category": "25000+",
@@ -4493,8 +4493,8 @@
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 19.0,
-            "percentage": 11.4
+            "count": 30.0,
+            "percentage": 17.1
         },
         {
             "distance_category": "25000+",
@@ -4507,8 +4507,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 0.0,
-            "percentage": 0.0
+            "count": 1.0,
+            "percentage": 0.6
         }
     ],
     "Schaffhausen": [
@@ -4523,8 +4523,8 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 56.0,
-            "percentage": 8.3
+            "count": 87.0,
+            "percentage": 12.4
         },
         {
             "distance_category": "0-1000",
@@ -4537,8 +4537,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 43.0,
-            "percentage": 6.4
+            "count": 53.0,
+            "percentage": 7.6
         },
         {
             "distance_category": "0-1000",
@@ -4551,8 +4551,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 8.0,
-            "percentage": 1.2
+            "count": 22.0,
+            "percentage": 3.1
         },
         {
             "distance_category": "0-1000",
@@ -4565,8 +4565,8 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 11.0,
-            "percentage": 1.6
+            "count": 20.0,
+            "percentage": 2.9
         },
         {
             "distance_category": "0-1000",
@@ -4579,8 +4579,8 @@
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 557.0,
-            "percentage": 82.5
+            "count": 519.0,
+            "percentage": 74.0
         },
         {
             "distance_category": "1000-5000",
@@ -4593,8 +4593,8 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 99.0,
-            "percentage": 12.1
+            "count": 70.0,
+            "percentage": 7.0
         },
         {
             "distance_category": "1000-5000",
@@ -4607,8 +4607,8 @@
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 263.0,
-            "percentage": 32.0
+            "count": 425.0,
+            "percentage": 42.5
         },
         {
             "distance_category": "1000-5000",
@@ -4621,8 +4621,8 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 92.0,
-            "percentage": 11.2
+            "count": 105.0,
+            "percentage": 10.5
         },
         {
             "distance_category": "1000-5000",
@@ -4635,8 +4635,8 @@
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 200.0,
-            "percentage": 24.4
+            "count": 198.0,
+            "percentage": 19.8
         },
         {
             "distance_category": "1000-5000",
@@ -4649,7 +4649,7 @@
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 167.0,
+            "count": 203.0,
             "percentage": 20.3
         },
         {
@@ -4663,8 +4663,8 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 18.0,
-            "percentage": 2.8
+            "count": 35.0,
+            "percentage": 4.6
         },
         {
             "distance_category": "5000-25000",
@@ -4677,8 +4677,8 @@
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 356.0,
-            "percentage": 54.8
+            "count": 457.0,
+            "percentage": 59.7
         },
         {
             "distance_category": "5000-25000",
@@ -4691,8 +4691,8 @@
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 88.0,
-            "percentage": 13.5
+            "count": 95.0,
+            "percentage": 12.4
         },
         {
             "distance_category": "5000-25000",
@@ -4705,8 +4705,8 @@
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 183.0,
-            "percentage": 28.2
+            "count": 148.0,
+            "percentage": 19.3
         },
         {
             "distance_category": "5000-25000",
@@ -4719,8 +4719,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 5.0,
-            "percentage": 0.8
+            "count": 30.0,
+            "percentage": 3.9
         },
         {
             "distance_category": "25000+",
@@ -4733,8 +4733,8 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 2.0,
-            "percentage": 0.7
+            "count": 10.0,
+            "percentage": 3.7
         },
         {
             "distance_category": "25000+",
@@ -4747,8 +4747,8 @@
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 149.0,
-            "percentage": 53.6
+            "count": 141.0,
+            "percentage": 52.6
         },
         {
             "distance_category": "25000+",
@@ -4761,8 +4761,8 @@
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 44.0,
-            "percentage": 15.8
+            "count": 47.0,
+            "percentage": 17.5
         },
         {
             "distance_category": "25000+",
@@ -4775,8 +4775,8 @@
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 80.0,
-            "percentage": 28.8
+            "count": 64.0,
+            "percentage": 23.9
         },
         {
             "distance_category": "25000+",
@@ -4789,8 +4789,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 3.0,
-            "percentage": 1.1
+            "count": 6.0,
+            "percentage": 2.2
         }
     ],
     "Schwyz": [
@@ -4805,8 +4805,8 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 89.0,
-            "percentage": 6.6
+            "count": 125.0,
+            "percentage": 10.8
         },
         {
             "distance_category": "0-1000",
@@ -4819,8 +4819,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 243.0,
-            "percentage": 18.1
+            "count": 150.0,
+            "percentage": 12.9
         },
         {
             "distance_category": "0-1000",
@@ -4833,8 +4833,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 34.0,
-            "percentage": 2.5
+            "count": 23.0,
+            "percentage": 2.0
         },
         {
             "distance_category": "0-1000",
@@ -4847,8 +4847,8 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 8.0,
-            "percentage": 0.6
+            "count": 21.0,
+            "percentage": 1.8
         },
         {
             "distance_category": "0-1000",
@@ -4861,8 +4861,8 @@
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 971.0,
-            "percentage": 72.2
+            "count": 843.0,
+            "percentage": 72.5
         },
         {
             "distance_category": "1000-5000",
@@ -4875,8 +4875,8 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 159.0,
-            "percentage": 9.9
+            "count": 135.0,
+            "percentage": 9.4
         },
         {
             "distance_category": "1000-5000",
@@ -4889,8 +4889,8 @@
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 963.0,
-            "percentage": 59.7
+            "count": 785.0,
+            "percentage": 54.7
         },
         {
             "distance_category": "1000-5000",
@@ -4903,7 +4903,7 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 172.0,
+            "count": 153.0,
             "percentage": 10.7
         },
         {
@@ -4917,8 +4917,8 @@
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 133.0,
-            "percentage": 8.2
+            "count": 173.0,
+            "percentage": 12.1
         },
         {
             "distance_category": "1000-5000",
@@ -4931,8 +4931,8 @@
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 187.0,
-            "percentage": 11.6
+            "count": 189.0,
+            "percentage": 13.2
         },
         {
             "distance_category": "5000-25000",
@@ -4945,22 +4945,22 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 45.0,
-            "percentage": 2.9
+            "count": 89.0,
+            "percentage": 6.2
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 443.20843124206584,
-            "percentage": 67.6
+            "count": 444.53768625160836,
+            "percentage": 67.7
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 1034.0,
-            "percentage": 66.2
+            "count": 847.0,
+            "percentage": 59.4
         },
         {
             "distance_category": "5000-25000",
@@ -4973,21 +4973,21 @@
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 212.0,
-            "percentage": 13.6
+            "count": 172.0,
+            "percentage": 12.1
         },
         {
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Microcensus",
             "count": 93.45783556890837,
-            "percentage": 14.3
+            "percentage": 14.2
         },
         {
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 254.0,
+            "count": 233.0,
             "percentage": 16.3
         },
         {
@@ -5001,8 +5001,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 16.0,
-            "percentage": 1.0
+            "count": 86.0,
+            "percentage": 6.0
         },
         {
             "distance_category": "25000+",
@@ -5015,8 +5015,8 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 7.0,
-            "percentage": 0.9
+            "count": 19.0,
+            "percentage": 2.8
         },
         {
             "distance_category": "25000+",
@@ -5029,8 +5029,8 @@
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 483.0,
-            "percentage": 59.7
+            "count": 410.0,
+            "percentage": 60.0
         },
         {
             "distance_category": "25000+",
@@ -5043,8 +5043,8 @@
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 146.0,
-            "percentage": 18.0
+            "count": 115.0,
+            "percentage": 16.8
         },
         {
             "distance_category": "25000+",
@@ -5057,8 +5057,8 @@
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 167.0,
-            "percentage": 20.6
+            "count": 128.0,
+            "percentage": 18.7
         },
         {
             "distance_category": "25000+",
@@ -5071,8 +5071,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 6.0,
-            "percentage": 0.7
+            "count": 11.0,
+            "percentage": 1.6
         }
     ],
     "Solothurn": [
@@ -5087,7 +5087,7 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 240.0,
+            "count": 250.0,
             "percentage": 11.8
         },
         {
@@ -5101,8 +5101,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 219.0,
-            "percentage": 10.8
+            "count": 215.0,
+            "percentage": 10.1
         },
         {
             "distance_category": "0-1000",
@@ -5115,8 +5115,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 57.0,
-            "percentage": 2.8
+            "count": 71.0,
+            "percentage": 3.4
         },
         {
             "distance_category": "0-1000",
@@ -5129,8 +5129,8 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 7.0,
-            "percentage": 0.3
+            "count": 33.0,
+            "percentage": 1.6
         },
         {
             "distance_category": "0-1000",
@@ -5143,8 +5143,8 @@
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 1504.0,
-            "percentage": 74.2
+            "count": 1550.0,
+            "percentage": 73.1
         },
         {
             "distance_category": "1000-5000",
@@ -5157,22 +5157,22 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 339.0,
-            "percentage": 14.2
+            "count": 240.0,
+            "percentage": 9.4
         },
         {
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Microcensus",
             "count": 684.0841188680598,
-            "percentage": 49.9
+            "percentage": 49.8
         },
         {
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 1249.0,
-            "percentage": 52.2
+            "count": 1278.0,
+            "percentage": 50.2
         },
         {
             "distance_category": "1000-5000",
@@ -5185,8 +5185,8 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 220.0,
-            "percentage": 9.2
+            "count": 291.0,
+            "percentage": 11.4
         },
         {
             "distance_category": "1000-5000",
@@ -5199,22 +5199,22 @@
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 259.0,
-            "percentage": 10.8
+            "count": 382.0,
+            "percentage": 15.0
         },
         {
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Microcensus",
-            "count": 247.72998538744366,
-            "percentage": 18.1
+            "count": 249.74013433936958,
+            "percentage": 18.2
         },
         {
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 327.0,
-            "percentage": 13.7
+            "count": 356.0,
+            "percentage": 14.0
         },
         {
             "distance_category": "5000-25000",
@@ -5227,22 +5227,22 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 63.0,
-            "percentage": 2.4
+            "count": 103.0,
+            "percentage": 3.9
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 749.9860336585248,
-            "percentage": 69.0
+            "count": 748.5091689738416,
+            "percentage": 68.9
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 1669.0,
-            "percentage": 63.4
+            "count": 1650.0,
+            "percentage": 62.9
         },
         {
             "distance_category": "5000-25000",
@@ -5255,8 +5255,8 @@
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 374.0,
-            "percentage": 14.2
+            "count": 368.0,
+            "percentage": 14.0
         },
         {
             "distance_category": "5000-25000",
@@ -5269,22 +5269,22 @@
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 510.0,
-            "percentage": 19.4
+            "count": 380.0,
+            "percentage": 14.5
         },
         {
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Microcensus",
-            "count": 6.439803571142017,
-            "percentage": 0.6
+            "count": 7.598369315678957,
+            "percentage": 0.7
         },
         {
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 17.0,
-            "percentage": 0.6
+            "count": 121.0,
+            "percentage": 4.6
         },
         {
             "distance_category": "25000+",
@@ -5297,22 +5297,22 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 3.0,
-            "percentage": 0.3
+            "count": 46.0,
+            "percentage": 4.6
         },
         {
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Microcensus",
             "count": 213.70944772281885,
-            "percentage": 52.5
+            "percentage": 52.4
         },
         {
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 589.0,
-            "percentage": 56.4
+            "count": 540.0,
+            "percentage": 53.5
         },
         {
             "distance_category": "25000+",
@@ -5325,22 +5325,22 @@
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 162.0,
-            "percentage": 15.5
+            "count": 163.0,
+            "percentage": 16.2
         },
         {
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Microcensus",
-            "count": 130.9116748313237,
-            "percentage": 32.2
+            "count": 131.56046664652547,
+            "percentage": 32.3
         },
         {
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 289.0,
-            "percentage": 27.7
+            "count": 231.0,
+            "percentage": 22.9
         },
         {
             "distance_category": "25000+",
@@ -5353,8 +5353,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 2.0,
-            "percentage": 0.2
+            "count": 29.0,
+            "percentage": 2.9
         }
     ],
     "StGallen": [
@@ -5363,28 +5363,28 @@
             "mode": "bike",
             "dataset": "Microcensus",
             "count": 238.26301414558404,
-            "percentage": 12.6
+            "percentage": 12.7
         },
         {
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 240.0,
-            "percentage": 5.5
+            "count": 477.0,
+            "percentage": 10.9
         },
         {
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 290.5230426816035,
-            "percentage": 15.4
+            "count": 284.8202476679062,
+            "percentage": 15.2
         },
         {
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 707.0,
-            "percentage": 16.2
+            "count": 444.0,
+            "percentage": 10.1
         },
         {
             "distance_category": "0-1000",
@@ -5397,8 +5397,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 103.0,
-            "percentage": 2.4
+            "count": 117.0,
+            "percentage": 2.7
         },
         {
             "distance_category": "0-1000",
@@ -5411,22 +5411,22 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 29.0,
-            "percentage": 0.7
+            "count": 62.0,
+            "percentage": 1.4
         },
         {
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Microcensus",
             "count": 1286.0895356749045,
-            "percentage": 68.3
+            "percentage": 68.5
         },
         {
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 3290.0,
-            "percentage": 75.3
+            "count": 3288.0,
+            "percentage": 74.9
         },
         {
             "distance_category": "1000-5000",
@@ -5439,22 +5439,22 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 491.0,
+            "count": 508.0,
             "percentage": 9.5
         },
         {
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 1361.1443365249434,
-            "percentage": 44.8
+            "count": 1348.615940613115,
+            "percentage": 44.6
         },
         {
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 2847.0,
-            "percentage": 55.2
+            "count": 2685.0,
+            "percentage": 50.2
         },
         {
             "distance_category": "1000-5000",
@@ -5467,36 +5467,36 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 565.0,
-            "percentage": 10.9
+            "count": 559.0,
+            "percentage": 10.4
         },
         {
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Microcensus",
             "count": 289.7133737321874,
-            "percentage": 9.5
+            "percentage": 9.6
         },
         {
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 564.0,
-            "percentage": 10.9
+            "count": 831.0,
+            "percentage": 15.5
         },
         {
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Microcensus",
             "count": 550.8932829033605,
-            "percentage": 18.1
+            "percentage": 18.2
         },
         {
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 694.0,
-            "percentage": 13.4
+            "count": 770.0,
+            "percentage": 14.4
         },
         {
             "distance_category": "5000-25000",
@@ -5509,22 +5509,22 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 91.0,
-            "percentage": 1.9
+            "count": 264.0,
+            "percentage": 5.2
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 1492.1286868872958,
+            "count": 1491.8898877579202,
             "percentage": 66.2
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 3237.0,
-            "percentage": 66.7
+            "count": 3102.0,
+            "percentage": 60.6
         },
         {
             "distance_category": "5000-25000",
@@ -5537,8 +5537,8 @@
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 669.0,
-            "percentage": 13.8
+            "count": 703.0,
+            "percentage": 13.7
         },
         {
             "distance_category": "5000-25000",
@@ -5551,8 +5551,8 @@
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 809.0,
-            "percentage": 16.7
+            "count": 820.0,
+            "percentage": 16.0
         },
         {
             "distance_category": "5000-25000",
@@ -5565,8 +5565,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 49.0,
-            "percentage": 1.0
+            "count": 226.0,
+            "percentage": 4.4
         },
         {
             "distance_category": "25000+",
@@ -5579,8 +5579,8 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 10.0,
-            "percentage": 0.5
+            "count": 73.0,
+            "percentage": 4.3
         },
         {
             "distance_category": "25000+",
@@ -5593,8 +5593,8 @@
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 1095.0,
-            "percentage": 59.4
+            "count": 980.0,
+            "percentage": 57.2
         },
         {
             "distance_category": "25000+",
@@ -5607,22 +5607,22 @@
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 262.0,
-            "percentage": 14.2
+            "count": 248.0,
+            "percentage": 14.5
         },
         {
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Microcensus",
-            "count": 229.80902621882453,
-            "percentage": 28.4
+            "count": 231.1425670431187,
+            "percentage": 28.6
         },
         {
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 471.0,
-            "percentage": 25.6
+            "count": 382.0,
+            "percentage": 22.3
         },
         {
             "distance_category": "25000+",
@@ -5635,8 +5635,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 4.0,
-            "percentage": 0.2
+            "count": 30.0,
+            "percentage": 1.8
         }
     ],
     "Thurgau": [
@@ -5651,8 +5651,8 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 115.0,
-            "percentage": 5.7
+            "count": 290.0,
+            "percentage": 13.2
         },
         {
             "distance_category": "0-1000",
@@ -5665,8 +5665,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 426.0,
-            "percentage": 21.1
+            "count": 248.0,
+            "percentage": 11.3
         },
         {
             "distance_category": "0-1000",
@@ -5679,8 +5679,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 73.0,
-            "percentage": 3.6
+            "count": 92.0,
+            "percentage": 4.2
         },
         {
             "distance_category": "0-1000",
@@ -5693,8 +5693,8 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 3.0,
-            "percentage": 0.1
+            "count": 45.0,
+            "percentage": 2.1
         },
         {
             "distance_category": "0-1000",
@@ -5707,8 +5707,8 @@
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 1404.0,
-            "percentage": 69.5
+            "count": 1517.0,
+            "percentage": 69.2
         },
         {
             "distance_category": "1000-5000",
@@ -5721,7 +5721,7 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 215.0,
+            "count": 221.0,
             "percentage": 8.2
         },
         {
@@ -5735,8 +5735,8 @@
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 1656.0,
-            "percentage": 63.1
+            "count": 1533.0,
+            "percentage": 56.8
         },
         {
             "distance_category": "1000-5000",
@@ -5749,8 +5749,8 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 326.0,
-            "percentage": 12.4
+            "count": 363.0,
+            "percentage": 13.4
         },
         {
             "distance_category": "1000-5000",
@@ -5763,8 +5763,8 @@
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 148.0,
-            "percentage": 5.6
+            "count": 259.0,
+            "percentage": 9.6
         },
         {
             "distance_category": "1000-5000",
@@ -5777,8 +5777,8 @@
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 280.0,
-            "percentage": 10.7
+            "count": 323.0,
+            "percentage": 12.0
         },
         {
             "distance_category": "5000-25000",
@@ -5791,22 +5791,22 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 58.0,
-            "percentage": 2.2
+            "count": 81.0,
+            "percentage": 2.8
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 869.1285318679342,
+            "count": 869.1500401366917,
             "percentage": 75.2
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 1902.0,
-            "percentage": 71.1
+            "count": 1851.0,
+            "percentage": 65.0
         },
         {
             "distance_category": "5000-25000",
@@ -5819,8 +5819,8 @@
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 395.0,
-            "percentage": 14.8
+            "count": 426.0,
+            "percentage": 15.0
         },
         {
             "distance_category": "5000-25000",
@@ -5833,8 +5833,8 @@
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 302.0,
-            "percentage": 11.3
+            "count": 355.0,
+            "percentage": 12.5
         },
         {
             "distance_category": "5000-25000",
@@ -5847,8 +5847,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 19.0,
-            "percentage": 0.7
+            "count": 135.0,
+            "percentage": 4.7
         },
         {
             "distance_category": "25000+",
@@ -5861,8 +5861,8 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 3.0,
-            "percentage": 0.3
+            "count": 48.0,
+            "percentage": 5.0
         },
         {
             "distance_category": "25000+",
@@ -5875,8 +5875,8 @@
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 541.0,
-            "percentage": 60.0
+            "count": 515.0,
+            "percentage": 53.9
         },
         {
             "distance_category": "25000+",
@@ -5889,8 +5889,8 @@
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 134.0,
-            "percentage": 14.9
+            "count": 138.0,
+            "percentage": 14.5
         },
         {
             "distance_category": "25000+",
@@ -5903,8 +5903,8 @@
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 222.0,
-            "percentage": 24.6
+            "count": 239.0,
+            "percentage": 25.0
         },
         {
             "distance_category": "25000+",
@@ -5917,8 +5917,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 1.0,
-            "percentage": 0.1
+            "count": 15.0,
+            "percentage": 1.6
         }
     ],
     "Ticino": [
@@ -5933,8 +5933,8 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 292.0,
-            "percentage": 9.2
+            "count": 289.0,
+            "percentage": 10.2
         },
         {
             "distance_category": "0-1000",
@@ -5947,8 +5947,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 324.0,
-            "percentage": 10.2
+            "count": 249.0,
+            "percentage": 8.8
         },
         {
             "distance_category": "0-1000",
@@ -5961,8 +5961,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 70.0,
-            "percentage": 2.2
+            "count": 69.0,
+            "percentage": 2.4
         },
         {
             "distance_category": "0-1000",
@@ -5975,8 +5975,8 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 22.0,
-            "percentage": 0.7
+            "count": 68.0,
+            "percentage": 2.4
         },
         {
             "distance_category": "0-1000",
@@ -5989,8 +5989,8 @@
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 2480.0,
-            "percentage": 77.8
+            "count": 2151.0,
+            "percentage": 76.1
         },
         {
             "distance_category": "1000-5000",
@@ -6003,8 +6003,8 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 582.0,
-            "percentage": 14.5
+            "count": 331.0,
+            "percentage": 8.8
         },
         {
             "distance_category": "1000-5000",
@@ -6017,8 +6017,8 @@
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 1863.0,
-            "percentage": 46.5
+            "count": 1852.0,
+            "percentage": 49.3
         },
         {
             "distance_category": "1000-5000",
@@ -6031,8 +6031,8 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 401.0,
-            "percentage": 10.0
+            "count": 343.0,
+            "percentage": 9.1
         },
         {
             "distance_category": "1000-5000",
@@ -6045,8 +6045,8 @@
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 540.0,
-            "percentage": 13.5
+            "count": 693.0,
+            "percentage": 18.5
         },
         {
             "distance_category": "1000-5000",
@@ -6059,8 +6059,8 @@
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 623.0,
-            "percentage": 15.5
+            "count": 536.0,
+            "percentage": 14.3
         },
         {
             "distance_category": "5000-25000",
@@ -6073,8 +6073,8 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 109.0,
-            "percentage": 3.0
+            "count": 138.0,
+            "percentage": 4.1
         },
         {
             "distance_category": "5000-25000",
@@ -6087,8 +6087,8 @@
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 2324.0,
-            "percentage": 63.0
+            "count": 2070.0,
+            "percentage": 61.1
         },
         {
             "distance_category": "5000-25000",
@@ -6101,8 +6101,8 @@
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 506.0,
-            "percentage": 13.7
+            "count": 404.0,
+            "percentage": 11.9
         },
         {
             "distance_category": "5000-25000",
@@ -6115,8 +6115,8 @@
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 712.0,
-            "percentage": 19.3
+            "count": 627.0,
+            "percentage": 18.5
         },
         {
             "distance_category": "5000-25000",
@@ -6129,8 +6129,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 36.0,
-            "percentage": 1.0
+            "count": 150.0,
+            "percentage": 4.4
         },
         {
             "distance_category": "25000+",
@@ -6143,8 +6143,8 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 7.0,
-            "percentage": 0.6
+            "count": 34.0,
+            "percentage": 3.8
         },
         {
             "distance_category": "25000+",
@@ -6157,8 +6157,8 @@
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 691.0,
-            "percentage": 64.0
+            "count": 539.0,
+            "percentage": 60.5
         },
         {
             "distance_category": "25000+",
@@ -6171,8 +6171,8 @@
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 151.0,
-            "percentage": 14.0
+            "count": 138.0,
+            "percentage": 15.5
         },
         {
             "distance_category": "25000+",
@@ -6185,8 +6185,8 @@
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 228.0,
-            "percentage": 21.1
+            "count": 164.0,
+            "percentage": 18.4
         },
         {
             "distance_category": "25000+",
@@ -6199,8 +6199,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 3.0,
-            "percentage": 0.3
+            "count": 16.0,
+            "percentage": 1.8
         }
     ],
     "Uri": [
@@ -6215,8 +6215,8 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 15.0,
-            "percentage": 4.2
+            "count": 43.0,
+            "percentage": 16.0
         },
         {
             "distance_category": "0-1000",
@@ -6229,8 +6229,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 80.0,
-            "percentage": 22.3
+            "count": 29.0,
+            "percentage": 10.8
         },
         {
             "distance_category": "0-1000",
@@ -6243,8 +6243,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 7.0,
-            "percentage": 2.0
+            "count": 8.0,
+            "percentage": 3.0
         },
         {
             "distance_category": "0-1000",
@@ -6257,8 +6257,8 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 3.0,
-            "percentage": 0.8
+            "count": 4.0,
+            "percentage": 1.5
         },
         {
             "distance_category": "0-1000",
@@ -6271,8 +6271,8 @@
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 253.0,
-            "percentage": 70.7
+            "count": 185.0,
+            "percentage": 68.8
         },
         {
             "distance_category": "1000-5000",
@@ -6285,8 +6285,8 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 49.0,
-            "percentage": 11.4
+            "count": 54.0,
+            "percentage": 14.1
         },
         {
             "distance_category": "1000-5000",
@@ -6299,8 +6299,8 @@
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 214.0,
-            "percentage": 49.9
+            "count": 177.0,
+            "percentage": 46.3
         },
         {
             "distance_category": "1000-5000",
@@ -6313,8 +6313,8 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 52.0,
-            "percentage": 12.1
+            "count": 35.0,
+            "percentage": 9.2
         },
         {
             "distance_category": "1000-5000",
@@ -6327,8 +6327,8 @@
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 48.0,
-            "percentage": 11.2
+            "count": 54.0,
+            "percentage": 14.1
         },
         {
             "distance_category": "1000-5000",
@@ -6341,8 +6341,8 @@
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 66.0,
-            "percentage": 15.4
+            "count": 62.0,
+            "percentage": 16.2
         },
         {
             "distance_category": "5000-25000",
@@ -6355,8 +6355,8 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 32.0,
-            "percentage": 9.8
+            "count": 12.0,
+            "percentage": 4.5
         },
         {
             "distance_category": "5000-25000",
@@ -6369,8 +6369,8 @@
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 189.0,
-            "percentage": 58.2
+            "count": 157.0,
+            "percentage": 59.5
         },
         {
             "distance_category": "5000-25000",
@@ -6383,8 +6383,8 @@
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 44.0,
-            "percentage": 13.5
+            "count": 45.0,
+            "percentage": 17.0
         },
         {
             "distance_category": "5000-25000",
@@ -6397,8 +6397,8 @@
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 53.0,
-            "percentage": 16.3
+            "count": 37.0,
+            "percentage": 14.0
         },
         {
             "distance_category": "5000-25000",
@@ -6411,8 +6411,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 7.0,
-            "percentage": 2.2
+            "count": 13.0,
+            "percentage": 4.9
         },
         {
             "distance_category": "25000+",
@@ -6425,50 +6425,50 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 2.0,
-            "percentage": 1.2
+            "count": 6.0,
+            "percentage": 3.8
         },
         {
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 41.45322947151983,
-            "percentage": 62.9
+            "count": 42.39319013371429,
+            "percentage": 63.4
         },
         {
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 86.0,
-            "percentage": 50.0
+            "count": 89.0,
+            "percentage": 56.0
         },
         {
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Microcensus",
             "count": 11.593274661086165,
-            "percentage": 17.6
+            "percentage": 17.3
         },
         {
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 37.0,
-            "percentage": 21.5
+            "count": 29.0,
+            "percentage": 18.2
         },
         {
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Microcensus",
             "count": 12.213203856988024,
-            "percentage": 18.5
+            "percentage": 18.3
         },
         {
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 47.0,
-            "percentage": 27.3
+            "count": 33.0,
+            "percentage": 20.8
         },
         {
             "distance_category": "25000+",
@@ -6481,8 +6481,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 0.0,
-            "percentage": 0.0
+            "count": 2.0,
+            "percentage": 1.3
         }
     ],
     "Valais": [
@@ -6497,8 +6497,8 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 156.0,
-            "percentage": 5.6
+            "count": 358.0,
+            "percentage": 12.7
         },
         {
             "distance_category": "0-1000",
@@ -6511,8 +6511,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 547.0,
-            "percentage": 19.6
+            "count": 352.0,
+            "percentage": 12.5
         },
         {
             "distance_category": "0-1000",
@@ -6525,8 +6525,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 54.0,
-            "percentage": 1.9
+            "count": 90.0,
+            "percentage": 3.2
         },
         {
             "distance_category": "0-1000",
@@ -6539,8 +6539,8 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 11.0,
-            "percentage": 0.4
+            "count": 53.0,
+            "percentage": 1.9
         },
         {
             "distance_category": "0-1000",
@@ -6553,8 +6553,8 @@
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 2029.0,
-            "percentage": 72.5
+            "count": 1973.0,
+            "percentage": 69.8
         },
         {
             "distance_category": "1000-5000",
@@ -6567,8 +6567,8 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 379.0,
-            "percentage": 12.1
+            "count": 350.0,
+            "percentage": 11.0
         },
         {
             "distance_category": "1000-5000",
@@ -6581,8 +6581,8 @@
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 1735.0,
-            "percentage": 55.2
+            "count": 1584.0,
+            "percentage": 49.9
         },
         {
             "distance_category": "1000-5000",
@@ -6595,8 +6595,8 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 322.0,
-            "percentage": 10.2
+            "count": 295.0,
+            "percentage": 9.3
         },
         {
             "distance_category": "1000-5000",
@@ -6609,8 +6609,8 @@
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 199.0,
-            "percentage": 6.3
+            "count": 452.0,
+            "percentage": 14.2
         },
         {
             "distance_category": "1000-5000",
@@ -6623,8 +6623,8 @@
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 507.0,
-            "percentage": 16.1
+            "count": 494.0,
+            "percentage": 15.6
         },
         {
             "distance_category": "5000-25000",
@@ -6637,50 +6637,50 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 127.0,
-            "percentage": 3.5
+            "count": 149.0,
+            "percentage": 4.0
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 908.3166261619373,
-            "percentage": 69.7
+            "count": 916.56611845592,
+            "percentage": 69.9
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 2421.0,
-            "percentage": 66.9
+            "count": 2368.0,
+            "percentage": 63.8
         },
         {
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Microcensus",
             "count": 217.81268963457663,
-            "percentage": 16.7
+            "percentage": 16.6
         },
         {
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 540.0,
-            "percentage": 14.9
+            "count": 502.0,
+            "percentage": 13.5
         },
         {
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Microcensus",
             "count": 144.46265797722086,
-            "percentage": 11.1
+            "percentage": 11.0
         },
         {
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 493.0,
-            "percentage": 13.6
+            "count": 507.0,
+            "percentage": 13.7
         },
         {
             "distance_category": "5000-25000",
@@ -6693,8 +6693,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 39.0,
-            "percentage": 1.1
+            "count": 186.0,
+            "percentage": 5.0
         },
         {
             "distance_category": "25000+",
@@ -6707,8 +6707,8 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 25.0,
-            "percentage": 1.8
+            "count": 52.0,
+            "percentage": 4.0
         },
         {
             "distance_category": "25000+",
@@ -6721,8 +6721,8 @@
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 809.0,
-            "percentage": 58.0
+            "count": 714.0,
+            "percentage": 55.6
         },
         {
             "distance_category": "25000+",
@@ -6736,7 +6736,7 @@
             "mode": "car_passenger",
             "dataset": "Synthetic",
             "count": 227.0,
-            "percentage": 16.3
+            "percentage": 17.7
         },
         {
             "distance_category": "25000+",
@@ -6749,8 +6749,8 @@
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 325.0,
-            "percentage": 23.3
+            "count": 250.0,
+            "percentage": 19.5
         },
         {
             "distance_category": "25000+",
@@ -6763,8 +6763,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 8.0,
-            "percentage": 0.6
+            "count": 41.0,
+            "percentage": 3.2
         }
     ],
     "Vaud": [
@@ -6779,8 +6779,8 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 569.0,
-            "percentage": 8.2
+            "count": 815.0,
+            "percentage": 11.5
         },
         {
             "distance_category": "0-1000",
@@ -6793,8 +6793,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 630.0,
-            "percentage": 9.1
+            "count": 597.0,
+            "percentage": 8.4
         },
         {
             "distance_category": "0-1000",
@@ -6807,8 +6807,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 154.0,
-            "percentage": 2.2
+            "count": 171.0,
+            "percentage": 2.4
         },
         {
             "distance_category": "0-1000",
@@ -6821,8 +6821,8 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 52.0,
-            "percentage": 0.8
+            "count": 132.0,
+            "percentage": 1.9
         },
         {
             "distance_category": "0-1000",
@@ -6835,8 +6835,8 @@
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 5514.0,
-            "percentage": 79.7
+            "count": 5393.0,
+            "percentage": 75.9
         },
         {
             "distance_category": "1000-5000",
@@ -6849,8 +6849,8 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 1054.0,
-            "percentage": 12.4
+            "count": 830.0,
+            "percentage": 10.1
         },
         {
             "distance_category": "1000-5000",
@@ -6863,8 +6863,8 @@
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 3902.0,
-            "percentage": 46.1
+            "count": 3501.0,
+            "percentage": 42.5
         },
         {
             "distance_category": "1000-5000",
@@ -6877,8 +6877,8 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 867.0,
-            "percentage": 10.2
+            "count": 860.0,
+            "percentage": 10.4
         },
         {
             "distance_category": "1000-5000",
@@ -6891,8 +6891,8 @@
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 1335.0,
-            "percentage": 15.8
+            "count": 1612.0,
+            "percentage": 19.6
         },
         {
             "distance_category": "1000-5000",
@@ -6905,8 +6905,8 @@
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 1312.0,
-            "percentage": 15.5
+            "count": 1429.0,
+            "percentage": 17.4
         },
         {
             "distance_category": "5000-25000",
@@ -6919,36 +6919,36 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 193.0,
-            "percentage": 2.5
+            "count": 403.0,
+            "percentage": 5.3
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 2184.856567112087,
-            "percentage": 66.0
+            "count": 2183.5100654917446,
+            "percentage": 65.9
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 5009.0,
-            "percentage": 63.7
+            "count": 4286.0,
+            "percentage": 56.5
         },
         {
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Microcensus",
-            "count": 450.7859236581444,
+            "count": 451.4600899822047,
             "percentage": 13.6
         },
         {
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 1015.0,
-            "percentage": 12.9
+            "count": 1035.0,
+            "percentage": 13.6
         },
         {
             "distance_category": "5000-25000",
@@ -6961,8 +6961,8 @@
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 1562.0,
-            "percentage": 19.9
+            "count": 1460.0,
+            "percentage": 19.2
         },
         {
             "distance_category": "5000-25000",
@@ -6975,8 +6975,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 80.0,
-            "percentage": 1.0
+            "count": 402.0,
+            "percentage": 5.3
         },
         {
             "distance_category": "25000+",
@@ -6989,8 +6989,8 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 35.0,
-            "percentage": 1.2
+            "count": 168.0,
+            "percentage": 5.8
         },
         {
             "distance_category": "25000+",
@@ -7003,8 +7003,8 @@
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 1817.0,
-            "percentage": 60.6
+            "count": 1648.0,
+            "percentage": 56.4
         },
         {
             "distance_category": "25000+",
@@ -7017,8 +7017,8 @@
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 382.0,
-            "percentage": 12.8
+            "count": 323.0,
+            "percentage": 11.1
         },
         {
             "distance_category": "25000+",
@@ -7031,8 +7031,8 @@
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 750.0,
-            "percentage": 25.0
+            "count": 701.0,
+            "percentage": 24.0
         },
         {
             "distance_category": "25000+",
@@ -7045,8 +7045,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 12.0,
-            "percentage": 0.4
+            "count": 80.0,
+            "percentage": 2.7
         }
     ],
     "Zug": [
@@ -7061,8 +7061,8 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 91.0,
-            "percentage": 8.4
+            "count": 122.0,
+            "percentage": 9.4
         },
         {
             "distance_category": "0-1000",
@@ -7075,8 +7075,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 84.0,
-            "percentage": 7.8
+            "count": 85.0,
+            "percentage": 6.6
         },
         {
             "distance_category": "0-1000",
@@ -7089,8 +7089,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 18.0,
-            "percentage": 1.7
+            "count": 34.0,
+            "percentage": 2.6
         },
         {
             "distance_category": "0-1000",
@@ -7103,8 +7103,8 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 9.0,
-            "percentage": 0.8
+            "count": 31.0,
+            "percentage": 2.4
         },
         {
             "distance_category": "0-1000",
@@ -7117,8 +7117,8 @@
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 877.0,
-            "percentage": 81.3
+            "count": 1024.0,
+            "percentage": 79.0
         },
         {
             "distance_category": "1000-5000",
@@ -7131,8 +7131,8 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 173.0,
-            "percentage": 14.2
+            "count": 201.0,
+            "percentage": 13.7
         },
         {
             "distance_category": "1000-5000",
@@ -7145,8 +7145,8 @@
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 468.0,
-            "percentage": 38.5
+            "count": 587.0,
+            "percentage": 40.0
         },
         {
             "distance_category": "1000-5000",
@@ -7159,8 +7159,8 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 133.0,
-            "percentage": 10.9
+            "count": 122.0,
+            "percentage": 8.3
         },
         {
             "distance_category": "1000-5000",
@@ -7173,8 +7173,8 @@
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 250.0,
-            "percentage": 20.5
+            "count": 276.0,
+            "percentage": 18.8
         },
         {
             "distance_category": "1000-5000",
@@ -7187,64 +7187,64 @@
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 193.0,
-            "percentage": 15.9
+            "count": 283.0,
+            "percentage": 19.3
         },
         {
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Microcensus",
             "count": 27.977678867059936,
-            "percentage": 5.4
+            "percentage": 5.5
         },
         {
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 49.0,
-            "percentage": 3.7
+            "count": 77.0,
+            "percentage": 6.1
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 338.1474962057622,
-            "percentage": 65.3
+            "count": 332.97480854566817,
+            "percentage": 64.9
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 747.0,
-            "percentage": 57.0
+            "count": 749.0,
+            "percentage": 58.9
         },
         {
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Microcensus",
             "count": 52.38462137854301,
-            "percentage": 10.1
+            "percentage": 10.2
         },
         {
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 166.0,
-            "percentage": 12.7
+            "count": 123.0,
+            "percentage": 9.7
         },
         {
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Microcensus",
             "count": 95.48817893953816,
-            "percentage": 18.4
+            "percentage": 18.6
         },
         {
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 344.0,
-            "percentage": 26.2
+            "count": 240.0,
+            "percentage": 18.9
         },
         {
             "distance_category": "5000-25000",
@@ -7257,8 +7257,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 5.0,
-            "percentage": 0.4
+            "count": 82.0,
+            "percentage": 6.5
         },
         {
             "distance_category": "25000+",
@@ -7271,8 +7271,8 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 8.0,
-            "percentage": 1.2
+            "count": 35.0,
+            "percentage": 5.6
         },
         {
             "distance_category": "25000+",
@@ -7285,8 +7285,8 @@
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 338.0,
-            "percentage": 52.6
+            "count": 310.0,
+            "percentage": 50.0
         },
         {
             "distance_category": "25000+",
@@ -7299,8 +7299,8 @@
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 90.0,
-            "percentage": 14.0
+            "count": 94.0,
+            "percentage": 15.2
         },
         {
             "distance_category": "25000+",
@@ -7313,8 +7313,8 @@
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 207.0,
-            "percentage": 32.2
+            "count": 169.0,
+            "percentage": 27.3
         },
         {
             "distance_category": "25000+",
@@ -7327,8 +7327,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 0.0,
-            "percentage": 0.0
+            "count": 12.0,
+            "percentage": 1.9
         }
     ],
     "Zurich": [
@@ -7343,8 +7343,8 @@
             "distance_category": "0-1000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 1436.0,
-            "percentage": 10.1
+            "count": 1742.0,
+            "percentage": 11.7
         },
         {
             "distance_category": "0-1000",
@@ -7357,8 +7357,8 @@
             "distance_category": "0-1000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 750.0,
-            "percentage": 5.3
+            "count": 867.0,
+            "percentage": 5.8
         },
         {
             "distance_category": "0-1000",
@@ -7371,8 +7371,8 @@
             "distance_category": "0-1000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 209.0,
-            "percentage": 1.5
+            "count": 288.0,
+            "percentage": 1.9
         },
         {
             "distance_category": "0-1000",
@@ -7385,8 +7385,8 @@
             "distance_category": "0-1000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 130.0,
-            "percentage": 0.9
+            "count": 277.0,
+            "percentage": 1.9
         },
         {
             "distance_category": "0-1000",
@@ -7399,8 +7399,8 @@
             "distance_category": "0-1000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 11746.0,
-            "percentage": 82.3
+            "count": 11761.0,
+            "percentage": 78.7
         },
         {
             "distance_category": "1000-5000",
@@ -7413,8 +7413,8 @@
             "distance_category": "1000-5000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 2268.0,
-            "percentage": 15.9
+            "count": 1927.0,
+            "percentage": 12.3
         },
         {
             "distance_category": "1000-5000",
@@ -7427,8 +7427,8 @@
             "distance_category": "1000-5000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 4749.0,
-            "percentage": 33.3
+            "count": 5957.0,
+            "percentage": 38.0
         },
         {
             "distance_category": "1000-5000",
@@ -7441,8 +7441,8 @@
             "distance_category": "1000-5000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 1342.0,
-            "percentage": 9.4
+            "count": 1435.0,
+            "percentage": 9.2
         },
         {
             "distance_category": "1000-5000",
@@ -7455,8 +7455,8 @@
             "distance_category": "1000-5000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 3325.0,
-            "percentage": 23.3
+            "count": 3492.0,
+            "percentage": 22.3
         },
         {
             "distance_category": "1000-5000",
@@ -7469,8 +7469,8 @@
             "distance_category": "1000-5000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 2584.0,
-            "percentage": 18.1
+            "count": 2851.0,
+            "percentage": 18.2
         },
         {
             "distance_category": "5000-25000",
@@ -7483,21 +7483,21 @@
             "distance_category": "5000-25000",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 467.0,
-            "percentage": 2.8
+            "count": 1071.0,
+            "percentage": 6.7
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Microcensus",
-            "count": 3413.0647472936043,
+            "count": 3414.678674671606,
             "percentage": 50.4
         },
         {
             "distance_category": "5000-25000",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 8797.0,
+            "count": 8448.0,
             "percentage": 52.9
         },
         {
@@ -7511,8 +7511,8 @@
             "distance_category": "5000-25000",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 2013.0,
-            "percentage": 12.1
+            "count": 1855.0,
+            "percentage": 11.6
         },
         {
             "distance_category": "5000-25000",
@@ -7525,8 +7525,8 @@
             "distance_category": "5000-25000",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 5246.0,
-            "percentage": 31.6
+            "count": 3724.0,
+            "percentage": 23.3
         },
         {
             "distance_category": "5000-25000",
@@ -7539,8 +7539,8 @@
             "distance_category": "5000-25000",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 97.0,
-            "percentage": 0.6
+            "count": 884.0,
+            "percentage": 5.5
         },
         {
             "distance_category": "25000+",
@@ -7553,8 +7553,8 @@
             "distance_category": "25000+",
             "mode": "bike",
             "dataset": "Synthetic",
-            "count": 25.0,
-            "percentage": 0.4
+            "count": 217.0,
+            "percentage": 4.7
         },
         {
             "distance_category": "25000+",
@@ -7567,8 +7567,8 @@
             "distance_category": "25000+",
             "mode": "car",
             "dataset": "Synthetic",
-            "count": 3106.0,
-            "percentage": 54.0
+            "count": 2378.0,
+            "percentage": 51.2
         },
         {
             "distance_category": "25000+",
@@ -7581,8 +7581,8 @@
             "distance_category": "25000+",
             "mode": "car_passenger",
             "dataset": "Synthetic",
-            "count": 743.0,
-            "percentage": 12.9
+            "count": 616.0,
+            "percentage": 13.3
         },
         {
             "distance_category": "25000+",
@@ -7595,8 +7595,8 @@
             "distance_category": "25000+",
             "mode": "pt",
             "dataset": "Synthetic",
-            "count": 1868.0,
-            "percentage": 32.5
+            "count": 1341.0,
+            "percentage": 28.9
         },
         {
             "distance_category": "25000+",
@@ -7609,8 +7609,8 @@
             "distance_category": "25000+",
             "mode": "walk",
             "dataset": "Synthetic",
-            "count": 6.0,
-            "percentage": 0.1
+            "count": 96.0,
+            "percentage": 2.1
         }
     ]
 }

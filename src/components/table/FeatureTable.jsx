@@ -76,16 +76,14 @@ export const buildRowsFromGeojson = (geojson, selectedGraph = null) => {
   geojson.features.forEach((feature, featureIndex) => {
     const props = feature?.properties || {};
     
-    // handle per_id dictionary (split one feature into multiple rows per direction)
-    let per = props.per_id;
-    if (typeof per === "string" && per.startsWith("{")) {
-      try {
-        per = JSON.parse(per);
-      } catch {
-        per = {};
-      }
-    }
-    if (!per || typeof per !== "object" || Array.isArray(per)) per = {};
+    // Parse pipe-separated strings into arrays
+    const keys = (props.per_id_keys || "").split("|").filter(Boolean);
+    const capacities = (props.per_id_capacities || "").split("|").filter(Boolean);
+    const lengths = (props.per_id_lengths || "").split("|").filter(Boolean);
+    const freespeeds = (props.per_id_freespeeds || "").split("|").filter(Boolean);
+    const daily_avgs = (props.per_id_daily_avgs || "").split("|").filter(Boolean);
+    const arrows = (props.per_id_arrows || "").split("|").filter(Boolean);
+    const directions = (props.per_id_directions || "").split("|").filter(Boolean);
     
     // allocate a tableId for rowKey generation
     const tableId = Number(featureIndex);
@@ -105,20 +103,35 @@ export const buildRowsFromGeojson = (geojson, selectedGraph = null) => {
       return Math.round(value * factor) / factor;
     };
     
-    
-    const pushRow = (directionId, data = {}) => {
-      const length = num(data.length);
-      const freeSpeed = toKmh(data.freespeed);
-      const capacity = num(data.capacity);
-      const totalVol = num(data.daily_avg_volume);
+    const pushRow = (index) => {
+      const directionId = keys[index] || null;
+      const length = num(lengths[index]);
+      const freeSpeed = toKmh(freespeeds[index]);
+      const capacity = num(capacities[index]);
+      const arrow = arrows[index] || null;
+      const direction = directions[index] || null;
       
-      // Only calculate filtered volume for Volumes module
+      // For TransitVolumes, use directional total volumes; otherwise use daily_avgs
+      let totalVol;
+      if (selectedGraph === 'TransitVolumes') {
+        if (arrow === '←') {
+          totalVol = props.total_left;
+        } else if (arrow === '→') {
+          totalVol = props.total_right;
+        } else {
+          totalVol = props.total_volume; // fallback to combined if no arrow
+        }
+      } else {
+        totalVol = num(daily_avgs[index]);
+      }
+      
+      // Calculate filtered volume for Volumes and TransitVolumes modules
       let filteredVolume = null;
-      if (selectedGraph === 'Volumes') {
-        if (data.arrow === '←') {
+      if (selectedGraph === 'Volumes' || selectedGraph === 'TransitVolumes') {
+        if (arrow === '←') {
           // Left arrow = left_sum
           filteredVolume = num(props.left_sum);
-        } else if (data.arrow === '→') {
+        } else if (arrow === '→') {
           // Right arrow = right_sum
           filteredVolume = num(props.right_sum);
         }
@@ -126,12 +139,10 @@ export const buildRowsFromGeojson = (geojson, selectedGraph = null) => {
       
       // Calculate total capacity for the feature (sum of all directions)
       let totalCapacity = 0;
-      if (per && typeof per === 'object') {
-        for (const [, d] of Object.entries(per)) {
-          const cap = num(d?.capacity);
-          if (cap !== null) totalCapacity += cap;
-        }
-      }
+      capacities.forEach(cap => {
+        const c = num(cap);
+        if (c !== null) totalCapacity += c;
+      });
       
       rows.push({
         rowKey: `${tableId}-${directionId ?? "all"}-${rows.length}`,
@@ -147,12 +158,18 @@ export const buildRowsFromGeojson = (geojson, selectedGraph = null) => {
         coords,
         feature,
         featureProps: props,
+        arrow,
+        direction
       });
     };
     
-    const entries = Object.entries(per);
-    if (entries.length) entries.forEach(([dir, d]) => pushRow(dir, d || {}));
-    else pushRow(null, {});
+    // Create a row for each direction
+    if (keys.length > 0) {
+      keys.forEach((_, index) => pushRow(index));
+    } else {
+      // Fallback if no per_id data
+      pushRow(0);
+    }
   });
   return rows;
 };
@@ -171,7 +188,7 @@ const FeatureTable = forwardRef(
       height = 360, // used for Scroller
       useScroller = true, // true: virtual scroll; false: regular paging
       pageLength = 25,
-      maxRows = 150000,
+      maxRows = 300000,
       loading = false,
       setTableFilterQuery,
       showMajorRoadsOnly = false // filter by capacity > 1200
@@ -235,18 +252,17 @@ const FeatureTable = forwardRef(
     // Single source of truth for columns (used by DT and the toolbar + exporter)
     const columnDefs = useMemo(
       () => {
-        console.log('columnDefs - selectedGraph:', selectedGraph);
         
         const cols = [
           { key: "directionId", title: "Link ID" },
           { key: "length", title: "Length [m]" },        
           { key: "freeSpeed", title: "Speed [km/h]" },   
-          { key: "capacity", title: "Capacity" },        
+          { key: "capacity", title: "Capacity" },
           { key: "totalVol", title: "Total Daily Volume" },
         ];
         
-        // Only add filtered volume column for Volumes module
-        if (selectedGraph === 'Volumes') {
+        // Add filtered volume column for Volumes and TransitVolumes modules
+        if (selectedGraph === 'Volumes' || selectedGraph === 'TransitVolumes') {
           cols.push({ key: "filteredVolume", title: "Filtered Volume" });
         }
         
@@ -282,8 +298,8 @@ const FeatureTable = forwardRef(
           { data: "totalVol", title: "Total Daily Volume" },
         ];
         
-        // Only add filtered volume column for Volumes module
-        if (selectedGraph === 'Volumes') {
+        // Add filtered volume column for Volumes and TransitVolumes modules
+        if (selectedGraph === 'Volumes' || selectedGraph === 'TransitVolumes') {
           cols.push({ data: "filteredVolume", title: "Filtered Volume" });
         }
         
@@ -488,7 +504,19 @@ const FeatureTable = forwardRef(
       
       // Add safety check to prevent operations on destroyed table
       try {
-        if (!instance.settings || !instance.settings()[0]) return;
+        const settings = instance.settings();
+        if (!settings || !settings[0]) return;
+        
+        // Check if table is currently processing - if so, skip this search
+        const api = instance.settings()[0];
+        if (api && api.bProcessing) {
+          return;
+        }
+        
+        // Clear any comparison filters from previous searches
+        $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(
+          fn => fn._isComparisonFilter !== true
+        );
         
         // Clear previous searches
         instance.columns().every(function () {
@@ -502,6 +530,59 @@ const FeatureTable = forwardRef(
           return;
         }
         
+        // Determine column info
+        const selectedTitle =
+        Number.isInteger(searchCol) && searchCol >= 0
+        ? (dtColumns[searchCol]?.title || "").toLowerCase()
+        : "";
+        
+        // Only allow comparison operators for specific numeric columns (not "All columns")
+        const isNumericCol = searchCol >= 0 && ["capacity", "length", "freeSpeed", "totalVol", "filteredVolume"].includes(
+          dtColumns[searchCol]?.data || ""
+        );
+        
+        // Check for comparison operators (>, <, >=, <=) in numeric columns
+        if (isNumericCol && /^(>=?|<=?)\s*[0-9.,]+$/.test(raw)) {
+          const match = raw.match(/^(>=?|<=?)\s*([0-9.,]+)$/);
+          if (match) {
+            const operator = match[1];
+            const value = parseFloat(match[2].replace(/,/g, ''));
+            
+            if (!isNaN(value)) {
+              // Clear any existing custom filters first
+              $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(
+                fn => fn._isComparisonFilter !== true
+              );
+              
+              // Use custom filter function for comparisons
+              const filterFn = function(settings, data, dataIndex) {
+                if (settings.nTable !== instance.table().node()) return true;
+                
+                // Safety check: ensure the row data exists
+                if (!data || !settings.aoData || !settings.aoData[dataIndex]) return false;
+                
+                const cellValue = parseFloat(data[searchCol]);
+                if (isNaN(cellValue)) return false;
+                
+                switch(operator) {
+                  case '>': return cellValue > value;
+                  case '<': return cellValue < value;
+                  case '>=': return cellValue >= value;
+                  case '<=': return cellValue <= value;
+                  default: return true;
+                }
+              };
+              filterFn._isComparisonFilter = true;
+              
+              $.fn.dataTable.ext.search.push(filterFn);
+              instance.draw(false);
+              
+              return;
+            }
+          }
+        }
+        
+        // Original logic for non-comparison searches
         // Split on comma or semicolon, trim, drop empties
         const terms = raw
         .split(/[;,]+/)
@@ -514,10 +595,6 @@ const FeatureTable = forwardRef(
         
         // Build regex pattern:
         // For numeric columns, search against raw values, not formatted ones
-        const selectedTitle =
-        Number.isInteger(searchCol) && searchCol >= 0
-        ? (dtColumns[searchCol]?.title || "").toLowerCase()
-        : "";
         
         // Exact match logic:
         // - Link ID column: exact match
@@ -525,11 +602,6 @@ const FeatureTable = forwardRef(
         // - Modes column: contains match
         // - ALL COLUMNS search: contains match
         const colIsExact = Number.isInteger(searchCol) && searchCol >= 0 && selectedTitle !== "modes";
-        
-        // For numeric searches, don't escape regex - allow direct numeric matching
-        const isNumericCol = ["capacity", "length", "freespeed", "totalvol", "filteredvolume"].includes(
-          dtColumns[searchCol]?.data || ""
-        );
         
         let pattern;
         if (isNumericCol) {

@@ -29,23 +29,32 @@ export default function useNetworkLayers({
   
   // recompute per-id volumes for a feature based on linkVolumeData + timeRange
   const recomputeVolumesForFeature = (f, startHour, endHour) => {
-    const perId = f.properties?.per_id || {};
+    const props = f.properties || {};
+    
+    // Parse pipe-separated strings
+    const keys = (props.per_id_keys || "").split("|").filter(Boolean);
+    const arrows = (props.per_id_arrows || "").split("|").filter(Boolean);
+    const daily_avgs = (props.per_id_daily_avgs || "").split("|").filter(Boolean);
+    
     let left = 0, right = 0;
     
-    for (const [id, obj] of Object.entries(perId)) {
+    keys.forEach((id, index) => {
       const hourly = linkVolumeData?.[id.toString()];
       let s = 0;
-      if (hourly) {
+      if (hourly && Array.isArray(hourly) && hourly.length === 24) {
+        // Sum volumes from startHour to endHour using array indexing
         for (let h = startHour; h < endHour; h++) {
-          const key = `HRS${h}-${h + 1}avg`;
-          s += hourly[key] ?? 0;
+          s += hourly[h] ?? 0;
         }
       } else {
-        s = Number(obj?.daily_avg_volume ?? 0);
+        // Fallback to daily average if hourly data not available
+        s = Number(daily_avgs[index] ?? 0);
       }
-      if (obj?.arrow === '←') left += s;
-      else if (obj?.arrow === '→') right += s;
-    }
+      
+      const arrow = arrows[index];
+      if (arrow === '←') left += s;
+      else if (arrow === '→') right += s;
+    });
     
     f.properties = {
       ...f.properties,
@@ -76,7 +85,12 @@ export default function useNetworkLayers({
   
   // Ensure labels in Volumes mode are always car-only (optionally major roads only)
   const applyLabelCarAndMajorFilter = (map, showMajorRoadsOnly) => {
-    const carFilter = ['match', ['index-of', 'car', ['get', 'modes']], -1, false, true];
+    // Match "car" but exclude "cable car"
+    const carFilter = [
+      'all',
+      ['>=', ['index-of', 'car', ['get', 'modes']], 0],  // contains "car"
+      ['==', ['index-of', 'cable car', ['get', 'modes']], -1]  // does NOT contain "cable car"
+    ];
     const labelFilter = showMajorRoadsOnly
     ? ['all', carFilter, ['>', ['get', 'capacity'], 1200]]
     : carFilter;
@@ -176,74 +190,7 @@ export default function useNetworkLayers({
     }
     
     originalNetworkGeoJSON.current = networkGeojson;
-    
-    const addSearchableArrays = (feature) => {
-      const perId = feature.properties?.per_id || {};
-      
-      let perIdObj = perId;
-      if (typeof perId === 'string') {
-        try {
-          perIdObj = JSON.parse(perId);
-        } catch (e) {
-          return feature;
-        }
-      }
-      
-      const keys = Object.keys(perIdObj);
-      
-      // Use EXACT same helper functions as FeatureTable
-      const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : null);
-      const toKmh = (mps) => {
-        const n = Number(mps);
-        return Number.isFinite(n) ? n * 3.6 : null;
-      };
-      const roundTo = (value, decimals = 0) => {
-        if (!Number.isFinite(value)) return value;
-        const factor = Math.pow(10, decimals);
-        return Math.round(value * factor) / factor;
-      };
-      
-      // Process each direction EXACTLY like FeatureTable does
-      const linkIds = [];
-      const capacities = [];
-      const lengths = [];
-      const freespeeds = [];
-      const dailyAvgs = [];
-      
-      keys.forEach(key => {
-        const data = perIdObj[key];
-        if (!data) return;
-        
-        // Apply EXACT same transformations as FeatureTable
-        const length = num(data.length);
-        const freeSpeed = toKmh(data.freespeed);
-        const capacity = num(data.capacity);
-        const dailyAvg = num(data.daily_avg_volume);
-        
-        linkIds.push(key);
-        if (capacity !== null) capacities.push(String(capacity)); // No rounding
-        if (length !== null) lengths.push(String(roundTo(length, 1))); // Round to 1 decimal
-        if (freeSpeed !== null) freespeeds.push(String(roundTo(freeSpeed, 1))); // Round to 1 decimal
-        if (dailyAvg !== null) dailyAvgs.push(String(dailyAvg)); // No rounding
-      });
-      
-      // Store as pipe-delimited strings
-      feature.properties.per_id_keys = linkIds.join('|');
-      feature.properties.per_id_capacities = capacities.join('|');
-      feature.properties.per_id_lengths = lengths.join('|');
-      feature.properties.per_id_freespeeds = freespeeds.join('|');
-      feature.properties.per_id_daily_avgs = dailyAvgs.join('|');
-      
-      // Create searchable text
-      const allValues = [...linkIds, ...capacities, ...lengths, ...freespeeds, ...dailyAvgs];
-      if (feature.properties.modes) {
-        allValues.push(String(feature.properties.modes));
-      }
-      feature.properties.searchable_text = allValues.join('|').toLowerCase();
-      
-      return feature;
-    };
-    
+
     const decorateLineVolumesFromPerId = (features) => {
       for (const f of features) {
         if (!f?.properties) f.properties = {};
@@ -261,29 +208,17 @@ export default function useNetworkLayers({
           f.properties.angle = null;
         }
         
-        // --- Normalize per_id: parse JSON string -> object ---
-        let perId = f.properties.per_id;
-        if (typeof perId === 'string') {
-          try {
-            perId = JSON.parse(perId);
-            f.properties.per_id = perId; // write back normalized object
-          } catch (e) {
-            console.warn('Bad per_id JSON; skipping', e, f);
-            perId = {};
-            f.properties.per_id = {};
-          }
-        } else if (!perId || typeof perId !== 'object' || Array.isArray(perId)) {
-          perId = {};
-          f.properties.per_id = {};
-        }
+        // Parse pipe-separated strings
+        const arrows = (f.properties.per_id_arrows || "").split("|").filter(Boolean);
+        const daily_avgs = (f.properties.per_id_daily_avgs || "").split("|").filter(Boolean);
         
         // Aggregate left/right totals from per_id entries
         let left = 0, right = 0;
-        for (const [, obj] of Object.entries(perId)) {
-          const v = Number(obj?.daily_avg_volume ?? 0);
-          if (obj?.arrow === '←') left += v;
-          else if (obj?.arrow === '→') right += v;
-        }
+        arrows.forEach((arrow, index) => {
+          const v = Number(daily_avgs[index] ?? 0);
+          if (arrow === '←') left += v;
+          else if (arrow === '→') right += v;
+        });
         
         // Ensure these three exist on EVERY feature
         const fallbackTotal = left + right;
@@ -292,12 +227,37 @@ export default function useNetworkLayers({
         : fallbackTotal;
         f.properties.left_sum = left;
         f.properties.right_sum = right;
-        
-        addSearchableArrays(f);
       }
     };
     
     decorateLineVolumesFromPerId(networkGeojson.features);
+    
+    // Add min/max properties for pipe-delimited fields to enable proper filtering
+    networkGeojson.features.forEach(f => {
+      // Helper to parse pipe-delimited numbers and get min/max
+      const getMinMax = (pipeStr) => {
+        const values = (pipeStr || "").split("|").filter(Boolean).map(Number).filter(v => !isNaN(v));
+        if (values.length === 0) return { min: null, max: null };
+        return { min: Math.min(...values), max: Math.max(...values) };
+      };
+      
+      // Process each pipe-delimited property
+      const capacities = getMinMax(f.properties.per_id_capacities);
+      f.properties.capacity_min = capacities.min;
+      f.properties.capacity_max = capacities.max;
+      
+      const lengths = getMinMax(f.properties.per_id_lengths);
+      f.properties.length_min = lengths.min;
+      f.properties.length_max = lengths.max;
+      
+      const speeds = getMinMax(f.properties.per_id_freespeeds);
+      f.properties.freespeed_min = speeds.min;
+      f.properties.freespeed_max = speeds.max;
+      
+      const volumes = getMinMax(f.properties.per_id_daily_avgs);
+      f.properties.volume_min = volumes.min;
+      f.properties.volume_max = volumes.max;
+    });
     
     setFeatureGeoJSON?.(networkGeojson);
     
@@ -324,7 +284,7 @@ export default function useNetworkLayers({
         ? ['interpolate', ['linear'], ['get', 'daily_avg_volume'],
         0, '#ffffcc', 50, '#c2e699', 100, '#78c679', 250, '#31a354', 500, '#006837']
         : ['interpolate', ['linear'], ['get', 'freespeed'],
-        0, '#ffffb2', 6.94, '#fed976', 13.89, '#feb24c', 20.83, '#fd8d3c', 27.78, '#fc4e2a', 34.72, '#e31a1c', 41.67, '#b10026']
+        0, '#ffffb2', 25, '#fed976', 50, '#feb24c', 75, '#fd8d3c', 100, '#fc4e2a', 125, '#e31a1c', 150, '#b10026']
       }
     });
     
@@ -342,7 +302,12 @@ export default function useNetworkLayers({
     updateNetworkFilter(selectedNetworkModesRef.current);
     
     if (graphExpandedRef.current === 'Volumes') {
-      const carFilter = ['match', ['index-of', 'car', ['get', 'modes']], -1, false, true];
+      // Match "car" but exclude "cable car"
+      const carFilter = [
+        'all',
+        ['>=', ['index-of', 'car', ['get', 'modes']], 0],
+        ['==', ['index-of', 'cable car', ['get', 'modes']], -1]
+      ];
       let filter = carFilter;
       if (showMajorRoadsOnly) {
         filter = ['all', carFilter, ['>', ['get', 'capacity'], 1200]];
@@ -453,7 +418,12 @@ export default function useNetworkLayers({
     const map = mapRef.current;
     if (!map || graphExpandedRef.current !== 'Volumes') return;
     
-    const carFilter = ['match', ['index-of', 'car', ['get', 'modes']], -1, false, true];
+    // Match "car" but exclude "cable car"
+    const carFilter = [
+      'all',
+      ['>=', ['index-of', 'car', ['get', 'modes']], 0],
+      ['==', ['index-of', 'cable car', ['get', 'modes']], -1]
+    ];
     const fullFilter =
     isGraphExpanded === 'Volumes' && showMajorRoadsOnly
     ? ['all', carFilter, ['>', ['get', 'capacity'], 1200]]
@@ -521,7 +491,7 @@ export default function useNetworkLayers({
         ? ['interpolate', ['linear'], ['get', 'daily_avg_volume'],
         0, '#ffffcc', 50, '#c2e699', 100, '#78c679', 250, '#31a354', 500, '#006837']
         : ['interpolate', ['linear'], ['get', 'freespeed'],
-        0, '#ffffb2', 6.94, '#fed976', 13.89, '#feb24c', 20.83, '#fd8d3c', 27.78, '#fc4e2a', 34.72, '#e31a1c', 41.67, '#b10026'];
+        0, '#ffffb2', 25, '#fed976', 50, '#feb24c', 75, '#fd8d3c', 100, '#fc4e2a', 125, '#e31a1c', 150, '#b10026']
         
         map.setPaintProperty('network-layer', 'line-color', colorRamp);
         
@@ -573,15 +543,18 @@ export default function useNetworkLayers({
         const startHour = Math.floor((timeRange?.[0] ?? 0) / 4);
         const endHour   = Math.ceil((timeRange?.[1] ?? 96) / 4);
         
-        // update line features’ total volume
+        // update line features' total volume
         const updatedLineFeatures = source._data.features.map(f => {
-          if (!f?.properties?.per_id) return f; // nothing to recompute
+          if (!f?.properties?.per_id_keys) return f; // nothing to recompute
           recomputeVolumesForFeature(f, startHour, endHour);
           return f;
         });
         
         const updatedGeo = { ...source._data, features: updatedLineFeatures };
         source.setData(updatedGeo);
+        
+        // Update feature table with new filtered volumes
+        setFeatureGeoJSON?.(updatedGeo);
         
       }, [timeRange, linkVolumeData, isGraphExpanded, showMajorRoadsOnly]);
       
