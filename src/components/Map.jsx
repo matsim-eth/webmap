@@ -8,7 +8,6 @@ import useNetworkLayers         from './map/useNetworkLayers';
 import useTransitLayers         from './map/useTransitLayers';
 import useChoropleth            from './map/useChoropleth';
 import useDestinationZones      from './map/useDestinationZones';
-import usePtBoardings           from './map/usePtBoardings';
 import useFeatureSelectionFocus      from './map/useFeatureSelectionFocus';
 
 export default function Map(props) {
@@ -122,17 +121,6 @@ export default function Map(props) {
     isGraphExpanded:          props.isGraphExpanded
   });
 
-  usePtBoardings({
-    mapRef,
-    selectedBoardingData:     props.selectedBoardingData,
-    setHighlightedLineId:     props.setHighlightedLineId,
-    setHighlightedRouteIds:   props.setHighlightedRouteIds,
-    isGraphExpanded:          props.isGraphExpanded,
-    loadWithFallback,
-    searchCanton:             props.searchCanton,
-    setSelectedTransitStop:   props.setSelectedTransitStop
-  })
-  
   // Combined feature selection focus for both network and transit (uses shared network-highlight)
   // Determine which query/modes to use based on current module
   const isTransitMode = props.isGraphExpanded === 'Transit' || props.isGraphExpanded === 'TransitVolumes';

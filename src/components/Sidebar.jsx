@@ -15,7 +15,6 @@ import ModeShareLinePlot from "./plots/ModeShareLinePlot";
 import PtSubscription from "./plots/PtSubscription";
 import Demographics from "./plots/Demographics";
 import DestinationZones from "./plots/DestinationZones";
-import PtBoardings from "./plots/PtBoardings";
 
 // Home Module
 import HomeModule from "./HomeModule";
@@ -68,9 +67,6 @@ const Sidebar = ({
   
   // Destination data
   setDestinationData,
-  
-  // Boarding data
-  setBoardingData,
   
   // Time Range Slider
   timeRange, setTimeRange,
@@ -205,31 +201,6 @@ const Sidebar = ({
       console.log("Sidebar - setDestinationData is not available");
     }
   };
-
-  // Handle boarding data from PtBoardings
-  const handleTotalBoardingsChange = (boardingData) => {
-    console.log('Sidebar - boarding data updated:', boardingData);
-    
-    // Log detailed information about selected line if available
-    if (boardingData.selectedLineInfo) {
-      console.log('Sidebar - selected line details:', {
-        lineId: boardingData.selectedLineInfo.line_id,
-        lineName: boardingData.selectedLineInfo.line_name,
-        vehicle: boardingData.selectedLineInfo.vehicle,
-        cantons: boardingData.selectedLineInfo.cantons,
-        routeIds: boardingData.selectedLineInfo.route_ids
-      });
-    }
-    
-    // Pass to App component via setBoardingData prop
-    if (setBoardingData) {
-      console.log('Sidebar - calling setBoardingData with:', boardingData);
-      setBoardingData(boardingData);
-    } else {
-      console.log('Sidebar - setBoardingData is not available');
-    }
-  };
-  
   
   // ======================== SIDEBAR ITEMS =======================
   return (
@@ -282,7 +253,6 @@ const Sidebar = ({
       <option value="Transit">Transit Stops/Lines</option>
       <option value="TransitVolumes">Transit Link Volumes</option>
       <option value="Destination">Destination Zones</option>
-      <option value="PtBoardings">PT Boardings by Vehicle</option>
       <option value="Graph 1">
       Average Distance by {selectedAggCol.charAt(0).toUpperCase() + selectedAggCol.slice(1)}
       </option>
@@ -394,20 +364,6 @@ const Sidebar = ({
         setTimeRange={setTimeRange}
         onTotalOutflowChange={handleTotalOutflowChange}
         />
-        </div>
-      )}
-
-      {/* PT Boardings Module */}
-      {selectedGraph === "PtBoardings" && (
-        <div className="plot-container">
-          <PtBoardings
-          canton={canton}
-          timeRange={timeRange}
-          setTimeRange={setTimeRange}
-          onTotalBoardingsChange={handleTotalBoardingsChange}
-          selectedTransitStop={selectedTransitStop}
-          loadWithFallback={loadWithFallback}
-          />
         </div>
       )}
       
