@@ -312,40 +312,61 @@ export default function useFeatureSelectionFocus({
           
           const propName = columnMap[column];
           if (propName) {
-            // Create exact match conditions for each value
-            const valueFilters = values.map(val => {
-              // For exact matching in pipe-delimited strings, we need to ensure:
-              // 1. Value is the entire property (no pipes)
-              // 2. Value is at start followed by pipe: "val|..."
-              // 3. Value is after pipe and before another pipe: "|val|"
-              // 4. Value is at end after pipe: "|val"
-              
-              return [
-                "any",
-                // Entire property is just this value (no pipes)
-                ["==", ["get", propName], val],
-                // Value at start followed by pipe
-                ["==", ["index-of", `${val}|`, ["get", propName]], 0],
-                // Value in middle: preceded AND followed by pipe
-                [">=", ["index-of", `|${val}|`, ["get", propName]], 0],
-                // Value at end: preceded by pipe, ends the string
-                [
-                  "all",
-                  [">=", ["index-of", `|${val}`, ["get", propName]], 0],
-                  // Ensure this is at the end by checking the position
-                  ["==",
-                    ["+",
-                      ["index-of", `|${val}`, ["get", propName]],
-                      ["length", `|${val}`]
-                    ],
-                    ["length", ["get", propName]]
-                  ]
-                ]
-              ];
-            });
+            // For numeric columns, we need numeric comparison (50 should match 50.0)
+            // For directionId, we need exact string matching
+            const isNumericProperty = column !== "directionId";
             
-            // Combine with OR logic (any value matches)
-            tableFilter = valueFilters.length > 1 ? ["any", ...valueFilters] : valueFilters[0];
+            if (isNumericProperty) {
+              // Convert search values to numbers
+              const numericValues = values
+                .map(v => v.replace(/,/g, ''))
+                .filter(v => !isNaN(Number(v)))
+                .map(v => Number(v));
+              
+              if (numericValues.length > 0) {
+                // Check if the property name has corresponding min/max aggregates
+                const minMaxMap = {
+                  "per_id_capacities": { min: "capacity_min", max: "capacity_max" },
+                  "per_id_lengths": { min: "length_min", max: "length_max" },
+                  "per_id_freespeeds": { min: "freespeed_min", max: "freespeed_max" },
+                  "per_id_daily_avgs": { min: "volume_min", max: "volume_max" },
+                };
+                
+                const props = minMaxMap[propName];
+                
+                if (props) {
+                  // Use min/max properties for numeric matching
+                  // A feature matches if any of its pipe-delimited values equals the search value
+                  // This is true if: min <= value <= max
+                  const valueFilters = numericValues.map(val => {
+                    return [
+                      "all",
+                      ["<=", ["number", ["get", props.min], 999999], val],
+                      [">=", ["number", ["get", props.max], 0], val]
+                    ];
+                  });
+                  
+                  tableFilter = valueFilters.length > 1 ? ["any", ...valueFilters] : valueFilters[0];
+                }
+              }
+            } else {
+              // For directionId (string), do exact string matching in pipe-delimited string
+              const valueFilters = values.map(val => {
+                return [
+                  "any",
+                  // Entire property is just this value (no pipes)
+                  ["==", ["get", propName], val],
+                  // Value at start followed by pipe
+                  ["==", ["index-of", `${val}|`, ["get", propName]], 0],
+                  // Value in middle: preceded AND followed by pipe
+                  [">=", ["index-of", `|${val}|`, ["get", propName]], 0],
+                  // Value at end: preceded by pipe
+                  [">=", ["index-of", `|${val}`, ["get", propName]], 0]
+                ];
+              });
+              
+              tableFilter = valueFilters.length > 1 ? ["any", ...valueFilters] : valueFilters[0];
+            }
           }
         }
         }

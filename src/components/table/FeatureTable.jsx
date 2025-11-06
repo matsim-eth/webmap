@@ -28,12 +28,6 @@ if (!$.fn.dataTable) {
 // conver to number
 const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : null);
 
-// converts m/s to km/h
-const toKmh = (mps) => {
-  const n = Number(mps);
-  return Number.isFinite(n) ? n * 3.6 : null;
-};
-
 // match row modes against selected modes
 const modeMatches = (rowModes, selectedModes) => {
   if (
@@ -106,7 +100,7 @@ export const buildRowsFromGeojson = (geojson, selectedGraph = null) => {
     const pushRow = (index) => {
       const directionId = keys[index] || null;
       const length = num(lengths[index]);
-      const freeSpeed = toKmh(freespeeds[index]);
+      const freeSpeed = num(freespeeds[index]);
       const capacity = num(capacities[index]);
       const arrow = arrows[index] || null;
       const direction = directions[index] || null;
@@ -518,15 +512,24 @@ const FeatureTable = forwardRef(
           fn => fn._isComparisonFilter !== true
         );
         
-        // Clear previous searches
-        instance.columns().every(function () {
-          this.search("");
-        });
-        instance.search("");
+        // Clear previous searches - wrap in try-catch
+        try {
+          instance.columns().every(function () {
+            this.search("");
+          });
+          instance.search("");
+        } catch (e) {
+          console.warn("Failed to clear search:", e);
+          return;
+        }
         
         const raw = (searchText || "").trim();
         if (!raw) {
-          instance.draw(false);
+          try {
+            instance.draw(false);
+          } catch (e) {
+            console.warn("Draw failed:", e);
+          }
           return;
         }
         
@@ -575,7 +578,16 @@ const FeatureTable = forwardRef(
               filterFn._isComparisonFilter = true;
               
               $.fn.dataTable.ext.search.push(filterFn);
-              instance.draw(false);
+              
+              try {
+                instance.draw(false);
+              } catch (e) {
+                console.warn("Draw failed during comparison filter:", e);
+                // Remove the problematic filter and try again
+                $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(
+                  fn => fn._isComparisonFilter !== true
+                );
+              }
               
               return;
             }
@@ -626,7 +638,11 @@ const FeatureTable = forwardRef(
           instance.search(finalPattern, /* regex */ true, /* smart */ false);
         }
         
-        instance.draw(false);
+        try {
+          instance.draw(false);
+        } catch (e) {
+          console.warn("Draw failed during search:", e);
+        }
       } catch (error) {
         console.warn("Search operation failed:", error);
         // Optionally clear the search to prevent stuck states
