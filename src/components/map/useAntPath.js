@@ -13,28 +13,37 @@ export default function useAntPath(mapRef, visualizeLinkId, graphExpandedRef) {
     const data = source && source._data;
     if (!data) return;
 
-    // --- Find the feature containing this per-id -----------------------------
+    // --- Find the feature containing this link ID -----------------------------
     const idStr = String(visualizeLinkId);
 
-    const findFeatureByPerId = () => {
+    const findFeatureByLinkId = () => {
       for (const f of data.features || []) {
-        let perId = f?.properties?.per_id;
-        if (!perId) continue;
-        if (typeof perId === 'string') {
-          try { perId = JSON.parse(perId); } catch { continue; }
-        }
-        if (perId && typeof perId === 'object' && idStr in perId) {
-          return { feature: f, perIdEntry: perId[idStr] };
-        }
+        // Parse pipe-separated per_id_keys and per_id_directions
+        const keys = (f?.properties?.per_id_keys || "").split("|").filter(Boolean);
+        const directions = (f?.properties?.per_id_directions || "").split("|").filter(Boolean);
+        
+        // Find the index of the matching link ID
+        const index = keys.findIndex(k => String(k) === idStr);
+        if (index === -1) continue;
+        
+        // Get the direction for this link ID at the same index
+        const direction = directions[index];
+        
+        return { 
+          feature: f, 
+          direction: direction
+        };
       }
       return null;
     };
 
-    const hit = findFeatureByPerId();
+    const hit = findFeatureByLinkId();
     if (!hit) return;
 
-    const { feature, perIdEntry } = hit;
-    const direction = perIdEntry?.direction === 'reverse' ? 'reverse' : 'forward';
+    const { feature, direction } = hit;
+    
+    // Determine animation direction based on direction field
+    const animDirection = direction === 'reverse' ? 'reverse' : 'forward';
 
     // --- Build a single LineString for the ant path --------------------------
     const mergedCoords =
@@ -80,7 +89,7 @@ export default function useAntPath(mapRef, visualizeLinkId, graphExpandedRef) {
       [0.9, 3, 2.1, 0], [1.2, 3, 1.8, 0], [1.5, 3, 1.5, 0], [1.8, 3, 1.2, 0],
       [2.1, 3, 0.9, 0], [2.4, 3, 0.6, 0], [2.7, 3, 0.3, 0], [3, 3, 0, 0],
     ];
-    const seq = direction === 'reverse' ? [...dashArraySeq].reverse() : dashArraySeq;
+    const seq = animDirection === 'reverse' ? [...dashArraySeq].reverse() : dashArraySeq;
 
     let idx = 0;
     let last = 0;

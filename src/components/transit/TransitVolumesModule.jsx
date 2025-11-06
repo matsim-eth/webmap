@@ -1,12 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import TransitLinkAttributesTable from "./TransitLinkAttributesTable";
 import TransitLinkHistogram from "./TransitLinkHistogram"; 
+import FeatureTable, { buildRowsFromGeojson } from "../table/FeatureTable";
 import Slider from "rc-slider";
 import { marks, formatTimeLabel } from "../../utils/timeSliderUtils";
 import "rc-slider/assets/index.css";
 
+// get coords and id of selected row
+const buildSelectionPayload = (row) => {
+  if (!row) return null;
+  const coords = row.coords;
+  const id = row.rowKey;
+  const feature = row.feature;
+  return { id, feature, coords };
+};
+
 const TransitVolumesModule = ({
   selectedTransitLink, // clicked transit segment(s)
+  setSelectedTransitLink,
   timeRange,
   setTimeRange,
   availableTransitModes,
@@ -18,7 +29,13 @@ const TransitVolumesModule = ({
   setHighlightedLineId,
   highlightedLineId,
   visualizeLinkId,
-  setVisualizeLinkId
+  setVisualizeLinkId,
+  isFeatureTableOpen,
+  featureGeoJSON,
+  transitFeatureTableRef,
+  setTableFilterQuery,
+  selectedGraph,
+  onFocusTransitFeature
 }) => {
   
   // reset selected line when canton changes
@@ -41,6 +58,99 @@ const TransitVolumesModule = ({
     if (!hasLine) setHighlightedLineId(null);
   }, [selectedTransitLink]);
   
+  // ========= FEATURE TABLE LOGIC =========
+  const [showTable, setShowTable] = useState(false);
+  const [tableRows, setTableRows] = useState([]);
+  const [rowsReady, setRowsReady] = useState(false);
+  
+  useEffect(() => {
+    if (isFeatureTableOpen) {
+      // add delay so sidebar can expand first
+      const timer = setTimeout(() => setShowTable(true), 400);
+      return () => clearTimeout(timer);
+    }
+    setShowTable(false);
+    setTableFilterQuery(null);
+  }, [isFeatureTableOpen]);
+  
+  const ensureRowsForCanton = useCallback(() => {
+    // if missing canton or data, clear
+    if (!canton || !featureGeoJSON) {
+      setTableRows([]);
+      setRowsReady(false);
+      return;
+    }
+
+    // In TransitVolumes module, always rebuild rows (no caching due to timeRange changes)
+    const builtRows = buildRowsFromGeojson(featureGeoJSON, selectedGraph);
+    setTableRows(builtRows);
+    setRowsReady(true);
+  }, [canton, featureGeoJSON, selectedGraph]);
+  
+  useEffect(() => {
+    if (!canton || !featureGeoJSON) {
+      setTableRows([]);
+      setRowsReady(false);
+      return;
+    }
+    
+    // In TransitVolumes module, always rebuild when geojson changes
+    setTableRows([]);
+    setRowsReady(false);
+  }, [canton, featureGeoJSON]);
+  
+  useEffect(() => {
+    // table not shown, so don't build rows
+    if (!showTable) return;
+    
+    // trigger row building in idle time
+    let cancelled = false;
+    const run = () => {
+      if (!cancelled) ensureRowsForCanton();
+    };
+    
+    if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
+      const idleId = window.requestIdleCallback(run, { timeout: 200 });
+      return () => {
+        cancelled = true;
+        if (typeof window.cancelIdleCallback === 'function') {
+          window.cancelIdleCallback(idleId);
+        }
+      };
+    }
+    
+    const timeoutId = window.setTimeout(run, 0);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [showTable, ensureRowsForCanton, canton, featureGeoJSON]);
+  
+  const handleTableRowSelect = useCallback(
+    (row) => {
+      if (!row) return;
+      const featureProps = row.featureProps || row.feature?.properties;
+      if (featureProps) {
+        // sends to update attribute table on sidebar
+        setSelectedTransitLink?.([featureProps]);
+      }
+      const payload = buildSelectionPayload(row);
+      if (payload) {
+        // sends to zoom to feature on map
+        onFocusTransitFeature?.(payload);
+      }
+    },
+    [onFocusTransitFeature, setSelectedTransitLink]
+  );
+  
+  const handleSelectCoords = useCallback(
+    (coords, row) => {
+      if (!row) return;
+      handleTableRowSelect({ ...row, coords: coords || row.coords });
+    },
+    [handleTableRowSelect]
+  );
+  
   
   // Push to Map the selected transit stop mode filter
   const handleTransitModeChange = (event) => {
@@ -53,6 +163,25 @@ const TransitVolumesModule = ({
   };
   
   return (
+    <div className="plot-container">
+    {isFeatureTableOpen ? (
+      <FeatureTable
+      ref={transitFeatureTableRef}
+      tableId="transit-volumes-feature-table"
+      rows={tableRows}
+      geojson={rowsReady ? null : featureGeoJSON}
+      selectedModes={selectedTransitModes}
+      onRowClick={handleTableRowSelect}
+      onSelectCoords={handleSelectCoords}
+      height={"55vh"}
+      useScroller
+      loading={!showTable || !rowsReady}
+      setTableFilterQuery={setTableFilterQuery}
+      showMajorRoadsOnly={false}
+      selectedGraph={selectedGraph}
+      />
+    ) : (
+      <>
     <div style={{ overflowY: "auto", overflowX: "hidden", width: "100%" }}>
     
     {/* Mode Filter Dropdown */}
@@ -130,15 +259,21 @@ const TransitVolumesModule = ({
       timeRange={timeRange}
       />
       
-      {selectedTransitLink.flatMap((props, idx) => {
-        const ids = Array.isArray(props.link_ids) && props.link_ids.length
-        ? props.link_ids
-        : (props.per_id ? Object.keys(props.per_id) : []);
-        const baseKey = props.link_key_join || String(idx);
-        return ids.map(id => (
+      {(() => {
+        // Collect all unique link IDs across all selected segments
+        const allLinkIds = new Set();
+        selectedTransitLink.forEach(props => {
+          const ids = Array.isArray(props.link_ids) && props.link_ids.length
+            ? props.link_ids
+            : (props.per_id_keys ? props.per_id_keys.split("|").filter(Boolean) : []);
+          ids.forEach(id => allLinkIds.add(String(id)));
+        });
+        
+        // Create one histogram per unique link ID
+        return Array.from(allLinkIds).map(id => (
           <TransitLinkHistogram
-          key={`${baseKey}-${String(id)}`}
-          linkId={String(id)}
+          key={`transit-hist-${id}`}
+          linkId={id}
           highlightedLineId={highlightedLineId}
           timeRange={timeRange}
           canton={canton}
@@ -146,9 +281,12 @@ const TransitVolumesModule = ({
           setVisualizeLinkId={setVisualizeLinkId}
           />
         ));
-      })}
+      })()}
       
       </>
+    )}
+    </div>
+    </>
     )}
     </div>
   );
