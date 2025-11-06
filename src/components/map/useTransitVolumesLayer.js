@@ -233,6 +233,14 @@ export default function useTransitVolumesLayer({
       }
       
       // Build updated feature (shallow clone props)
+      const props = f.properties;
+      
+      // Parse pipe-separated values for min/max calculation
+      const capacities = (props.per_id_capacities || "").split("|").map(v => parseFloat(v)).filter(v => !isNaN(v));
+      const lengths = (props.per_id_lengths || "").split("|").map(v => parseFloat(v)).filter(v => !isNaN(v));
+      const freespeeds = (props.per_id_freespeeds || "").split("|").map(v => parseFloat(v)).filter(v => !isNaN(v));
+      const daily_avgs = (props.per_id_daily_avgs || "").split("|").map(v => parseFloat(v)).filter(v => !isNaN(v));
+      
       features.push({
         ...f,
         properties: {
@@ -249,6 +257,16 @@ export default function useTransitVolumesLayer({
           // Add directional total volumes for table
           total_left: totalLeft,
           total_right: totalRight,
+          
+          // Add min/max properties for filtering
+          capacity_min: capacities.length > 0 ? Math.min(...capacities) : 0,
+          capacity_max: capacities.length > 0 ? Math.max(...capacities) : 0,
+          length_min: lengths.length > 0 ? Math.min(...lengths) : 0,
+          length_max: lengths.length > 0 ? Math.max(...lengths) : 0,
+          freespeed_min: freespeeds.length > 0 ? Math.min(...freespeeds) : 0,
+          freespeed_max: freespeeds.length > 0 ? Math.max(...freespeeds) : 0,
+          volume_min: daily_avgs.length > 0 ? Math.min(...daily_avgs) : 0,
+          volume_max: daily_avgs.length > 0 ? Math.max(...daily_avgs) : 0,
           
           // keep these for filtering & sidebar
           modes: Array.from(modesUnion),
@@ -709,7 +727,8 @@ useEffect(() => {
               
               tableFilter = ["any", leftFilter, rightFilter];
             } else {
-              // For pipe-delimited properties
+              // For pipe-delimited properties (capacity, length, freeSpeed, totalVol)
+              // We need to check if ANY of the pipe-delimited values matches the comparison
               const propMap = {
                 capacity: "per_id_capacities",
                 length: "per_id_lengths",
@@ -719,9 +738,30 @@ useEffect(() => {
               
               const propName = propMap[column];
               if (propName) {
-                // Simple approach: check if string representation contains value
-                const valueStr = String(numValue);
-                tableFilter = [">=", ["index-of", valueStr, ["to-string", ["get", propName]]], 0];
+                // Since we can't easily parse pipe-delimited strings in Mapbox expressions,
+                // we'll use a workaround: check min/max properties that were pre-computed
+                const minMaxMap = {
+                  capacity: { min: "capacity_min", max: "capacity_max" },
+                  length: { min: "length_min", max: "length_max" },
+                  freeSpeed: { min: "freespeed_min", max: "freespeed_max" },
+                  totalVol: { min: "volume_min", max: "volume_max" }
+                };
+                
+                const minMaxProps = minMaxMap[column];
+                if (minMaxProps) {
+                  // Check if ANY value in the range matches the condition
+                  // For <, <=: check if min matches
+                  // For >, >=: check if max matches
+                  if (operator === '<') {
+                    tableFilter = ["<", ["number", ["get", minMaxProps.min], 0], numValue];
+                  } else if (operator === '<=') {
+                    tableFilter = ["<=", ["number", ["get", minMaxProps.min], 0], numValue];
+                  } else if (operator === '>') {
+                    tableFilter = [">", ["number", ["get", minMaxProps.max], 0], numValue];
+                  } else if (operator === '>=') {
+                    tableFilter = [">=", ["number", ["get", minMaxProps.max], 0], numValue];
+                  }
+                }
               }
             }
           }

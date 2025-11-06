@@ -160,7 +160,7 @@ const Sidebar = ({
   useEffect(() => {
     if (canton && modesByCanton[canton]) {
       setAvailableModes(
-        modesByCanton[canton].filter((mode) => !["car_passenger", "truck", "train", "other", "pt", "taxi"].includes(mode))
+        modesByCanton[canton].filter((mode) => !["car_passenger", "truck", "rail", "other", "pt", "taxi"].includes(mode))
       );
     } else {
       setAvailableModes([]);

@@ -188,7 +188,7 @@ const FeatureTable = forwardRef(
       height = 360, // used for Scroller
       useScroller = true, // true: virtual scroll; false: regular paging
       pageLength = 25,
-      maxRows = 150000,
+      maxRows = 300000,
       loading = false,
       setTableFilterQuery,
       showMajorRoadsOnly = false // filter by capacity > 1200
@@ -504,7 +504,19 @@ const FeatureTable = forwardRef(
       
       // Add safety check to prevent operations on destroyed table
       try {
-        if (!instance.settings || !instance.settings()[0]) return;
+        const settings = instance.settings();
+        if (!settings || !settings[0]) return;
+        
+        // Check if table is currently processing - if so, skip this search
+        const api = instance.settings()[0];
+        if (api && api.bProcessing) {
+          return;
+        }
+        
+        // Clear any comparison filters from previous searches
+        $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(
+          fn => fn._isComparisonFilter !== true
+        );
         
         // Clear previous searches
         instance.columns().every(function () {
@@ -537,9 +549,17 @@ const FeatureTable = forwardRef(
             const value = parseFloat(match[2].replace(/,/g, ''));
             
             if (!isNaN(value)) {
+              // Clear any existing custom filters first
+              $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(
+                fn => fn._isComparisonFilter !== true
+              );
+              
               // Use custom filter function for comparisons
-              $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+              const filterFn = function(settings, data, dataIndex) {
                 if (settings.nTable !== instance.table().node()) return true;
+                
+                // Safety check: ensure the row data exists
+                if (!data || !settings.aoData || !settings.aoData[dataIndex]) return false;
                 
                 const cellValue = parseFloat(data[searchCol]);
                 if (isNaN(cellValue)) return false;
@@ -551,14 +571,11 @@ const FeatureTable = forwardRef(
                   case '<=': return cellValue <= value;
                   default: return true;
                 }
-              });
+              };
+              filterFn._isComparisonFilter = true;
               
+              $.fn.dataTable.ext.search.push(filterFn);
               instance.draw(false);
-              
-              // Clean up custom filter after draw
-              setTimeout(() => {
-                $.fn.dataTable.ext.search.pop();
-              }, 0);
               
               return;
             }

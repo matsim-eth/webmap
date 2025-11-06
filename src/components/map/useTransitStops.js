@@ -211,6 +211,8 @@ export default function useTransitStops({
       const combinedLines = JSON.parse(f.properties.lines);
       const combinedModes = JSON.parse(f.properties.modes_list);
       
+      console.log(f)
+
       const { name, stop_id} = features[0].properties;
       let allStopIds;
       if (Array.isArray(stop_id)) {

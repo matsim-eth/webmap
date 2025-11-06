@@ -27,7 +27,7 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
   };
   const fmtSpeed = (v) => {
     const n = Number(v);
-    return Number.isFinite(n) ? `${Math.round(n * 3.6)} km/h` : "-"; // m/s -> km/h
+    return Number.isFinite(n) ? `${Math.round(n)} km/h` : "-"; // m/s -> km/h
   };
   const allEqual = (arr) => (arr.length === 0 ? true : arr.every((x) => x === arr[0]));
 
