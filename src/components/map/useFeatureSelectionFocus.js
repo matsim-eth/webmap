@@ -317,38 +317,55 @@ export default function useFeatureSelectionFocus({
             const isNumericProperty = column !== "directionId";
             
             if (isNumericProperty) {
-              // Convert search values to numbers
-              const numericValues = values
-                .map(v => v.replace(/,/g, ''))
-                .filter(v => !isNaN(Number(v)))
-                .map(v => Number(v));
+              // For numeric columns, we need to check if the exact value exists in the pipe-delimited string
+              // Since numeric matching (50 should match 50.0), we use string patterns but handle decimal variants
+              const valueFilters = values.map(val => {
+                // Create patterns for both integer and decimal forms
+                // e.g., "50" should match "50", "50.0", "50.00", etc.
+                const patterns = [
+                  val,                    // exact: "50"
+                  `${val}.0`,             // with .0: "50.0"
+                  `${val}.00`,            // with .00: "50.00"
+                ];
+                
+                // For each pattern, check if it exists as a complete item in pipe-delimited string
+                // To avoid matching "80" in "800", we ONLY check for:
+                // 1. Entire string equals the pattern (no pipes at all)
+                // 2. Pattern followed by | at position 0: "pattern|..."
+                // 3. Pattern surrounded by pipes: "|pattern|"
+                // 4. Pattern preceded by | at the very end: "...|pattern"
+                const patternChecks = patterns.map(pattern => [
+                  "any",
+                  // Entire property is just this value (no pipes)
+                  ["==", ["get", propName], pattern],
+                  // Value at start followed by pipe: "pattern|..." (must be at position 0)
+                  [
+                    "all",
+                    ["==", ["index-of", `${pattern}|`, ["get", propName]], 0],
+                    // Ensure the pattern| is actually followed by something, not "pattern0|"
+                    ["==", ["index-of", "|", ["get", propName]], ["length", pattern]]
+                  ],
+                  // Value in middle: "|pattern|"
+                  [">=", ["index-of", `|${pattern}|`, ["get", propName]], 0],
+                  // Value at end: "|pattern" and check it's actually at the end
+                  [
+                    "all",
+                    [">=", ["index-of", `|${pattern}`, ["get", propName]], 0],
+                    ["==",
+                      ["+",
+                        ["index-of", `|${pattern}`, ["get", propName]],
+                        ["length", `|${pattern}`]
+                      ],
+                      ["length", ["get", propName]]
+                    ]
+                  ]
+                ]);
+                
+                // Match if ANY pattern variant is found
+                return ["any", ...patternChecks];
+              });
               
-              if (numericValues.length > 0) {
-                // Check if the property name has corresponding min/max aggregates
-                const minMaxMap = {
-                  "per_id_capacities": { min: "capacity_min", max: "capacity_max" },
-                  "per_id_lengths": { min: "length_min", max: "length_max" },
-                  "per_id_freespeeds": { min: "freespeed_min", max: "freespeed_max" },
-                  "per_id_daily_avgs": { min: "volume_min", max: "volume_max" },
-                };
-                
-                const props = minMaxMap[propName];
-                
-                if (props) {
-                  // Use min/max properties for numeric matching
-                  // A feature matches if any of its pipe-delimited values equals the search value
-                  // This is true if: min <= value <= max
-                  const valueFilters = numericValues.map(val => {
-                    return [
-                      "all",
-                      ["<=", ["number", ["get", props.min], 999999], val],
-                      [">=", ["number", ["get", props.max], 0], val]
-                    ];
-                  });
-                  
-                  tableFilter = valueFilters.length > 1 ? ["any", ...valueFilters] : valueFilters[0];
-                }
-              }
+              tableFilter = valueFilters.length > 1 ? ["any", ...valueFilters] : valueFilters[0];
             } else {
               // For directionId (string), do exact string matching in pipe-delimited string
               const valueFilters = values.map(val => {
