@@ -102,7 +102,9 @@ export default function Map(props) {
     setSelectedTransitLink:  props.setSelectedTransitLink,
     showLineSymbology: props.showLineSymbology,
     setIsLoading,
-    suppressNextSearchZoom
+    suppressNextSearchZoom,
+    setFeatureGeoJSON: props.setFeatureGeoJSON,
+    tableFilterQuery:  props.tableFilterQuery
   });
   
   useChoropleth({ 
@@ -130,13 +132,19 @@ export default function Map(props) {
     searchCanton:             props.searchCanton,
     setSelectedTransitStop:   props.setSelectedTransitStop
   })
+  
+  // Combined feature selection focus for both network and transit (uses shared network-highlight)
+  // Determine which query/modes to use based on current module
+  const isTransitMode = props.isGraphExpanded === 'Transit' || props.isGraphExpanded === 'TransitVolumes';
+  const activeQuery = props.tableFilterQuery;
+  const activeModes = isTransitMode ? props.selectedTransitModes : props.selectedNetworkModes;
 
   useFeatureSelectionFocus({
     mapRef, 
     mapReady, 
     selection:            props.featureSelection,
-    query:                props.tableFilterQuery,
-    selectedNetworkModes: props.selectedNetworkModes,
+    query:                activeQuery,
+    selectedNetworkModes: activeModes,
     isGraphExpanded:      props.isGraphExpanded,
     showMajorRoadsOnly:   props.showMajorRoadsOnly,
   });

@@ -16,6 +16,80 @@ const computeBounds = (coords) => {
   return [[minLng, minLat], [maxLng, maxLat]];
 };
 
+// Helper function to build comparison filter expressions for Mapbox
+const buildComparisonFilter = (operator, value, expression) => {
+  switch(operator) {
+    case '>':
+      return [">", expression, value];
+    case '<':
+      return ["<", expression, value];
+    case '>=':
+      return [">=", expression, value];
+    case '<=':
+      return ["<=", expression, value];
+    default:
+      return ["==", expression, value];
+  }
+};
+
+// Helper function to get property name for column
+const getPropertyName = (column) => {
+  const columnMap = {
+    "capacity": "per_id_capacities",
+    "length": "per_id_lengths", 
+    "freeSpeed": "per_id_freespeeds",
+    "totalVol": "per_id_daily_avgs",
+    "directionId": "per_id_keys"
+  };
+  return columnMap[column] || null;
+};
+
+// Helper function to build comparison filter for pipe-delimited properties
+const buildPipeDelimitedComparison = (operator, value, propName) => {
+  // We now have min/max properties computed from pipe-delimited values
+  // Map pipe-delimited properties to their min/max counterparts
+  const minMaxMap = {
+    "per_id_capacities": { min: "capacity_min", max: "capacity_max" },
+    "per_id_lengths": { min: "length_min", max: "length_max" },
+    "per_id_freespeeds": { min: "freespeed_min", max: "freespeed_max" },
+    "per_id_daily_avgs": { min: "volume_min", max: "volume_max" },
+  };
+  
+  const props = minMaxMap[propName];
+  
+  if (!props) {
+    // Fallback for non-numeric properties - do string matching
+    const valueStr = String(value);
+    return [">=", ["index-of", valueStr, ["to-string", ["get", propName]]], 0];
+  }
+  
+  // For comparison operators, check if ANY value in the pipe-delimited list matches
+  // by using min/max properties:
+  // - For >: show if max > value (at least one value is greater)
+  // - For <: show if min < value (at least one value is less)
+  // - For >=: show if max >= value
+  // - For <=: show if min <= value
+  // - For ==: show if min <= value <= max (value exists in range)
+  
+  switch(operator) {
+    case '>':
+      return [">", ["number", ["get", props.max], 0], value];
+    case '<':
+      return ["<", ["number", ["get", props.min], 999999], value];
+    case '>=':
+      return [">=", ["number", ["get", props.max], 0], value];
+    case '<=':
+      return ["<=", ["number", ["get", props.min], 999999], value];
+    case '==':
+      return ["all",
+        ["<=", ["number", ["get", props.min], 999999], value],
+        [">=", ["number", ["get", props.max], 0], value]
+      ];
+    default:
+      return [">=", ["index-of", String(value), ["to-string", ["get", propName]]], 0];
+  }
+};
+
 export default function useFeatureSelectionFocus({
   mapRef,
   mapReady,
@@ -26,6 +100,10 @@ export default function useFeatureSelectionFocus({
   showMajorRoadsOnly
 }) {
   const lastSelectionId = useRef(null);
+  
+  // Always use the shared network-highlight source and layer
+  const HIGHLIGHT_SOURCE = HIGHLIGHT_SOURCE_ID;
+  const HIGHLIGHT_LAYER = HIGHLIGHT_LAYER_ID;
   
   useEffect(() => {
     const map = mapRef?.current;
@@ -38,9 +116,9 @@ export default function useFeatureSelectionFocus({
       !Array.isArray(selection.coords) ||
       !selection.coords.length
     ) {
-      if (map.getSource(HIGHLIGHT_SOURCE_ID)) {
+      if (map.getSource(HIGHLIGHT_SOURCE)) {
         map
-        .getSource(HIGHLIGHT_SOURCE_ID)
+        .getSource(HIGHLIGHT_SOURCE)
         .setData({ type: 'FeatureCollection', features: [] });
       }
       lastSelectionId.current = null;
@@ -49,25 +127,30 @@ export default function useFeatureSelectionFocus({
     
     // Update highlight source/layer
     const featureCollection = { type: 'FeatureCollection', features: [selection.feature] };
-    if (map.getSource(HIGHLIGHT_SOURCE_ID)) {
-      map.getSource(HIGHLIGHT_SOURCE_ID).setData(featureCollection);
+    if (map.getSource(HIGHLIGHT_SOURCE)) {
+      map.getSource(HIGHLIGHT_SOURCE).setData(featureCollection);
     } else {
-      map.addSource(HIGHLIGHT_SOURCE_ID, { type: 'geojson', data: featureCollection });
+      map.addSource(HIGHLIGHT_SOURCE, { type: 'geojson', data: featureCollection });
     }
     
-    if (!map.getLayer(HIGHLIGHT_LAYER_ID)) {
+    if (!map.getLayer(HIGHLIGHT_LAYER)) {
+      // Position before network-layer if it exists, otherwise transit-volumes-layer, otherwise at top
+      let beforeLayer = null;
+      if (map.getLayer('network-layer')) beforeLayer = 'network-layer';
+      else if (map.getLayer('transit-volumes-layer')) beforeLayer = 'transit-volumes-layer';
+      
       map.addLayer(
         {
-          id: HIGHLIGHT_LAYER_ID,
+          id: HIGHLIGHT_LAYER,
           type: 'line',
-          source: HIGHLIGHT_SOURCE_ID,
+          source: HIGHLIGHT_SOURCE,
           paint: {
             'line-width': ['interpolate', ['linear'], ['get', 'capacity'], 300, 6, 4000, 15],
             'line-color': '#00a2ff',
             'line-opacity': 1,
           },
         },
-        'network-layer'
+        beforeLayer
       );
     }
     
@@ -98,22 +181,39 @@ export default function useFeatureSelectionFocus({
     const map = mapRef?.current;
     if (!mapReady || !map) return;
     
-    const layerIds = ["network-layer", "click-network-layer", "network-highlight", 
-                      "network-label-left", "network-label-right", "ant-line"];
+    // Detect which layers are present to determine if we're filtering network or transit
+    const isTransitMode = isGraphExpanded === 'TransitVolumes';
+    
+    // Define layer IDs based on what's actually visible
+    // Note: network-highlight is now shared between network and transit modes
+    const layerIds = isTransitMode 
+      ? ["transit-volumes-layer", "transit-volumes-hitbox", "network-highlight", 
+         "transit-volumes-label-left", "transit-volumes-label-right", "ant-line"]
+      : ["network-layer", "click-network-layer", "network-highlight", 
+         "network-label-left", "network-label-right", "ant-line"];
     
     // --- Build mode filter ---
     let modeFilter = null;
     if (Array.isArray(selectedNetworkModes) && !selectedNetworkModes.includes("all")) {
-      modeFilter = [
-        "any",
-        ...selectedNetworkModes.map((mode) => [
-          "match",
-          ["index-of", mode, ["get", "modes"]],
-          -1,
-          false,
-          true,
-        ]),
-      ];
+      if (isTransitMode) {
+        // Transit mode filter
+        modeFilter = [
+          "any",
+          ...selectedNetworkModes.map((mode) => ["in", mode, ["get", "modes"]]),
+        ];
+      } else {
+        // Network mode filter
+        modeFilter = [
+          "any",
+          ...selectedNetworkModes.map((mode) => [
+            "match",
+            ["index-of", mode, ["get", "modes"]],
+            -1,
+            false,
+            true,
+          ]),
+        ];
+      }
     }
     
     // --- Build table search filter ---
@@ -123,8 +223,39 @@ export default function useFeatureSelectionFocus({
       let { column, value } = query;
       
       if (column && value) {
-        // Column-specific search - handle semicolon-separated values with OR logic
-        const values = String(value).split(/[;,]/).map(v => v.trim()).filter(v => v);
+        // Check for comparison operators (>, <, >=, <=) for numeric columns
+        const numericColumns = ["capacity", "length", "freeSpeed", "totalVol", "filteredVolume"];
+        const isNumericCol = numericColumns.includes(column);
+        
+        if (isNumericCol && /^(>=?|<=?)\s*[0-9.,]+$/.test(value)) {
+          const match = value.match(/^(>=?|<=?)\s*([0-9.,]+)$/);
+          if (match) {
+            const operator = match[1];
+            const numValue = parseFloat(match[2].replace(/,/g, ''));
+            
+            if (!isNaN(numValue)) {
+              if (column === "filteredVolume") {
+                // Special handling for filteredVolume - check left_sum OR right_sum
+                const leftFilter = buildComparisonFilter(operator, numValue, ["number", ["get", "left_sum"], 0]);
+                const rightFilter = buildComparisonFilter(operator, numValue, ["number", ["get", "right_sum"], 0]);
+                tableFilter = ["any", leftFilter, rightFilter];
+              } else {
+                // For other numeric columns, use pipe-delimited properties
+                const propName = getPropertyName(column);
+                if (propName) {
+                  // For pipe-delimited values, we need to check if ANY value matches the comparison
+                  // Convert pipe-delimited string to check each value
+                  tableFilter = buildPipeDelimitedComparison(operator, numValue, propName);
+                }
+              }
+            }
+          }
+        }
+        
+        // If no comparison operator match, proceed with normal logic
+        if (!tableFilter) {
+          // Column-specific search - handle semicolon-separated values with OR logic
+          const values = String(value).split(/[;,]/).map(v => v.trim()).filter(v => v);
         
         if (column === "modes") {
           // Modes: contains match for any of the values
@@ -217,18 +348,28 @@ export default function useFeatureSelectionFocus({
             tableFilter = valueFilters.length > 1 ? ["any", ...valueFilters] : valueFilters[0];
           }
         }
+        }
         
       } else if (!column && value) {
         // All columns search - handle semicolon-separated values with OR logic
+        // Check both searchable_text AND modes fields
         const values = String(value).split(/[;,]/).map(v => v.trim().toLowerCase()).filter(v => v);
         
         if (values.length === 1) {
-          // Single value - simple contains
-          tableFilter = [">=", ["index-of", values[0], ["get", "searchable_text"]], 0];
+          // Single value - check in searchable_text OR modes
+          tableFilter = [
+            "any",
+            [">=", ["index-of", values[0], ["get", "searchable_text"]], 0],
+            [">=", ["index-of", values[0], ["downcase", ["to-string", ["get", "modes"]]]], 0]
+          ];
         } else {
-          // Multiple values - OR logic (feature must contain ANY of the terms)
+          // Multiple values - OR logic (feature must contain ANY of the terms in searchable_text OR modes)
           const valueFilters = values.map(val => 
-            [">=", ["index-of", val, ["get", "searchable_text"]], 0]
+            [
+              "any",
+              [">=", ["index-of", val, ["get", "searchable_text"]], 0],
+              [">=", ["index-of", val, ["downcase", ["to-string", ["get", "modes"]]]], 0]
+            ]
           );
           
           // Use OR logic for "all columns" too
@@ -255,7 +396,12 @@ export default function useFeatureSelectionFocus({
       
       // If we're in Volumes mode, enforce additional filters
       if (isGraphExpanded === 'Volumes') {
-        const carFilter = ["match", ["index-of", "car", ["get", "modes"]], -1, false, true];
+        // Match "car" but exclude "cable car"
+        const carFilter = [
+          "all",
+          [">=", ["index-of", "car", ["get", "modes"]], 0],
+          ["==", ["index-of", "cable car", ["get", "modes"]], -1]
+        ];
         const majorRoadsFilter = [">", ["get", "capacity"], 1200];
         
         // Build Volumes-specific filters

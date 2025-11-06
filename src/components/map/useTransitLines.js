@@ -21,15 +21,35 @@ export default function useTransitLines(
         const map = mapRef.current;
         if (!map) return;
         
-        // remove current transit layers and sources
-        if (!highlightedRouteIds || highlightedRouteIds.length === 0 ||
-            !highlightedLineId || isGraphExpanded !== "Transit") {
-                if (map.getLayer("transit-line-highlight")) map.removeLayer("transit-line-highlight");
-                if (map.getSource("transit-line-highlight")) map.removeSource("transit-line-highlight");
+        // Clean up transit-line-display and inter-cantonal stops when leaving Transit mode
+        if (isGraphExpanded !== "Transit") {
+            if (map.getLayer("transit-line-display")) map.removeLayer("transit-line-display");
+            if (map.getSource("transit-line-display")) map.removeSource("transit-line-display");
+            if (map.getLayer("inter-cantonal-stops")) map.removeLayer("inter-cantonal-stops");
+            if (map.getLayer("inter-cantonal-stops-label")) map.removeLayer("inter-cantonal-stops-label");
+            if (map.getLayer("inter-cantonal-stops-hitbox")) map.removeLayer("inter-cantonal-stops-hitbox");
+            if (map.getSource("inter-cantonal-stops")) map.removeSource("inter-cantonal-stops");
+            return;
+        }
+        
+        // Clear highlight only if highlightedLineId is explicitly null/empty
+        // (Allow highlightedRouteIds to be empty temporarily during stop selection)
+        if (!highlightedLineId) {
+                if (map.getLayer("transit-line-display")) {
+                    // Clear the transit line display when leaving Transit mode or clearing selection
+                    if (map.getSource("transit-line-display")) {
+                        map.getSource("transit-line-display").setData({ type: "FeatureCollection", features: [] });
+                    }
+                }
                 if (map.getLayer("inter-cantonal-stops")) map.removeLayer("inter-cantonal-stops");
                 if (map.getLayer("inter-cantonal-stops-label")) map.removeLayer("inter-cantonal-stops-label");
                 if (map.getLayer("inter-cantonal-stops-hitbox")) map.removeLayer("inter-cantonal-stops-hitbox");
                 if (map.getSource("inter-cantonal-stops")) map.removeSource("inter-cantonal-stops");
+                return;
+            }
+            
+            // If we have a line ID but no route IDs yet, skip rendering (waiting for route IDs to be set)
+            if (!highlightedRouteIds || highlightedRouteIds.length === 0) {
                 return;
             }
             
@@ -52,29 +72,35 @@ export default function useTransitLines(
                     features: matched,
                 };
                 
-                if (map.getSource("transit-line-highlight")) {
-                    map.getSource("transit-line-highlight").setData(newData);
+                // Use transit-line-display to show the selected transit route
+                if (map.getSource("transit-line-display")) {
+                    map.getSource("transit-line-display").setData(newData);
                 } else {
-                    map.addSource("transit-line-highlight", {
+                    map.addSource("transit-line-display", {
                         type: "geojson",
                         data: newData,
                     });
                     
+                    // Position before transit-stops-layer if it exists
+                    let beforeLayer = null;
+                    if (map.getLayer('transit-stops-layer')) beforeLayer = 'transit-stops-layer';
+                    else if (map.getLayer('network-layer')) beforeLayer = 'network-layer';
+                    
                     map.addLayer(
                         {
-                            id: "transit-line-highlight",
+                            id: "transit-line-display",
                             type: "line",
-                            source: "transit-line-highlight",
+                            source: "transit-line-display",
                             layout: {
                                 "line-join": "round",
                                 "line-cap": "round",
                             },
                             paint: {
-                                "line-color": "#007AFF",
+                                "line-color": "#00a2ff",
                                 "line-width": 2,
                             },
                         },
-                        "transit-stops-layer"
+                        beforeLayer
                     );
                 }
                 
@@ -275,8 +301,9 @@ export default function useTransitLines(
                         setHighlightedLineId(null);
                         setHighlightedRouteIds([]);
                         if (map) {
-                            if (map.getLayer('transit-line-highlight')) map.removeLayer('transit-line-highlight');
-                            if (map.getSource('transit-line-highlight')) map.removeSource('transit-line-highlight');
+                            if (map.getSource('transit-line-display')) {
+                                map.getSource('transit-line-display').setData({ type: "FeatureCollection", features: [] });
+                            }
                             if (map.getLayer('inter-cantonal-stops')) map.removeLayer('inter-cantonal-stops');
                             if (map.getLayer('inter-cantonal-stops-label')) map.removeLayer('inter-cantonal-stops-label');
                             if (map.getLayer('inter-cantonal-stops-hitbox')) map.removeLayer('inter-cantonal-stops-hitbox');
@@ -296,9 +323,10 @@ export default function useTransitLines(
             if (!map) return;
             
             if(!suppressNextSearchZoom.current) {
-                // Remove transit line and inter-cantonal stop layers on canton change
-                if (map.getLayer("transit-line-highlight")) map.removeLayer("transit-line-highlight");
-                if (map.getSource("transit-line-highlight")) map.removeSource("transit-line-highlight");
+                // Clear the transit line display on canton change
+                if (map.getSource("transit-line-display")) {
+                    map.getSource("transit-line-display").setData({ type: "FeatureCollection", features: [] });
+                }
                 
                 if (map.getLayer("inter-cantonal-stops")) map.removeLayer("inter-cantonal-stops");
                 if (map.getLayer("inter-cantonal-stops-label")) map.removeLayer("inter-cantonal-stops-label");

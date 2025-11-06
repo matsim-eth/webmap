@@ -29,9 +29,9 @@ function App() {
   // ------ FEATURE TABLE --------
   // Track if table is open or not
   const [isFeatureTableOpen, setIsFeatureTableOpen] = useState(false);
-  // Pass network geojson to FeatureTable
+  // Pass network/transit geojson to FeatureTable (used for both Network/Volumes and Transit/TransitVolumes modules)
   const [featureGeoJSON, setFeatureGeoJSON] = useState(null);
-  // Pass table query to filter features on map
+  // Pass table query to filter features on map (used for both modules)
   const [tableFilterQuery, setTableFilterQuery] = useState(null);
 
 
@@ -40,6 +40,7 @@ function App() {
   
   // Save selected network segment properties
   const [selectedNetworkFeature, setSelectedNetworkFeature] = useState(null);
+  // Save focus/zoom selection for map (used by both Network/Volumes and Transit/TransitVolumes modules)
   const [featureSelection, setFeatureSelection] = useState(null);
   // Save selected link for transit volumes module
   const [selectedTransitLink, setSelectedTransitLink] = useState(null);
@@ -155,7 +156,9 @@ function App() {
     selectedNetworkFeature={selectedNetworkFeature} // from map
     setSelectedNetworkFeature={setSelectedNetworkFeature} 
     onFocusNetworkFeature={setFeatureSelection}
+    onFocusTransitFeature={setFeatureSelection}
     selectedTransitLink={selectedTransitLink} // from map
+    setSelectedTransitLink={setSelectedTransitLink} // to transit volumes module
     visualizeLinkId={visualizeLinkId} // from map
     setVisualizeLinkId={setVisualizeLinkId} // to map
     dataURL={dataURL}
