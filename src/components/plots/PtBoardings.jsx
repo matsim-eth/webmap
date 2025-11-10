@@ -41,15 +41,14 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
   useEffect(() => {
     if (!canton) return;
     
-    console.log('Loading PT data for canton:', canton);
+    // Only fetch if we don't already have data
+    if (plotData && transferData) return;
     
     Promise.all([
       loadWithFallback('boarding_data_by_line.json'),
       loadWithFallback('stop_transfer_data_by_canton.json')
     ])
     .then(([boardingData, transferData]) => {
-      console.log('PT data loaded successfully');
-      
       setPlotData(boardingData);
       setTransferData(transferData);
       updateAvailableLines(boardingData, canton, selectedVehicle, selectedTransitStop);
@@ -57,7 +56,7 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
     .catch(err => {
       console.error("Error loading PT data:", err);
     });
-  }, [canton, loadWithFallback]);
+  }, [canton]); // Remove loadWithFallback from dependencies to prevent constant refetching
 
   // Update available lines when vehicle selection changes
   useEffect(() => {
@@ -71,7 +70,6 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
   // Handle selected transit stop
   useEffect(() => {
     if (selectedTransitStop) {
-      console.log('Selected transit stop:', selectedTransitStop.name);
       setShowStopAnalysis(true);
     } else {
       setShowStopAnalysis(false);
@@ -188,7 +186,6 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
     const cantonData = transferData[canton];
     
     if (!cantonData) {
-      console.log('No transfer data found for canton:', canton);
       return null;
     }
     
@@ -202,7 +199,6 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
       for (const altStopId of selectedTransitStop.stop_ids) {
         const altStopData = cantonData[altStopId];
         if (altStopData) {
-          console.log('Found transfer data using alternative stop ID:', altStopId);
           foundStopData = altStopData;
           foundStopId = altStopId;
           break;
@@ -257,7 +253,6 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
       matrix.push(row);
     });
     
-    console.log('Transfer matrix created for stop:', selectedTransitStop.name);
     return { matrix, lineNames };
   };
 
@@ -393,8 +388,6 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
         rawLineData = selectedLineEntry;
       }
     }
-    
-    console.log('PtBoardings - Total boardings updated for:', selectedVehicle, selectedLine !== 'all' ? selectedLine : 'all lines');
     
     onTotalBoardingsChange({ 
       byVehicle: vehicleTotals, 
