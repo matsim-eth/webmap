@@ -29,7 +29,7 @@ export default function useCantons({
       const wideGraphs = ['Graph 3', 'Graph 4'];
       const mediumGraphs = [
         'Graph 1', 'Graph 2', 'Graph 5', 'Graph 6', 'Graph 7', 
-        'Graph 8', 'Graph 9', 'Transit', 'Destination'
+        'Graph 8', 'Graph 9', 'Transit', 'Destination', 'PtBoardings'
       ];
       
       if (wideGraphs.includes(isGraphExpanded)) {
