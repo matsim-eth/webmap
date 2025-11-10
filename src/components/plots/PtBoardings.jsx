@@ -41,15 +41,14 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
   useEffect(() => {
     if (!canton) return;
     
-    console.log('Loading PT data for canton:', canton);
+    // Only fetch if we don't already have data
+    if (plotData && transferData) return;
     
     Promise.all([
       loadWithFallback('boarding_data_by_line.json'),
       loadWithFallback('stop_transfer_data_by_canton.json')
     ])
     .then(([boardingData, transferData]) => {
-      console.log('PT data loaded successfully');
-      
       setPlotData(boardingData);
       setTransferData(transferData);
       updateAvailableLines(boardingData, canton, selectedVehicle, selectedTransitStop);
@@ -57,7 +56,7 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
     .catch(err => {
       console.error("Error loading PT data:", err);
     });
-  }, [canton, loadWithFallback]);
+  }, [canton]); // Remove loadWithFallback from dependencies to prevent constant refetching
 
   // Update available lines when vehicle selection changes
   useEffect(() => {
@@ -71,7 +70,6 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
   // Handle selected transit stop
   useEffect(() => {
     if (selectedTransitStop) {
-      console.log('Selected transit stop:', selectedTransitStop.name);
       setShowStopAnalysis(true);
     } else {
       setShowStopAnalysis(false);
@@ -177,40 +175,58 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
       return null;
     }
     
-    // Get the stop ID from the selected transit stop
-    const stopId = selectedTransitStop.id || selectedTransitStop.stop_id;
-    
-    if (!stopId) {
-      return null;
-    }
-    
-    // Get transfer data for this canton and stop
+    // Get transfer data for this canton
     const cantonData = transferData[canton];
     
     if (!cantonData) {
-      console.log('No transfer data found for canton:', canton);
       return null;
     }
     
-    const stopData = cantonData[stopId];
+    // Try multiple ways to find the stop data
+    let foundStopData = null;
+    let foundStopId = null;
     
-    // If not found with the primary stop ID, try other variations
-    let foundStopData = stopData;
-    let foundStopId = stopId;
+    // First try the direct stop_id
+    const primaryStopId = selectedTransitStop.stop_id;
+    if (primaryStopId && cantonData[primaryStopId]) {
+      foundStopData = cantonData[primaryStopId];
+      foundStopId = primaryStopId;
+    }
     
+    // If not found, try all stop_ids variations
     if (!foundStopData && selectedTransitStop.stop_ids) {
       for (const altStopId of selectedTransitStop.stop_ids) {
-        const altStopData = cantonData[altStopId];
-        if (altStopData) {
-          console.log('Found transfer data using alternative stop ID:', altStopId);
-          foundStopData = altStopData;
+        if (cantonData[altStopId]) {
+          foundStopData = cantonData[altStopId];
           foundStopId = altStopId;
           break;
         }
       }
     }
     
+    // If still not found, try searching by partial match (the keys in JSON might have additional suffixes)
+    if (!foundStopData) {
+      const stopIdVariations = [primaryStopId, ...(selectedTransitStop.stop_ids || [])];
+      
+      for (const stopId of stopIdVariations) {
+        if (!stopId) continue;
+        
+        // Try to find keys that contain this stop ID
+        const matchingKeys = Object.keys(cantonData).filter(key => 
+          key.includes(stopId) || stopId.includes(key.split(':')[0] + ':')
+        );
+        
+        if (matchingKeys.length > 0) {
+          foundStopData = cantonData[matchingKeys[0]];
+          foundStopId = matchingKeys[0];
+          console.log(`Found transfer data using partial match: ${stopId} -> ${matchingKeys[0]}`);
+          break;
+        }
+      }
+    }
+    
     if (!foundStopData || !foundStopData.line_transfers) {
+      console.log('No transfer data found for stop:', selectedTransitStop.name, 'Stop IDs tried:', [primaryStopId, ...(selectedTransitStop.stop_ids || [])]);
       return null;
     }
     
@@ -257,7 +273,6 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
       matrix.push(row);
     });
     
-    console.log('Transfer matrix created for stop:', selectedTransitStop.name);
     return { matrix, lineNames };
   };
 
@@ -266,29 +281,43 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
       return null;
     }
     
-    const stopId = selectedTransitStop.id || selectedTransitStop.stop_id;
-    
-    if (!stopId) {
-      return null;
-    }
-    
     const cantonData = transferData[canton];
     if (!cantonData) {
       return null;
     }
     
-    const stopData = cantonData[stopId];
+    // Use the same logic as createTransferMatrix to find the stop data
+    let foundStopData = null;
     
-    // If not found with the primary stop ID, try other variations
-    let foundStopData = stopData;
-    let foundStopId = stopId;
+    // First try the direct stop_id
+    const primaryStopId = selectedTransitStop.stop_id;
+    if (primaryStopId && cantonData[primaryStopId]) {
+      foundStopData = cantonData[primaryStopId];
+    }
     
+    // If not found, try all stop_ids variations
     if (!foundStopData && selectedTransitStop.stop_ids) {
       for (const altStopId of selectedTransitStop.stop_ids) {
-        const altStopData = cantonData[altStopId];
-        if (altStopData) {
-          foundStopData = altStopData;
-          foundStopId = altStopId;
+        if (cantonData[altStopId]) {
+          foundStopData = cantonData[altStopId];
+          break;
+        }
+      }
+    }
+    
+    // If still not found, try searching by partial match
+    if (!foundStopData) {
+      const stopIdVariations = [primaryStopId, ...(selectedTransitStop.stop_ids || [])];
+      
+      for (const stopId of stopIdVariations) {
+        if (!stopId) continue;
+        
+        const matchingKeys = Object.keys(cantonData).filter(key => 
+          key.includes(stopId) || stopId.includes(key.split(':')[0] + ':')
+        );
+        
+        if (matchingKeys.length > 0) {
+          foundStopData = cantonData[matchingKeys[0]];
           break;
         }
       }
@@ -393,8 +422,6 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
         rawLineData = selectedLineEntry;
       }
     }
-    
-    console.log('PtBoardings - Total boardings updated for:', selectedVehicle, selectedLine !== 'all' ? selectedLine : 'all lines');
     
     onTotalBoardingsChange({ 
       byVehicle: vehicleTotals, 
