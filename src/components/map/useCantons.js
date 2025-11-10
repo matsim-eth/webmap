@@ -112,7 +112,8 @@ export default function useCantons({
           || graphExpandedRef.current === "Graph 9"
           || graphExpandedRef.current === "Volumes" 
           || graphExpandedRef.current === "Transit" 
-          || graphExpandedRef.current === "Destination") {
+          || graphExpandedRef.current === "Destination"
+          || graphExpandedRef.current === "PtBoardings") {
             rightPadding = 650; // Adjust for 600px width
           } else {
             rightPadding = 350; // Default open sidebar
