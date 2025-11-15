@@ -97,7 +97,8 @@ export default function useFeatureSelectionFocus({
   query,
   selectedNetworkModes,
   isGraphExpanded,
-  showMajorRoadsOnly
+  showMajorRoadsOnly,
+  showStopVolumeSymbology
 }) {
   const lastSelectionId = useRef(null);
   
@@ -108,6 +109,60 @@ export default function useFeatureSelectionFocus({
   useEffect(() => {
     const map = mapRef?.current;
     if (!mapReady || !map) return;
+    
+    // Special handling for Transit stops - use transit-highlight-layer
+    if (isGraphExpanded === 'Transit' && selection?.feature) {
+      // Remove existing highlight
+      if (map.getLayer("transit-highlight-layer")) map.removeLayer("transit-highlight-layer");
+      if (map.getSource("transit-highlight")) map.removeSource("transit-highlight");
+      
+      // Add new highlight source and layer
+      map.addSource("transit-highlight", {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: [selection.feature]
+        }
+      });
+      
+      map.addLayer({
+        id: "transit-highlight-layer",
+        type: "circle",
+        source: "transit-highlight",
+        paint: {
+          "circle-radius": showStopVolumeSymbology
+          ? [
+            "interpolate", ["linear"], ["get", "volume"],
+            0, 6,
+            100, 8,
+            500, 13,
+            2500, 18,
+            10000, 23
+          ]
+          : 6,
+          "circle-color": "#00ffff",
+        }
+      }, "transit-stops-layer");
+      
+      // Zoom to feature only if shouldZoom flag is set (from table row selection)
+      if (selection.shouldZoom && Array.isArray(selection.coords) && selection.coords.length) {
+        const [lng, lat] = selection.coords;
+        const offset = 0.01;
+        const bounds = [
+          [lng - offset, lat - offset],
+          [lng + offset, lat + offset]
+        ];
+        
+        if (map.stop) map.stop();
+        map.fitBounds(bounds, {
+          padding: { top: 150, bottom: 150, left: 150, right: 800 },
+          duration: 1000,
+          maxZoom: 16,
+        });
+      }
+      
+      return;
+    }
     
     // No selection: clear highlight + sidebar selection
     if (
@@ -133,34 +188,119 @@ export default function useFeatureSelectionFocus({
       map.addSource(HIGHLIGHT_SOURCE, { type: 'geojson', data: featureCollection });
     }
     
+    // Detect geometry type
+    const geomType = selection.feature?.geometry?.type;
+    const isPoint = geomType === 'Point';
+    
     if (!map.getLayer(HIGHLIGHT_LAYER)) {
       // Position before network-layer if it exists, otherwise transit-volumes-layer, otherwise at top
       let beforeLayer = null;
       if (map.getLayer('network-layer')) beforeLayer = 'network-layer';
       else if (map.getLayer('transit-volumes-layer')) beforeLayer = 'transit-volumes-layer';
+      else if (map.getLayer('transit-stops-layer')) beforeLayer = 'transit-stops-layer';
       
-      map.addLayer(
-        {
-          id: HIGHLIGHT_LAYER,
-          type: 'line',
-          source: HIGHLIGHT_SOURCE,
-          paint: {
-            'line-width': ['interpolate', ['linear'], ['get', 'capacity'], 300, 6, 4000, 15],
-            'line-color': '#00a2ff',
-            'line-opacity': 1,
+      if (isPoint) {
+        // Circle layer for Point features (transit stops)
+        map.addLayer(
+          {
+            id: HIGHLIGHT_LAYER,
+            type: 'circle',
+            source: HIGHLIGHT_SOURCE,
+            paint: {
+              'circle-radius': 8,
+              'circle-color': '#00a2ff',
+              'circle-stroke-color': '#ffffff',
+              'circle-stroke-width': 2,
+              'circle-opacity': 1,
+            },
           },
-        },
-        beforeLayer
-      );
+          beforeLayer
+        );
+      } else {
+        // Line layer for LineString features (network/transit links)
+        map.addLayer(
+          {
+            id: HIGHLIGHT_LAYER,
+            type: 'line',
+            source: HIGHLIGHT_SOURCE,
+            paint: {
+              'line-width': ['interpolate', ['linear'], ['get', 'capacity'], 300, 6, 4000, 15],
+              'line-color': '#00a2ff',
+              'line-opacity': 1,
+            },
+          },
+          beforeLayer
+        );
+      }
+    } else {
+      // Layer exists - update layer type if geometry type changed
+      const currentLayerType = map.getLayer(HIGHLIGHT_LAYER)?.type;
+      const expectedType = isPoint ? 'circle' : 'line';
+      
+      if (currentLayerType !== expectedType) {
+        // Remove and recreate with correct type
+        map.removeLayer(HIGHLIGHT_LAYER);
+        
+        let beforeLayer = null;
+        if (map.getLayer('network-layer')) beforeLayer = 'network-layer';
+        else if (map.getLayer('transit-volumes-layer')) beforeLayer = 'transit-volumes-layer';
+        else if (map.getLayer('transit-stops-layer')) beforeLayer = 'transit-stops-layer';
+        
+        if (isPoint) {
+          map.addLayer(
+            {
+              id: HIGHLIGHT_LAYER,
+              type: 'circle',
+              source: HIGHLIGHT_SOURCE,
+              paint: {
+                'circle-radius': 2,
+                'circle-color': '#00a2ff',
+                'circle-stroke-color': '#ffffff',
+                'circle-stroke-width': 2,
+                'circle-opacity': 1,
+              },
+            },
+            beforeLayer
+          );
+        } else {
+          map.addLayer(
+            {
+              id: HIGHLIGHT_LAYER,
+              type: 'line',
+              source: HIGHLIGHT_SOURCE,
+              paint: {
+                'line-width': ['interpolate', ['linear'], ['get', 'capacity'], 300, 6, 4000, 15],
+                'line-color': '#00a2ff',
+                'line-opacity': 1,
+              },
+            },
+            beforeLayer
+          );
+        }
+      }
     }
     
     // Compute id + bounds
-    const bounds = computeBounds(selection.coords);
+    let bounds = null;
+    if (isPoint) {
+      // For Point geometry, create a small bbox around the point
+      const [lng, lat] = selection.coords;
+      const offset = 0.01; // Small offset for bbox
+      bounds = [
+        [lng - offset, lat - offset],
+        [lng + offset, lat + offset]
+      ];
+    } else {
+      // For LineString, compute bounds from coordinates
+      bounds = computeBounds(selection.coords);
+    }
+    
     const selectionId =
     selection.id ||
     selection.feature.id ||
     selection.feature.properties?.id ||
     selection.feature.properties?.link_id ||
+    selection.feature.properties?.name ||
     null;
     
     // Only react to *new* selections
@@ -168,38 +308,65 @@ export default function useFeatureSelectionFocus({
     
     if (bounds && isNew) {
       if (map.stop) map.stop();
-      map.fitBounds(bounds, {
-        padding: { top: 250, bottom: 250, left: 250, right: 1200 },
-        duration: 1000,
-      });
+      
+      const fitBoundsOptions = isPoint
+        ? {
+            padding: { top: 150, bottom: 150, left: 150, right: 800 },
+            duration: 1000,
+            maxZoom: 16, // Don't zoom in too much for stops
+          }
+        : {
+            padding: { top: 250, bottom: 250, left: 250, right: 1200 },
+            duration: 1000,
+          };
+      
+      map.fitBounds(bounds, fitBoundsOptions);
     }
     
     lastSelectionId.current = selectionId;
-  }, [mapRef, mapReady, selection]);
+  }, [mapRef, mapReady, selection, showStopVolumeSymbology]);
   
   useEffect(() => {
     const map = mapRef?.current;
     if (!mapReady || !map) return;
     
-    // Detect which layers are present to determine if we're filtering network or transit
+    // Detect which layers are present to determine if we're filtering network, transit stops, or transit links
     const isTransitMode = isGraphExpanded === 'TransitVolumes';
+    const isTransitStopsMode = isGraphExpanded === 'Transit';
     
     // Define layer IDs based on what's actually visible
     // Note: network-highlight is now shared between network and transit modes
-    const layerIds = isTransitMode 
-      ? ["transit-volumes-layer", "transit-volumes-hitbox", "network-highlight", 
-         "transit-volumes-label-left", "transit-volumes-label-right", "ant-line"]
-      : ["network-layer", "click-network-layer", "network-highlight", 
-         "network-label-left", "network-label-right", "ant-line"];
+    let layerIds = [];
+    if (isTransitStopsMode) {
+      layerIds = ["transit-stops-layer", "transit-stops-hitbox", "network-highlight", "transit-stops-label"];
+    } else if (isTransitMode) {
+      layerIds = ["transit-volumes-layer", "transit-volumes-hitbox", "network-highlight", 
+                  "transit-volumes-label-left", "transit-volumes-label-right", "ant-line"];
+    } else {
+      layerIds = ["network-layer", "click-network-layer", "network-highlight", 
+                  "network-label-left", "network-label-right", "ant-line"];
+    }
     
     // --- Build mode filter ---
     let modeFilter = null;
     if (Array.isArray(selectedNetworkModes) && !selectedNetworkModes.includes("all")) {
       if (isTransitMode) {
-        // Transit mode filter
+        // Transit volumes mode filter
         modeFilter = [
           "any",
           ...selectedNetworkModes.map((mode) => ["in", mode, ["get", "modes"]]),
+        ];
+      } else if (isTransitStopsMode) {
+        // Transit stops mode filter (uses modes_list)
+        modeFilter = [
+          "any",
+          ...selectedNetworkModes.map((mode) => [
+            "match",
+            ["index-of", mode, ["get", "modes_list"]],
+            -1,
+            false,
+            true,
+          ]),
         ];
       } else {
         // Network mode filter

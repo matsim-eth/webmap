@@ -34,7 +34,7 @@ export default function useCantons({
       
       if (wideGraphs.includes(isGraphExpanded)) {
         rightPadding = 950;
-      } else if (isGraphExpanded === 'Volumes' || isGraphExpanded === 'TransitVolumes') {
+      } else if (isGraphExpanded === 'Volumes' || isGraphExpanded === 'TransitVolumes' || isGraphExpanded === 'Transit') {
         // Volumes/TransitVolumes modules: 950px when table open, 650px otherwise
         rightPadding = isFeatureTableOpen ? 950 : 650;
       } else if (mediumGraphs.includes(isGraphExpanded)) {
