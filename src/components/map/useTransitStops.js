@@ -13,7 +13,8 @@ export default function useTransitStops({
   highlightedLineId,
   suppressNextSearchZoom,
   setFeatureGeoJSON,
-  tableFilterQuery
+  tableFilterQuery,
+  timeRange
 }) {
   
   useEffect(() => {
@@ -62,6 +63,15 @@ export default function useTransitStops({
       const volumeByStopId = {};
       const detailedVolumeByStopId = {};
       
+      // Helper to convert time bin "HH:MM" to tick index (0-95)
+      const timeBinToTick = (timeBin) => {
+        const [h, m] = timeBin.split(':').map(Number);
+        return h * 4 + Math.floor(m / 15);
+      };
+      
+      const startTick = timeRange?.[0] ?? 0;
+      const endTick = timeRange?.[1] ?? 96;
+      
       if (volumeData) {
         volumeData.forEach(entry => {
           const stopId = entry.stop_id;
@@ -70,6 +80,10 @@ export default function useTransitStops({
             detailedVolumeByStopId[stopId] = { boardings: 0, alightings: 0 };
           }
           entry.data.forEach(dp => {
+            // Filter by time range
+            const tick = timeBinToTick(dp.time_bin);
+            if (tick < startTick || tick >= endTick) return;
+            
             const boardings = dp.boardings || 0;
             const alightings = dp.alightings || 0;
             volumeByStopId[stopId] += boardings + alightings;
@@ -450,7 +464,7 @@ export default function useTransitStops({
   .catch(err => {
     console.error("Error loading transit data:", err);
   });
-}, [isGraphExpanded, searchCanton, showStopVolumeSymbology, selectedTransitModes, tableFilterQuery]);
+}, [isGraphExpanded, searchCanton, showStopVolumeSymbology, selectedTransitModes, tableFilterQuery, timeRange]);
 
 
 useEffect(() => {

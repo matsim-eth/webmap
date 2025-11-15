@@ -42,7 +42,8 @@ export default function useTransitLayers({
     highlightedLineId,
     suppressNextSearchZoom,
     setFeatureGeoJSON,
-    tableFilterQuery
+    tableFilterQuery,
+    timeRange
   });
   
   // Add transit lines and interactions
