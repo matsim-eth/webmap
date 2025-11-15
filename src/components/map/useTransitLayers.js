@@ -40,7 +40,9 @@ export default function useTransitLayers({
     setHighlightedLineId,
     setHighlightedRouteIds,
     highlightedLineId,
-    suppressNextSearchZoom
+    suppressNextSearchZoom,
+    setFeatureGeoJSON,
+    tableFilterQuery
   });
   
   // Add transit lines and interactions

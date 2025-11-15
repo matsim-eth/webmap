@@ -6,9 +6,15 @@ const TransitStopHistogram = ({ stopIds, canton, lineId, onVolumeUpdate, timeRan
   const [hourlyCounts, setHourlyCounts] = useState(null);
   const loadWithFallback = useLoadWithFallback();
 
+  console.log("TransitStopHistogram render:", { stopIds, canton, lineId });
+
   // Fetch and process passenger data
   useEffect(() => {
-    if (!stopIds || stopIds.length === 0 || !canton) return;
+    console.log("TransitStopHistogram useEffect:", { stopIds, canton, stopIdsLength: stopIds?.length });
+    if (!stopIds || stopIds.length === 0 || !canton) {
+      console.log("TransitStopHistogram: Missing required data, returning early");
+      return;
+    }
 
     loadWithFallback(`matsim/transit/per_canton_counts/${canton}_counts.json`)
       .then(data => {

@@ -166,6 +166,7 @@ function App() {
     selectedTransitModes={selectedTransitModes}
     setSelectedTransitModes={setSelectedTransitModes} 
     selectedTransitStop={selectedTransitStop}
+    setSelectedTransitStop={setSelectedTransitStop}
     highlightedLineId={highlightedLineId}
     setHighlightedLineId={setHighlightedLineId}
     setHighlightedRouteIds = {setHighlightedRouteIds}

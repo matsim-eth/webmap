@@ -58,7 +58,7 @@ const Sidebar = ({
   onFocusNetworkFeature,
   
   // Transit Module
-  selectedTransitModes, setSelectedTransitModes, selectedTransitStop, highlightedLineId,
+  selectedTransitModes, setSelectedTransitModes, selectedTransitStop, setSelectedTransitStop, highlightedLineId,
   setHighlightedLineId, setHighlightedRouteIds, setHoveredRouteId, showStopVolumeSymbology,
   setShowStopVolumeSymbology,
   
@@ -98,6 +98,10 @@ const Sidebar = ({
   // Transit module
   const [availableTransitModes, setAvailableTransitModes] = useState([]);
   const [transitModesByCanton, setTransitModesByCanton] = useState({});
+  
+  // Note: Removed useEffect that syncs selectedTransitStop to onFocusTransitFeature
+  // because it was interfering with table row selection. The table now calls
+  // onFocusTransitFeature directly in handleTableRowSelect.
   
   // Data upload
   const { handleFolderUpload, fileMap, clearFileMap } = useFileContext();
@@ -511,13 +515,41 @@ const Sidebar = ({
         </>
       )}
       
-      {/* Transit Module */}
+      {/* Transit Stops Module */}
       {selectedGraph === "Transit" && (
+        <>
+        {/* Buttons for table */}
+        {canton && (
+          <div className="network-buttons-row">
+          <button
+          className="search-button"
+          onClick={() =>
+            setIsFeatureTableOpen((prev) => !prev)}
+          >
+          {isFeatureTableOpen ? "Hide Table" : "Show Table"}
+          </button>
+          
+          {isFeatureTableOpen && (
+            <button
+            className="search-button secondary"
+            onClick={() => {
+              if (featureTableRef.current?.exportCsv) {
+                featureTableRef.current.exportCsv();
+              }
+            }}
+            >
+            Export Data
+            </button>
+          )}
+          </div>
+        )}
+        
         <TransitModule
         selectedTransitModes={selectedTransitModes}
         setSelectedTransitModes={setSelectedTransitModes}
         availableTransitModes={availableTransitModes}
         selectedTransitStop={selectedTransitStop}
+        setSelectedTransitStop={setSelectedTransitStop}
         highlightedLineId={highlightedLineId}
         setHighlightedLineId={setHighlightedLineId}
         setHighlightedRouteIds={setHighlightedRouteIds}
@@ -527,7 +559,14 @@ const Sidebar = ({
         canton={canton}
         timeRange={timeRange}
         setTimeRange={setTimeRange}
+        isFeatureTableOpen={isFeatureTableOpen}
+        setIsFeatureTableOpen={setIsFeatureTableOpen}
+        featureGeoJSON={featureGeoJSON}
+        onFocusTransitFeature={onFocusTransitFeature}
+        featureTableRef={featureTableRef}
+        setTableFilterQuery={setTableFilterQuery}
         />
+        </>
       )}
       
       {selectedGraph === "TransitVolumes" && (
