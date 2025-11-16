@@ -629,9 +629,11 @@ const FeatureTable = forwardRef(
         : "";
         
         // Only allow comparison operators for specific numeric columns (not "All columns")
-        const isNumericCol = searchCol >= 0 && ["capacity", "length", "freeSpeed", "totalVol", "filteredVolume"].includes(
-          dtColumns[searchCol]?.data || ""
-        );
+        // Include both Network/Volumes columns and Transit stops columns
+        const isNumericCol = searchCol >= 0 && [
+          "capacity", "length", "freeSpeed", "totalVol", "filteredVolume", // Network/Volumes
+          "lineCount", "boardings", "alightings" // Transit stops
+        ].includes(dtColumns[searchCol]?.data || "");
         
         // Check for comparison operators (>, <, >=, <=) in numeric columns
         if (isNumericCol && /^(>=?|<=?)\s*[0-9.,]+$/.test(raw)) {
