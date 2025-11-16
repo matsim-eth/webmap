@@ -58,7 +58,7 @@ const Sidebar = ({
   onFocusNetworkFeature,
   
   // Transit Module
-  selectedTransitModes, setSelectedTransitModes, selectedTransitStop, highlightedLineId,
+  selectedTransitModes, setSelectedTransitModes, selectedTransitStop, setSelectedTransitStop, highlightedLineId,
   setHighlightedLineId, setHighlightedRouteIds, setHoveredRouteId, showStopVolumeSymbology,
   setShowStopVolumeSymbology,
   
@@ -513,11 +513,39 @@ const Sidebar = ({
       
       {/* Transit Module */}
       {selectedGraph === "Transit" && (
+        <>
+        {/* Buttons for table */}
+        {canton && (
+          <div className="network-buttons-row">
+          <button
+          className="search-button"
+          onClick={() =>
+            setIsFeatureTableOpen((prev) => !prev)}
+          >
+          {isFeatureTableOpen ? "Hide Table" : "Show Table"}
+          </button>
+          
+          {isFeatureTableOpen && (
+            <button
+            className="search-button secondary"
+            onClick={() => {
+              if (featureTableRef.current?.exportCsv) {
+                featureTableRef.current.exportCsv();
+              }
+            }}
+            >
+            Export Data
+            </button>
+          )}
+          </div>
+        )}
+        
         <TransitModule
         selectedTransitModes={selectedTransitModes}
         setSelectedTransitModes={setSelectedTransitModes}
         availableTransitModes={availableTransitModes}
         selectedTransitStop={selectedTransitStop}
+        setSelectedTransitStop={setSelectedTransitStop}
         highlightedLineId={highlightedLineId}
         setHighlightedLineId={setHighlightedLineId}
         setHighlightedRouteIds={setHighlightedRouteIds}
@@ -527,7 +555,13 @@ const Sidebar = ({
         canton={canton}
         timeRange={timeRange}
         setTimeRange={setTimeRange}
+        isFeatureTableOpen={isFeatureTableOpen}
+        featureGeoJSON={featureGeoJSON}
+        featureTableRef={featureTableRef}
+        setTableFilterQuery={setTableFilterQuery}
+        onFocusTransitFeature={onFocusTransitFeature}
         />
+        </>
       )}
       
       {selectedGraph === "TransitVolumes" && (

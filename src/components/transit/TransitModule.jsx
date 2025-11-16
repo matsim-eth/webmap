@@ -1,6 +1,7 @@
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, useCallback} from "react";
 import TransitStopAttributesTable from "./TransitStopAttributesTable";
 import TransitStopHistogram from "./TransitStopHistogram";
+import FeatureTable from "../table/FeatureTable";
 import { marks, formatTimeLabel } from "../../utils/timeSliderUtils";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
@@ -21,10 +22,112 @@ const TransitModule = ({
     availableTransitModes,
     timeRange,
     setTimeRange,
+    // Table-related props
+    isFeatureTableOpen,
+    featureGeoJSON,
+    featureTableRef,
+    setTableFilterQuery,
+    setSelectedTransitStop,
+    onFocusTransitFeature
 }) => {
     
     const [filteredStopVolumes, setFilteredStopVolumes] = useState(null); // total filtered volumes per stop
     const loadWithFallback = useLoadWithFallback();
+
+    // Clear selection when table opens
+    useEffect(() => {
+        if (isFeatureTableOpen) {
+            setSelectedTransitStop?.(null);
+            setHighlightedLineId?.(null);
+            setHighlightedRouteIds?.([]);
+        } else if (setTableFilterQuery) {
+            setTableFilterQuery(null);
+        }
+    }, [isFeatureTableOpen, setTableFilterQuery, setSelectedTransitStop, setHighlightedLineId, setHighlightedRouteIds]);
+
+    // Handle row selection in table
+    const handleTableRowSelect = useCallback(
+        (row) => {
+            if (!row) return;
+            
+            const featureProps = row.featureProps || row.feature?.properties;
+            if (featureProps) {
+                // Parse stop data
+                const stopId = featureProps.stop_id;
+                let allStopIds = [];
+                if (Array.isArray(stopId)) {
+                    allStopIds = stopId;
+                } else {
+                    try {
+                        allStopIds = JSON.parse(stopId);
+                    } catch {
+                        allStopIds = String(stopId).split(",").map(id => id.trim());
+                    }
+                }
+                
+                // Parse lines
+                let combinedLines = [];
+                if (Array.isArray(featureProps.lines)) {
+                    combinedLines = featureProps.lines;
+                } else if (typeof featureProps.lines === 'string') {
+                    try {
+                        combinedLines = JSON.parse(featureProps.lines);
+                    } catch {
+                        combinedLines = [];
+                    }
+                }
+                
+                // Parse modes
+                let combinedModes = [];
+                if (Array.isArray(featureProps.modes_list)) {
+                    combinedModes = featureProps.modes_list;
+                } else if (typeof featureProps.modes_list === 'string') {
+                    try {
+                        combinedModes = JSON.parse(featureProps.modes_list);
+                    } catch {
+                        combinedModes = [];
+                    }
+                }
+                
+                // Update selected transit stop
+                const updatedStop = {
+                    name: featureProps.name,
+                    stop_id: stopId,
+                    stop_ids: allStopIds,
+                    lines: combinedLines,
+                    modes_list: combinedModes,
+                    boardings: featureProps.boardings || 0,
+                    alightings: featureProps.alightings || 0,
+                    total: (featureProps.boardings || 0) + (featureProps.alightings || 0),
+                    feature: row.feature,
+                    coords: row.coords
+                };
+                setSelectedTransitStop?.(updatedStop);
+                
+                // Reset highlighted line and routes
+                setHighlightedLineId?.(null);
+                setHighlightedRouteIds?.([]);
+                
+                // Create highlight and zoom on map
+                if (onFocusTransitFeature && row.feature && row.coords) {
+                    onFocusTransitFeature({
+                        feature: row.feature,
+                        coords: row.coords,
+                        id: row.rowKey
+                    });
+                }
+            }
+        },
+        [onFocusTransitFeature, setSelectedTransitStop, setHighlightedLineId, setHighlightedRouteIds]
+    );
+
+    const handleSelectCoords = useCallback(
+        (coords, row) => {
+            if (!row) return;
+            handleTableRowSelect({ ...row, coords: coords || row.coords });
+        },
+        [handleTableRowSelect]
+    );
 
     // If a new line is selected and its mode is not included in the current filter,
     // reset the mode filter to "all" so the line remains visible.
@@ -62,7 +165,24 @@ const TransitModule = ({
     return(
         <div style={{ overflowY: "auto", overflowX: "hidden", width: "100%" }}>
         
-        <div className="mode-filter-container">
+        {isFeatureTableOpen ? (
+            <FeatureTable
+                ref={featureTableRef}
+                tableId="transit-stops-feature-table"
+                geojson={featureGeoJSON}
+                selectedGraph="Transit"
+                selectedModes={selectedTransitModes}
+                onRowClick={handleTableRowSelect}
+                onSelectCoords={handleSelectCoords}
+                height={"55vh"}
+                useScroller
+                pageLength={25}
+                loading={!featureGeoJSON}
+                setTableFilterQuery={setTableFilterQuery}
+            />
+        ) : (
+            <>
+            <div className="mode-filter-container">
         <label className="mode-filter-label">Filter by Mode:</label>
         <select
         multiple
@@ -127,7 +247,11 @@ const TransitModule = ({
         </div>
         
         </div>
-        {selectedTransitStop && (
+        </>
+        )}
+        
+        {/* Histogram and attributes - only show when not in table view */}
+        {selectedTransitStop && !isFeatureTableOpen && (
             <>
             <TransitStopAttributesTable
             properties={{
@@ -152,10 +276,6 @@ const TransitModule = ({
             onRouteHover={setHoveredRouteId}
             />
             
-            </>
-            
-        )}
-        {selectedTransitStop && (
             <TransitStopHistogram
             stopIds={selectedTransitStop.stop_ids}
             canton={canton}
@@ -163,6 +283,7 @@ const TransitModule = ({
             onVolumeUpdate={setFilteredStopVolumes}
             timeRange={timeRange}
             />
+            </>
         )}
         </div>
     );

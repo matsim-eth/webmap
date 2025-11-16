@@ -467,7 +467,14 @@ export default function useNetworkLayers({
             show();
             if (isGraphExpanded === 'Network') {
               const source = map.getSource('network-source');
-              if (source && originalNetworkGeoJSON.current) source.setData(originalNetworkGeoJSON.current);
+              if (source && originalNetworkGeoJSON.current) {
+                source.setData(originalNetworkGeoJSON.current);
+                // Update featureGeoJSON for table
+                setFeatureGeoJSON?.(originalNetworkGeoJSON.current);
+              } else if (source && !originalNetworkGeoJSON.current) {
+                // Layers exist but data was cleared (after module switch) - reload
+                loadNetworkForCanton(canton);
+              }
               ['network-layer','click-network-layer','network-highlight'].forEach(id => {
                 if (map.getLayer(id)) map.setFilter(id, null);
               });
@@ -503,7 +510,13 @@ export default function useNetworkLayers({
           let hasCarMode = false;
           if (source && source._data) {
             const features = source._data.features;
-            hasCarMode = features.some(f => f.properties?.modes?.split(',').includes('car'));
+            hasCarMode = features.some(f => {
+              const modes = f.properties?.modes;
+              if (!modes) return false;
+              // Handle both string and array formats
+              const modeArray = typeof modes === 'string' ? modes.split(',') : modes;
+              return modeArray.includes('car');
+            });
           }
           if (!hasCarMode) {
             setSelectedNetworkFeature(null);

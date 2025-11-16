@@ -70,7 +70,67 @@ export const buildRowsFromGeojson = (geojson, selectedGraph = null) => {
   geojson.features.forEach((feature, featureIndex) => {
     const props = feature?.properties || {};
     
-    // Parse pipe-separated strings into arrays
+    // Handle Transit stops differently
+    if (selectedGraph === 'Transit') {
+      // Transit stop data structure
+      const stopName = props.name || "Unknown Stop";
+      
+      // Parse modes_list
+      let modesList = [];
+      if (typeof props.modes_list === 'string') {
+        try {
+          modesList = JSON.parse(props.modes_list);
+        } catch {
+          // If parse fails, try splitting by comma
+          modesList = props.modes_list.split(',').map(m => m.trim()).filter(Boolean);
+        }
+      } else if (Array.isArray(props.modes_list)) {
+        modesList = props.modes_list;
+      }
+      const modes = Array.isArray(modesList) && modesList.length > 0 
+        ? modesList.join(", ") 
+        : "-";
+      
+      // Parse line_ids to count number of unique lines
+      let lineIds = [];
+      if (Array.isArray(props.line_ids)) {
+        lineIds = props.line_ids;
+      } else if (typeof props.line_ids === 'string') {
+        try {
+          lineIds = JSON.parse(props.line_ids);
+        } catch {
+          lineIds = [];
+        }
+      }
+      // Count unique line_ids
+      const uniqueLineIds = Array.isArray(lineIds) ? [...new Set(lineIds)] : [];
+      const lineCount = uniqueLineIds.length;
+      
+      // Get volumes directly from feature properties (added by useTransitStops)
+      const boardings = props.boardings || 0;
+      const alightings = props.alightings || 0;
+      
+      // Get coordinates
+      const g = feature?.geometry;
+      const coords = g?.type === "Point" ? g.coordinates : null;
+      
+      rows.push({
+        rowKey: `transit-stop-${featureIndex}`,
+        tableId: featureIndex,
+        stopName,
+        modes,
+        lineCount,
+        boardings,
+        alightings,
+        coords,
+        feature,
+        featureProps: props
+      });
+      
+      return; // Skip the rest of the loop for Transit stops
+    }
+    
+    // Parse pipe-separated strings into arrays (for Network/Volumes/TransitVolumes)
     const keys = (props.per_id_keys || "").split("|").filter(Boolean);
     const capacities = (props.per_id_capacities || "").split("|").filter(Boolean);
     const lengths = (props.per_id_lengths || "").split("|").filter(Boolean);
@@ -246,6 +306,16 @@ const FeatureTable = forwardRef(
     // Single source of truth for columns (used by DT and the toolbar + exporter)
     const columnDefs = useMemo(
       () => {
+        // Transit stops have different columns
+        if (selectedGraph === 'Transit') {
+          return [
+            { key: "stopName", title: "Stop Name" },
+            { key: "modes", title: "Modes" },
+            { key: "lineCount", title: "# Lines" },
+            { key: "boardings", title: "Boardings" },
+            { key: "alightings", title: "Alightings" },
+          ];
+        }
         
         const cols = [
           { key: "directionId", title: "Link ID" },
@@ -284,6 +354,25 @@ const FeatureTable = forwardRef(
     // DataTables columns (maps to the same keys)
     const dtColumns = useMemo(
       () => {
+        // Transit stops have different columns
+        if (selectedGraph === 'Transit') {
+          return [
+            { data: "stopName", title: "Stop Name" },
+            { data: "modes", title: "Modes" },
+            { data: "lineCount", title: "# Lines" },
+            { 
+              data: "boardings", 
+              title: "Boardings",
+              render: (data) => Number(data || 0).toLocaleString()
+            },
+            { 
+              data: "alightings", 
+              title: "Alightings",
+              render: (data) => Number(data || 0).toLocaleString()
+            },
+          ];
+        }
+        
         const cols = [
           { data: "directionId", title: "Link ID" },
           { data: "length", title: "Length [m]" },
@@ -540,9 +629,11 @@ const FeatureTable = forwardRef(
         : "";
         
         // Only allow comparison operators for specific numeric columns (not "All columns")
-        const isNumericCol = searchCol >= 0 && ["capacity", "length", "freeSpeed", "totalVol", "filteredVolume"].includes(
-          dtColumns[searchCol]?.data || ""
-        );
+        // Include both Network/Volumes columns and Transit stops columns
+        const isNumericCol = searchCol >= 0 && [
+          "capacity", "length", "freeSpeed", "totalVol", "filteredVolume", // Network/Volumes
+          "lineCount", "boardings", "alightings" // Transit stops
+        ].includes(dtColumns[searchCol]?.data || "");
         
         // Check for comparison operators (>, <, >=, <=) in numeric columns
         if (isNumericCol && /^(>=?|<=?)\s*[0-9.,]+$/.test(raw)) {

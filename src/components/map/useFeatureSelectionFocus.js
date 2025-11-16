@@ -4,6 +4,15 @@ const HIGHLIGHT_SOURCE_ID = 'network-highlight';
 const HIGHLIGHT_LAYER_ID = 'network-highlight';
 
 const computeBounds = (coords) => {
+  if (!Array.isArray(coords) || coords.length === 0) return null;
+  
+  // Check if coords is a single point [lng, lat] or array of points [[lng, lat], ...]
+  const isArrayOfPoints = Array.isArray(coords[0]);
+  if (!isArrayOfPoints) {
+    // Single point: return null (Transit stops shouldn't use this function)
+    return null;
+  }
+  
   let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;
   coords.forEach(([lng, lat]) => {
     if (!Number.isFinite(lng) || !Number.isFinite(lat)) return;
@@ -97,7 +106,8 @@ export default function useFeatureSelectionFocus({
   query,
   selectedNetworkModes,
   isGraphExpanded,
-  showMajorRoadsOnly
+  showMajorRoadsOnly,
+  showStopVolumeSymbology
 }) {
   const lastSelectionId = useRef(null);
   
@@ -109,23 +119,124 @@ export default function useFeatureSelectionFocus({
     const map = mapRef?.current;
     if (!mapReady || !map) return;
     
-    // No selection: clear highlight + sidebar selection
+    // Determine if we're dealing with Transit stops (points) or network/transit links (lines)
+    const isTransitStops = isGraphExpanded === 'Transit';
+    
+    // No selection: clear highlights
     if (
       !selection ||
       !selection.feature ||
       !Array.isArray(selection.coords) ||
       !selection.coords.length
     ) {
+      // Clear line-based highlight
       if (map.getSource(HIGHLIGHT_SOURCE)) {
-        map
-        .getSource(HIGHLIGHT_SOURCE)
-        .setData({ type: 'FeatureCollection', features: [] });
+        map.getSource(HIGHLIGHT_SOURCE).setData({ type: 'FeatureCollection', features: [] });
       }
+      
+      // Clear transit stops highlight
+      if (map.getLayer("transit-highlight-layer")) {
+        map.removeLayer("transit-highlight-layer");
+      }
+      if (map.getSource("transit-highlight")) {
+        map.removeSource("transit-highlight");
+      }
+      
       lastSelectionId.current = null;
       return;
     }
     
-    // Update highlight source/layer
+    // Handle Transit stops separately (points)
+    if (isTransitStops) {
+      // Clear line-based highlight
+      if (map.getSource(HIGHLIGHT_SOURCE)) {
+        map.getSource(HIGHLIGHT_SOURCE).setData({ type: 'FeatureCollection', features: [] });
+      }
+      
+      // Remove existing transit highlight
+      if (map.getLayer("transit-highlight-layer")) {
+        map.removeLayer("transit-highlight-layer");
+      }
+      if (map.getSource("transit-highlight")) {
+        map.removeSource("transit-highlight");
+      }
+      
+      // Add new transit highlight source and layer
+      map.addSource("transit-highlight", {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: [selection.feature]
+        }
+      });
+      
+      // Position before transit-stops-layer
+      let beforeLayer = map.getLayer("transit-stops-layer") ? "transit-stops-layer" : null;
+      
+      map.addLayer({
+        id: "transit-highlight-layer",
+        type: "circle",
+        source: "transit-highlight",
+        paint: {
+          "circle-radius": showStopVolumeSymbology
+          ? [
+            "interpolate", ["linear"], ["get", "volume"],
+            0, 6,
+            100, 8,
+            500, 13,
+            2500, 18,
+            10000, 23
+          ]
+          : 6,
+          "circle-color": "#00ffff",
+        }
+      }, beforeLayer);
+      
+      // Zoom to stop if requested
+      if (selection.coords.length === 2) {
+        const [lng, lat] = selection.coords;
+        
+        if (Number.isFinite(lng) && Number.isFinite(lat)) {
+          const offset = 0.005;
+          const bounds = [
+            [lng - offset, lat - offset],
+            [lng + offset, lat + offset]
+          ];
+          
+          const selectionId =
+            selection.id ||
+            selection.feature.id ||
+            selection.feature.properties?.stop_id ||
+            selection.feature.properties?.name ||
+            null;
+          
+          const isNew = selectionId !== lastSelectionId.current;
+          
+          if (isNew) {
+            if (map.stop) map.stop();
+            map.fitBounds(bounds, {
+              padding: { top: 150, bottom: 150, left: 150, right: 800 },
+              duration: 1000,
+              maxZoom: 16,
+            });
+            lastSelectionId.current = selectionId;
+          }
+        }
+      }
+      
+      return;
+    }
+    
+    // Handle network/transit links (lines)
+    // Clear transit stops highlight
+    if (map.getLayer("transit-highlight-layer")) {
+      map.removeLayer("transit-highlight-layer");
+    }
+    if (map.getSource("transit-highlight")) {
+      map.removeSource("transit-highlight");
+    }
+    
+    // Update line highlight source/layer
     const featureCollection = { type: 'FeatureCollection', features: [selection.feature] };
     if (map.getSource(HIGHLIGHT_SOURCE)) {
       map.getSource(HIGHLIGHT_SOURCE).setData(featureCollection);
@@ -154,52 +265,115 @@ export default function useFeatureSelectionFocus({
       );
     }
     
-    // Compute id + bounds
-    const bounds = computeBounds(selection.coords);
-    const selectionId =
-    selection.id ||
-    selection.feature.id ||
-    selection.feature.properties?.id ||
-    selection.feature.properties?.link_id ||
-    null;
+    // Compute bounds and zoom (only for non-Transit modules)
+    if (isGraphExpanded !== 'Transit') {
+      const bounds = computeBounds(selection.coords);
+      const selectionId =
+        selection.id ||
+        selection.feature.id ||
+        selection.feature.properties?.id ||
+        selection.feature.properties?.link_id ||
+        null;
+      
+      // Only react to *new* selections
+      const isNew = selectionId !== lastSelectionId.current;
+      
+      if (bounds && isNew) {
+        if (map.stop) map.stop();
+        map.fitBounds(bounds, {
+          padding: { top: 250, bottom: 250, left: 250, right: 1200 },
+          duration: 1000,
+        });
+      }
+      
+      lastSelectionId.current = selectionId;
+    }
+  }, [mapRef, mapReady, selection, isGraphExpanded, showStopVolumeSymbology]);
+  
+  // Clear highlights when switching between module groups
+  // Groups: Network/Volumes (share highlights), TransitVolumes (separate), Transit (separate)
+  const previousModule = useRef(null);
+  useEffect(() => {
+    const map = mapRef?.current;
+    if (!mapReady || !map) return;
     
-    // Only react to *new* selections
-    const isNew = selectionId !== lastSelectionId.current;
+    const getModuleGroup = (module) => {
+      if (module === 'Network' || module === 'Volumes') return 'network';
+      if (module === 'TransitVolumes') return 'transitVolumes';
+      if (module === 'Transit') return 'transit';
+      return null;
+    };
     
-    if (bounds && isNew) {
-      if (map.stop) map.stop();
-      map.fitBounds(bounds, {
-        padding: { top: 250, bottom: 250, left: 250, right: 1200 },
-        duration: 1000,
-      });
+    const currentGroup = getModuleGroup(isGraphExpanded);
+    const previousGroup = getModuleGroup(previousModule.current);
+    
+    // Only clear if switching between different module groups
+    if (currentGroup !== previousGroup && previousGroup !== null) {
+      if (currentGroup === 'transit') {
+        // Switching TO Transit: clear network highlights
+        if (map.getSource(HIGHLIGHT_SOURCE)) {
+          map.getSource(HIGHLIGHT_SOURCE).setData({ type: 'FeatureCollection', features: [] });
+        }
+      } else if (previousGroup === 'transit') {
+        // Switching FROM Transit: clear transit highlights
+        if (map.getLayer("transit-highlight-layer")) {
+          map.removeLayer("transit-highlight-layer");
+        }
+        if (map.getSource("transit-highlight")) {
+          map.removeSource("transit-highlight");
+        }
+      } else {
+        // Switching between network/transitVolumes groups: clear network highlights
+        if (map.getSource(HIGHLIGHT_SOURCE)) {
+          map.getSource(HIGHLIGHT_SOURCE).setData({ type: 'FeatureCollection', features: [] });
+        }
+      }
+      
+      // Reset selection ID when switching module groups
+      lastSelectionId.current = null;
     }
     
-    lastSelectionId.current = selectionId;
-  }, [mapRef, mapReady, selection]);
+    previousModule.current = isGraphExpanded;
+  }, [mapRef, mapReady, isGraphExpanded]);
   
   useEffect(() => {
     const map = mapRef?.current;
     if (!mapReady || !map) return;
     
-    // Detect which layers are present to determine if we're filtering network or transit
-    const isTransitMode = isGraphExpanded === 'TransitVolumes';
+    // Detect which layers are present to determine if we're filtering network, transit volumes, or transit stops
+    const isTransitVolumesMode = isGraphExpanded === 'TransitVolumes';
+    const isTransitStopsMode = isGraphExpanded === 'Transit';
     
     // Define layer IDs based on what's actually visible
     // Note: network-highlight is now shared between network and transit modes
-    const layerIds = isTransitMode 
+    const layerIds = isTransitVolumesMode 
       ? ["transit-volumes-layer", "transit-volumes-hitbox", "network-highlight", 
          "transit-volumes-label-left", "transit-volumes-label-right", "ant-line"]
+      : isTransitStopsMode
+      ? ["transit-stops-layer", "transit-stops-label", "transit-stops-hitbox", "transit-highlight-layer"]
       : ["network-layer", "click-network-layer", "network-highlight", 
          "network-label-left", "network-label-right", "ant-line"];
     
     // --- Build mode filter ---
     let modeFilter = null;
     if (Array.isArray(selectedNetworkModes) && !selectedNetworkModes.includes("all")) {
-      if (isTransitMode) {
-        // Transit mode filter
+      if (isTransitVolumesMode) {
+        // Transit volumes mode filter
         modeFilter = [
           "any",
           ...selectedNetworkModes.map((mode) => ["in", mode, ["get", "modes"]]),
+        ];
+      } else if (isTransitStopsMode) {
+        // Transit stops mode filter - check modes_list array
+        modeFilter = [
+          "any",
+          ...selectedNetworkModes.map((mode) => [
+            "match",
+            ["index-of", mode, ["get", "modes_list"]],
+            -1,
+            false,
+            true,
+          ]),
         ];
       } else {
         // Network mode filter
@@ -223,118 +397,214 @@ export default function useFeatureSelectionFocus({
       let { column, value } = query;
       
       if (column && value) {
-        // Check for comparison operators (>, <, >=, <=) for numeric columns
-        const numericColumns = ["capacity", "length", "freeSpeed", "totalVol", "filteredVolume"];
-        const isNumericCol = numericColumns.includes(column);
-        
-        if (isNumericCol && /^(>=?|<=?)\s*[0-9.,]+$/.test(value)) {
-          const match = value.match(/^(>=?|<=?)\s*([0-9.,]+)$/);
-          if (match) {
-            const operator = match[1];
-            const numValue = parseFloat(match[2].replace(/,/g, ''));
-            
-            if (!isNaN(numValue)) {
-              if (column === "filteredVolume") {
-                // Special handling for filteredVolume - check left_sum OR right_sum
-                const leftFilter = buildComparisonFilter(operator, numValue, ["number", ["get", "left_sum"], 0]);
-                const rightFilter = buildComparisonFilter(operator, numValue, ["number", ["get", "right_sum"], 0]);
-                tableFilter = ["any", leftFilter, rightFilter];
-              } else {
-                // For other numeric columns, use pipe-delimited properties
-                const propName = getPropertyName(column);
+        // Transit stops have different columns than network/transit volumes
+        if (isTransitStopsMode) {
+          // Transit stops columns: stopName, modes, lineCount, boardings, alightings
+          const numericColumns = ["lineCount", "boardings", "alightings"];
+          const isNumericCol = numericColumns.includes(column);
+          
+          // Check for comparison operators (>, <, >=, <=) for numeric columns
+          if (isNumericCol && /^(>=?|<=?)\s*[0-9.,]+$/.test(value)) {
+            const match = value.match(/^(>=?|<=?)\s*([0-9.,]+)$/);
+            if (match) {
+              const operator = match[1];
+              const numValue = parseFloat(match[2].replace(/,/g, ''));
+              
+              if (!isNaN(numValue)) {
+                const propMap = {
+                  "lineCount": "line_ids", // line_ids is an array, need to use length
+                  "boardings": "boardings",
+                  "alightings": "alightings"
+                };
+                const propName = propMap[column];
+                
                 if (propName) {
-                  // For pipe-delimited values, we need to check if ANY value matches the comparison
-                  // Convert pipe-delimited string to check each value
-                  tableFilter = buildPipeDelimitedComparison(operator, numValue, propName);
+                  // Special handling for lineCount - need to check array length
+                  if (column === "lineCount") {
+                    tableFilter = buildComparisonFilter(operator, numValue, ["length", ["get", "line_ids"]]);
+                  } else {
+                    tableFilter = buildComparisonFilter(operator, numValue, ["number", ["get", propName], 0]);
+                  }
                 }
               }
             }
           }
-        }
-        
-        // If no comparison operator match, proceed with normal logic
-        if (!tableFilter) {
-          // Column-specific search - handle semicolon-separated values with OR logic
-          const values = String(value).split(/[;,]/).map(v => v.trim()).filter(v => v);
-        
-        if (column === "modes") {
-          // Modes: contains match for any of the values
-          const filters = values.map(val => {
-            const valLower = val.toLowerCase();
-            return [">=", ["index-of", valLower, ["downcase", ["to-string", ["get", "modes"]]]], 0];
-          });
           
-          tableFilter = filters.length > 1 ? ["any", ...filters] : filters[0];
-          
-        } else if (column === "filteredVolume") {
-          // Filtered Volume: check left_sum OR right_sum directly (numeric properties)
-          // Use tolerance-based matching for floating point values
-          const numericValues = values
-            .map(v => v.replace(/,/g, ''))
-            .filter(v => !isNaN(Number(v)))
-            .map(v => Number(v));
-          
-          if (numericValues.length > 0) {
-            const tolerance = 0.05; // 0.05 tolerance for rounding
+          // If no comparison operator, handle normal value matching
+          if (!tableFilter) {
+            // Split on semicolon for AND logic, comma for OR logic
+            const hasSemicolon = value.includes(';');
+            const values = String(value).split(hasSemicolon ? ';' : ',').map(v => v.trim()).filter(v => v);
             
-            const volumeFilters = numericValues.map(val => {
-              const minVal = val - tolerance;
-              const maxVal = val + tolerance;
+            if (values.length === 0) return;
+            
+            if (column === "modes") {
+              // Modes: check if mode exists in modes_list array
+              const filters = values.map(val => {
+                const valLower = val.toLowerCase();
+                return [">=", ["index-of", valLower, ["downcase", ["to-string", ["get", "modes_list"]]]], 0];
+              });
+              tableFilter = hasSemicolon && filters.length > 1 ? ["all", ...filters] : (filters.length > 1 ? ["any", ...filters] : filters[0]);
+            } else if (column === "stopName") {
+              // Stop name: contains match
+              const filters = values.map(val => {
+                const valLower = val.toLowerCase();
+                return [">=", ["index-of", valLower, ["downcase", ["to-string", ["get", "name"]]]], 0];
+              });
+              tableFilter = hasSemicolon && filters.length > 1 ? ["all", ...filters] : (filters.length > 1 ? ["any", ...filters] : filters[0]);
+            } else if (isNumericCol) {
+              // Numeric columns: exact match with tolerance
+              const numericValues = values
+                .map(v => v.replace(/,/g, ''))
+                .filter(v => !isNaN(Number(v)))
+                .map(v => Number(v));
               
-              return [
-                "any",
-                // Match left_sum within tolerance
-                [
-                  "all",
-                  [">=", ["number", ["get", "left_sum"], 0], minVal],
-                  ["<=", ["number", ["get", "left_sum"], 0], maxVal]
-                ],
-                // Match right_sum within tolerance
-                [
-                  "all",
-                  [">=", ["number", ["get", "right_sum"], 0], minVal],
-                  ["<=", ["number", ["get", "right_sum"], 0], maxVal]
-                ]
-              ];
-            });
-            
-            tableFilter = volumeFilters.length > 1 ? ["any", ...volumeFilters] : volumeFilters[0];
+              if (numericValues.length > 0) {
+                const tolerance = 0.05;
+                const propMap = {
+                  "lineCount": "line_ids", // line_ids is an array
+                  "boardings": "boardings",
+                  "alightings": "alightings"
+                };
+                const propName = propMap[column];
+                
+                const numFilters = numericValues.map(val => {
+                  const minVal = val - tolerance;
+                  const maxVal = val + tolerance;
+                  
+                  // Special handling for lineCount - check array length
+                  if (column === "lineCount") {
+                    return [
+                      "all",
+                      [">=", ["length", ["get", "line_ids"]], minVal],
+                      ["<=", ["length", ["get", "line_ids"]], maxVal]
+                    ];
+                  } else {
+                    return [
+                      "all",
+                      [">=", ["number", ["get", propName], 0], minVal],
+                      ["<=", ["number", ["get", propName], 0], maxVal]
+                    ];
+                  }
+                });
+                tableFilter = hasSemicolon && numFilters.length > 1 ? ["all", ...numFilters] : (numFilters.length > 1 ? ["any", ...numFilters] : numFilters[0]);
+              }
+            }
           }
         } else {
-          // Other columns: exact match for any of the values in pipe-delimited strings
-          const columnMap = {
-            "capacity": "per_id_capacities",
-            "length": "per_id_lengths", 
-            "freeSpeed": "per_id_freespeeds",
-            "totalVol": "per_id_daily_avgs",
-            "directionId": "per_id_keys"
-          };
+          // Network and TransitVolumes columns
+          // Check for comparison operators (>, <, >=, <=) for numeric columns
+          const numericColumns = ["capacity", "length", "freeSpeed", "totalVol", "filteredVolume"];
+          const isNumericCol = numericColumns.includes(column);
           
-          const propName = columnMap[column];
-          if (propName) {
-            // For numeric columns, we need numeric comparison (50 should match 50.0)
-            // For directionId, we need exact string matching
-            const isNumericProperty = column !== "directionId";
+          if (isNumericCol && /^(>=?|<=?)\s*[0-9.,]+$/.test(value)) {
+            const match = value.match(/^(>=?|<=?)\s*([0-9.,]+)$/);
+            if (match) {
+              const operator = match[1];
+              const numValue = parseFloat(match[2].replace(/,/g, ''));
+              
+              if (!isNaN(numValue)) {
+                if (column === "filteredVolume") {
+                  // Special handling for filteredVolume - check left_sum OR right_sum
+                  const leftFilter = buildComparisonFilter(operator, numValue, ["number", ["get", "left_sum"], 0]);
+                  const rightFilter = buildComparisonFilter(operator, numValue, ["number", ["get", "right_sum"], 0]);
+                  tableFilter = ["any", leftFilter, rightFilter];
+                } else {
+                  // For other numeric columns, use pipe-delimited properties
+                  const propName = getPropertyName(column);
+                  if (propName) {
+                    // For pipe-delimited values, we need to check if ANY value matches the comparison
+                    // Convert pipe-delimited string to check each value
+                    tableFilter = buildPipeDelimitedComparison(operator, numValue, propName);
+                  }
+                }
+              }
+            }
+          }
+          
+          // If no comparison operator match, proceed with normal logic
+          if (!tableFilter) {
+            // Column-specific search - handle semicolon-separated values with OR logic
+            const values = String(value).split(/[;,]/).map(v => v.trim()).filter(v => v);
+          
+            if (column === "modes") {
+              // Modes: contains match for any of the values
+              const filters = values.map(val => {
+                const valLower = val.toLowerCase();
+                return [">=", ["index-of", valLower, ["downcase", ["to-string", ["get", "modes"]]]], 0];
+              });
             
-            if (isNumericProperty) {
-              // For numeric columns, we need to check if the exact value exists in the pipe-delimited string
-              // Since numeric matching (50 should match 50.0), we use string patterns but handle decimal variants
-              const valueFilters = values.map(val => {
-                // Create patterns for both integer and decimal forms
-                // e.g., "50" should match "50", "50.0", "50.00", etc.
-                const patterns = [
-                  val,                    // exact: "50"
-                  `${val}.0`,             // with .0: "50.0"
-                  `${val}.00`,            // with .00: "50.00"
-                ];
+              tableFilter = filters.length > 1 ? ["any", ...filters] : filters[0];
+            
+            } else if (column === "filteredVolume") {
+              // Filtered Volume: check left_sum OR right_sum directly (numeric properties)
+              // Use tolerance-based matching for floating point values
+              const numericValues = values
+                .map(v => v.replace(/,/g, ''))
+                .filter(v => !isNaN(Number(v)))
+                .map(v => Number(v));
+              
+              if (numericValues.length > 0) {
+                const tolerance = 0.05; // 0.05 tolerance for rounding
                 
-                // For each pattern, check if it exists as a complete item in pipe-delimited string
-                // To avoid matching "80" in "800", we ONLY check for:
-                // 1. Entire string equals the pattern (no pipes at all)
-                // 2. Pattern followed by | at position 0: "pattern|..."
-                // 3. Pattern surrounded by pipes: "|pattern|"
-                // 4. Pattern preceded by | at the very end: "...|pattern"
-                const patternChecks = patterns.map(pattern => [
+                const volumeFilters = numericValues.map(val => {
+                  const minVal = val - tolerance;
+                  const maxVal = val + tolerance;
+                  
+                  return [
+                    "any",
+                    // Match left_sum within tolerance
+                    [
+                      "all",
+                      [">=", ["number", ["get", "left_sum"], 0], minVal],
+                      ["<=", ["number", ["get", "left_sum"], 0], maxVal]
+                    ],
+                    // Match right_sum within tolerance
+                    [
+                      "all",
+                      [">=", ["number", ["get", "right_sum"], 0], minVal],
+                      ["<=", ["number", ["get", "right_sum"], 0], maxVal]
+                    ]
+                  ];
+                });
+                
+                tableFilter = volumeFilters.length > 1 ? ["any", ...volumeFilters] : volumeFilters[0];
+              }
+            } else {
+              // Other columns: exact match for any of the values in pipe-delimited strings
+              const columnMap = {
+                "capacity": "per_id_capacities",
+                "length": "per_id_lengths", 
+                "freeSpeed": "per_id_freespeeds",
+                "totalVol": "per_id_daily_avgs",
+                "directionId": "per_id_keys"
+              };
+              
+              const propName = columnMap[column];
+              if (propName) {
+                // For numeric columns, we need numeric comparison (50 should match 50.0)
+                // For directionId, we need exact string matching
+                const isNumericProperty = column !== "directionId";
+                
+                if (isNumericProperty) {
+                  // For numeric columns, we need to check if the exact value exists in the pipe-delimited string
+                  // Since numeric matching (50 should match 50.0), we use string patterns but handle decimal variants
+                  const valueFilters = values.map(val => {
+                    // Create patterns for both integer and decimal forms
+                    // e.g., "50" should match "50", "50.0", "50.00", etc.
+                    const patterns = [
+                      val,                    // exact: "50"
+                      `${val}.0`,             // with .0: "50.0"
+                      `${val}.00`,            // with .00: "50.00"
+                    ];
+                    
+                    // For each pattern, check if it exists as a complete item in pipe-delimited string
+                    // To avoid matching "80" in "800", we ONLY check for:
+                    // 1. Entire string equals the pattern (no pipes at all)
+                    // 2. Pattern followed by | at position 0: "pattern|..."
+                    // 3. Pattern surrounded by pipes: "|pattern|"
+                    // 4. Pattern preceded by | at the very end: "...|pattern"
+                    const patternChecks = patterns.map(pattern => [
                   "any",
                   // Entire property is just this value (no pipes)
                   ["==", ["get", propName], pattern],
@@ -360,39 +630,58 @@ export default function useFeatureSelectionFocus({
                     ]
                   ]
                 ]);
-                
-                // Match if ANY pattern variant is found
-                return ["any", ...patternChecks];
-              });
-              
-              tableFilter = valueFilters.length > 1 ? ["any", ...valueFilters] : valueFilters[0];
-            } else {
-              // For directionId (string), do exact string matching in pipe-delimited string
-              const valueFilters = values.map(val => {
-                return [
-                  "any",
-                  // Entire property is just this value (no pipes)
-                  ["==", ["get", propName], val],
-                  // Value at start followed by pipe
-                  ["==", ["index-of", `${val}|`, ["get", propName]], 0],
-                  // Value in middle: preceded AND followed by pipe
-                  [">=", ["index-of", `|${val}|`, ["get", propName]], 0],
-                  // Value at end: preceded by pipe
-                  [">=", ["index-of", `|${val}`, ["get", propName]], 0]
-                ];
-              });
-              
-              tableFilter = valueFilters.length > 1 ? ["any", ...valueFilters] : valueFilters[0];
+                    
+                    // Match if ANY pattern variant is found
+                    return ["any", ...patternChecks];
+                  });
+                  
+                  tableFilter = valueFilters.length > 1 ? ["any", ...valueFilters] : valueFilters[0];
+                } else {
+                  // For directionId (string), do exact string matching in pipe-delimited string
+                  const valueFilters = values.map(val => {
+                    return [
+                      "any",
+                      // Entire property is just this value (no pipes)
+                      ["==", ["get", propName], val],
+                      // Value at start followed by pipe
+                      ["==", ["index-of", `${val}|`, ["get", propName]], 0],
+                      // Value in middle: preceded AND followed by pipe
+                      [">=", ["index-of", `|${val}|`, ["get", propName]], 0],
+                      // Value at end: preceded by pipe
+                      [">=", ["index-of", `|${val}`, ["get", propName]], 0]
+                    ];
+                  });
+                  
+                  tableFilter = valueFilters.length > 1 ? ["any", ...valueFilters] : valueFilters[0];
+                }
+              }
             }
           }
         }
-        }
-        
       } else if (!column && value) {
         // All columns search - handle semicolon-separated values with OR logic
-        // Check both searchable_text AND modes fields
         const values = String(value).split(/[;,]/).map(v => v.trim().toLowerCase()).filter(v => v);
         
+        if (isTransitStopsMode) {
+          // Transit stops: search in name and modes_list
+          if (values.length === 1) {
+            tableFilter = [
+              "any",
+              [">=", ["index-of", values[0], ["downcase", ["to-string", ["get", "name"]]]], 0],
+              [">=", ["index-of", values[0], ["downcase", ["to-string", ["get", "modes_list"]]]], 0]
+            ];
+          } else {
+            const valueFilters = values.map(val => 
+              [
+                "any",
+                [">=", ["index-of", val, ["downcase", ["to-string", ["get", "name"]]]], 0],
+                [">=", ["index-of", val, ["downcase", ["to-string", ["get", "modes_list"]]]], 0]
+              ]
+            );
+            tableFilter = ["any", ...valueFilters];
+          }
+        } else {
+          // Network/TransitVolumes: search in searchable_text and modes
         if (values.length === 1) {
           // Single value - check in searchable_text OR modes
           tableFilter = [
@@ -412,6 +701,7 @@ export default function useFeatureSelectionFocus({
           
           // Use OR logic for "all columns" too
           tableFilter = ["any", ...valueFilters];
+        }
         }
       }
     }
