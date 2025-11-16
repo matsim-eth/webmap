@@ -29,13 +29,13 @@ export default function useCantons({
       const wideGraphs = ['Graph 3', 'Graph 4'];
       const mediumGraphs = [
         'Graph 1', 'Graph 2', 'Graph 5', 'Graph 6', 'Graph 7', 
-        'Graph 8', 'Graph 9', 'Transit', 'Destination', 'PtBoardings'
+        'Graph 8', 'Graph 9', 'Destination', 'PtBoardings'
       ];
       
       if (wideGraphs.includes(isGraphExpanded)) {
         rightPadding = 950;
       } else if (isGraphExpanded === 'Volumes' || isGraphExpanded === 'TransitVolumes' || isGraphExpanded === 'Transit') {
-        // Volumes/TransitVolumes modules: 950px when table open, 650px otherwise
+        // Volumes/TransitVolumes/Transit modules: 950px when table open, 650px otherwise
         rightPadding = isFeatureTableOpen ? 950 : 650;
       } else if (mediumGraphs.includes(isGraphExpanded)) {
         rightPadding = 650;

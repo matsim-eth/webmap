@@ -28,7 +28,6 @@ const NetworkModule = ({
   const [showTable, setShowTable] = useState(false);
   const [tableRows, setTableRows] = useState([]);
   const [rowsReady, setRowsReady] = useState(false);
-  const cachedRowsRef = useRef(new Map());
   
   useEffect(() => {
     if (isFeatureTableOpen) {
@@ -40,8 +39,15 @@ const NetworkModule = ({
     setTableFilterQuery(null);
   }, [isFeatureTableOpen]);
   
-  const ensureRowsForCanton = useCallback(() => {
-
+  // Build rows when table is shown and data is available
+  useEffect(() => {
+    // table not shown, clear everything
+    if (!showTable) {
+      setTableRows([]);
+      setRowsReady(false);
+      return;
+    }
+    
     // if missing canton or data, clear
     if (!canton || !featureGeoJSON) {
       setTableRows([]);
@@ -49,53 +55,22 @@ const NetworkModule = ({
       return;
     }
 
-    // cache data unless canton changed
-    const cacheKey = canton;
-    const cached = cachedRowsRef.current.get(cacheKey);
-    if (cached && cached.source === featureGeoJSON) {
-      setTableRows(cached.rows);
-      setRowsReady(true);
-      return;
-    }
-
-    // build rows and then cache from geojson
-    const builtRows = buildRowsFromGeojson(featureGeoJSON, selectedGraph);
-    cachedRowsRef.current.set(cacheKey, { source: featureGeoJSON, rows: builtRows });
-    setTableRows(builtRows);
-    setRowsReady(true);
-  }, [canton, featureGeoJSON]);
-  
-  useEffect(() => {
-    if (!canton || !featureGeoJSON) {
-      if (!canton) {
-        cachedRowsRef.current.clear();
-      }
-      setTableRows([]);
-      setRowsReady(false);
-      return;
-    }
-    const cached = cachedRowsRef.current.get(canton);
-
-    // use cached if available
-    if (cached && cached.source === featureGeoJSON) {
-      setTableRows(cached.rows);
-      setRowsReady(true);
-    } else {
-    // clear cache if canton changed
-      cachedRowsRef.current.delete(canton);
-      setTableRows([]);
-      setRowsReady(false);
-    }
-  }, [canton, featureGeoJSON]);
-  
-  useEffect(() => {
-    // table not shown, so don't build rows
-    if (!showTable) return;
+    // Build rows from geojson
+    console.log('Building rows for Network module', { canton, hasGeoJSON: !!featureGeoJSON, selectedGraph });
+    setRowsReady(false);
     
     // trigger row building in idle time
     let cancelled = false;
     const run = () => {
-      if (!cancelled) ensureRowsForCanton();
+      if (!cancelled) {
+        console.log('Running buildRowsFromGeojson');
+        const builtRows = buildRowsFromGeojson(featureGeoJSON, selectedGraph);
+        console.log('Built rows:', builtRows.length);
+        setTableRows(builtRows);
+        setRowsReady(true);
+      } else {
+        console.log('Row building was cancelled');
+      }
     };
     
     if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
@@ -115,7 +90,7 @@ const NetworkModule = ({
       cancelled = true;
       window.clearTimeout(timeoutId);
     };
-  }, [showTable, ensureRowsForCanton, canton, featureGeoJSON]);
+  }, [showTable, canton, featureGeoJSON, selectedGraph, isFeatureTableOpen]);
   
   const handleTableRowSelect = useCallback(
     (row) => {

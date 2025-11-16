@@ -63,7 +63,7 @@ const downloadBlob = (blob, filename) => {
 };
 
 /** Faster: precompute formatted strings once per row; keep raw numbers for sort */
-export const buildRowsFromGeojson = (geojson, selectedGraph = null, volumeData = null) => {
+export const buildRowsFromGeojson = (geojson, selectedGraph = null) => {
   if (!geojson.features) return [];
   
   const rows = [];
@@ -531,15 +531,6 @@ const FeatureTable = forwardRef(
             },
             processing: true,
           });
-          
-          // Fix column alignment issues
-          setTimeout(() => {
-            try {
-              instance.columns.adjust().draw(false);
-            } catch (e) {
-              // Ignore errors
-            }
-          }, 100);
           
           const onClick = (e) => {
             const tr = e.target.closest("tr");

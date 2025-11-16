@@ -42,7 +42,6 @@ export default function useTransitLayers({
     highlightedLineId,
     suppressNextSearchZoom,
     setFeatureGeoJSON,
-    tableFilterQuery,
     timeRange
   });
   
