@@ -13,7 +13,6 @@ export default function useTransitStops({
   highlightedLineId,
   suppressNextSearchZoom,
   setFeatureGeoJSON,
-  tableFilterQuery,
   timeRange
 }) {
   
@@ -202,8 +201,8 @@ export default function useTransitStops({
           10000, 23
         ]
         : 6
-        );
-      }
+      );
+    }
     
     // add transit stop label (names of stops if zoomed in enough)
     if (!map.getLayer("transit-stops-label")) {
@@ -256,6 +255,8 @@ export default function useTransitStops({
       const f = features[0];
       const combinedLines = JSON.parse(f.properties.lines);
       const combinedModes = JSON.parse(f.properties.modes_list);
+      
+      console.log(f)
 
       const { name, stop_id} = features[0].properties;
       let allStopIds;
@@ -288,6 +289,13 @@ export default function useTransitStops({
         .map(l => l.route_id);
         
         setHighlightedRouteIds(updatedRouteIds);
+        setSelectedTransitStop({
+          name,
+          stop_id,
+          stop_ids: allStopIds,
+          lines: combinedLines,
+          modes_list: combinedModes
+        });
       } else {
         // if not, reset highlighted transit line (clear transit-line-display when not keeping line)
         if (map.getSource("transit-line-display")) {
@@ -329,19 +337,13 @@ export default function useTransitStops({
         }
       }, "transit-stops-layer");
       
-      // push stop attributes to sidebar (with full data for histogram/attribute table)
-      const props = features[0].properties;
+      // push stop attributes to sidebar
       setSelectedTransitStop({
         name,
         stop_id,
         stop_ids: allStopIds,
         lines: combinedLines,
-        modes_list: combinedModes,
-        boardings: props.boardings || 0,
-        alightings: props.alightings || 0,
-        total: (props.boardings || 0) + (props.alightings || 0),
-        feature: features[0],
-        coords: features[0].geometry.coordinates
+        modes_list: combinedModes
       });
     });
     
@@ -359,77 +361,9 @@ export default function useTransitStops({
       ])
     ];
     
-    // Build table filter
-    let tableFilter = null;
-    if (tableFilterQuery) {
-      const { column, value } = tableFilterQuery;
-      
-      if (column && value) {
-        const values = String(value).split(/[;,]/).map(v => v.trim()).filter(v => v);
-        
-        if (column === "stopName") {
-          const filters = values.map(val => {
-            const valLower = val.toLowerCase();
-            return [">=", ["index-of", valLower, ["downcase", ["get", "name"]]], 0];
-          });
-          tableFilter = filters.length > 1 ? ["any", ...filters] : filters[0];
-          
-        } else if (column === "modes") {
-          const filters = values.map(val => {
-            const valLower = val.toLowerCase();
-            return [">=", ["index-of", valLower, ["downcase", ["get", "modes_list"]]], 0];
-          });
-          tableFilter = filters.length > 1 ? ["any", ...filters] : filters[0];
-          
-        } else if (column === "lineCount") {
-          const filters = values.map(val => {
-            const match = val.match(/^(>=?|<=?|==?)?\s*([0-9]+)$/);
-            if (match) {
-              const operator = match[1] || "==";
-              const numValue = parseInt(match[2], 10);
-              const lineCountExpr = ["length", ["get", "line_ids"]];
-              
-              switch(operator) {
-                case '>':
-                  return [">", lineCountExpr, numValue];
-                case '<':
-                  return ["<", lineCountExpr, numValue];
-                case '>=':
-                  return [">=", lineCountExpr, numValue];
-                case '<=':
-                  return ["<=", lineCountExpr, numValue];
-                default:
-                  return ["==", lineCountExpr, numValue];
-              }
-            }
-            return null;
-          }).filter(Boolean);
-          
-          tableFilter = filters.length > 1 ? ["any", ...filters] : (filters[0] || null);
-        }
-      } else if (!column && value) {
-        const valLower = value.toLowerCase();
-        tableFilter = [
-          "any",
-          [">=", ["index-of", valLower, ["downcase", ["get", "name"]]], 0],
-          [">=", ["index-of", valLower, ["downcase", ["get", "modes_list"]]], 0]
-        ];
-      }
-    }
-    
-    // Combine mode filter and table filter
-    let combinedFilter = null;
-    if (modeFilter && tableFilter) {
-      combinedFilter = ["all", modeFilter, tableFilter];
-    } else if (modeFilter) {
-      combinedFilter = modeFilter;
-    } else if (tableFilter) {
-      combinedFilter = tableFilter;
-    }
-    
     ["transit-stops-layer", "transit-highlight-layer", "transit-stops-label", "transit-stops-hitbox"].forEach((id) => {
       if (map.getLayer(id)) {
-        map.setFilter(id, combinedFilter);
+        map.setFilter(id, modeFilter);
       }
     });
     
@@ -439,7 +373,10 @@ export default function useTransitStops({
 
     // If this canton load was triggered by an inter-cantonal stop click and a line is selected,
     // apply CASE-based opacity so only stops on that line are fully opaque.
+    console.log("suppressNextSearchZoom:", suppressNextSearchZoom?.current, "highlightedLineId:", highlightedLineId);
     if (suppressNextSearchZoom?.current && highlightedLineId) {
+
+      console.log("attempt to mask non-line stops");
       const hasLineHere = (updatedGeoJSON.features || []).some(
         (f) => Array.isArray(f.properties.line_ids) && f.properties.line_ids.includes(highlightedLineId)
       );
@@ -464,7 +401,7 @@ export default function useTransitStops({
   .catch(err => {
     console.error("Error loading transit data:", err);
   });
-}, [isGraphExpanded, searchCanton, showStopVolumeSymbology, selectedTransitModes, tableFilterQuery, timeRange]);
+}, [isGraphExpanded, searchCanton, showStopVolumeSymbology, selectedTransitModes, timeRange]);
 
 
 useEffect(() => {

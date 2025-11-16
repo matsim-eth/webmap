@@ -99,10 +99,6 @@ const Sidebar = ({
   const [availableTransitModes, setAvailableTransitModes] = useState([]);
   const [transitModesByCanton, setTransitModesByCanton] = useState({});
   
-  // Note: Removed useEffect that syncs selectedTransitStop to onFocusTransitFeature
-  // because it was interfering with table row selection. The table now calls
-  // onFocusTransitFeature directly in handleTableRowSelect.
-  
   // Data upload
   const { handleFolderUpload, fileMap, clearFileMap } = useFileContext();
   const loadWithFallback = useLoadWithFallback(dataURL);
@@ -515,7 +511,7 @@ const Sidebar = ({
         </>
       )}
       
-      {/* Transit Stops Module */}
+      {/* Transit Module */}
       {selectedGraph === "Transit" && (
         <>
         {/* Buttons for table */}
@@ -560,11 +556,10 @@ const Sidebar = ({
         timeRange={timeRange}
         setTimeRange={setTimeRange}
         isFeatureTableOpen={isFeatureTableOpen}
-        setIsFeatureTableOpen={setIsFeatureTableOpen}
         featureGeoJSON={featureGeoJSON}
-        onFocusTransitFeature={onFocusTransitFeature}
         featureTableRef={featureTableRef}
         setTableFilterQuery={setTableFilterQuery}
+        onFocusTransitFeature={onFocusTransitFeature}
         />
         </>
       )}

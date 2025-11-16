@@ -79,6 +79,29 @@ function App() {
   // Set label size for network segments
   const [labelSize, setLabelSize] = useState(11);
   
+  // Clear feature selection when switching between module groups
+  // Groups: Network/Volumes (share highlights), TransitVolumes (separate), Transit (separate)
+  const previousModule = useRef(null);
+  useEffect(() => {
+    const getModuleGroup = (module) => {
+      if (module === 'Network' || module === 'Volumes') return 'network';
+      if (module === 'TransitVolumes') return 'transitVolumes';
+      if (module === 'Transit') return 'transit';
+      return null;
+    };
+    
+    const currentGroup = getModuleGroup(isGraphExpanded);
+    const previousGroup = getModuleGroup(previousModule.current);
+    
+    // Only clear if switching between different module groups
+    // Keep selection when switching between Network and Volumes only
+    if (currentGroup !== previousGroup && previousGroup !== null) {
+      setFeatureSelection(null);
+    }
+    
+    previousModule.current = isGraphExpanded;
+  }, [isGraphExpanded]);
+  
   // Handle map reset if button clicked in sidebar
   const resetMapView = () => {
     
@@ -165,9 +188,9 @@ function App() {
     setDataURL={setDataURL}
     selectedTransitModes={selectedTransitModes}
     setSelectedTransitModes={setSelectedTransitModes} 
-    selectedTransitStop={selectedTransitStop}
-    setSelectedTransitStop={setSelectedTransitStop}
-    highlightedLineId={highlightedLineId}
+      selectedTransitStop={selectedTransitStop}
+      setSelectedTransitStop={setSelectedTransitStop}
+      highlightedLineId={highlightedLineId}
     setHighlightedLineId={setHighlightedLineId}
     setHighlightedRouteIds = {setHighlightedRouteIds}
     setHoveredRouteId={setHoveredRouteId}
