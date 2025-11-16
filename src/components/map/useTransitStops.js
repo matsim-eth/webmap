@@ -11,7 +11,9 @@ export default function useTransitStops({
   setHighlightedLineId,
   setHighlightedRouteIds,
   highlightedLineId,
-  suppressNextSearchZoom
+  suppressNextSearchZoom,
+  setFeatureGeoJSON,
+  timeRange
 }) {
   
   useEffect(() => {
@@ -41,6 +43,11 @@ export default function useTransitStops({
     // if swapped off Transit module, remove layers
     if (isGraphExpanded !== "Transit" || !searchCanton) {
       removeTransitLayers();
+      // Only clear featureGeoJSON if switching to a module that doesn't use it
+      // Network and Volumes modules manage their own featureGeoJSON
+      if (setFeatureGeoJSON && isGraphExpanded !== "Network" && isGraphExpanded !== "Volumes" && isGraphExpanded !== "TransitVolumes") {
+        setFeatureGeoJSON(null);
+      }
       return;
     }
     
@@ -50,51 +57,93 @@ export default function useTransitStops({
     
     Promise.all([
       loadWithFallback(stopsPath),
-      showStopVolumeSymbology ? loadWithFallback(volumePath) : Promise.resolve(null)
+      loadWithFallback(volumePath)
     ])
     .then(([geojson, volumeData]) => {
       let updatedGeoJSON = geojson;
       
-      // === Inject volume into stop features ===
-      if (showStopVolumeSymbology && volumeData) {
-        const volumeByStopId = {};
+      // === Aggregate volume data by stop_id ===
+      const volumeByStopId = {};
+      const detailedVolumeByStopId = {};
+      
+      // Helper to convert time bin "HH:MM" to tick index (0-95)
+      const timeBinToTick = (timeBin) => {
+        const [h, m] = timeBin.split(':').map(Number);
+        return h * 4 + Math.floor(m / 15);
+      };
+      
+      const startTick = timeRange?.[0] ?? 0;
+      const endTick = timeRange?.[1] ?? 96;
+      
+      if (volumeData) {
         volumeData.forEach(entry => {
           const stopId = entry.stop_id;
-          if (!volumeByStopId[stopId]) volumeByStopId[stopId] = 0;
+          if (!volumeByStopId[stopId]) {
+            volumeByStopId[stopId] = 0;
+            detailedVolumeByStopId[stopId] = { boardings: 0, alightings: 0 };
+          }
           entry.data.forEach(dp => {
-            volumeByStopId[stopId] += dp.boardings + dp.alightings;
+            // Filter by time range
+            const tick = timeBinToTick(dp.time_bin);
+            if (tick < startTick || tick >= endTick) return;
+            
+            const boardings = dp.boardings || 0;
+            const alightings = dp.alightings || 0;
+            volumeByStopId[stopId] += boardings + alightings;
+            detailedVolumeByStopId[stopId].boardings += boardings;
+            detailedVolumeByStopId[stopId].alightings += alightings;
           });
         });
-        
-        updatedGeoJSON = {
-          ...geojson,
-          features: geojson.features.map((f, i) => {
-            const rawStopId = f.properties.stop_id;
-            const ids = Array.isArray(rawStopId)
-            ? rawStopId
-            : String(rawStopId).split(",").map(id => id.trim()).filter(Boolean);
-            
-            const totalVolume = ids.reduce(
-              (sum, id) => sum + (volumeByStopId[id] || 0), 0
-            );
-            
-            return {
-              ...f,
-              id: i,
-              properties: {
-                ...f.properties,
-                volume: totalVolume
-              }
-            };
-          })
-        };
       }
       
+      // === Inject volume and line_ids into stop features ===
+      updatedGeoJSON = {
+        ...geojson,
+        features: geojson.features.map((f, i) => {
+          const rawStopId = f.properties.stop_id;
+          const ids = Array.isArray(rawStopId)
+          ? rawStopId
+          : String(rawStopId).split(",").map(id => id.trim()).filter(Boolean);
+          
+          // Aggregate volume across all stop IDs
+          let totalVolume = 0;
+          let totalBoardings = 0;
+          let totalAlightings = 0;
+          
+          ids.forEach(id => {
+            totalVolume += volumeByStopId[id] || 0;
+            const detailed = detailedVolumeByStopId[id];
+            if (detailed) {
+              totalBoardings += detailed.boardings;
+              totalAlightings += detailed.alightings;
+            }
+          });
+          
+          // lines is already an array of objects in the GeoJSON
+          const lines = f.properties.lines || [];
+          // Extract unique line_ids
+          const lineIds = Array.isArray(lines) 
+            ? [...new Set(lines.map(l => l.line_id).filter(Boolean))]
+            : [];
+          
+          return {
+            ...f,
+            id: i,
+            properties: {
+              ...f.properties,
+              volume: totalVolume,
+              boardings: totalBoardings,
+              alightings: totalAlightings,
+              line_ids: lineIds
+            }
+          };
+        })
+      };
       
-      updatedGeoJSON.features.forEach((f) => {
-        const lines = f.properties.lines || [];
-        f.properties.line_ids = lines.map(l => l.line_id);
-      });
+      // Export the GeoJSON for the feature table
+      if (setFeatureGeoJSON) {
+        setFeatureGeoJSON(updatedGeoJSON);
+      }
       
       // === Add or update source ===
       if (map.getSource("transit-stops")) {
@@ -356,7 +405,7 @@ export default function useTransitStops({
   .catch(err => {
     console.error("Error loading transit data:", err);
   });
-}, [isGraphExpanded, searchCanton, showStopVolumeSymbology, selectedTransitModes]);
+}, [isGraphExpanded, searchCanton, showStopVolumeSymbology, selectedTransitModes, timeRange]);
 
 
 useEffect(() => {

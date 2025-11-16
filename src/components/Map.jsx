@@ -147,6 +147,7 @@ export default function Map(props) {
     selectedNetworkModes: activeModes,
     isGraphExpanded:      props.isGraphExpanded,
     showMajorRoadsOnly:   props.showMajorRoadsOnly,
+    showStopVolumeSymbology: props.showStopVolumeSymbology,
   });
 
   // this is placed in here so that it will overtake the other zooming effects to

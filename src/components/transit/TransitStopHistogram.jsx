@@ -74,9 +74,10 @@ const TransitStopHistogram = ({ stopIds, canton, lineId, onVolumeUpdate, timeRan
   const paddedAlightings = fullLabels.map(t => alightingMap[t] ?? 0);
 
   // Step: Convert timeRange index (e.g. 0–96) to slice of fullLabels
-const filteredLabels = fullLabels.slice(timeRange?.[0] ?? 0, (timeRange?.[1] ?? 96) + 1);
-const filteredBoardings = paddedBoardings.slice(timeRange?.[0] ?? 0, (timeRange?.[1] ?? 96) + 1);
-const filteredAlightings = paddedAlightings.slice(timeRange?.[0] ?? 0, (timeRange?.[1] ?? 96) + 1);
+  // Note: endTick is exclusive to match useTransitStops filtering logic
+const filteredLabels = fullLabels.slice(timeRange?.[0] ?? 0, timeRange?.[1] ?? 96);
+const filteredBoardings = paddedBoardings.slice(timeRange?.[0] ?? 0, timeRange?.[1] ?? 96);
+const filteredAlightings = paddedAlightings.slice(timeRange?.[0] ?? 0, timeRange?.[1] ?? 96);
 
 
   const maxY = Math.max(...filteredBoardings, ...filteredAlightings);

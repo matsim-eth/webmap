@@ -33,7 +33,9 @@ const NetworkModule = ({
   useEffect(() => {
     if (isFeatureTableOpen) {
       // add delay so sidebar can expand first
-      const timer = setTimeout(() => setShowTable(true), 400);
+      const timer = setTimeout(() => {
+        setShowTable(true);
+      }, 400);
       return () => clearTimeout(timer);
     }
     setShowTable(false);
@@ -41,9 +43,11 @@ const NetworkModule = ({
   }, [isFeatureTableOpen]);
   
   const ensureRowsForCanton = useCallback(() => {
+    console.log('[NetworkModule] ensureRowsForCanton called', { canton, hasGeoJSON: !!featureGeoJSON, selectedGraph });
 
     // if missing canton or data, clear
     if (!canton || !featureGeoJSON) {
+      console.log('[NetworkModule] Missing canton or geojson, clearing rows');
       setTableRows([]);
       setRowsReady(false);
       return;
@@ -52,18 +56,23 @@ const NetworkModule = ({
     // cache data unless canton changed
     const cacheKey = canton;
     const cached = cachedRowsRef.current.get(cacheKey);
+    console.log('[NetworkModule] Cache check:', { cacheKey, hasCached: !!cached, cacheSourceMatch: cached?.source === featureGeoJSON });
     if (cached && cached.source === featureGeoJSON) {
+      console.log('[NetworkModule] Using cached rows:', cached.rows.length);
       setTableRows(cached.rows);
       setRowsReady(true);
       return;
     }
 
     // build rows and then cache from geojson
+    console.log('[NetworkModule] Building rows from geojson');
     const builtRows = buildRowsFromGeojson(featureGeoJSON, selectedGraph);
+    console.log('[NetworkModule] Built rows:', builtRows.length);
     cachedRowsRef.current.set(cacheKey, { source: featureGeoJSON, rows: builtRows });
     setTableRows(builtRows);
     setRowsReady(true);
-  }, [canton, featureGeoJSON]);
+    console.log('[NetworkModule] Rows ready set to true');
+  }, [canton, featureGeoJSON, selectedGraph]);
   
   useEffect(() => {
     if (!canton || !featureGeoJSON) {
@@ -81,21 +90,25 @@ const NetworkModule = ({
       setTableRows(cached.rows);
       setRowsReady(true);
     } else {
-    // clear cache if canton changed
+      // clear cache if canton changed
       cachedRowsRef.current.delete(canton);
       setTableRows([]);
       setRowsReady(false);
     }
-  }, [canton, featureGeoJSON]);
+  }, [canton, featureGeoJSON, selectedGraph]);
   
   useEffect(() => {
     // table not shown, so don't build rows
-    if (!showTable) return;
+    if (!showTable) {
+      return;
+    }
     
     // trigger row building in idle time
     let cancelled = false;
     const run = () => {
-      if (!cancelled) ensureRowsForCanton();
+      if (!cancelled) {
+        ensureRowsForCanton();
+      }
     };
     
     if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
