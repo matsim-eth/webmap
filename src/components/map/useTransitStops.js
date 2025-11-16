@@ -43,7 +43,11 @@ export default function useTransitStops({
     // if swapped off Transit module, remove layers
     if (isGraphExpanded !== "Transit" || !searchCanton) {
       removeTransitLayers();
-      if (setFeatureGeoJSON) setFeatureGeoJSON(null);
+      // Only clear featureGeoJSON if switching to a module that doesn't use it
+      // Network and Volumes modules manage their own featureGeoJSON
+      if (setFeatureGeoJSON && isGraphExpanded !== "Network" && isGraphExpanded !== "Volumes" && isGraphExpanded !== "TransitVolumes") {
+        setFeatureGeoJSON(null);
+      }
       return;
     }
     

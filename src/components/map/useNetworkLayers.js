@@ -471,6 +471,9 @@ export default function useNetworkLayers({
                 source.setData(originalNetworkGeoJSON.current);
                 // Update featureGeoJSON for table
                 setFeatureGeoJSON?.(originalNetworkGeoJSON.current);
+              } else if (source && !originalNetworkGeoJSON.current) {
+                // Layers exist but data was cleared (after module switch) - reload
+                loadNetworkForCanton(canton);
               }
               ['network-layer','click-network-layer','network-highlight'].forEach(id => {
                 if (map.getLayer(id)) map.setFilter(id, null);
