@@ -396,9 +396,105 @@ export default function useFeatureSelectionFocus({
     if (query) {
       let { column, value } = query;
       
-      if (column && value) {
+      if (value) {
         // Transit stops have different columns than network/transit volumes
         if (isTransitStopsMode) {
+          // Handle "All columns" search for Transit stops
+          if (!column) {
+            // Search across all fields: stop name, modes, line count, boardings, alightings
+            // Split on comma/semicolon
+            const hasSemicolon = value.includes(';');
+            const values = String(value).split(hasSemicolon ? ';' : ',').map(v => v.trim()).filter(v => v);
+            
+            if (values.length > 0) {
+              // Helper to generate accent variations
+              const generateAccentVariations = (term) => {
+                const accentVariations = {
+                  'a': ['a', 'ä', 'à', 'â'],
+                  'e': ['e', 'ë', 'è', 'é', 'ê'],
+                  'i': ['i', 'ï', 'î'],
+                  'o': ['o', 'ö', 'ô'],
+                  'u': ['u', 'ü', 'ù', 'û'],
+                  'c': ['c', 'ç']
+                };
+                
+                const variations = [term.toLowerCase()];
+                const lower = term.toLowerCase();
+                
+                // For each position that could have an accent, generate variations
+                for (const [base, accents] of Object.entries(accentVariations)) {
+                  if (lower.includes(base)) {
+                    const newVariations = [];
+                    for (const variant of variations) {
+                      for (const accent of accents) {
+                        if (accent !== base) {
+                          newVariations.push(variant.replace(new RegExp(base, 'g'), accent));
+                        }
+                      }
+                    }
+                    variations.push(...newVariations);
+                  }
+                }
+                
+                // Return unique variations, limit to reasonable number
+                return [...new Set(variations)].slice(0, 10);
+              };
+              
+              const valueFilters = values.map(val => {
+                const valLower = val.toLowerCase();
+                const variations = generateAccentVariations(val);
+                
+                // Create filters for each field type
+                const filters = [];
+                
+                // Check stop name (with all accent variations)
+                variations.forEach(v => {
+                  filters.push([">=", ["index-of", v, ["downcase", ["to-string", ["get", "name"]]]], 0]);
+                });
+                
+                // Check modes_list
+                filters.push([">=", ["index-of", valLower, ["downcase", ["to-string", ["get", "modes_list"]]]], 0]);
+                
+                // Check numeric values if the search term is numeric
+                const numVal = parseFloat(val.replace(/,/g, ''));
+                if (!isNaN(numVal)) {
+                  const tolerance = 0.5;
+                  const minVal = numVal - tolerance;
+                  const maxVal = numVal + tolerance;
+                  
+                  // Check line count (array length)
+                  filters.push([
+                    "all",
+                    [">=", ["length", ["get", "line_ids"]], minVal],
+                    ["<=", ["length", ["get", "line_ids"]], maxVal]
+                  ]);
+                  
+                  // Check boardings
+                  filters.push([
+                    "all",
+                    [">=", ["number", ["get", "boardings"], 0], minVal],
+                    ["<=", ["number", ["get", "boardings"], 0], maxVal]
+                  ]);
+                  
+                  // Check alightings
+                  filters.push([
+                    "all",
+                    [">=", ["number", ["get", "alightings"], 0], minVal],
+                    ["<=", ["number", ["get", "alightings"], 0], maxVal]
+                  ]);
+                }
+                
+                // Match if ANY field matches this search term
+                return ["any", ...filters];
+              });
+              
+              // Combine with AND or OR logic based on delimiter
+              tableFilter = hasSemicolon && valueFilters.length > 1 
+                ? ["all", ...valueFilters] 
+                : (valueFilters.length > 1 ? ["any", ...valueFilters] : valueFilters[0]);
+            }
+          } else if (column) {
+          // Column-specific search for Transit stops
           // Transit stops columns: stopName, modes, lineCount, boardings, alightings
           const numericColumns = ["lineCount", "boardings", "alightings"];
           const isNumericCol = numericColumns.includes(column);
@@ -446,12 +542,58 @@ export default function useFeatureSelectionFocus({
               });
               tableFilter = hasSemicolon && filters.length > 1 ? ["all", ...filters] : (filters.length > 1 ? ["any", ...filters] : filters[0]);
             } else if (column === "stopName") {
-              // Stop name: contains match
-              const filters = values.map(val => {
-                const valLower = val.toLowerCase();
-                return [">=", ["index-of", valLower, ["downcase", ["to-string", ["get", "name"]]]], 0];
+              // Stop name: contains match with accent normalization support
+              // Generate variations with all possible accent combinations
+              const generateAccentVariations = (term) => {
+                const accentVariations = {
+                  'a': ['a', 'ä', 'à', 'â'],
+                  'e': ['e', 'ë', 'è', 'é', 'ê'],
+                  'i': ['i', 'ï', 'î'],
+                  'o': ['o', 'ö', 'ô'],
+                  'u': ['u', 'ü', 'ù', 'û'],
+                  'c': ['c', 'ç']
+                };
+                
+                const variations = [term.toLowerCase()];
+                const lower = term.toLowerCase();
+                
+                // For each position that could have an accent, generate variations
+                for (const [base, accents] of Object.entries(accentVariations)) {
+                  if (lower.includes(base)) {
+                    const newVariations = [];
+                    for (const variant of variations) {
+                      for (const accent of accents) {
+                        if (accent !== base) {
+                          newVariations.push(variant.replace(new RegExp(base, 'g'), accent));
+                        }
+                      }
+                    }
+                    variations.push(...newVariations);
+                  }
+                }
+                
+                // Return unique variations, limit to reasonable number
+                return [...new Set(variations)].slice(0, 10);
+              };
+              
+              const filters = values.flatMap(val => {
+                const variations = generateAccentVariations(val);
+                // Create a filter for each variation
+                return variations.map(v => 
+                  [">=", ["index-of", v, ["downcase", ["to-string", ["get", "name"]]]], 0]
+                );
               });
-              tableFilter = hasSemicolon && filters.length > 1 ? ["all", ...filters] : (filters.length > 1 ? ["any", ...filters] : filters[0]);
+              
+              // Combine all variation filters with OR (any match is good)
+              tableFilter = hasSemicolon && values.length > 1 
+                ? ["all", ...values.map((val, idx) => {
+                    const variations = generateAccentVariations(val);
+                    const varFilters = variations.map(v => 
+                      [">=", ["index-of", v, ["downcase", ["to-string", ["get", "name"]]]], 0]
+                    );
+                    return ["any", ...varFilters];
+                  })]
+                : (filters.length > 1 ? ["any", ...filters] : filters[0]);
             } else if (isNumericCol) {
               // Numeric columns: exact match with tolerance
               const numericValues = values
@@ -491,6 +633,7 @@ export default function useFeatureSelectionFocus({
               }
             }
           }
+          } // End of else if (column) for Transit stops
         } else {
           // Network and TransitVolumes columns
           // Check for comparison operators (>, <, >=, <=) for numeric columns

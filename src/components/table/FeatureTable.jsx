@@ -66,6 +66,20 @@ const downloadBlob = (blob, filename) => {
 export const buildRowsFromGeojson = (geojson, selectedGraph = null) => {
   if (!geojson.features) return [];
   
+  // Helper function to normalize accents for French/German
+  const normalizeAccents = (str) => {
+    if (!str) return '';
+    return String(str)
+      .replace(/[äàáâã]/gi, 'a')
+      .replace(/[ëèéê]/gi, 'e')
+      .replace(/[ïìíî]/gi, 'i')
+      .replace(/[öòóôõ]/gi, 'o')
+      .replace(/[üùúû]/gi, 'u')
+      .replace(/[ÿ]/gi, 'y')
+      .replace(/[ç]/gi, 'c')
+      .replace(/[ñ]/gi, 'n');
+  };
+  
   const rows = [];
   geojson.features.forEach((feature, featureIndex) => {
     const props = feature?.properties || {};
@@ -114,6 +128,17 @@ export const buildRowsFromGeojson = (geojson, selectedGraph = null) => {
       const g = feature?.geometry;
       const coords = g?.type === "Point" ? g.coordinates : null;
       
+      // Create searchable string with pipe-delimited values for "All columns" search
+      // Include normalized version for accent-insensitive search
+      const searchString = [
+        stopName,
+        normalizeAccents(stopName),
+        modes,
+        String(lineCount),
+        String(boardings),
+        String(alightings)
+      ].join('|');
+      
       rows.push({
         rowKey: `transit-stop-${featureIndex}`,
         tableId: featureIndex,
@@ -122,6 +147,7 @@ export const buildRowsFromGeojson = (geojson, selectedGraph = null) => {
         lineCount,
         boardings,
         alightings,
+        searchString, // Add searchable string
         coords,
         feature,
         featureProps: props
@@ -370,6 +396,12 @@ const FeatureTable = forwardRef(
               title: "Alightings",
               render: (data) => Number(data || 0).toLocaleString()
             },
+            {
+              data: "searchString",
+              title: "",
+              visible: false, // Hidden column for "All columns" search
+              searchable: true
+            }
           ];
         }
         
@@ -580,6 +612,20 @@ const FeatureTable = forwardRef(
     // Multi-term search (comma/semicolon separated)
     const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     
+    // Helper function to normalize accents for French/German (for search)
+    const normalizeAccents = (str) => {
+      if (!str) return '';
+      return String(str)
+        .replace(/[äàáâã]/gi, 'a')
+        .replace(/[ëèéê]/gi, 'e')
+        .replace(/[ïìíî]/gi, 'i')
+        .replace(/[öòóôõ]/gi, 'o')
+        .replace(/[üùúû]/gi, 'u')
+        .replace(/[ÿ]/gi, 'y')
+        .replace(/[ç]/gi, 'c')
+        .replace(/[ñ]/gi, 'n');
+    };
+    
     // Apply search whenever search state or rows change
     useEffect(() => {
       const instance = dtRef.current;
@@ -703,17 +749,30 @@ const FeatureTable = forwardRef(
         // - Link ID column: exact match
         // - Other specific columns: exact match  
         // - Modes column: contains match
+        // - Stop Name column (Transit): contains match (partial)
         // - ALL COLUMNS search: contains match
-        const colIsExact = Number.isInteger(searchCol) && searchCol >= 0 && selectedTitle !== "modes";
+        const colIsExact = Number.isInteger(searchCol) && searchCol >= 0 && 
+                           selectedTitle !== "modes" && 
+                           selectedTitle !== "stop name";
         
         let pattern;
         if (isNumericCol) {
           // For numeric columns, convert comma-separated numbers and create exact matches
           const numTerms = terms.map(t => t.replace(/,/g, '')).filter(t => !isNaN(Number(t)));
           pattern = numTerms.length ? `^(${numTerms.join('|')})$` : terms.map(escapeRegex).join("|");
-        } else if (selectedTitle === "modes" || searchCol === -1) {
-          // Modes column OR all columns search: use contains matching
-          pattern = terms.map(escapeRegex).join("|");
+        } else if (selectedTitle === "modes" || selectedTitle === "stop name" || searchCol === -1) {
+          // Modes, Stop Name, OR all columns search: use contains matching
+          // For Stop Name or All Columns in Transit, create pattern that matches both original and normalized
+          if (selectedGraph === 'Transit' && (selectedTitle === "stop name" || searchCol === -1)) {
+            // Create alternation pattern: each term OR its normalized version
+            const expandedTerms = terms.flatMap(t => {
+              const normalized = normalizeAccents(t);
+              return t === normalized ? [escapeRegex(t)] : [escapeRegex(t), escapeRegex(normalized)];
+            });
+            pattern = expandedTerms.join("|");
+          } else {
+            pattern = terms.map(escapeRegex).join("|");
+          }
         } else {
           // Other specific text columns (like Link ID): use exact matching
           pattern = terms.map(escapeRegex).join("|");
@@ -743,7 +802,7 @@ const FeatureTable = forwardRef(
           } catch {}
         }
       }
-    }, [searchCol, debouncedSearch, tableRows, dtColumns]);
+    }, [searchCol, debouncedSearch, tableRows, dtColumns, selectedGraph]);
     
     // send the table search query to map to filter features
     useEffect(() => {
@@ -811,11 +870,17 @@ const FeatureTable = forwardRef(
       onChange={(e) => setSearchCol(parseInt(e.target.value, 10))}
       >
       <option value="-1">All columns</option>
-      {dtColumns.map((c, idx) => (
-        <option key={idx} value={idx}>
-        {c.title}
-        </option>
-      ))}
+      {dtColumns
+        .filter(c => c.title && c.visible !== false) // Filter out empty titles and hidden columns
+        .map((c, idx) => {
+          // Get the original index from dtColumns
+          const originalIdx = dtColumns.indexOf(c);
+          return (
+            <option key={originalIdx} value={originalIdx}>
+            {c.title}
+            </option>
+          );
+        })}
       </select>
       <input
       type="text"
