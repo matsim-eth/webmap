@@ -418,17 +418,21 @@ export default function useFeatureSelectionFocus({
                   'c': ['c', 'ç']
                 };
                 
-                const variations = [term.toLowerCase()];
                 const lower = term.toLowerCase();
+                let variations = [lower];
                 
-                // For each position that could have an accent, generate variations
-                for (const [base, accents] of Object.entries(accentVariations)) {
-                  if (lower.includes(base)) {
+                // For each character position in the term
+                for (let i = 0; i < lower.length; i++) {
+                  const char = lower[i];
+                  const accents = accentVariations[char];
+                  
+                  if (accents) {
+                    // Generate new variations by replacing this character with each accent
                     const newVariations = [];
                     for (const variant of variations) {
                       for (const accent of accents) {
-                        if (accent !== base) {
-                          newVariations.push(variant.replace(new RegExp(base, 'g'), accent));
+                        if (accent !== char) {
+                          newVariations.push(variant.substring(0, i) + accent + variant.substring(i + 1));
                         }
                       }
                     }
@@ -437,7 +441,7 @@ export default function useFeatureSelectionFocus({
                 }
                 
                 // Return unique variations, limit to reasonable number
-                return [...new Set(variations)].slice(0, 10);
+                return [...new Set(variations)].slice(0, 20);
               };
               
               const valueFilters = values.map(val => {
@@ -520,17 +524,21 @@ export default function useFeatureSelectionFocus({
                   'c': ['c', 'ç']
                 };
                 
-                const variations = [term.toLowerCase()];
                 const lower = term.toLowerCase();
+                let variations = [lower];
                 
-                // For each position that could have an accent, generate variations
-                for (const [base, accents] of Object.entries(accentVariations)) {
-                  if (lower.includes(base)) {
+                // For each character position in the term
+                for (let i = 0; i < lower.length; i++) {
+                  const char = lower[i];
+                  const accents = accentVariations[char];
+                  
+                  if (accents) {
+                    // Generate new variations by replacing this character with each accent
                     const newVariations = [];
                     for (const variant of variations) {
                       for (const accent of accents) {
-                        if (accent !== base) {
-                          newVariations.push(variant.replace(new RegExp(base, 'g'), accent));
+                        if (accent !== char) {
+                          newVariations.push(variant.substring(0, i) + accent + variant.substring(i + 1));
                         }
                       }
                     }
@@ -539,7 +547,7 @@ export default function useFeatureSelectionFocus({
                 }
                 
                 // Return unique variations, limit to reasonable number
-                return [...new Set(variations)].slice(0, 10);
+                return [...new Set(variations)].slice(0, 20);
               };
               
               const filters = values.flatMap(val => {
