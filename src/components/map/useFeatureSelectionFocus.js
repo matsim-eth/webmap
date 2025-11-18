@@ -441,51 +441,17 @@ export default function useFeatureSelectionFocus({
               };
               
               const valueFilters = values.map(val => {
-                const valLower = val.toLowerCase();
                 const variations = generateAccentVariations(val);
                 
-                // Create filters for each field type
-                const filters = [];
+                // For "All columns" search, check the searchable_text pipe-delimited property
+                // This includes: stopName|modes|lineCount|boardings|alightings (all lowercase)
+                // Also check accent variations of the search term
+                const filters = variations.map(v => 
+                  [">=", ["index-of", v, ["get", "searchable_text"]], 0]
+                );
                 
-                // Check stop name (with all accent variations)
-                variations.forEach(v => {
-                  filters.push([">=", ["index-of", v, ["downcase", ["to-string", ["get", "name"]]]], 0]);
-                });
-                
-                // Check modes_list
-                filters.push([">=", ["index-of", valLower, ["downcase", ["to-string", ["get", "modes_list"]]]], 0]);
-                
-                // Check numeric values if the search term is numeric
-                const numVal = parseFloat(val.replace(/,/g, ''));
-                if (!isNaN(numVal)) {
-                  const tolerance = 0.5;
-                  const minVal = numVal - tolerance;
-                  const maxVal = numVal + tolerance;
-                  
-                  // Check line count (array length)
-                  filters.push([
-                    "all",
-                    [">=", ["length", ["get", "line_ids"]], minVal],
-                    ["<=", ["length", ["get", "line_ids"]], maxVal]
-                  ]);
-                  
-                  // Check boardings
-                  filters.push([
-                    "all",
-                    [">=", ["number", ["get", "boardings"], 0], minVal],
-                    ["<=", ["number", ["get", "boardings"], 0], maxVal]
-                  ]);
-                  
-                  // Check alightings
-                  filters.push([
-                    "all",
-                    [">=", ["number", ["get", "alightings"], 0], minVal],
-                    ["<=", ["number", ["get", "alightings"], 0], maxVal]
-                  ]);
-                }
-                
-                // Match if ANY field matches this search term
-                return ["any", ...filters];
+                // Match if ANY variation is found in searchable_text
+                return filters.length > 1 ? ["any", ...filters] : filters[0];
               });
               
               // Combine with AND or OR logic based on delimiter
@@ -636,6 +602,29 @@ export default function useFeatureSelectionFocus({
           } // End of else if (column) for Transit stops
         } else {
           // Network and TransitVolumes columns
+          
+          // Handle "All columns" search for Network/TransitVolumes
+          if (!column) {
+            // Search in searchable_text (pipe-delimited: directionId|capacity|length|freeSpeed|totalVol)
+            const hasSemicolon = value.includes(';');
+            const values = String(value).split(hasSemicolon ? ';' : ',').map(v => v.trim().toLowerCase()).filter(v => v);
+            
+            if (values.length > 0) {
+              const valueFilters = values.map(val => 
+                [
+                  "any",
+                  [">=", ["index-of", val, ["get", "searchable_text"]], 0],
+                  [">=", ["index-of", val, ["downcase", ["to-string", ["get", "modes"]]]], 0]
+                ]
+              );
+              
+              // Use OR logic for comma-separated, AND logic for semicolon-separated
+              tableFilter = hasSemicolon && values.length > 1 
+                ? ["all", ...valueFilters]
+                : (values.length > 1 ? ["any", ...valueFilters] : valueFilters[0]);
+            }
+          } else {
+          // Column-specific search for Network/TransitVolumes
           // Check for comparison operators (>, <, >=, <=) for numeric columns
           const numericColumns = ["capacity", "length", "freeSpeed", "totalVol", "filteredVolume"];
           const isNumericCol = numericColumns.includes(column);
@@ -800,13 +789,16 @@ export default function useFeatureSelectionFocus({
               }
             }
           }
+          } // End of else (column-specific) for Network/TransitVolumes
         }
-      } else if (!column && value) {
-        // All columns search - handle semicolon-separated values with OR logic
+      } else if (!column && value && !tableFilter) {
+        // All columns search fallback - only runs if tableFilter wasn't already set above
+        // handle semicolon-separated values with OR logic
         const values = String(value).split(/[;,]/).map(v => v.trim().toLowerCase()).filter(v => v);
         
         if (isTransitStopsMode) {
-          // Transit stops: search in name and modes_list
+          // This shouldn't run - Transit stops "All columns" is handled above
+          // But keeping as fallback for safety
           if (values.length === 1) {
             tableFilter = [
               "any",

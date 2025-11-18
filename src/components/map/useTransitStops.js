@@ -126,6 +126,19 @@ export default function useTransitStops({
             ? [...new Set(lines.map(l => l.line_id).filter(Boolean))]
             : [];
           
+          // Create searchable text for "All columns" search (lowercase, pipe-delimited)
+          const stopName = f.properties.name || "";
+          const modes = Array.isArray(f.properties.modes_list) 
+            ? f.properties.modes_list.join(", ") 
+            : String(f.properties.modes_list || "");
+          const searchableText = [
+            stopName.toLowerCase(),
+            modes.toLowerCase(),
+            String(lineIds.length),
+            String(totalBoardings),
+            String(totalAlightings)
+          ].join('|');
+          
           return {
             ...f,
             id: i,
@@ -134,7 +147,8 @@ export default function useTransitStops({
               volume: totalVolume,
               boardings: totalBoardings,
               alightings: totalAlightings,
-              line_ids: lineIds
+              line_ids: lineIds,
+              searchable_text: searchableText
             }
           };
         })
