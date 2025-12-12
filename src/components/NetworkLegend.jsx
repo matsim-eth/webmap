@@ -1,12 +1,16 @@
 import React from "react";
 import "./NetworkLegend.css";
+import { useApp } from "../context/AppContext";
 
-const Legend = ({ selectedGraph, showStopVolumeSymbology }) => {
+const Legend = () => {
+  const { isGraphExpanded: selectedGraph, showStopVolumeSymbology } = useApp();
+
   const isVolumes = selectedGraph === "Volumes";
   const isNetwork = selectedGraph === "Network";
   const isTransit = selectedGraph === "Transit";
+  const isVolumeFlow = selectedGraph === "VolumeFlow";
 
-if (!isVolumes && !isNetwork && !(isTransit && showStopVolumeSymbology)) return null;
+  if (!isVolumes && !isNetwork && !isVolumeFlow && !(isTransit && showStopVolumeSymbology)) return null;
 
   return (
     <div className="network-legend-container">
@@ -82,6 +86,41 @@ if (!isVolumes && !isNetwork && !(isTransit && showStopVolumeSymbology)) return 
                 <span className="network-legend-label">{v}</span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+      {/* Volume Flow Legend */}
+      {isVolumeFlow && (
+        <div className="network-legend-section">
+          <div className="network-legend-title">Volume Scale [veh/day]</div>
+          <div className="capacity-legend">
+            <div className="capacity-item">
+              <div className="capacity-line" style={{ height: '2px', background: '#ff8c00', width: '30px' }}></div>
+              <span className="network-legend-label">50</span>
+            </div>
+            <div className="capacity-item">
+              <div className="capacity-line" style={{ height: '4px', background: '#ff8c00', width: '30px' }}></div>
+              <span className="network-legend-label">150</span>
+            </div>
+            <div className="capacity-item">
+              <div className="capacity-line" style={{ height: '7px', background: '#ff8c00', width: '30px' }}></div>
+              <span className="network-legend-label">300</span>
+            </div>
+            <div className="capacity-item">
+              <div className="capacity-line" style={{ height: '10px', background: '#ff8c00', width: '30px' }}></div>
+              <span className="network-legend-label">500</span>
+            </div>
+            <div className="capacity-item">
+              <div className="capacity-line" style={{ height: '14px', background: '#ff8c00', width: '30px' }}></div>
+              <span className="network-legend-label">700+</span>
+            </div>
+          </div>
+          <div className="network-legend-title" style={{ marginTop: '10px' }}>Target Link</div>
+          <div className="capacity-legend">
+            <div className="capacity-item">
+              <div className="capacity-line" style={{ height: '6px', background: '#1a73e8', width: '30px' }}></div>
+              <span className="network-legend-label">Target</span>
+            </div>
           </div>
         </div>
       )}

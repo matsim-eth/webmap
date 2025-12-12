@@ -1,178 +1,222 @@
 import React, { useRef, useEffect, useState } from 'react';
 import "./Loading.css" // loading screen for network
-import { useLoadWithFallback }  from '../utils/useLoadWithFallback';
-import useMapbox                from './map/useMapbox';
-import useCantons               from './map/useCantons';
-import usePadding               from './map/usePadding';
-import useNetworkLayers         from './map/useNetworkLayers';
-import useTransitLayers         from './map/useTransitLayers';
-import useChoropleth            from './map/useChoropleth';
-import useDestinationZones      from './map/useDestinationZones';
-import usePtBoardings           from './map/usePtBoardings';
-import useFeatureSelectionFocus      from './map/useFeatureSelectionFocus';
+import { useLoadWithFallback } from '../utils/useLoadWithFallback';
+import useMapbox from './map/useMapbox';
+import useCantons from './map/useCantons';
+import usePadding from './map/usePadding';
+import useNetworkLayers from './map/useNetworkLayers';
+import useTransitLayers from './map/useTransitLayers';
+import useChoropleth from './map/useChoropleth';
+import useDestinationZones from './map/useDestinationZones';
+import usePtBoardings from './map/usePtBoardings';
+import useFeatureSelectionFocus from './map/useFeatureSelectionFocus';
+import useVolumeFlowLayers from './map/useVolumeFlowLayers';
+import { useApp } from '../context/AppContext';
 
-export default function Map(props) {
-  
+export default function Map() {
+  const {
+    dataURL,
+    isGraphExpanded,
+    mapRef: contextMapRef,
+    setClickedCanton,
+    clickedCanton: searchCanton, // Alias
+    setIsFeatureTableOpen,
+    isFeatureTableOpen,
+    isSidebarOpen,
+    selectedNetworkModes,
+    showMajorRoadsOnly,
+    timeRange,
+    visualizeLinkId,
+    setSelectedNetworkFeature,
+    resetMapTrigger,
+    labelSize,
+    setFeatureGeoJSON,
+    selectedTransitModes,
+    showStopVolumeSymbology,
+    setSelectedTransitStop,
+    setHighlightedLineId,
+    highlightedLineId,
+    highlightedRouteIds,
+    setHighlightedRouteIds,
+    hoveredRouteId,
+    setSelectedTransitLink,
+    showLineSymbology,
+    tableFilterQuery,
+    selectedMode,
+    selectedDataset,
+    aggCol,
+    destinationData: selectedDestinationData, // Alias
+    boardingData: selectedBoardingData, // Alias
+    featureSelection
+  } = useApp();
+
   // load util for loading in the data (from link or local upload)
-  const loadWithFallback = useLoadWithFallback(props.dataURL);
+  const loadWithFallback = useLoadWithFallback(dataURL);
 
   // for disabling next zoom to canton (ie when click on out-of-canton transit stop)
   const suppressNextSearchZoom = useRef(false);
 
   // for setting loading spinner while loading transit geojson
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // for keeping track of the current sidebar module
-  const graphExpandedRef = useRef(props.isGraphExpanded);
+  const graphExpandedRef = useRef(isGraphExpanded);
   useEffect(() => {
-    graphExpandedRef.current = props.isGraphExpanded;
-  }, [props.isGraphExpanded]);
-  
+    graphExpandedRef.current = isGraphExpanded;
+  }, [isGraphExpanded]);
+
   // initialize mapbox map instance
   const {
-    mapRef, 
-    mapContainerRef, 
-    mapReady 
+    mapRef,
+    mapContainerRef,
+    mapReady
   } = useMapbox(import.meta.env.VITE_MAPBOX_TOKEN);
-  
+
   useEffect(() => {
-    if (props.mapRef) {
-      props.mapRef.current = mapRef.current;
+    if (contextMapRef) {
+      contextMapRef.current = mapRef.current;
     }
-  }, [props.mapRef, mapRef, mapReady]);
-  
+  }, [contextMapRef, mapRef, mapReady]);
+
   // add canton layers + interactions
   useCantons({
     mapRef,
     mapReady,
-    setClickedCanton:     props.setClickedCanton,
-    searchCanton:         props.searchCanton,
-    isGraphExpanded:      props.isGraphExpanded,
+    setClickedCanton: setClickedCanton,
+    searchCanton: searchCanton,
+    isGraphExpanded: isGraphExpanded,
     suppressNextSearchZoom,
     graphExpandedRef,
-    setIsFeatureTableOpen: props.setIsFeatureTableOpen,
-    isFeatureTableOpen:   props.isFeatureTableOpen
+    setIsFeatureTableOpen: setIsFeatureTableOpen,
+    isFeatureTableOpen: isFeatureTableOpen
   });
-  
+
   // pan map depending on sidebar state (keeps map in centre regardless of sidebar width)
   usePadding({
     mapRef,
-    setClickedCanton:     props.setClickedCanton,
-    searchCanton:         props.searchCanton,
-    isSidebarOpen:        props.isSidebarOpen,
-    isGraphExpanded:      props.isGraphExpanded,
+    setClickedCanton: setClickedCanton,
+    searchCanton: searchCanton,
+    isSidebarOpen: isSidebarOpen,
+    isGraphExpanded: isGraphExpanded,
     suppressNextSearchZoom,
     graphExpandedRef,
-    isFeatureTableOpen:  props.isFeatureTableOpen,
-    setIsFeatureTableOpen: props.setIsFeatureTableOpen
+    isFeatureTableOpen: isFeatureTableOpen,
+    setIsFeatureTableOpen: setIsFeatureTableOpen
   });
-  
+
   useNetworkLayers({
     mapRef,
     loadWithFallback,
     graphExpandedRef,
-    searchCanton:               props.searchCanton,          
-    selectedNetworkModes:       props.selectedNetworkModes,
-    showMajorRoadsOnly:         props.showMajorRoadsOnly,
-    timeRange:                  props.timeRange,
-    visualizeLinkId:            props.visualizeLinkId,
-    setSelectedNetworkFeature:  props.setSelectedNetworkFeature,
-    isGraphExpanded:            props.isGraphExpanded,
-    resetMapTrigger:            props.resetMapTrigger,
-    labelSize:                  props.labelSize,
+    searchCanton: searchCanton,
+    selectedNetworkModes: selectedNetworkModes,
+    showMajorRoadsOnly: showMajorRoadsOnly,
+    timeRange: timeRange,
+    visualizeLinkId: visualizeLinkId,
+    setSelectedNetworkFeature: setSelectedNetworkFeature,
+    isGraphExpanded: isGraphExpanded,
+    resetMapTrigger: resetMapTrigger,
+    labelSize: labelSize,
     setIsLoading,
-    setFeatureGeoJSON:          props.setFeatureGeoJSON,
+    setFeatureGeoJSON: setFeatureGeoJSON,
   });
-  
-  useTransitLayers({ 
+
+  useTransitLayers({
     mapRef,
     loadWithFallback,
-    searchCanton:             props.searchCanton, 
-    selectedTransitModes:     props.selectedTransitModes,
-    showStopVolumeSymbology:  props.showStopVolumeSymbology,
-    setSelectedTransitStop:   props.setSelectedTransitStop,
-    setHighlightedLineId:     props.setHighlightedLineId,
-    highlightedLineId:        props.highlightedLineId,
-    highlightedRouteIds:      props.highlightedRouteIds,
-    setHighlightedRouteIds:   props.setHighlightedRouteIds,
-    hoveredRouteId:           props.hoveredRouteId,
-    isGraphExpanded:          props.isGraphExpanded,
-    setClickedCanton:         props.setClickedCanton,
-    timeRange:                props.timeRange,
-    setSelectedTransitLink:  props.setSelectedTransitLink,
-    showLineSymbology: props.showLineSymbology,
+    searchCanton: searchCanton,
+    selectedTransitModes: selectedTransitModes,
+    showStopVolumeSymbology: showStopVolumeSymbology,
+    setSelectedTransitStop: setSelectedTransitStop,
+    setHighlightedLineId: setHighlightedLineId,
+    highlightedLineId: highlightedLineId,
+    highlightedRouteIds: highlightedRouteIds,
+    setHighlightedRouteIds: setHighlightedRouteIds,
+    hoveredRouteId: hoveredRouteId,
+    isGraphExpanded: isGraphExpanded,
+    setClickedCanton: setClickedCanton,
+    timeRange: timeRange,
+    setSelectedTransitLink: setSelectedTransitLink,
+    showLineSymbology: showLineSymbology,
     setIsLoading,
     suppressNextSearchZoom,
-    setFeatureGeoJSON: props.setFeatureGeoJSON,
-    tableFilterQuery:  props.tableFilterQuery
+    setFeatureGeoJSON: setFeatureGeoJSON,
+    tableFilterQuery: tableFilterQuery
   });
-  
-  useChoropleth({ 
+
+  useChoropleth({
     mapRef,
     loadWithFallback,
-    selectedMode:     props.selectedMode,
-    selectedDataset:  props.selectedDataset,
-    isGraphExpanded:  props.isGraphExpanded,
-    aggCol:           props.aggCol,
+    selectedMode: selectedMode,
+    selectedDataset: selectedDataset,
+    isGraphExpanded: isGraphExpanded,
+    aggCol: aggCol,
   });
-  
-  useDestinationZones({ 
-    mapRef, 
-    selectedDestinationData:  props.selectedDestinationData, 
-    isGraphExpanded:          props.isGraphExpanded
+
+  useDestinationZones({
+    mapRef,
+    selectedDestinationData: selectedDestinationData,
+    isGraphExpanded: isGraphExpanded
   });
 
   usePtBoardings({
     mapRef,
-    selectedBoardingData:     props.selectedBoardingData,
-    setHighlightedLineId:     props.setHighlightedLineId,
-    setHighlightedRouteIds:   props.setHighlightedRouteIds,
-    isGraphExpanded:          props.isGraphExpanded,
+    selectedBoardingData: selectedBoardingData,
+    setHighlightedLineId: setHighlightedLineId,
+    setHighlightedRouteIds: setHighlightedRouteIds,
+    isGraphExpanded: isGraphExpanded,
     loadWithFallback,
-    searchCanton:             props.searchCanton,
-    setSelectedTransitStop:   props.setSelectedTransitStop
+    searchCanton: searchCanton,
+    setSelectedTransitStop: setSelectedTransitStop
   })
-  
+
+  // Volume Flow Analysis layers
+  useVolumeFlowLayers({
+    mapRef,
+    mapReady,
+    suppressNextSearchZoom
+  });
+
   // Combined feature selection focus for both network and transit (uses shared network-highlight)
   // Determine which query/modes to use based on current module
-  const isTransitMode = props.isGraphExpanded === 'Transit' || props.isGraphExpanded === 'TransitVolumes';
-  const activeQuery = props.tableFilterQuery;
-  const activeModes = isTransitMode ? props.selectedTransitModes : props.selectedNetworkModes;
+  const isTransitMode = isGraphExpanded === 'Transit' || isGraphExpanded === 'TransitVolumes';
+  const activeQuery = tableFilterQuery;
+  const activeModes = isTransitMode ? selectedTransitModes : selectedNetworkModes;
 
   useFeatureSelectionFocus({
-    mapRef, 
-    mapReady, 
-    selection:            props.featureSelection,
-    query:                activeQuery,
+    mapRef,
+    mapReady,
+    selection: featureSelection,
+    query: activeQuery,
     selectedNetworkModes: activeModes,
-    isGraphExpanded:      props.isGraphExpanded,
-    showMajorRoadsOnly:   props.showMajorRoadsOnly,
-    showStopVolumeSymbology: props.showStopVolumeSymbology,
+    isGraphExpanded: isGraphExpanded,
+    showMajorRoadsOnly: showMajorRoadsOnly,
+    showStopVolumeSymbology: showStopVolumeSymbology,
   });
 
   // this is placed in here so that it will overtake the other zooming effects to
-    // force it to zoom back to the original Switzerland extent
-    useEffect(() => {
-      if (!mapReady || !mapRef.current) return;
-      
-      // If user clicked reset, go back to full country view
-      mapRef.current.easeTo({
-        center: [8.1642, 46.7592],
-        zoom: 7,
-        duration: 1000,
-        padding:{top:50,bottom:50,left:50,right:350},
-      });
-    }, [props.resetMapTrigger, mapReady]);
-    
-    return (
-      <>
+  // force it to zoom back to the original Switzerland extent
+  useEffect(() => {
+    if (!mapReady || !mapRef.current) return;
+
+    // If user clicked reset, go back to full country view
+    mapRef.current.easeTo({
+      center: [8.1642, 46.7592],
+      zoom: 7,
+      duration: 1000,
+      padding: { top: 50, bottom: 50, left: 50, right: 350 },
+    });
+  }, [resetMapTrigger, mapReady]);
+
+  return (
+    <>
       {isLoading && (
         <div className="map-loading-overlay">
-        <div className="spinner" />
-        <div className="loading-text">Loading network...</div>
+          <div className="spinner" />
+          <div className="loading-text">Loading network...</div>
         </div>
       )}
-      <div ref={mapContainerRef} style={{ width:'100%',height:'100%' }}/>
-      </>
-    );
-  }
+      <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
+    </>
+  );
+}
