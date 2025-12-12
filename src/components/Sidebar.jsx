@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./Sidebar.css";
 import { useFileContext } from "../FileContext";
+import { useApp } from "../context/AppContext";
+import SidebarControls from "./sidebar/SidebarControls";
 
 // ======================= IMPORT MODULES / GRAPHS =======================
 
@@ -32,135 +34,78 @@ import VolumesModule from "./matsim/VolumesModule";
 import TransitModule from "./transit/TransitModule";
 import TransitVolumesModule from "./transit/TransitVolumesModule";
 
+// Volume Flow Analysis
+import VolumeFlowModule from "./matsim/VolumeFlowModule";
+
 // Use uploaded data
 import { useLoadWithFallback } from "../utils/useLoadWithFallback";
 
-const Sidebar = ({
-  // Map Data
-  dataURL, setDataURL,
-  
-  // Sidebar UI
-  isOpen, toggleSidebar, onExpandGraph, resetMapView,
-  
-  // Feature Table (shared by Network/Volumes and TransitVolumes modules)
-  isFeatureTableOpen, setIsFeatureTableOpen, setTableFilterQuery,
-  featureGeoJSON,
-  
-  // Map State
-  canton,
-  
-  // Choropleth Module
-  updateMapChoropleth,
-  
-  // Network/Volumes Module
-  selectedNetworkModes, setSelectedNetworkModes, selectedNetworkFeature, setSelectedNetworkFeature,
-  visualizeLinkId, setVisualizeLinkId, showMajorRoadsOnly, setShowMajorRoadsOnly,
-  onFocusNetworkFeature,
-  
-  // Transit Module
-  selectedTransitModes, setSelectedTransitModes, selectedTransitStop, setSelectedTransitStop, highlightedLineId,
-  setHighlightedLineId, setHighlightedRouteIds, setHoveredRouteId, showStopVolumeSymbology,
-  setShowStopVolumeSymbology,
-  
-  // Transit Link Volumes Module
-  selectedTransitLink, setSelectedTransitLink, setShowLineSymbology, showLineSymbology,
-  onFocusTransitFeature,
-  
-  // Destination data
-  setDestinationData,
-  
-  // Boarding data
-  setBoardingData,
-  
-  // Time Range Slider
-  timeRange, setTimeRange,
-  
-  // Plot Aggregation Column
-  selectedAggCol, setSelectedAggCol,
-  
-  // Reset Map State
-  setResetMapTrigger,
-  
-  // Change font size for labels
-  labelSize, setLabelSize,
-}) => {
+const Sidebar = () => {
+  const {
+    dataURL, setDataURL,
+    isSidebarOpen, setIsSidebarOpen,
+    isGraphExpanded, setIsGraphExpanded,
+    resetMapView,
+    isFeatureTableOpen, setIsFeatureTableOpen, setTableFilterQuery,
+    featureGeoJSON,
+    clickedCanton: canton, // Alias to match existing code
+    updateMapChoropleth,
+    selectedNetworkModes, setSelectedNetworkModes,
+    selectedNetworkFeature, setSelectedNetworkFeature,
+    visualizeLinkId, setVisualizeLinkId,
+    showMajorRoadsOnly, setShowMajorRoadsOnly,
+    setFeatureSelection, // Was onFocusNetworkFeature & onFocusTransitFeature
+    selectedTransitModes, setSelectedTransitModes,
+    selectedTransitStop, setSelectedTransitStop,
+    highlightedLineId, setHighlightedLineId,
+    setHighlightedRouteIds, setHoveredRouteId,
+    showStopVolumeSymbology, setShowStopVolumeSymbology,
+    selectedTransitLink, setSelectedTransitLink,
+    setShowLineSymbology, showLineSymbology,
+    setDestinationData,
+    setBoardingData,
+    timeRange, setTimeRange,
+    aggCol: selectedAggCol, // Alias
+    setAggCol: setSelectedAggCol, // Alias
+    setResetMapTrigger,
+    labelSize, setLabelSize
+  } = useApp();
+
+  // Alias for functions that were passed as props with different names
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  const onExpandGraph = setIsGraphExpanded;
+  const onFocusNetworkFeature = setFeatureSelection;
+  const onFocusTransitFeature = setFeatureSelection;
+
   // ======================= INITIALIZE VARIABLES =======================
-  const [selectedGraph, setSelectedGraph] = useState(null); // Current module
+  // selectedGraph is now isGraphExpanded from AppContext
   const [selectedMode, setSelectedMode] = useState("None"); // Choropleth mode
   const [selectedDataset, setSelectedDataset] = useState("Microcensus"); // Choropleth dataset
   const [availableModes, setAvailableModes] = useState([]); // Available modes for network filter
   const [modesByCanton, setModesByCanton] = useState({}); // For mode filter (only show modes available in each canton)
   const [inputURL, setInputURL] = useState("");
-  
+
   // Add state for destination outflow data
   const [destinationOutflowData, setDestinationOutflowData] = useState(null);
-  
+
   // Transit module
   const [availableTransitModes, setAvailableTransitModes] = useState([]);
   const [transitModesByCanton, setTransitModesByCanton] = useState({});
-  
+
   // Data upload
   const { handleFolderUpload, fileMap, clearFileMap } = useFileContext();
   const loadWithFallback = useLoadWithFallback(dataURL);
   const fileInputRef = useRef();
   const featureTableRef = useRef(null);
   const transitFeatureTableRef = useRef(null);
-  
-  // ======================= GENERAL FEATURES (BUTTONS / DROPDOWN) =======================
-  const handleGraphSelection = (event) => {
 
-    // Close feature table when switching graphs
-    setIsFeatureTableOpen(false);
-
-    const graph = event.target.value;
-    setSelectedGraph(graph);
-    onExpandGraph(graph);
-    
-    // Clear transit line selection when leaving Transit or TransitVolumes module
-    if (selectedGraph === "Transit" || selectedGraph === "TransitVolumes") {
-      setHighlightedLineId(null);
-      setHighlightedRouteIds([]);
-    }
-    
-    // Set corresponding default selected modes per module
-    if (graph === "Volumes") setSelectedNetworkModes(["car"]);
-    if (graph === "Network") setSelectedNetworkModes(["all"]);
-    if (graph !== "Network" && graph !== "Volumes") setSelectedNetworkModes(["all"]);
-  };
-  
-  const handleHome = () => {
-    setSelectedGraph(null);
-    onExpandGraph(null);
-  };
-  
-  const handleReset = () => {
-    setResetMapTrigger((prev) => !prev); // trigger reset in map hooks
-    
-    setSelectedDataset("Microcensus");
-    setSelectedMode("None");
-    setSelectedNetworkModes(["all"]);
-    setSelectedTransitModes(["all"]);
-    updateMapChoropleth("None", selectedDataset);
-    resetMapView();
-    
-    setHighlightedLineId(null);
-    setHighlightedRouteIds([]);
-    
-    setSelectedGraph(null);
-    onExpandGraph(null);
-    
-    clearFileMap();
-    setDataURL("https://matsim-eth.github.io/webmap/data/");
-    setInputURL("");
-  };
-  
   // ======================= MATSIM NETWORK MODULE =======================
   useEffect(() => {
     loadWithFallback("modes_by_canton.json")
-    .then((data) => setModesByCanton(data))
-    .catch((err) => console.error("Failed to load modes_by_canton.json", err));
+      .then((data) => setModesByCanton(data))
+      .catch((err) => console.error("Failed to load modes_by_canton.json", err));
   }, [dataURL, fileMap]);
-  
+
   useEffect(() => {
     if (canton && modesByCanton[canton]) {
       setAvailableModes(
@@ -179,14 +124,14 @@ const Sidebar = ({
       setSelectedNetworkModes(selectedOptions);
     }
   };
-  
+
   // ======================== TRANSIT MODULE =======================
   useEffect(() => {
     loadWithFallback("matsim/transit/transit_modes_by_canton.json")
-    .then((data) => setTransitModesByCanton(data))
-    .catch((err) => console.error("Failed to load transit modes:", err));
+      .then((data) => setTransitModesByCanton(data))
+      .catch((err) => console.error("Failed to load transit modes:", err));
   }, [dataURL, fileMap]);
-  
+
   useEffect(() => {
     if (canton && transitModesByCanton[canton]) {
       setAvailableTransitModes(transitModesByCanton[canton]);
@@ -194,7 +139,7 @@ const Sidebar = ({
       setAvailableTransitModes([]);
     }
   }, [canton, transitModesByCanton]);
-  
+
   // ======================== DESTINATION MODULE =======================
   const handleTotalOutflowChange = (outflowData) => {
     setDestinationOutflowData(outflowData);
@@ -209,7 +154,7 @@ const Sidebar = ({
   // Handle boarding data from PtBoardings
   const handleTotalBoardingsChange = (boardingData) => {
     console.log('Sidebar - boarding data updated:', boardingData);
-    
+
     // Log detailed information about selected line if available
     if (boardingData.selectedLineInfo) {
       console.log('Sidebar - selected line details:', {
@@ -220,7 +165,7 @@ const Sidebar = ({
         routeIds: boardingData.selectedLineInfo.route_ids
       });
     }
-    
+
     // Pass to App component via setBoardingData prop
     if (setBoardingData) {
       console.log('Sidebar - calling setBoardingData with:', boardingData);
@@ -229,398 +174,358 @@ const Sidebar = ({
       console.log('Sidebar - setBoardingData is not available');
     }
   };
-  
-  
-  // ======================== SIDEBAR ITEMS =======================
+
+
+  // ======================= SIDEBAR ITEMS =======================
   return (
     <div
-    className={`floating-panel ${
-      isOpen
-      ? selectedGraph === "Graph 3" || selectedGraph === "Graph 4"
-      ? "expanded-graph3"
-      : selectedGraph === "Choropleth" || selectedGraph === "Network"
-      ? "open"
-      : selectedGraph
-      ? "expanded"
-      : "open"
-      : "collapsed"
-    } ${isFeatureTableOpen ? "feature-table-open" : ""}`}
+      className={`floating-panel ${isSidebarOpen
+        ? isGraphExpanded === "Graph 3" || isGraphExpanded === "Graph 4"
+          ? "expanded-graph3"
+          : isGraphExpanded === "Choropleth" || isGraphExpanded === "Network"
+            ? "open"
+            : isGraphExpanded
+              ? "expanded"
+              : "open"
+        : "collapsed"
+        } ${isFeatureTableOpen ? "feature-table-open" : ""}`}
     >
-    <button className="toggle-button" onClick={toggleSidebar}>
-    {isOpen ? "✕" : "☰"}
-    </button>
-    
-    {isOpen && (
-      <>
-      {/* Scroll area */}
-      <div className="floating-content">
-      <br />
-      
-      {/* Home, Reset, and Graph Selection */}
-      <div className="button-row">
-      <div className="button-group">
-      <button
-      className={`home-button ${!selectedGraph ? "active" : ""}`}
-      onClick={handleHome}
-      >
-      Home
+      <button className="toggle-button" onClick={toggleSidebar}>
+        {isSidebarOpen ? "✕" : "☰"}
       </button>
-      <button className="reset-button" onClick={handleReset}>
-      Reset
-      </button>
-      <select
-      className="graph-dropdown"
-      value={selectedGraph || ""}
-      onChange={handleGraphSelection}
-      >
-      <option value="">Select a Graph</option>
-      <option value="Choropleth">
-      {selectedAggCol.charAt(0).toUpperCase() + selectedAggCol.slice(1)} by Canton
-      </option>
-      <option value="Network">MATSim Network</option>
-      <option value="Volumes">Road Volumes</option>
-      <option value="Transit">Transit Stops/Lines</option>
-      <option value="TransitVolumes">Transit Link Volumes</option>
-      <option value="Destination">Destination Zones</option>
-      <option value="PtBoardings">PT Boardings by Vehicle</option>
-      <option value="Graph 1">
-      Average Distance by {selectedAggCol.charAt(0).toUpperCase() + selectedAggCol.slice(1)}
-      </option>
-      <option value="Graph 2">
-      Distance Distribution by {selectedAggCol.charAt(0).toUpperCase() + selectedAggCol.slice(1)}
-      </option>
-      <option value="Graph 3">
-      {selectedAggCol.charAt(0).toUpperCase() + selectedAggCol.slice(1)} by Distance (Stacked)
-      </option>
-      <option value="Graph 4">
-      {selectedAggCol.charAt(0).toUpperCase() + selectedAggCol.slice(1)} by Time/Distance (Line)
-      </option>
-      <option value="Graph 5">Activity Distribution</option>
-      <option value="Graph 6">Public Transport Subscriptions</option>
-      <option value="Graph 7">Car Availability Class</option>
-      <option value="Graph 8">Departure Times</option>
-      <option value="Graph 9">Demographics</option>
-      </select>
-      </div>
-      </div>
-      
-      {/* Default View */}
-      {!selectedGraph && (
-        <HomeModule
-        inputURL={inputURL}
-        setInputURL={setInputURL}
-        setDataURL={setDataURL}
-        selectedAggCol={selectedAggCol}
-        setSelectedAggCol={setSelectedAggCol}
-        fileMap={fileMap}
-        fileInputRef={fileInputRef}
-        handleFolderUpload={handleFolderUpload}
-        />
-      )}
-      
-      {/* Rendering for graphs */}
-      {selectedGraph === "Graph 1" && (
-        <div className="plot-container">
-        <AverageDist canton={canton || "All"} aggCol={selectedAggCol} />
-        </div>
-      )}
-      {selectedGraph === "Graph 2" && (
-        <div className="plot-container">
-        <Histogram canton={canton || "All"} aggCol={selectedAggCol} />
-        </div>
-      )}
-      {selectedGraph === "Graph 3" && (
-        <div className="plot-container">
-        <StackedBarPlot canton={canton || "All"} aggCol={selectedAggCol} />
-        </div>
-      )}
-      {selectedGraph === "Graph 4" && (
-        <div className="plot-container">
-        <ModeShareLinePlot canton={canton || "All"} aggCol={selectedAggCol} />
-        </div>
-      )}
-      {selectedGraph === "Graph 5" && (
-        <div className="plot-container">
-        <ActivityDist canton={canton || "All"} />
-        </div>
-      )}
-      {selectedGraph === "Graph 6" && (
-        <div className="plot-container">
-        <PtSubscription canton={canton || "All"} />
-        </div>
-      )}
-      {selectedGraph === "Graph 7" && (
-        <div className="plot-container">
-        <CarAvailability canton={canton || "All"} />
-        </div>
-      )}
-      {selectedGraph === "Graph 8" && (
-        <div className="plot-container">
-        <DepartureTimes canton={canton || "All"} />
-        </div>
-      )}
-      {selectedGraph === "Graph 9" && (
-        <div className="plot-container">
-        <Demographics canton={canton || "All"} />
-        </div>
-      )}
-      
-      {/* Mode Share Choropleth Selection */}
-      {selectedGraph === "Choropleth" && (
-        <div>
-        <ChoroplethControls
-        selectedMode={selectedMode}
-        setSelectedMode={setSelectedMode}
-        selectedDataset={selectedDataset}
-        setSelectedDataset={setSelectedDataset}
-        updateMapChoropleth={updateMapChoropleth}
-        aggCol={selectedAggCol}
-        />
-        <CantonModeShareTable
-        canton={canton}
-        selectedDataset={selectedDataset}
-        selectedMode={selectedMode}
-        aggCol={selectedAggCol}
-        />
-        </div>
-      )}
-      
-      {/* Destination Module */}
-      {selectedGraph === "Destination" && (
-        <div className="plot-container">
-        <DestinationZones
-        canton={canton}
-        timeRange={timeRange}
-        setTimeRange={setTimeRange}
-        onTotalOutflowChange={handleTotalOutflowChange}
-        />
-        </div>
-      )}
 
-      {/* PT Boardings Module */}
-      {selectedGraph === "PtBoardings" && (
-        <div className="plot-container">
-          <PtBoardings
-          canton={canton}
-          timeRange={timeRange}
-          setTimeRange={setTimeRange}
-          onTotalBoardingsChange={handleTotalBoardingsChange}
-          selectedTransitStop={selectedTransitStop}
-          loadWithFallback={loadWithFallback}
-          />
-        </div>
-      )}
-      
-      {/* Network Module */}
-      {selectedGraph === "Network" && (
+      {isSidebarOpen && (
         <>
-        {/* Buttons ABOVE the module */}
-        {canton && (
-          <div className="network-buttons-row">
-          <button
-          className="search-button"
-          onClick={() =>
-            setIsFeatureTableOpen((prev) => !prev)}
-          >
-          {isFeatureTableOpen ? "Hide Table" : "Show Table"}
-          </button>
-          
-          {isFeatureTableOpen && (
-            <button
-            className="search-button secondary"
-            onClick={() => {
-              const exported = featureTableRef.current?.exportCsv?.();
-              if (!exported) {
-                console.warn('Export skipped: no table data available.');
-              }
-            }}
-            >
-            Export Data
-            </button>
-          )}
+          {/* Scroll area */}
+          <div className="floating-content">
+            <br />
+
+            <SidebarControls setInputURL={setInputURL} />
+
+            {/* Default View */}
+            {!isGraphExpanded && (
+              <HomeModule
+                inputURL={inputURL}
+                setInputURL={setInputURL}
+                setDataURL={setDataURL}
+                selectedAggCol={selectedAggCol}
+                setSelectedAggCol={setSelectedAggCol}
+                fileMap={fileMap}
+                fileInputRef={fileInputRef}
+                handleFolderUpload={handleFolderUpload}
+              />
+            )}
+
+            {/* Rendering for graphs */}
+            {isGraphExpanded === "Graph 1" && (
+              <div className="plot-container">
+                <AverageDist canton={canton || "All"} aggCol={selectedAggCol} />
+              </div>
+            )}
+            {isGraphExpanded === "Graph 2" && (
+              <div className="plot-container">
+                <Histogram canton={canton || "All"} aggCol={selectedAggCol} />
+              </div>
+            )}
+            {isGraphExpanded === "Graph 3" && (
+              <div className="plot-container">
+                <StackedBarPlot canton={canton || "All"} aggCol={selectedAggCol} />
+              </div>
+            )}
+            {isGraphExpanded === "Graph 4" && (
+              <div className="plot-container">
+                <ModeShareLinePlot canton={canton || "All"} aggCol={selectedAggCol} />
+              </div>
+            )}
+            {isGraphExpanded === "Graph 5" && (
+              <div className="plot-container">
+                <ActivityDist canton={canton || "All"} />
+              </div>
+            )}
+            {isGraphExpanded === "Graph 6" && (
+              <div className="plot-container">
+                <PtSubscription canton={canton || "All"} />
+              </div>
+            )}
+            {isGraphExpanded === "Graph 7" && (
+              <div className="plot-container">
+                <CarAvailability canton={canton || "All"} />
+              </div>
+            )}
+            {isGraphExpanded === "Graph 8" && (
+              <div className="plot-container">
+                <DepartureTimes canton={canton || "All"} />
+              </div>
+            )}
+            {isGraphExpanded === "Graph 9" && (
+              <div className="plot-container">
+                <Demographics canton={canton || "All"} />
+              </div>
+            )}
+
+            {/* Mode Share Choropleth Selection */}
+            {isGraphExpanded === "Choropleth" && (
+              <div>
+                <ChoroplethControls
+                  selectedMode={selectedMode}
+                  setSelectedMode={setSelectedMode}
+                  selectedDataset={selectedDataset}
+                  setSelectedDataset={setSelectedDataset}
+                  updateMapChoropleth={updateMapChoropleth}
+                  aggCol={selectedAggCol}
+                />
+                <CantonModeShareTable
+                  canton={canton}
+                  selectedDataset={selectedDataset}
+                  selectedMode={selectedMode}
+                  aggCol={selectedAggCol}
+                />
+              </div>
+            )}
+
+            {/* Destination Module */}
+            {isGraphExpanded === "Destination" && (
+              <div className="plot-container">
+                <DestinationZones
+                  canton={canton}
+                  timeRange={timeRange}
+                  setTimeRange={setTimeRange}
+                  onTotalOutflowChange={handleTotalOutflowChange}
+                />
+              </div>
+            )}
+
+            {/* PT Boardings Module */}
+            {isGraphExpanded === "PtBoardings" && (
+              <div className="plot-container">
+                <PtBoardings
+                  canton={canton}
+                  timeRange={timeRange}
+                  setTimeRange={setTimeRange}
+                  onTotalBoardingsChange={handleTotalBoardingsChange}
+                  selectedTransitStop={selectedTransitStop}
+                  loadWithFallback={loadWithFallback}
+                />
+              </div>
+            )}
+
+            {/* Volume Flow Analysis Module */}
+            {isGraphExpanded === "VolumeFlow" && (
+              <div className="plot-container">
+                <VolumeFlowModule />
+              </div>
+            )}
+
+            {/* Network Module */}
+            {isGraphExpanded === "Network" && (
+              <>
+                {/* Buttons ABOVE the module */}
+                {canton && (
+                  <div className="network-buttons-row">
+                    <button
+                      className="search-button"
+                      onClick={() =>
+                        setIsFeatureTableOpen((prev) => !prev)}
+                    >
+                      {isFeatureTableOpen ? "Hide Table" : "Show Table"}
+                    </button>
+
+                    {isFeatureTableOpen && (
+                      <button
+                        className="search-button secondary"
+                        onClick={() => {
+                          const exported = featureTableRef.current?.exportCsv?.();
+                          if (!exported) {
+                            console.warn('Export skipped: no table data available.');
+                          }
+                        }}
+                      >
+                        Export Data
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                <NetworkModule
+                  canton={canton}
+                  selectedGraph={isGraphExpanded}
+                  selectedNetworkModes={selectedNetworkModes}
+                  availableModes={availableModes}
+                  selectedNetworkFeature={selectedNetworkFeature}
+                  setSelectedNetworkFeature={setSelectedNetworkFeature}
+                  handleModeChange={handleModeChange}
+                  isFeatureTableOpen={isFeatureTableOpen}
+                  featureGeoJSON={featureGeoJSON}
+                  onFocusNetworkFeature={onFocusNetworkFeature}
+                  featureTableRef={featureTableRef}
+                  setTableFilterQuery={setTableFilterQuery}
+                />
+              </>
+            )}
+
+            {/* Road Volume Module */}
+            {isGraphExpanded === "Volumes" && (
+              <>
+                {/* Buttons ABOVE the module */}
+                {canton && (
+                  <div className="network-buttons-row">
+                    <button
+                      className="search-button"
+                      onClick={() =>
+                        setIsFeatureTableOpen((prev) => !prev)}
+                    >
+                      {isFeatureTableOpen ? "Hide Table" : "Show Table"}
+                    </button>
+
+                    {isFeatureTableOpen && (
+                      <button
+                        className="search-button secondary"
+                        onClick={() => {
+                          const exported = featureTableRef.current?.exportCsv?.();
+                          if (!exported) {
+                            console.warn('Export skipped: no table data available.');
+                          }
+                        }}
+                      >
+                        Export Data
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                <VolumesModule
+                  selectedNetworkFeature={selectedNetworkFeature}
+                  setSelectedNetworkFeature={setSelectedNetworkFeature}
+                  selectedGraph={isGraphExpanded}
+                  visualizeLinkId={visualizeLinkId}
+                  setVisualizeLinkId={setVisualizeLinkId}
+                  canton={canton}
+                  timeRange={timeRange}
+                  setTimeRange={setTimeRange}
+                  showMajorRoadsOnly={showMajorRoadsOnly}
+                  setShowMajorRoadsOnly={setShowMajorRoadsOnly}
+                  labelSize={labelSize}
+                  setLabelSize={setLabelSize}
+                  isFeatureTableOpen={isFeatureTableOpen}
+                  featureGeoJSON={featureGeoJSON}
+                  onFocusNetworkFeature={onFocusNetworkFeature}
+                  featureTableRef={featureTableRef}
+                  setTableFilterQuery={setTableFilterQuery}
+                  selectedNetworkModes={selectedNetworkModes}
+                />
+              </>
+            )}
+
+            {/* Transit Module */}
+            {isGraphExpanded === "Transit" && (
+              <>
+                {/* Buttons for table */}
+                {canton && (
+                  <div className="network-buttons-row">
+                    <button
+                      className="search-button"
+                      onClick={() =>
+                        setIsFeatureTableOpen((prev) => !prev)}
+                    >
+                      {isFeatureTableOpen ? "Hide Table" : "Show Table"}
+                    </button>
+
+                    {isFeatureTableOpen && (
+                      <button
+                        className="search-button secondary"
+                        onClick={() => {
+                          if (featureTableRef.current?.exportCsv) {
+                            featureTableRef.current.exportCsv();
+                          }
+                        }}
+                      >
+                        Export Data
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                <TransitModule
+                  selectedTransitModes={selectedTransitModes}
+                  setSelectedTransitModes={setSelectedTransitModes}
+                  availableTransitModes={availableTransitModes}
+                  selectedTransitStop={selectedTransitStop}
+                  setSelectedTransitStop={setSelectedTransitStop}
+                  highlightedLineId={highlightedLineId}
+                  setHighlightedLineId={setHighlightedLineId}
+                  setHighlightedRouteIds={setHighlightedRouteIds}
+                  setHoveredRouteId={setHoveredRouteId}
+                  showStopVolumeSymbology={showStopVolumeSymbology}
+                  setShowStopVolumeSymbology={setShowStopVolumeSymbology}
+                  canton={canton}
+                  timeRange={timeRange}
+                  setTimeRange={setTimeRange}
+                  isFeatureTableOpen={isFeatureTableOpen}
+                  featureGeoJSON={featureGeoJSON}
+                  featureTableRef={featureTableRef}
+                  setTableFilterQuery={setTableFilterQuery}
+                  onFocusTransitFeature={onFocusTransitFeature}
+                />
+              </>
+            )}
+
+            {isGraphExpanded === "TransitVolumes" && (
+              <>
+                {/* Buttons ABOVE the module */}
+                {canton && (
+                  <div className="network-buttons-row">
+                    <button
+                      className="search-button"
+                      onClick={() =>
+                        setIsFeatureTableOpen((prev) => !prev)}
+                    >
+                      {isFeatureTableOpen ? "Hide Table" : "Show Table"}
+                    </button>
+
+                    {isFeatureTableOpen && (
+                      <button
+                        className="search-button secondary"
+                        onClick={() => {
+                          const exported = transitFeatureTableRef.current?.exportCsv?.();
+                          if (!exported) {
+                            console.warn('Export skipped: no table data available.');
+                          }
+                        }}
+                      >
+                        Export Data
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                <TransitVolumesModule
+                  selectedTransitModes={selectedTransitModes}
+                  setSelectedTransitModes={setSelectedTransitModes}
+                  selectedTransitLink={selectedTransitLink}
+                  selectedGraph={isGraphExpanded}
+                  canton={canton}
+                  timeRange={timeRange}
+                  setTimeRange={setTimeRange}
+                  availableTransitModes={availableTransitModes}
+                  showLineSymbology={showLineSymbology}
+                  setShowLineSymbology={setShowLineSymbology}
+                  highlightedLineId={highlightedLineId}
+                  setHighlightedLineId={setHighlightedLineId}
+                  visualizeLinkId={visualizeLinkId}
+                  setVisualizeLinkId={setVisualizeLinkId}
+                  isFeatureTableOpen={isFeatureTableOpen}
+                  featureGeoJSON={featureGeoJSON}
+                  transitFeatureTableRef={transitFeatureTableRef}
+                  setTableFilterQuery={setTableFilterQuery}
+                  setSelectedTransitLink={setSelectedTransitLink}
+                  onFocusTransitFeature={onFocusTransitFeature}
+                />
+              </>
+            )}
           </div>
-        )}
-        
-        <NetworkModule
-        canton={canton}
-        selectedGraph={selectedGraph}
-        selectedNetworkModes={selectedNetworkModes}
-        availableModes={availableModes}
-        selectedNetworkFeature={selectedNetworkFeature}
-        setSelectedNetworkFeature={setSelectedNetworkFeature} 
-        handleModeChange={handleModeChange}
-        isFeatureTableOpen={isFeatureTableOpen}
-        featureGeoJSON={featureGeoJSON}
-        onFocusNetworkFeature={onFocusNetworkFeature}
-        featureTableRef={featureTableRef}
-        setTableFilterQuery={setTableFilterQuery}
-        />
+
         </>
       )}
-      
-      {/* Road Volume Module */}
-      {selectedGraph === "Volumes" && (
-        <>
-        {/* Buttons ABOVE the module */}
-        {canton && (
-          <div className="network-buttons-row">
-          <button
-          className="search-button"
-          onClick={() =>
-            setIsFeatureTableOpen((prev) => !prev)}
-          >
-          {isFeatureTableOpen ? "Hide Table" : "Show Table"}
-          </button>
-          
-          {isFeatureTableOpen && (
-            <button
-            className="search-button secondary"
-            onClick={() => {
-              const exported = featureTableRef.current?.exportCsv?.();
-              if (!exported) {
-                console.warn('Export skipped: no table data available.');
-              }
-            }}
-            >
-            Export Data
-            </button>
-          )}
-          </div>
-        )}
-        
-        <VolumesModule
-        selectedNetworkFeature={selectedNetworkFeature}
-        setSelectedNetworkFeature={setSelectedNetworkFeature}
-        selectedGraph={selectedGraph}
-        visualizeLinkId={visualizeLinkId}
-        setVisualizeLinkId={setVisualizeLinkId}
-        canton={canton}
-        timeRange={timeRange}
-        setTimeRange={setTimeRange}
-        showMajorRoadsOnly={showMajorRoadsOnly}
-        setShowMajorRoadsOnly={setShowMajorRoadsOnly}
-        labelSize={labelSize}
-        setLabelSize={setLabelSize}
-        isFeatureTableOpen={isFeatureTableOpen}
-        featureGeoJSON={featureGeoJSON}
-        onFocusNetworkFeature={onFocusNetworkFeature}
-        featureTableRef={featureTableRef}
-        setTableFilterQuery={setTableFilterQuery}
-        selectedNetworkModes={selectedNetworkModes}
-        />
-        </>
-      )}
-      
-      {/* Transit Module */}
-      {selectedGraph === "Transit" && (
-        <>
-        {/* Buttons for table */}
-        {canton && (
-          <div className="network-buttons-row">
-          <button
-          className="search-button"
-          onClick={() =>
-            setIsFeatureTableOpen((prev) => !prev)}
-          >
-          {isFeatureTableOpen ? "Hide Table" : "Show Table"}
-          </button>
-          
-          {isFeatureTableOpen && (
-            <button
-            className="search-button secondary"
-            onClick={() => {
-              if (featureTableRef.current?.exportCsv) {
-                featureTableRef.current.exportCsv();
-              }
-            }}
-            >
-            Export Data
-            </button>
-          )}
-          </div>
-        )}
-        
-        <TransitModule
-        selectedTransitModes={selectedTransitModes}
-        setSelectedTransitModes={setSelectedTransitModes}
-        availableTransitModes={availableTransitModes}
-        selectedTransitStop={selectedTransitStop}
-        setSelectedTransitStop={setSelectedTransitStop}
-        highlightedLineId={highlightedLineId}
-        setHighlightedLineId={setHighlightedLineId}
-        setHighlightedRouteIds={setHighlightedRouteIds}
-        setHoveredRouteId={setHoveredRouteId}
-        showStopVolumeSymbology={showStopVolumeSymbology}
-        setShowStopVolumeSymbology={setShowStopVolumeSymbology}
-        canton={canton}
-        timeRange={timeRange}
-        setTimeRange={setTimeRange}
-        isFeatureTableOpen={isFeatureTableOpen}
-        featureGeoJSON={featureGeoJSON}
-        featureTableRef={featureTableRef}
-        setTableFilterQuery={setTableFilterQuery}
-        onFocusTransitFeature={onFocusTransitFeature}
-        />
-        </>
-      )}
-      
-      {selectedGraph === "TransitVolumes" && (
-        <>
-        {/* Buttons ABOVE the module */}
-        {canton && (
-          <div className="network-buttons-row">
-          <button
-          className="search-button"
-          onClick={() =>
-            setIsFeatureTableOpen((prev) => !prev)}
-          >
-          {isFeatureTableOpen ? "Hide Table" : "Show Table"}
-          </button>
-          
-          {isFeatureTableOpen && (
-            <button
-            className="search-button secondary"
-            onClick={() => {
-              const exported = transitFeatureTableRef.current?.exportCsv?.();
-              if (!exported) {
-                console.warn('Export skipped: no table data available.');
-              }
-            }}
-            >
-            Export Data
-            </button>
-          )}
-          </div>
-        )}
-        
-        <TransitVolumesModule
-        selectedTransitModes={selectedTransitModes}
-        setSelectedTransitModes={setSelectedTransitModes}
-        selectedTransitLink={selectedTransitLink}
-        selectedGraph={selectedGraph}
-        canton={canton}
-        timeRange={timeRange}
-        setTimeRange={setTimeRange}
-        availableTransitModes={availableTransitModes}
-        showLineSymbology={showLineSymbology}
-        setShowLineSymbology={setShowLineSymbology}
-        highlightedLineId={highlightedLineId}
-        setHighlightedLineId={setHighlightedLineId}
-        visualizeLinkId={visualizeLinkId}
-        setVisualizeLinkId={setVisualizeLinkId}
-        isFeatureTableOpen={isFeatureTableOpen}
-        featureGeoJSON={featureGeoJSON}
-        transitFeatureTableRef={transitFeatureTableRef}
-        setTableFilterQuery={setTableFilterQuery}
-        setSelectedTransitLink={setSelectedTransitLink}
-        onFocusTransitFeature={onFocusTransitFeature}
-        />
-        </>
-      )}
-      </div>
-      
-      </>
-    )}
     </div>
   );
 };
