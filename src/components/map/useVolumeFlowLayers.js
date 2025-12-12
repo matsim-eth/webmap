@@ -276,6 +276,7 @@ export function updateFlowVisualization(mapRef, selectedLink, selectedDirection)
     map.setPaintProperty(HIGHLIGHT_LAYER_ID, 'line-width', [
         'interpolate', ['linear'], ['get', volumeField],
         0, 0,
+        1, 1.5,
         50, 3,
         150, 5,
         300, 8,
