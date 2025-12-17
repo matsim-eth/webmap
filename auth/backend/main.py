@@ -1,0 +1,200 @@
+import os
+import logging
+from contextlib import asynccontextmanager
+from datetime import datetime, timezone
+
+from fastapi import FastAPI, Request, Depends, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from db_models import User, RefreshToken
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.gzip import GZipMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
+
+from sqlalchemy import select, update
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from auth.backend.db import engine, get_db, Base
+from schemas import RegisterCredentialsModel, LoginModel, RefreshIn, TokenOut
+from security import hash_password, verify_password, create_access_token, create_refresh_token, decode_token, token_hash
+
+APP_NAME = os.getenv("auth", "api")
+ENV = os.getenv("ENV", "dev")
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+
+ALLOWED_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
+TRUSTED_HOSTS = [h.strip() for h in os.getenv("TRUSTED_HOSTS", "").split(",") if h.strip()]
+
+logging.basicConfig(level=LOG_LEVEL, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+logger = logging.getLogger(APP_NAME)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    if os.getenv("DB_CREATE_TABLES", "0") == "1":
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+    yield
+    await engine.dispose()
+
+docs_url = None if ENV == "prod" else "/docs"
+redoc_url = None if ENV == "prod" else "/redoc"
+openapi_url = None if ENV == "prod" else "/openapi.json"
+
+app = FastAPI(title=APP_NAME, lifespan=lifespan, docs_url=docs_url, redoc_url=redoc_url, openapi_url=openapi_url)
+
+if TRUSTED_HOSTS:
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=TRUSTED_HOSTS)
+
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+if ALLOWED_ORIGINS:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=ALLOWED_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+class ErrorOut(BaseModel):
+    detail: str
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.exception("unhandled_error")
+    return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
+
+@app.get("/health", response_model=dict)
+async def health():
+    return {"status": "ok", "env": ENV}
+
+@app.post("/register", response_model=dict)
+async def register(credentials: RegisterCredentialsModel, db: AsyncSession = Depends(get_db)):
+    email = str(credentials.email).lower()
+
+    existing = await db.scalar(select(User).where(User.email == email))
+    if existing:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="email already registered")
+
+    if credentials.username:
+        u = await db.scalar(select(User).where(User.username == credentials.username))
+        if u:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="username already taken")
+
+    user = User(
+        email=email,
+        hashed_password=hash_password(credentials.password),
+        first_name=credentials.first_name,
+        last_name=credentials.last_name,
+        username=credentials.username,
+        newsletter=credentials.newsletter,
+    )
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+
+    return {"id": user.id, "email": user.email}
+
+
+@app.post("/login", response_model=TokenOut)
+async def login(data: LoginModel, db: AsyncSession = Depends(get_db)):
+    email = str(data.email).lower()
+    user = await db.scalar(select(User).where(User.email == email))
+    if not user or not user.is_active or not verify_password(data.password, user.hashed_password):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid credentials")
+
+    access = create_access_token(user.id)
+    refresh, jti, exp = create_refresh_token(user.id)
+
+    rt = RefreshToken(
+        user_id=user.id,
+        token_hash=token_hash(refresh),
+        jti=jti,
+        expires_at=exp,
+        revoked=False,
+        replaced_by_jti=None,
+    )
+    db.add(rt)
+    await db.commit()
+
+    return TokenOut(access_token=access, refresh_token=refresh)
+
+@app.post("/refresh", response_model=TokenOut)
+async def refresh(payload: RefreshIn, db: AsyncSession = Depends(get_db)):
+    try:
+        decoded = decode_token(payload.refresh_token)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid refresh token")
+
+    if decoded.get("typ") != "refresh":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid refresh token")
+
+    sub = decoded.get("sub")
+    jti = decoded.get("jti")
+    if not sub or not jti:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid refresh token")
+
+    now = datetime.now(timezone.utc)
+    rt = await db.scalar(select(RefreshToken).where(RefreshToken.jti == jti))
+    if not rt or rt.revoked or rt.expires_at <= now:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid refresh token")
+
+    user = await db.scalar(select(User).where(User.id == int(sub)))
+    if not user or not user.is_active:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid refresh token")
+
+    new_access = create_access_token(user.id)
+    new_refresh, new_jti, new_exp = create_refresh_token(user.id)
+
+    await db.execute(
+        update(RefreshToken)
+        .where(RefreshToken.id == rt.id)
+        .values(revoked=True, replaced_by_jti=new_jti)
+    )
+
+    db.add(
+        RefreshToken(
+            user_id=user.id,
+            token_hash=token_hash(new_refresh),
+            jti=new_jti,
+            expires_at=new_exp,
+            revoked=False,
+            replaced_by_jti=None,
+        )
+    )
+    await db.commit()
+
+    return TokenOut(access_token=new_access, refresh_token=new_refresh)
+
+@app.post("/logout", response_model=dict)
+async def logout(payload: RefreshIn, db: AsyncSession = Depends(get_db)):
+    try:
+        decoded = decode_token(payload.refresh_token)
+    except Exception:
+        return {"ok": True}
+
+    if decoded.get("typ") != "refresh":
+        return {"ok": True}
+
+    jti = decoded.get("jti")
+    if not jti:
+        return {"ok": True}
+
+    await db.execute(update(RefreshToken).where(RefreshToken.jti == jti).values(revoked=True))
+    await db.commit()
+    return {"ok": True}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "auth.backend.main:app",
+        host=os.getenv("HOST", "0.0.0.0"),
+        port=int(os.getenv("PORT", "8090")),
+        log_level=LOG_LEVEL.lower(),
+        reload=(ENV != "prod"),
+    )
