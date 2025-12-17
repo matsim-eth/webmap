@@ -35,3 +35,4 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+*.venv
