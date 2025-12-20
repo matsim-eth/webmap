@@ -28,6 +28,3 @@ services:
       auth_db:
         condition: service_healthy
     restart: unless-stopped
-
-volumes:
-  auth_db_data:
