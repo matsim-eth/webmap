@@ -1,0 +1,33 @@
+services:
+  auth_db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: appdb
+    volumes:
+      - ./auth/database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d appdb"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  backend:
+    build:
+      context: auth/backend/
+      dockerfile: Dockerfile
+    environment:
+      DB_CREATE_TABLES: "1"
+      DATABASE_URL: postgresql+asyncpg://user:pass@auth_db:5432/appdb
+    volumes:
+      - ./auth/backend:/app
+    ports:
+      - "8090:8090"
+    depends_on:
+      auth_db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  auth_db_data:
