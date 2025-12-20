@@ -15,7 +15,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth.backend.db import engine, get_db, Base
+from db import engine, get_db, Base
 from schemas import RegisterCredentialsModel, LoginModel, RefreshIn, TokenOut
 from security import hash_password, verify_password, create_access_token, create_refresh_token, decode_token, token_hash
 
@@ -189,12 +189,3 @@ async def logout(payload: RefreshIn, db: AsyncSession = Depends(get_db)):
     await db.commit()
     return {"ok": True}
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(
-        "auth.backend.main:app",
-        host=os.getenv("HOST", "0.0.0.0"),
-        port=int(os.getenv("PORT", "8090")),
-        log_level=LOG_LEVEL.lower(),
-        reload=(ENV != "prod"),
-    )

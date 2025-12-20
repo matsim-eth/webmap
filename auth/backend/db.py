@@ -2,7 +2,9 @@ import os
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://user:pass@localhost:5432/appdb")
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    DATABASE_URL = "postgresql+asyncpg://user:pass@auth_db:5432/appdb"
 
 class Base(DeclarativeBase):
     pass
