@@ -13,10 +13,18 @@ class LoginModel(BaseModel):
     email: EmailStr
     password: str
 
+
 class TokenOut(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
 
+class GenericOut(BaseModel):
+    code: int
+    message: str
+
 class RefreshIn(BaseModel):
     refresh_token: str
+
+class AccessIn(BaseModel):
+    access_token: str

@@ -6,6 +6,8 @@ from datetime import datetime, timedelta, timezone
 import jwt
 import bcrypt
 
+from auth.api.db_models import User
+
 SECRET_KEY = os.getenv("JWT_SECRET", "")
 ALGORITHM = os.getenv("JWT_ALG", "HS256")
 
@@ -27,22 +29,25 @@ def verify_password(pw: str, hashed: str) -> bool:
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
-def create_access_token(user_id: int) -> str:
+def create_access_token(user :  User) -> str:
     now = _utcnow()
     payload = {
-        "sub": str(user_id),
+        "sub": str(user.id),
+        "admin": bool(user.admin),
         "typ": "access",
         "iat": int(now.timestamp()),
         "exp": int((now + timedelta(minutes=ACCESS_MINUTES)).timestamp()),
     }
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
-def create_refresh_token(user_id: int) -> tuple[str, str, datetime]:
+def create_refresh_token(user : User) -> tuple[str, str, datetime]:
     now = _utcnow()
     jti = secrets.token_hex(16)
+
     exp = now + timedelta(days=REFRESH_DAYS)
     payload = {
-        "sub": str(user_id),
+        "sub": str(user.id),
+        "admin": bool(user.admin), #Should be deleted?
         "typ": "refresh",
         "jti": jti,
         "iat": int(now.timestamp()),

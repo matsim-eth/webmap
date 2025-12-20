@@ -1,0 +1,91 @@
+Introduction:
+
+
+The Backend is the Webserver. Wie have the functions:
+
+    /login
+    /logout
+    /refresh
+    /validate/refresh-token
+    /validate/access-token
+    /register
+
+For the accessToken and RefreshToken we use the JWT-Token Systems This is how the Refresh and Acces Token Look like:
+
+
+
+Refresh:
+
+        "sub": str(user.id),
+        "admin": bool(user.admin), #Should be deleted?
+        "typ": "refresh",
+        "jti": jti,
+        "iat": int(now.timestamp()),
+        "exp": int(exp.timestamp()),
+
+Access:
+
+        "sub": str(user.id),
+        "admin": bool(user.admin),
+        "typ": "access",
+        "iat": int(now.timestamp()),
+        "exp": int((now + timedelta(minutes=ACCESS_MINUTES)).timestamp()),
+
+Now we come to the REST API The Following we have:
+
+Login
+Input: {email: str, password:str} -> Output: {access_token: str, refresh_token: str, token_type: str = "bearer"}
+The possible Errors are:
+    1.         401 / {"invalid credentials"}
+     --> If User doesnt already exists, credentials are invalid, or user is inactive
+
+
+-----Authentification API ---------
+Before using the Authentfication API wee need to set at least the JWT-Secret with:
+%Code:
+Authentificator.set_secret("")
+%
+Further if we want to extract user Info setting the Database-Config is necessary too:
+%Code:
+Authentificator.set_user_database_url("")
+Authentificator.set_user_database_user("")
+Authentificator.set_user_database_password("")
+Authentificator.set_user_database_table("")
+Authentificator.connect_database()
+%
+Usage in vanilla python:
+
+
+1. Authentificated:
+Output: true/False
+Input: accesstoken
+...
+
+Usage for FastAPI-Only:
+
+@RequireAuth(require_admin=yes/no)
+async def refresh(payload: AccessIn, db: AsyncSession = Depends(get_db)):
+
+
+async def refresh(payload: AccessIn,access_token : str, user: User, RequireUser(access_token) db: AsyncSession = Depends(get_db)):
+
+
+async def refresh(access_token: str, AccessIn, db: AsyncSession = Depends(get_db)):
+
+
+ The User Objects looks liek this:
+
+     __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
+    hashed_password: Mapped[str] = mapped_column(String(500))
+    first_name: Mapped[str] = mapped_column(String(120))
+    last_name: Mapped[str] = mapped_column(String(120))
+    username: Mapped[str | None] = mapped_column(String(120), unique=True, index=True, nullable=True)
+    newsletter: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    admin: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+

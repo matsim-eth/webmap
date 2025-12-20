@@ -7,7 +7,11 @@ from fastapi import FastAPI, Request, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from db_models import User, RefreshToken
+
+from auth.api.security import hash_password, verify_password, create_refresh_token, create_access_token, token_hash, \
+    decode_token
+from auth.backend.schemas import AccessIn, RegisterCredentialsModel, TokenOut, LoginModel, RefreshIn, GenericOut
+from auth.api.db_models import User, RefreshToken
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
@@ -15,9 +19,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db import engine, get_db, Base
-from schemas import RegisterCredentialsModel, LoginModel, RefreshIn, TokenOut
-from security import hash_password, verify_password, create_access_token, create_refresh_token, decode_token, token_hash
+from auth.api.db import engine, get_db, Base
 
 APP_NAME = os.getenv("auth", "api")
 ENV = os.getenv("ENV", "dev")
@@ -91,14 +93,13 @@ async def register(credentials: RegisterCredentialsModel, db: AsyncSession = Dep
         hashed_password=hash_password(credentials.password),
         first_name=credentials.first_name,
         last_name=credentials.last_name,
-        username=credentials.username,
-        newsletter=credentials.newsletter,
-    )
+        username=credentials.username)
     db.add(user)
     await db.commit()
     await db.refresh(user)
 
     return {"id": user.id, "email": user.email}
+
 
 
 @app.post("/login", response_model=TokenOut)
@@ -108,8 +109,8 @@ async def login(data: LoginModel, db: AsyncSession = Depends(get_db)):
     if not user or not user.is_active or not verify_password(data.password, user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid credentials")
 
-    access = create_access_token(user.id)
-    refresh, jti, exp = create_refresh_token(user.id)
+    access = create_access_token(user)
+    refresh, jti, exp = create_refresh_token(user)
 
     rt = RefreshToken(
         user_id=user.id,
@@ -148,8 +149,8 @@ async def refresh(payload: RefreshIn, db: AsyncSession = Depends(get_db)):
     if not user or not user.is_active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid refresh token")
 
-    new_access = create_access_token(user.id)
-    new_refresh, new_jti, new_exp = create_refresh_token(user.id)
+    new_access = create_access_token(user)
+    new_refresh, new_jti, new_exp = create_refresh_token(user)
 
     await db.execute(
         update(RefreshToken)
@@ -170,6 +171,54 @@ async def refresh(payload: RefreshIn, db: AsyncSession = Depends(get_db)):
     await db.commit()
 
     return TokenOut(access_token=new_access, refresh_token=new_refresh)
+
+
+
+@app.post("/validate/refresh_token", response_model=TokenOut)
+async def refresh(payload: AccessIn, db: AsyncSession = Depends(get_db)):
+    try:
+        decoded = decode_token(payload.access_token)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid refresh token")
+
+    if decoded.get("typ") != "refresh":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid refresh token")
+
+    sub = decoded.get("sub")
+    jti = decoded.get("jti")
+    if not sub or not jti:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid refresh token")
+
+    now = datetime.now(timezone.utc)
+    rt = await db.scalar(select(RefreshToken).where(RefreshToken.jti == jti))
+    if not rt or rt.revoked or rt.expires_at <= now:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="refresh expired")
+    ##Success
+    return GenericOut(code=0, message="success")
+
+
+@app.post("/validate/access_token", response_model=TokenOut)
+async def refresh(payload: AccessIn, db: AsyncSession = Depends(get_db)):
+    try:
+        decoded = decode_token(payload.refresh_token)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid refresh token")
+
+    if decoded.get("typ") != "refresh":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid refresh token")
+
+    sub = decoded.get("sub")
+    jti = decoded.get("jti")
+    if not sub or not jti:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid refresh token")
+
+    now = datetime.now(timezone.utc)
+    if decoded.get("exp") <= now:
+        raise HTTPException(status_code=status.HTTP_307_TEMPORARY_REDIRECT,
+                            detail="refresh expired")
+    ##Success
+    return GenericOut(code=0, message="success")
+
 
 @app.post("/logout", response_model=dict)
 async def logout(payload: RefreshIn, db: AsyncSession = Depends(get_db)):

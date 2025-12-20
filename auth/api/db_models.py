@@ -1,7 +1,9 @@
 from datetime import datetime
 from sqlalchemy import String, Boolean, DateTime, ForeignKey, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from db import Base
+
+from auth.api.db import Base
+
 
 class User(Base):
     __tablename__ = "users"
@@ -14,8 +16,8 @@ class User(Base):
     username: Mapped[str | None] = mapped_column(String(120), unique=True, index=True, nullable=True)
     newsletter: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    admin: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 class RefreshToken(Base):
