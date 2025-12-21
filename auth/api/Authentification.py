@@ -5,33 +5,14 @@ from functools import wraps
 import inspect
 
 from sqlalchemy import select
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.api.db import get_db
 from auth.api.db_models import User
 from auth.api.security import decode_token
 from auth.api import config
 
-
-# Öffentliche Setter bleiben erhalten, delegieren aber in config.py
-def set_database_url(url: str) -> None:
-    config.set_database_url(url)
-
-
-def set_database_user(user: str) -> None:
-    config.set_database_user(user)
-
-
-def set_database_password(password: str) -> None:
-    config.set_database_password(password)
-
-
-def set_database_table(table: str) -> None:
-    config.set_database_table(table)
-
-
-def set_secret(secret: str) -> None:
-    config.set_secret(secret)
 
 
 def authenticated(access_token: str) -> bool:
@@ -94,16 +75,16 @@ def get_user(access_token: str, user_id: int | None) -> User | None:
 
 def RequireAuth(func):
     @wraps(func)
-    async def wrapper(*args, auth_token: str = "", **kwargs):
-        if not authenticated(auth_token):
+    async def wrapper(*args, access_token: str = "", **kwargs):
+        if not authenticated(access_token):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="invalid auth token",
             )
 
-        kwargs.pop("auth_token", None)
+        kwargs.pop("access_token", None)
 
-        result = func(*args, **kwargs)
+        result = func(*args, access_token=access_token, **kwargs)
         if inspect.isawaitable(result):
             result = await result
         return result
@@ -113,40 +94,48 @@ def RequireAuth(func):
 
 def RequireAdmin(func):
     @wraps(func)
-    async def wrapper(*args, auth_token: str = "", **kwargs):
-        if not authenticated(auth_token) or not is_admin(auth_token):
+    async def wrapper(*args, access_token: str = "", **kwargs):
+        if not authenticated(access_token) or not is_admin(access_token):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="admin privileges required",
             )
 
-        kwargs.pop("auth_token", None)
+        kwargs.pop("access_token", None)
 
-        result = func(*args, **kwargs)
+        result = func(*args,access_token=access_token, **kwargs)
         if inspect.isawaitable(result):
             result = await result
         return result
 
     return wrapper
 
-
 def RequireUser():
-    async def dependency(auth_token: str = ""):
-        if not authenticated(auth_token):
+    async def dependency(
+        access_token: str = "",
+        db: AsyncSession = Depends(get_db),
+    ) -> User:
+        if not authenticated(access_token):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="invalid auth token",
             )
 
-        user_id = get_user_id(auth_token)
+        user_id = get_user_id(access_token)
         if user_id is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="invalid user",
             )
 
-        # Auch hier eigentlich: AsyncSession als Dependency holen,
-        # nicht direkt get_db() aufrufen.
-        raise NotImplementedError("RequireUser sollte mit AsyncSession-Dependency umgesetzt werden")
+        result = await db.execute(select(User).where(User.id == int(user_id)))
+        user = result.scalar_one_or_none()
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="user not found",
+            )
+
+        return user
 
     return dependency

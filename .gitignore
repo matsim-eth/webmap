@@ -36,3 +36,4 @@ Thumbs.db
 *.sln
 *.sw?
 *.venv
+./auth/database
