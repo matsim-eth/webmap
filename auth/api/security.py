@@ -8,7 +8,7 @@ import bcrypt
 
 from auth.api.db_models import User
 
-SECRET_KEY = os.getenv("JWT_SECRET", "")
+SECRET_KEY = os.getenv("JWT_SECRET", "UltraSecretKey")
 ALGORITHM = os.getenv("JWT_ALG", "HS256")
 
 ACCESS_MINUTES = int(os.getenv("ACCESS_TOKEN_MINUTES", "15"))

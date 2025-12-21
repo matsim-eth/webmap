@@ -13,6 +13,7 @@ services:
       timeout: 5s
       retries: 30
 
+
   backend:
     build:
       context: auth/
@@ -26,3 +27,4 @@ services:
       auth_db:
         condition: service_healthy
     restart: unless-stopped
+
