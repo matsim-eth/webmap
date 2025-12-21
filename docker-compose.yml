@@ -15,13 +15,11 @@ services:
 
   backend:
     build:
-      context: auth/backend/
+      context: auth/
       dockerfile: Dockerfile
     environment:
       DB_CREATE_TABLES: "1"
       DATABASE_URL: postgresql+asyncpg://user:pass@auth_db:5432/appdb
-    volumes:
-      - ./auth/backend:/app
     ports:
       - "8090:8090"
     depends_on:
