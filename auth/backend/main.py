@@ -8,6 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+from auth.api.Authentification import RequireAuth, RequireAdmin, RequireUser, set_database_url, set_database_password, \
+    set_database_table, set_secret
 from auth.api.security import hash_password, verify_password, create_refresh_token, create_access_token, token_hash, \
     decode_token
 from auth.backend.schemas import AccessIn, RegisterCredentialsModel, TokenOut, LoginModel, RefreshIn, GenericOut
@@ -34,6 +36,12 @@ logger = logging.getLogger(APP_NAME)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     if os.getenv("DB_CREATE_TABLES", "0") == "1":
+
+        set_database_url("postgresql+asyncpg://user:pass@auth_db:5432/appdb")
+
+
+        set_secret("ABCD")
+
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
     yield
@@ -220,8 +228,24 @@ async def refresh(payload: AccessIn, db: AsyncSession = Depends(get_db)):
     return GenericOut(code=0, message="success")
 
 
+@app.get("/me", response_model=dict)
+async def me(user: User = Depends(RequireUser())):
+    return {
+        "id": user.id,
+        "email": user.email,
+        "username": user.username,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "is_active": user.is_active,
+    }
+
 @app.post("/logout", response_model=dict)
-async def logout(payload: RefreshIn, db: AsyncSession = Depends(get_db)):
+@RequireAuth
+async def logout(
+    payload: RefreshIn,
+    auth_token: str,
+    db: AsyncSession = Depends(get_db),
+):
     try:
         decoded = decode_token(payload.refresh_token)
     except Exception:
