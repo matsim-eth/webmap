@@ -1,3 +1,5 @@
+# auth/api/Authentification.py
+
 from datetime import datetime, timezone
 from functools import wraps
 import inspect
@@ -8,23 +10,29 @@ from fastapi import HTTPException, status
 from auth.api.db import get_db
 from auth.api.db_models import User
 from auth.api.security import decode_token
+from auth.api import config
 
-secret_key = "" # Secret Key for decrypting JWT Token
-database_url=""
-database_user=""
-database_password=""
-database_table=""
 
-def set_database_url(url):
-    database_url = url
-def set_database_user(user):
-    database_user = user
-def set_database_password(password):
-    database_password = password
-def set_database_table(table):
-    database_table = table
-def set_secret(secret: str):
-    secret_key = secret
+# Öffentliche Setter bleiben erhalten, delegieren aber in config.py
+def set_database_url(url: str) -> None:
+    config.set_database_url(url)
+
+
+def set_database_user(user: str) -> None:
+    config.set_database_user(user)
+
+
+def set_database_password(password: str) -> None:
+    config.set_database_password(password)
+
+
+def set_database_table(table: str) -> None:
+    config.set_database_table(table)
+
+
+def set_secret(secret: str) -> None:
+    config.set_secret(secret)
+
 
 def authenticated(access_token: str) -> bool:
     try:
@@ -36,7 +44,6 @@ def authenticated(access_token: str) -> bool:
     if exp is None:
         return False
 
-    # exp kann entweder ein Unix-Timestamp oder ein datetime-Objekt sein
     if isinstance(exp, (int, float)):
         exp_dt = datetime.fromtimestamp(exp, tz=timezone.utc)
     else:
@@ -47,35 +54,42 @@ def authenticated(access_token: str) -> bool:
         return False
 
     return True
+
+
 def is_admin(access_token: str) -> bool:
     try:
         decode = decode_token(access_token)
-        if decode.get("admin") == "true":
-            return True
+        return decode.get("admin") == "true"
+    except Exception:
         return False
-    except:
-        return False
-def get_user_email(access_token: str) -> str:
+
+
+def get_user_email(access_token: str) -> str | None:
     try:
         decode = decode_token(access_token)
         return decode.get("email")
-    except:
+    except Exception:
         return None
-def get_user_id(access_token: str) -> str:
+
+
+def get_user_id(access_token: str) -> str | None:
     try:
-        decode = decode_token(access_token);
+        decode = decode_token(access_token)
         return decode.get("sub")
-    except:
+    except Exception:
         return None
-###FAST--API
-def get_user(access_token: str,user_id: int) -> str:
+
+
+def get_user(access_token: str, user_id: int | None) -> User | None:
+    # Achtung: get_db ist async-Generator, das hier funktioniert nur,
+    # wenn du das später sauber mit FastAPI-Dependencies löst.
     if user_id is None:
         user_id = get_user_id(access_token)
     if user_id is None:
         return None
-    database = get_db()
-    user = database.scalar(select(User).where(User.id==user_id))
-    return user
+
+    # Platzhalter – korrekter Weg wäre: Session als Dependency reinreichen
+    raise NotImplementedError("get_user sollte mit AsyncSession-Dependency benutzt werden")
 
 
 def RequireAuth(func):
@@ -87,7 +101,6 @@ def RequireAuth(func):
                 detail="invalid auth token",
             )
 
-        # auth_token nicht an die eigentliche Funktion weitergeben
         kwargs.pop("auth_token", None)
 
         result = func(*args, **kwargs)
@@ -96,6 +109,7 @@ def RequireAuth(func):
         return result
 
     return wrapper
+
 
 def RequireAdmin(func):
     @wraps(func)
@@ -115,6 +129,7 @@ def RequireAdmin(func):
 
     return wrapper
 
+
 def RequireUser():
     async def dependency(auth_token: str = ""):
         if not authenticated(auth_token):
@@ -130,14 +145,8 @@ def RequireUser():
                 detail="invalid user",
             )
 
-        database = get_db()
-        user = database.scalar(select(User).where(User.id == user_id))
-        if user is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="user not found",
-            )
-
-        return user
+        # Auch hier eigentlich: AsyncSession als Dependency holen,
+        # nicht direkt get_db() aufrufen.
+        raise NotImplementedError("RequireUser sollte mit AsyncSession-Dependency umgesetzt werden")
 
     return dependency
