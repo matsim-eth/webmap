@@ -7,7 +7,9 @@ import inspect
 from sqlalchemy import select
 from fastapi import HTTPException, status, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.responses import RedirectResponse
 
+from auth.api.config import login_url
 from auth.api.db import get_db
 from auth.api.db_models import User
 from auth.api.security import decode_token
@@ -77,10 +79,7 @@ def RequireAuth(func):
     @wraps(func)
     async def wrapper(*args, access_token: str = "", **kwargs):
         if not authenticated(access_token):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="invalid auth token",
-            )
+            return RedirectResponse(url=config.login_url, status_code=303)
 
         kwargs.pop("access_token", None)
 
@@ -97,10 +96,9 @@ def RequireAdmin(func):
     async def wrapper(*args, access_token: str = "", **kwargs):
         if not authenticated(access_token) or not is_admin(access_token):
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="admin privileges required",
+                status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
+                detail="admin requires",
             )
-
         kwargs.pop("access_token", None)
 
         result = func(*args,access_token=access_token, **kwargs)
@@ -117,10 +115,10 @@ def RequireUser():
     ) -> User:
         if not authenticated(access_token):
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
+                status_code=status.HTTP_303_SEE_OTHER,
                 detail="invalid auth token",
+                headers={"Location": config.login_url},
             )
-
         user_id = get_user_id(access_token)
         if user_id is None:
             raise HTTPException(

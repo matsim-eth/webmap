@@ -10,4 +10,5 @@ database_url: str = os.getenv(
 
 
 secret_key: str = os.getenv("AUTH_SECRET_KEY", "")
+login_url: str = os.getenv("LOGIN_URL", "")
 

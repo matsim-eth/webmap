@@ -111,6 +111,8 @@ if ALLOWED_ORIGINS:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["Location"],
+
     )
 
 
@@ -124,7 +126,11 @@ class ErrorOut(BaseModel):
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
-    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+        headers=getattr(exc, "headers", None),
+    )
 
 
 @app.exception_handler(Exception)
@@ -362,7 +368,10 @@ async def validate_access_token(
 # -----------------------------------------------------------------------------
 # User-Info
 # -----------------------------------------------------------------------------
-
+@app.get("/test")
+@RequireAuth
+async def test() -> Response:
+    return Response(content="ok", media_type="text/plain", status_code=status.HTTP_200_OK)
 @app.get("/me", response_model=dict)
 async def me(user: User = Depends(RequireUser())):
     return {
