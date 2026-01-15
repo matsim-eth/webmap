@@ -220,6 +220,8 @@ async def refresh_access_token(
 
 
 @app.get("/me", response_model=dict)
+#@router.get("/admin", dependencies=[Depends(RequireAdminUser())])
+
 async def me(user: User = Depends(RequireUser())):
     return {
         "id": user.id,
@@ -303,3 +305,7 @@ async def validate_refresh_token(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="refresh expired")
 
     return Response(content="ok", media_type="text/plain", status_code=status.HTTP_200_OK)
+
+
+
+#TODO:

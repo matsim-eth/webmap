@@ -80,7 +80,7 @@ def RequireUser():
 def RequireAdminUser():
     async def dependency(user: User = Depends(RequireUser())) -> User:
         if not getattr(user, "admin", False):
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="admin requires")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="admin requiresd")
         return user
 
     return dependency

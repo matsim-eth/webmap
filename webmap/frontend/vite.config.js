@@ -1,9 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
+// vite.config.js
 export default defineConfig({
+  base: '/webmap/frontend/',
   plugins: [react()],
-  base: '/webmap/',
+  server: {
+    port: 5121,
+    host: '0.0.0.0'
+  }
 })
-

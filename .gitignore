@@ -21,7 +21,6 @@ dist-ssr/
 .env
 .env.*.local
 *.local
-
 # OS/system files
 .DS_Store
 Thumbs.db
@@ -37,3 +36,4 @@ Thumbs.db
 *.sw?
 *.venv
 ./auth/database
+./webmap/backend/dummy_data
