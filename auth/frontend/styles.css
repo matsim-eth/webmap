@@ -1,15 +1,112 @@
+:root{
+  --card-radius: 16px;
+  --soft-border: rgba(0,0,0,.08);
+  --soft-shadow: 0 12px 40px rgba(0,0,0,.06);
+}
+
+body{
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 800px at 10% 10%, rgba(0,0,0,.055), transparent 60%),
+    radial-gradient(900px 700px at 90% 20%, rgba(0,0,0,.045), transparent 55%),
+    radial-gradient(900px 700px at 50% 90%, rgba(0,0,0,.035), transparent 55%),
+    var(--bs-body-tertiary-bg, #f6f7f9);
+}
+
 .auth-card{
-  max-width: 520px;
+  max-width: 560px;
   background: var(--bs-body-bg);
-  border: 1px solid rgba(0,0,0,.08);
-  border-radius: 16px;
+  border: 1px solid var(--soft-border);
+  border-radius: var(--card-radius);
   padding: 18px;
-  box-shadow: 0 12px 40px rgba(0,0,0,.06);
+  box-shadow: var(--soft-shadow);
+  transform: translateY(6px);
+  opacity: 0;
+  animation: cardIn 280ms cubic-bezier(.2,.8,.2,1) forwards;
 }
 
 @media (min-width: 768px){
   .auth-card{ padding: 22px; }
 }
 
-code{ font-size: .92em; }
-pre{ white-space: pre-wrap; word-break: break-word; }
+@keyframes cardIn{
+  from{ opacity:0; transform: translateY(10px) scale(.99); }
+  to{ opacity:1; transform: translateY(0) scale(1); }
+}
+
+.toast-host{
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1080;
+  width: min(560px, calc(100vw - 24px));
+  pointer-events: none;
+}
+
+.toast{
+  width: 100%;
+  border-radius: 14px;
+  box-shadow: 0 18px 55px rgba(0,0,0,.18);
+  transform: translateY(-10px) scale(.98);
+  opacity: 0;
+}
+
+.toast.show{
+  pointer-events: auto;
+  animation: toastIn 220ms cubic-bezier(.2,.8,.2,1) forwards;
+}
+
+.toast.hide{
+  animation: toastOut 220ms cubic-bezier(.2,.8,.2,1) forwards;
+}
+
+@keyframes toastIn{
+  from{ opacity:0; transform: translateY(-10px) scale(.98); }
+  to{ opacity:1; transform: translateY(0) scale(1); }
+}
+
+@keyframes toastOut{
+  from{ opacity:1; transform: translateY(0) scale(1); }
+  to{ opacity:0; transform: translateY(-10px) scale(.98); }
+}
+
+.nav-pills .nav-link{
+  border-radius: 999px;
+  transition: transform 120ms ease, background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.nav-pills .nav-link:active{
+  transform: scale(.98);
+}
+
+.form-control{
+  border-radius: 12px;
+  transition: box-shadow 180ms ease, transform 120ms ease, border-color 180ms ease;
+}
+
+.form-control:focus{
+  box-shadow: 0 0 0 .25rem rgba(0,0,0,.08);
+}
+
+.btn{
+  border-radius: 12px;
+  transition: transform 120ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+
+.btn-press:active{
+  transform: scale(.98);
+}
+
+.btn:hover{
+  box-shadow: 0 12px 34px rgba(0,0,0,.08);
+}
+
+.tab-pane{
+  animation: paneIn 180ms cubic-bezier(.2,.8,.2,1);
+}
+
+@keyframes paneIn{
+  from{ opacity: 0; transform: translateY(6px); }
+  to{ opacity: 1; transform: translateY(0); }
+}
