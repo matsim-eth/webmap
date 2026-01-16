@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 
 // vite.config.js
 export default defineConfig({
-  base: '/webmap/frontend/',
+  base: '/webmap/',
   plugins: [react()],
   server: {
     port: 5121,

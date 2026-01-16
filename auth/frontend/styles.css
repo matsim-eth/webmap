@@ -1,0 +1,15 @@
+.auth-card{
+  max-width: 520px;
+  background: var(--bs-body-bg);
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.06);
+}
+
+@media (min-width: 768px){
+  .auth-card{ padding: 22px; }
+}
+
+code{ font-size: .92em; }
+pre{ white-space: pre-wrap; word-break: break-word; }

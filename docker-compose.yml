@@ -32,6 +32,19 @@ services:
       - internal
 
 
+  authentification_frontend:
+    build:
+      context: ./auth/frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./auth/frontend/webserver/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./auth/frontend/webserver/auth_frontend.conf:/etc/nginx/conf.d/default.conf:ro
+    expose:
+      - "5022"
+    profiles: ["deploy","dev"]
+    networks:
+      - internal
+
   webmap_frontend_dev:
     build:
       context: ./webmap/frontend
@@ -74,6 +87,7 @@ services:
     depends_on:
       #- backend
       - webmap_frontend_dev
+      - authentification_frontend
     restart: unless-stopped
     profiles: ["dev"]
     networks:
@@ -89,6 +103,7 @@ services:
     depends_on:
      # - backend
       - webmap_frontend_prod
+      - authentification_frontend
     restart: unless-stopped
     profiles: ["deploy"]
     networks:
