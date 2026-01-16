@@ -23,7 +23,6 @@ function MainContent() {
         map={mapRef.current}
         onSearch={setClickedCanton}
       />
-
       <Map />
 
       <Sidebar />
@@ -32,5 +31,4 @@ function MainContent() {
     </FileProvider>
   );
 }
-
 export default App;

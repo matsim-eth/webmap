@@ -19,8 +19,8 @@ class User(Base):
     newsletter: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=text("false"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    company: Mapped[str] = mapped_column(String(120))
 
-#TODO: Company
 #TODO: Subscription
 
 class RefreshToken(Base):
