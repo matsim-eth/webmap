@@ -1,5 +1,5 @@
 services:
-  auth_db:
+  authentification_database:
     image: postgres:16
     environment:
       POSTGRES_USER: user
@@ -15,22 +15,6 @@ services:
     networks:
       - internal
 
-  backend:
-    build:
-      context: ./auth
-      dockerfile: Dockerfile
-    environment:
-      DB_CREATE_TABLES: "1"
-      DATABASE_URL: postgresql+asyncpg://user:pass@auth_db:5432/appdb
-    depends_on:
-      auth_db:
-        condition: service_healthy
-    restart: unless-stopped
-    expose:
-      - "8090"
-    networks:
-      - internal
-
 
   authentification_frontend:
     build:
@@ -41,7 +25,24 @@ services:
       - ./auth/frontend/webserver/auth_frontend.conf:/etc/nginx/conf.d/default.conf:ro
     expose:
       - "5022"
-    profiles: ["deploy","dev"]
+    profiles: ["deploy", "dev"]
+    networks:
+      - internal
+
+  authentification_backend:
+    build:
+      context: ./auth/backend
+      dockerfile: Dockerfile
+    environment:
+      DB_CREATE_TABLES: "1"
+      DATABASE_URL: postgresql+asyncpg://user:pass@authentification_database:5432/appdb
+    depends_on:
+      authentification_database:
+        condition: service_healthy
+    restart: unless-stopped
+    expose:
+      - "5032"
+    profiles: ["deploy", "dev"]
     networks:
       - internal
 
@@ -61,7 +62,6 @@ services:
     profiles: ["dev"]
     networks:
       - internal
-
 
   webmap_frontend_prod:
     build:
@@ -85,9 +85,12 @@ services:
       - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./proxy/dev.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
-      #- backend
-      - webmap_frontend_dev
-      - authentification_frontend
+      webmap_frontend_dev:
+        condition: service_started
+      authentification_frontend:
+        condition: service_started
+      authentification_backend:
+        condition: service_started
     restart: unless-stopped
     profiles: ["dev"]
     networks:
@@ -101,9 +104,14 @@ services:
       - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./proxy/deploy.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
-     # - backend
-      - webmap_frontend_prod
-      - authentification_frontend
+      webmap_frontend_prod:
+        condition: service_started
+      authentification_frontend:
+        condition: service_started
+      authentification_backend:
+        condition: service_started
+      backend:
+        condition: service_started
     restart: unless-stopped
     profiles: ["deploy"]
     networks:
@@ -111,6 +119,11 @@ services:
 
 volumes:
   auth_db_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./auth/database
   frontend_node_modules:
 
 networks:

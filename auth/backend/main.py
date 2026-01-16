@@ -17,8 +17,8 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth.api.Authentification import RequireUser, RequireAdminUser
-from auth.api.security import (
+from api.Authentification import RequireUser, RequireAdminUser
+from api.security import (
     hash_password,
     verify_password,
     create_refresh_token,
@@ -26,15 +26,15 @@ from auth.api.security import (
     token_hash,
     decode_token,
 )
-from auth.backend.schemas import (
+from schemas import (
     AccessIn,
     RegisterCredentialsModel,
     TokenOut,
     LoginModel,
     RefreshIn,
 )
-from auth.api.db_models import User, RefreshToken
-from auth.api.db import engine, get_db, Base
+from api.db_models import User, RefreshToken
+from api.db import engine, get_db, Base
 
 
 APP_NAME = os.getenv("APP_NAME", "auth-api")
@@ -51,6 +51,7 @@ logger = logging.getLogger(APP_NAME)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     if os.getenv("DB_CREATE_TABLES", "0") == "1":
+
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
     yield

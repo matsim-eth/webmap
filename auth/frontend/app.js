@@ -1,7 +1,8 @@
 const CONFIG = {
   API_BASE: "/authentification/backend",
   STORAGE_KEY: "auth.tokens.v1",
-  REFRESH_SKEW_SECONDS: 60
+  REFRESH_SKEW_SECONDS: 60,
+  LOGIN_URL: "/authentification/"
 };
 
 const el = (id) => document.getElementById(id);
@@ -101,6 +102,51 @@ async function readJsonOrText(res) {
   try { return await res.text(); } catch { return null; }
 }
 
+/* -------------------- returnTo handling -------------------- */
+
+function getRawReturnTo() {
+  try {
+    const u = new URL(window.location.href);
+    const rt = u.searchParams.get("returnTo");
+    return rt ? String(rt) : null;
+  } catch {
+    return null;
+  }
+}
+
+function sanitizeReturnTo(rt) {
+  if (!rt) return null;
+  const s = String(rt).trim();
+
+  if (!s.startsWith("/")) return null;
+  if (s.startsWith("//")) return null;
+  if (s.includes("\r") || s.includes("\n")) return null;
+
+  // disallow absolute URLs disguised in path
+  const lower = s.toLowerCase();
+  if (lower.startsWith("/http:") || lower.startsWith("/https:")) return null;
+
+  return s;
+}
+
+function getReturnToOrDefault() {
+  const safe = sanitizeReturnTo(getRawReturnTo());
+  return safe || "/webmap/";
+}
+
+function redirectToReturnTo() {
+  const target = getReturnToOrDefault();
+  window.location.assign(target);
+}
+
+function redirectToLoginWithReturnTo() {
+  const rt = window.location.pathname + window.location.search + window.location.hash;
+  const safeRt = sanitizeReturnTo(rt) || "/webmap/";
+  window.location.assign(CONFIG.LOGIN_URL + "?returnTo=" + encodeURIComponent(safeRt));
+}
+
+/* -------------------- API wrapper -------------------- */
+
 async function apiFetch(path, { method = "GET", headers = {}, body = null, auth = true, refreshOn401 = true } = {}) {
   const url = CONFIG.API_BASE + path;
   const tokens = loadTokens();
@@ -182,6 +228,9 @@ if (regPassword && regPassword2) {
   regPassword2.addEventListener("input", updatePasswordMatchValidity);
 }
 
+/* Refresh failure policy:
+   - On the auth page: clear tokens and show logged out UI.
+   - If this script is used elsewhere, call redirectToLoginWithReturnTo() on failure. */
 async function refreshTokens() {
   const t = loadTokens();
   if (!t?.refresh_token) return false;
@@ -223,12 +272,12 @@ async function doLogin(email, password) {
   const payload = await readJsonOrText(res);
 
   if (!res.ok) {
-    const msg = payload?.detail || payload || `Login fehlgeschlagen (${res.status})`;
+    const msg = payload?.detail || payload || `Login failed (${res.status})`;
     throw new Error(msg);
   }
 
   if (!payload?.access_token || !payload?.refresh_token) {
-    throw new Error("Ungültige Server-Antwort (Tokens fehlen).");
+    throw new Error("Invalid server response (missing tokens).");
   }
 
   saveTokens({ access_token: payload.access_token, refresh_token: payload.refresh_token });
@@ -256,7 +305,7 @@ async function doRegister(form) {
   const payload = await readJsonOrText(res);
 
   if (!res.ok) {
-    const msg = payload?.detail || payload || `Registrierung fehlgeschlagen (${res.status})`;
+    const msg = payload?.detail || payload || `Registration failed (${res.status})`;
     throw new Error(msg);
   }
 
@@ -268,7 +317,7 @@ async function doMe() {
   const payload = await readJsonOrText(res);
 
   if (!res.ok) {
-    const msg = payload?.detail || payload || `Me fehlgeschlagen (${res.status})`;
+    const msg = payload?.detail || payload || `Request failed (${res.status})`;
     throw new Error(msg);
   }
 
@@ -321,16 +370,10 @@ loginForm.addEventListener("submit", async (e) => {
   setLoading(loginBtn, loginSpinner, true);
   try {
     await doLogin(f.email.trim(), f.password);
-    showAlert("success", "Login ok.");
-
-    try {
-      const data = await doMe();
-      renderSessionBox(data);
-    } catch {
-      meBox.innerHTML = `<div class="text-body-secondary">Logged in</div>`;
-    }
+    // After login: redirect back to the original page
+    redirectToReturnTo();
   } catch (err) {
-    showAlert("danger", err?.message || "Login fehlgeschlagen.");
+    showAlert("danger", err?.message || "Login failed.");
   } finally {
     setLoading(loginBtn, loginSpinner, false);
   }
@@ -343,9 +386,7 @@ registerForm.addEventListener("submit", async (e) => {
   updatePasswordMatchValidity();
 
   if (!validateBootstrap(registerForm)) {
-    if (regPassword2?.validationMessage) {
-      showAlert("danger", "Passwords do not match.");
-    }
+    if (regPassword2?.validationMessage) showAlert("danger", "Passwords do not match.");
     return;
   }
 
@@ -363,13 +404,13 @@ registerForm.addEventListener("submit", async (e) => {
       newsletter: f.newsletter
     });
 
-    showAlert("success", "Registrierung ok. Jetzt einloggen.");
+    showAlert("success", "Registration successful. Please log in.");
     document.querySelector("#login-tab").click();
     registerForm.reset();
     registerForm.classList.remove("was-validated");
     regPassword2?.setCustomValidity("");
   } catch (err) {
-    showAlert("danger", err?.message || "Registrierung fehlgeschlagen.");
+    showAlert("danger", err?.message || "Registration failed.");
   } finally {
     setLoading(registerBtn, registerSpinner, false);
   }
@@ -381,7 +422,7 @@ meBtn.addEventListener("click", async () => {
     const data = await doMe();
     renderSessionBox(data);
   } catch (err) {
-    showAlert("danger", err?.message || "Me fehlgeschlagen.");
+    showAlert("danger", err?.message || "Request failed.");
   }
 });
 
