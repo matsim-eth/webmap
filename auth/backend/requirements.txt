@@ -6,3 +6,4 @@ pydantic
 email-validator
 PyJWT
 bcrypt
+auth-lib @ git+https://github.com/RaresBares/auth_lib.git@main
