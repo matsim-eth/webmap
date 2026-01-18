@@ -5,35 +5,44 @@ import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
+import AuthAPI
+from AuthAPI import API
+from AuthAPI import User, create_refresh_token, token_hash, RefreshToken, get_db, create_access_token, decode_token, \
+    verify_password, hash_password, Base, RequireUser
 from fastapi import FastAPI, Request, Depends, HTTPException, status, Response, Header, Cookie
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+
+
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from sqlalchemy import select, update
+from sqlalchemy import select, update, engine
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.Authentification import RequireUser, RequireAdminUser
-from api.security import (
-    hash_password,
-    verify_password,
-    create_refresh_token,
-    create_access_token,
-    token_hash,
-    decode_token,
-)
 from schemas import (
     RegisterCredentialsModel,
     TokenOut,
     LoginModel,
     RefreshIn,
 )
-from api.db_models import User, RefreshToken
-from api.db import engine, get_db, Base
+
+
+
+API.init(
+    secret_key=os.getenv("JWT_SECRET", "UltraSecretKey"),
+    algorithm=os.getenv("JWT_ALG", "HS256"),
+    access_minutes=int(os.getenv("ACCESS_TOKEN_MINUTES", "15")),
+    refresh_days=int(os.getenv("REFRESH_TOKEN_DAYS", "14")),
+    bcrypt_rounds=int(os.getenv("BCRYPT_ROUNDS", "12")),
+    access_cookie_name=os.getenv("ACCESS_COOKIE_NAME", "access_token"),
+    use_db=True,
+    database_url=os.getenv("DATABASE_URL", "postgresql+asyncpg://user:pass@auth_db:5432/appdb"),
+)
+
 
 
 APP_NAME = os.getenv("APP_NAME", "auth-api")
@@ -55,10 +64,9 @@ logger = logging.getLogger(APP_NAME)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     if os.getenv("DB_CREATE_TABLES", "0") == "1":
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+        await AuthAPI.create_tables()
     yield
-    await engine.dispose()
+    await AuthAPI.close()
 
 
 docs_url = None if ENV == "prod" else "/docs"
@@ -194,7 +202,9 @@ async def register(credentials: RegisterCredentialsModel, db: AsyncSession = Dep
 
 
 @app.post("/login", response_model=TokenOut)
+
 async def login(data: LoginModel, response: Response, db: AsyncSession = Depends(get_db)):
+    print(data.password)
     email = data.email
     username = data.username
     identifier = (data.identifier or "").strip()
@@ -308,15 +318,15 @@ async def me(user: User = Depends(RequireUser())):
     }
 
 
-@app.post("/logout", response_model=dict)
+@app.api_route("/logout", methods=["GET", "POST"], response_model=dict)
 async def logout(
     response: Response,
-    payload: RefreshIn,
+    payload: RefreshIn | None = None,
     refresh_cookie: str | None = Cookie(None, alias=REFRESH_COOKIE_NAME),
     x_refresh_token: str | None = Header(None, alias="X-Refresh-Token"),
     db: AsyncSession = Depends(get_db),
 ):
-    refresh_token = (x_refresh_token or "").strip() or (payload.refresh_token or "").strip() or (refresh_cookie or "").strip()
+    refresh_token = (x_refresh_token or "").strip() or (((payload.refresh_token if payload else "") or "").strip()) or (refresh_cookie or "").strip()
 
     if refresh_token:
         try:
