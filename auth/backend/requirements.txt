@@ -1,9 +1,12 @@
-fastapi
-uvicorn[standard]
-SQLAlchemy[asyncio]
-asyncpg
-pydantic
-email-validator
-PyJWT
-bcrypt
-auth-lib @ git+https://github.com/RaresBares/auth_lib.git@main
+AuthAPI @ git+https://github.com/RaresBares/auth_lib.git
+
+fastapi>=0.110
+uvicorn>=0.27
+
+sqlalchemy>=2.0
+asyncpg>=0.28
+email-validator==2.2.0
+python-jose[cryptography]>=3.3
+passlib[bcrypt]>=1.7.4
+
+pydantic>=2.7

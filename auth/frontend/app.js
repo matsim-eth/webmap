@@ -1,6 +1,6 @@
 const CONFIG = {
   API_BASE: "/authentification/backend",
-  DEFAULT_RETURN_TO: "/webmap/",
+  DEFAULT_RETURN_TO: "/webmap2/",
 };
 
 const el = (id) => document.getElementById(id);
@@ -22,6 +22,22 @@ const toastBody = el("toastBody");
 
 let toast;
 
+(function traceRedirects() {
+  try {
+    const _assign = window.location.assign.bind(window.location);
+    const _replace = window.location.replace.bind(window.location);
+    window.location.assign = (u) => {
+      console.trace("location.assign", u);
+      return _assign(u);
+    };
+    window.location.replace = (u) => {
+      console.trace("location.replace", u);
+      return _replace(u);
+    };
+  } catch {
+  }
+})();
+
 function setLoading(btn, spinner, on) {
   if (btn) btn.disabled = !!on;
   if (spinner) spinner.classList.toggle("d-none", !on);
@@ -40,33 +56,8 @@ function validateBootstrap(form) {
   return form.checkValidity();
 }
 
-function getRawReturnTo() {
-  try {
-    const u = new URL(window.location.href);
-    const rt = u.searchParams.get("returnTo");
-    return rt ? String(rt) : null;
-  } catch {
-    return null;
-  }
-}
-
-function sanitizeReturnTo(rt) {
-  if (!rt) return null;
-  const s = String(rt).trim();
-  if (!s.startsWith("/")) return null;
-  if (s.startsWith("//")) return null;
-  if (s.includes("\r") || s.includes("\n")) return null;
-  const lower = s.toLowerCase();
-  if (lower.startsWith("/http:") || lower.startsWith("/https:")) return null;
-  return s;
-}
-
-function returnTo() {
-  return sanitizeReturnTo(getRawReturnTo()) || CONFIG.DEFAULT_RETURN_TO;
-}
-
 function redirectAfterLogin() {
-  window.location.assign(returnTo());
+  window.location.assign(CONFIG.DEFAULT_RETURN_TO);
 }
 
 function isProbablyEmail(s) {
@@ -142,8 +133,15 @@ async function api(path, { method = "GET", body = null, allow401 = false } = {})
 }
 
 async function isLoggedIn() {
-  const res = await api("/me", { method: "GET", allow401: true });
-  return res.ok;
+  const r1 = await api("/me", { method: "GET", allow401: true });
+  if (r1.ok) return true;
+  if (r1.status !== 401) return false;
+
+  const ok = await refresh().catch(() => false);
+  if (!ok) return false;
+
+  const r2 = await api("/me", { method: "GET", allow401: true });
+  return r2.ok;
 }
 
 function fdToObj(form) {
@@ -265,7 +263,11 @@ if (toLogin) {
 
 (async function init() {
   try {
-    if (await isLoggedIn()) redirectAfterLogin();
+    const ok = await isLoggedIn();
+    if (ok) {
+      window.location.assign(CONFIG.DEFAULT_RETURN_TO);
+      return;
+    }
   } catch {
   }
 })();

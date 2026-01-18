@@ -110,8 +110,7 @@ services:
         condition: service_started
       authentification_backend:
         condition: service_started
-      backend:
-        condition: service_started
+
     restart: unless-stopped
     profiles: ["deploy"]
     networks:
