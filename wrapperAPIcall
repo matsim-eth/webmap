@@ -1,0 +1,149 @@
+type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+
+type ApiClientOptions = {
+  baseUrl: string;
+  refreshPath?: string; // default: "/refresh"
+  loginPath?: string;   // default: "/login"
+  getReturnTo?: () => string; // default: current path+query
+};
+
+class ApiError extends Error {
+  status: number;
+  body: any;
+  headers: Headers;
+
+  constructor(status: number, body: any, headers: Headers, message?: string) {
+    super(message ?? `HTTP ${status}`);
+    this.status = status;
+    this.body = body;
+    this.headers = headers;
+  }
+}
+
+function defaultReturnTo(): string {
+  const p = window.location.pathname || "/";
+  const q = window.location.search || "";
+  return `${p}${q}`;
+}
+
+function buildLoginUrl(loginPath: string, returnTo: string): string {
+  const u = new URL(loginPath, window.location.origin);
+  u.searchParams.set("returnTo", returnTo);
+  return u.toString();
+}
+
+export function createApiClient(opts: ApiClientOptions) {
+  const baseUrl = opts.baseUrl.replace(/\/+$/, "");
+  const refreshPath = (opts.refreshPath ?? "/refresh").startsWith("/")
+    ? (opts.refreshPath ?? "/refresh")
+    : `/${opts.refreshPath ?? "refresh"}`;
+  const loginPath = (opts.loginPath ?? "/login").startsWith("/")
+    ? (opts.loginPath ?? "/login")
+    : `/${opts.loginPath ?? "login"}`;
+  const getReturnTo = opts.getReturnTo ?? defaultReturnTo;
+
+  let refreshInFlight: Promise<boolean> | null = null;
+
+  async function parseBody(res: Response): Promise<any> {
+    const ct = res.headers.get("content-type") || "";
+    if (ct.includes("application/json")) {
+      try {
+        return await res.json();
+      } catch {
+        return null;
+      }
+    }
+    try {
+      return await res.text();
+    } catch {
+      return null;
+    }
+  }
+
+  async function doRefresh(): Promise<boolean> {
+    if (!refreshInFlight) {
+      refreshInFlight = (async () => {
+        const url = `${baseUrl}${refreshPath}`;
+        const res = await fetch(url, {
+          method: "POST",
+          credentials: "include",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({}),
+        });
+        refreshInFlight = null;
+        return res.ok;
+      })().catch(() => {
+        refreshInFlight = null;
+        return false;
+      });
+    }
+    return refreshInFlight;
+  }
+
+  async function request<T>(
+    method: HttpMethod,
+    path: string,
+    body?: any,
+    init?: RequestInit
+  ): Promise<T> {
+    const url = path.startsWith("http") ? path : `${baseUrl}${path.startsWith("/") ? "" : "/"}${path}`;
+    const headers = new Headers(init?.headers);
+
+    let payload: BodyInit | undefined;
+    if (body === undefined || body === null) {
+      payload = undefined;
+    } else if (body instanceof FormData) {
+      payload = body;
+    } else if (typeof body === "string") {
+      payload = body;
+      if (!headers.has("content-type")) headers.set("content-type", "text/plain");
+    } else {
+      payload = JSON.stringify(body);
+      if (!headers.has("content-type")) headers.set("content-type", "application/json");
+    }
+
+    const makeFetch = () =>
+      fetch(url, {
+        method,
+        credentials: "include",
+        headers,
+        body: payload,
+        ...init,
+      });
+
+    let res = await makeFetch();
+
+    if (res.status === 401) {
+      const ok = await doRefresh();
+      if (ok) {
+        res = await makeFetch();
+      } else {
+        const returnTo = getReturnTo();
+        window.location.assign(buildLoginUrl(loginPath, returnTo));
+        throw new ApiError(401, null, res.headers, "Unauthorized");
+      }
+    }
+
+    if (!res.ok) {
+      const errBody = await parseBody(res);
+      throw new ApiError(res.status, errBody, res.headers);
+    }
+
+    const data = (await parseBody(res)) as T;
+    return data;
+  }
+
+  return {
+    get: <T>(path: string, init?: RequestInit) => request<T>("GET", path, undefined, init),
+    post: <T>(path: string, body?: any, init?: RequestInit) => request<T>("POST", path, body, init),
+    put: <T>(path: string, body?: any, init?: RequestInit) => request<T>("PUT", path, body, init),
+    patch: <T>(path: string, body?: any, init?: RequestInit) => request<T>("PATCH", path, body, init),
+    del: <T>(path: string, init?: RequestInit) => request<T>("DELETE", path, undefined, init),
+  };
+}
+
+// Usage:
+//
+// const api = createApiClient({ baseUrl: "https://api.example.com", refreshPath: "/refresh", loginPath: "/login" });
+//
+// const me = await api.get<{id:number; email:string}>("/me");
