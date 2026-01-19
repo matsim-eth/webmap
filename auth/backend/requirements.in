@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+alembic
+psycopg[binary]
+asyncpg
+pydantic[email]

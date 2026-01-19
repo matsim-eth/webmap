@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Authentification</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body class="bg-soft">
+  <main class="container py-5">
+    <div id="authView">
+      <div class="auth-card mx-auto">
+        <div class="auth-header">
+          <h1 class="h4 m-0">Authentification</h1>
+          <p class="text-muted mb-0">Login or register.</p>
+        </div>
+
+        <ul class="nav nav-pills nav-fill mb-3" id="authTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="login-tab" data-bs-toggle="pill" data-bs-target="#login-pane" type="button" role="tab" aria-controls="login-pane" aria-selected="true">
+              Login
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="register-tab" data-bs-toggle="pill" data-bs-target="#register-pane" type="button" role="tab" aria-controls="register-pane" aria-selected="false">
+              Register
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content">
+          <div class="tab-pane fade show active" id="login-pane" role="tabpanel" aria-labelledby="login-tab" tabindex="0">
+            <form id="loginForm" class="needs-validation" novalidate>
+              <div class="mb-3">
+                <label class="form-label" for="identifier">Email or username</label>
+                <input class="form-control" id="identifier" name="identifier" autocomplete="username" required />
+                <div class="invalid-feedback">Please enter email or username.</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="password">Password</label>
+                <input class="form-control" id="password" name="password" type="password" autocomplete="current-password" required />
+                <div class="invalid-feedback">Please enter your password.</div>
+              </div>
+
+              <button class="btn btn-dark w-100 btn-press" id="loginSubmit" type="submit">
+                <span class="spinner-border spinner-border-sm me-2 d-none" id="loginSpinner" aria-hidden="true"></span>
+                Login
+              </button>
+
+              <div class="small text-muted mt-3">
+                No account? <a href="#" id="toRegister" class="link-dark">Register</a>
+              </div>
+            </form>
+          </div>
+
+          <div class="tab-pane fade" id="register-pane" role="tabpanel" aria-labelledby="register-tab" tabindex="0">
+            <form id="registerForm" class="needs-validation" novalidate>
+              <div class="row g-2">
+                <div class="col-md-6">
+                  <label class="form-label" for="first_name">First name</label>
+                  <input class="form-control" id="first_name" name="first_name" autocomplete="given-name" required />
+                  <div class="invalid-feedback">Required.</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="last_name">Last name</label>
+                  <input class="form-control" id="last_name" name="last_name" autocomplete="family-name" required />
+                  <div class="invalid-feedback">Required.</div>
+                </div>
+              </div>
+
+              <div class="mt-2">
+                <label class="form-label" for="username">Username</label>
+                <input class="form-control" id="username" name="username" autocomplete="username" />
+              </div>
+
+              <div class="mt-2">
+                <label class="form-label" for="company">Company</label>
+                <input class="form-control" id="company" name="company" autocomplete="organization" />
+              </div>
+
+              <div class="mt-2">
+                <label class="form-label" for="email">Email</label>
+                <input class="form-control" id="email" name="email" type="email" autocomplete="email" required />
+                <div class="invalid-feedback">Enter a valid email.</div>
+              </div>
+
+              <div class="mt-2">
+                <label class="form-label" for="regPassword">Password</label>
+                <input class="form-control" id="regPassword" name="password" type="password" autocomplete="new-password" required />
+                <div class="invalid-feedback">Required.</div>
+              </div>
+              <div class="mt-2">
+                <label class="form-label" for="regPassword2">Repeat password</label>
+                <input class="form-control" id="regPassword2" name="password2" type="password" autocomplete="new-password" required />
+                <div class="invalid-feedback">Passwords must match.</div>
+              </div>
+
+              <div class="form-check mt-3">
+                <input class="form-check-input" type="checkbox" value="1" id="newsletter" name="newsletter">
+                <label class="form-check-label" for="newsletter">
+                  Subscribe to newsletter
+                </label>
+              </div>
+
+              <button class="btn btn-dark w-100 btn-press mt-3" id="registerSubmit" type="submit">
+                <span class="spinner-border spinner-border-sm me-2 d-none" id="registerSpinner" aria-hidden="true"></span>
+                Register
+              </button>
+
+              <div class="small text-muted mt-3">
+                Already have an account? <a href="#" id="toLogin" class="link-dark">Login</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+          <div class="toast-body" id="toastBody">Error</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="loggedInView" class="d-none">
+      <div class="auth-card mx-auto">
+        <div class="auth-header">
+          <h1 class="h4 m-0">Already logged in</h1>
+          <p class="text-muted mb-0">You are already authenticated.</p>
+        </div>
+
+        <div class="d-grid gap-2">
+          <a id="goApp" class="btn btn-dark btn-press" href="/webmap2/">Continue</a>
+          <button id="logoutBtn" class="btn btn-outline-dark btn-press" type="button">
+            <span class="spinner-border spinner-border-sm me-2 d-none" id="logoutSpinner" aria-hidden="true"></span>
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

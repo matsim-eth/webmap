@@ -1,0 +1,66 @@
+export function createApiClient({
+  baseUrl,
+  refreshPath = "/refresh",
+  credentials = "include",
+  onAuthFail = null,
+} = {}) {
+  let refreshPromise = null;
+
+  async function refreshOnce() {
+    if (!refreshPromise) {
+      refreshPromise = fetch(baseUrl + refreshPath, {
+        method: "POST",
+        credentials,
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      })
+        .then((r) => r.ok)
+        .catch(() => false)
+        .finally(() => {
+          refreshPromise = null;
+        });
+    }
+    return refreshPromise;
+  }
+
+  async function request(path, { method = "GET", body = undefined, headers = {}, retry = true } = {}) {
+    const h = { ...headers };
+    const hasBody = body !== undefined && body !== null;
+
+    if (hasBody && !h["Content-Type"]) h["Content-Type"] = "application/json";
+
+    const doFetch = () =>
+      fetch(baseUrl + path, {
+        method,
+        credentials,
+        headers: h,
+        body: hasBody ? (h["Content-Type"] === "application/json" ? JSON.stringify(body) : body) : undefined,
+      });
+
+    const res1 = await doFetch();
+
+    if (res1.status !== 401 || retry === false) return res1;
+
+    const ok = await refreshOnce();
+    if (!ok) {
+      if (typeof onAuthFail === "function") onAuthFail(res1);
+      return res1;
+    }
+
+    return doFetch();
+  }
+
+  return { request };
+}
+
+/*
+Usage:
+
+const api = createApiClient({
+  baseUrl: "/authentification/backend",
+  onAuthFail: () => window.location.assign("/login"),
+});
+
+const r = await api.request("/me");
+const r2 = await api.request("/users", { method: "POST", body: { ... } });
+*/

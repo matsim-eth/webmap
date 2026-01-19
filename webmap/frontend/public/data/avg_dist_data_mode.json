@@ -1,0 +1,1514 @@
+{
+    "Aargau": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1594.4787503659409,
+                "network_distance": 2557.3636123195533,
+                "sample_size": 1180
+            },
+            "car": {
+                "euclidean_distance": 8709.501386156451,
+                "network_distance": 12696.329173613745,
+                "sample_size": 4044
+            },
+            "car_passenger": {
+                "euclidean_distance": 10755.263550514233,
+                "network_distance": 17195.382290222933,
+                "sample_size": 817
+            },
+            "pt": {
+                "euclidean_distance": 15930.238971785719,
+                "network_distance": 23666.693493485305,
+                "sample_size": 892
+            },
+            "walk": {
+                "euclidean_distance": 469.15409644794767,
+                "network_distance": 742.3413740914283,
+                "sample_size": 2059
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 3950.4299175500587,
+                "network_distance": 5531.245583038869,
+                "sample_size": 1698
+            },
+            "car": {
+                "euclidean_distance": 8311.968586387435,
+                "network_distance": 12477.762094240838,
+                "sample_size": 9550
+            },
+            "car_passenger": {
+                "euclidean_distance": 8418.516382095062,
+                "network_distance": 12764.300876788186,
+                "sample_size": 2167
+            },
+            "pt": {
+                "euclidean_distance": 9618.741884402218,
+                "network_distance": 16447.73436262866,
+                "sample_size": 2526
+            },
+            "walk": {
+                "euclidean_distance": 1433.7552233084148,
+                "network_distance": 1864.5171554533256,
+                "sample_size": 5217
+            }
+        }
+    },
+    "AppenzellAusserrhoden": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1749.599949617337,
+                "network_distance": 3232.4609198100397,
+                "sample_size": 32
+            },
+            "car": {
+                "euclidean_distance": 8052.615512484935,
+                "network_distance": 12556.323113589902,
+                "sample_size": 198
+            },
+            "car_passenger": {
+                "euclidean_distance": 6985.404156669293,
+                "network_distance": 10706.511009856162,
+                "sample_size": 60
+            },
+            "pt": {
+                "euclidean_distance": 7900.984929011013,
+                "network_distance": 13094.017307491993,
+                "sample_size": 49
+            },
+            "walk": {
+                "euclidean_distance": 584.1051276273358,
+                "network_distance": 840.1482662418179,
+                "sample_size": 85
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 2820.9050632911394,
+                "network_distance": 3949.96835443038,
+                "sample_size": 158
+            },
+            "car": {
+                "euclidean_distance": 7540.319760479042,
+                "network_distance": 12673.033532934132,
+                "sample_size": 835
+            },
+            "car_passenger": {
+                "euclidean_distance": 10216.5,
+                "network_distance": 16564.022471910113,
+                "sample_size": 178
+            },
+            "pt": {
+                "euclidean_distance": 6647.666666666667,
+                "network_distance": 12260.11616161616,
+                "sample_size": 198
+            },
+            "walk": {
+                "euclidean_distance": 1112.0090497737556,
+                "network_distance": 1446.2420814479638,
+                "sample_size": 442
+            }
+        }
+    },
+    "AppenzellInnerrhoden": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1439.527270319645,
+                "network_distance": 1940.7618737542996,
+                "sample_size": 15
+            },
+            "car": {
+                "euclidean_distance": 8101.495847668939,
+                "network_distance": 12206.787158270781,
+                "sample_size": 64
+            },
+            "car_passenger": {
+                "euclidean_distance": 7763.358252096884,
+                "network_distance": 14204.357298373043,
+                "sample_size": 17
+            },
+            "pt": {
+                "euclidean_distance": 76068.40714071976,
+                "network_distance": 126455.79864940129,
+                "sample_size": 5
+            },
+            "walk": {
+                "euclidean_distance": 504.3712550210757,
+                "network_distance": 873.3095263799969,
+                "sample_size": 16
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 4142.0,
+                "network_distance": 5799.258064516129,
+                "sample_size": 31
+            },
+            "car": {
+                "euclidean_distance": 7204.635379061372,
+                "network_distance": 12804.895306859205,
+                "sample_size": 277
+            },
+            "car_passenger": {
+                "euclidean_distance": 10614.619047619048,
+                "network_distance": 18434.02380952381,
+                "sample_size": 84
+            },
+            "pt": {
+                "euclidean_distance": 7196.068493150685,
+                "network_distance": 19427.76712328767,
+                "sample_size": 73
+            },
+            "walk": {
+                "euclidean_distance": 1221.396694214876,
+                "network_distance": 1588.4710743801652,
+                "sample_size": 121
+            }
+        }
+    },
+    "Basel-Landschaft": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1715.3954767210246,
+                "network_distance": 2642.3366315550375,
+                "sample_size": 373
+            },
+            "car": {
+                "euclidean_distance": 6756.983424479078,
+                "network_distance": 10423.526614586155,
+                "sample_size": 1474
+            },
+            "car_passenger": {
+                "euclidean_distance": 8504.397298990438,
+                "network_distance": 13656.784989635757,
+                "sample_size": 314
+            },
+            "pt": {
+                "euclidean_distance": 10586.744685933289,
+                "network_distance": 15108.438776697898,
+                "sample_size": 514
+            },
+            "walk": {
+                "euclidean_distance": 489.8898951942535,
+                "network_distance": 789.1747623951755,
+                "sample_size": 781
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 3261.9867256637167,
+                "network_distance": 4567.436946902655,
+                "sample_size": 904
+            },
+            "car": {
+                "euclidean_distance": 7631.277791975466,
+                "network_distance": 12066.846153846154,
+                "sample_size": 3913
+            },
+            "car_passenger": {
+                "euclidean_distance": 7901.282339707536,
+                "network_distance": 12740.976377952757,
+                "sample_size": 889
+            },
+            "pt": {
+                "euclidean_distance": 6954.792369772561,
+                "network_distance": 11480.969185619955,
+                "sample_size": 1363
+            },
+            "walk": {
+                "euclidean_distance": 1010.4161253343523,
+                "network_distance": 1314.145586549484,
+                "sample_size": 2617
+            }
+        }
+    },
+    "Basel-Stadt": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1780.457524911088,
+                "network_distance": 2627.235545150652,
+                "sample_size": 579
+            },
+            "car": {
+                "euclidean_distance": 10226.629100797463,
+                "network_distance": 15416.999704600588,
+                "sample_size": 647
+            },
+            "car_passenger": {
+                "euclidean_distance": 12233.129964694981,
+                "network_distance": 19699.499251770707,
+                "sample_size": 181
+            },
+            "pt": {
+                "euclidean_distance": 9233.231378226585,
+                "network_distance": 14387.048891608623,
+                "sample_size": 995
+            },
+            "walk": {
+                "euclidean_distance": 508.30346514293586,
+                "network_distance": 727.6909534386336,
+                "sample_size": 916
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 4294.5540334855405,
+                "network_distance": 6013.024353120243,
+                "sample_size": 657
+            },
+            "car": {
+                "euclidean_distance": 7649.848739495798,
+                "network_distance": 11026.072629051621,
+                "sample_size": 1666
+            },
+            "car_passenger": {
+                "euclidean_distance": 6383.793103448276,
+                "network_distance": 9478.857471264368,
+                "sample_size": 435
+            },
+            "pt": {
+                "euclidean_distance": 5799.897170462388,
+                "network_distance": 8533.8005521049,
+                "sample_size": 1449
+            },
+            "walk": {
+                "euclidean_distance": 802.7492223950234,
+                "network_distance": 1044.1765163297046,
+                "sample_size": 2572
+            }
+        }
+    },
+    "Bern": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1696.3614170083224,
+                "network_distance": 2619.049829629816,
+                "sample_size": 1354
+            },
+            "car": {
+                "euclidean_distance": 8554.163799229362,
+                "network_distance": 12208.102854754547,
+                "sample_size": 4123
+            },
+            "car_passenger": {
+                "euclidean_distance": 12074.427483580692,
+                "network_distance": 17795.290298237025,
+                "sample_size": 992
+            },
+            "pt": {
+                "euclidean_distance": 13871.349034605371,
+                "network_distance": 20765.30181988688,
+                "sample_size": 1533
+            },
+            "walk": {
+                "euclidean_distance": 652.9418483315144,
+                "network_distance": 830.9924202706562,
+                "sample_size": 2292
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 4189.439377488237,
+                "network_distance": 5865.894679695983,
+                "sample_size": 2763
+            },
+            "car": {
+                "euclidean_distance": 9409.774539519702,
+                "network_distance": 14900.903007694102,
+                "sample_size": 12867
+            },
+            "car_passenger": {
+                "euclidean_distance": 9846.392539964476,
+                "network_distance": 16226.923978685612,
+                "sample_size": 2815
+            },
+            "pt": {
+                "euclidean_distance": 9624.18860055607,
+                "network_distance": 16421.559314179794,
+                "sample_size": 4316
+            },
+            "walk": {
+                "euclidean_distance": 1322.3861543708083,
+                "network_distance": 1719.7232010912812,
+                "sample_size": 8797
+            }
+        }
+    },
+    "Fribourg": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 2108.4111529642664,
+                "network_distance": 3237.4784441928773,
+                "sample_size": 154
+            },
+            "car": {
+                "euclidean_distance": 9050.137641207497,
+                "network_distance": 13695.673160565022,
+                "sample_size": 2599
+            },
+            "car_passenger": {
+                "euclidean_distance": 10289.576307514628,
+                "network_distance": 15448.343318459521,
+                "sample_size": 639
+            },
+            "pt": {
+                "euclidean_distance": 13494.45167253467,
+                "network_distance": 20331.458264196302,
+                "sample_size": 558
+            },
+            "walk": {
+                "euclidean_distance": 479.7277314726431,
+                "network_distance": 806.3614589137921,
+                "sample_size": 1245
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 4848.233062330623,
+                "network_distance": 6788.181571815719,
+                "sample_size": 738
+            },
+            "car": {
+                "euclidean_distance": 8713.226871320438,
+                "network_distance": 13778.928090832633,
+                "sample_size": 4756
+            },
+            "car_passenger": {
+                "euclidean_distance": 9265.530592734225,
+                "network_distance": 15251.203632887189,
+                "sample_size": 1046
+            },
+            "pt": {
+                "euclidean_distance": 10223.591074681239,
+                "network_distance": 18746.762295081968,
+                "sample_size": 1098
+            },
+            "walk": {
+                "euclidean_distance": 1540.3541666666667,
+                "network_distance": 2003.0916666666667,
+                "sample_size": 2400
+            }
+        }
+    },
+    "Geneve": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1741.219049735684,
+                "network_distance": 2874.0549483194777,
+                "sample_size": 738
+            },
+            "car": {
+                "euclidean_distance": 6242.174223465729,
+                "network_distance": 9891.533698295287,
+                "sample_size": 3113
+            },
+            "car_passenger": {
+                "euclidean_distance": 6646.72269707071,
+                "network_distance": 10500.32779829935,
+                "sample_size": 805
+            },
+            "pt": {
+                "euclidean_distance": 6777.8097480936285,
+                "network_distance": 9597.231197014937,
+                "sample_size": 2076
+            },
+            "walk": {
+                "euclidean_distance": 708.3824603182162,
+                "network_distance": 754.5384064457118,
+                "sample_size": 3815
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 2621.6654158849283,
+                "network_distance": 3671.0,
+                "sample_size": 1599
+            },
+            "car": {
+                "euclidean_distance": 5988.020049008688,
+                "network_distance": 8777.719759411895,
+                "sample_size": 4489
+            },
+            "car_passenger": {
+                "euclidean_distance": 5701.214620431116,
+                "network_distance": 8418.920337394564,
+                "sample_size": 1067
+            },
+            "pt": {
+                "euclidean_distance": 5938.093013287613,
+                "network_distance": 8888.200600085727,
+                "sample_size": 2333
+            },
+            "walk": {
+                "euclidean_distance": 837.4690770694576,
+                "network_distance": 1089.3392959086584,
+                "sample_size": 5255
+            }
+        }
+    },
+    "Glarus": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1377.5182592654066,
+                "network_distance": 2101.336107346959,
+                "sample_size": 76
+            },
+            "car": {
+                "euclidean_distance": 10218.84736942846,
+                "network_distance": 13945.773530519873,
+                "sample_size": 287
+            },
+            "car_passenger": {
+                "euclidean_distance": 12438.577872980011,
+                "network_distance": 19557.212400686556,
+                "sample_size": 65
+            },
+            "pt": {
+                "euclidean_distance": 19337.480490917682,
+                "network_distance": 30428.785396283154,
+                "sample_size": 34
+            },
+            "walk": {
+                "euclidean_distance": 668.673487408455,
+                "network_distance": 1131.1308923336749,
+                "sample_size": 137
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 6729.756097560976,
+                "network_distance": 9422.341463414634,
+                "sample_size": 82
+            },
+            "car": {
+                "euclidean_distance": 9520.893617021276,
+                "network_distance": 14850.795417348609,
+                "sample_size": 611
+            },
+            "car_passenger": {
+                "euclidean_distance": 9132.313043478262,
+                "network_distance": 15904.504347826087,
+                "sample_size": 115
+            },
+            "pt": {
+                "euclidean_distance": 14643.342657342657,
+                "network_distance": 23316.321678321678,
+                "sample_size": 143
+            },
+            "walk": {
+                "euclidean_distance": 1632.7107438016528,
+                "network_distance": 2123.212121212121,
+                "sample_size": 363
+            }
+        }
+    },
+    "Graubunden": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1049.3478038897088,
+                "network_distance": 1724.9807748331264,
+                "sample_size": 332
+            },
+            "car": {
+                "euclidean_distance": 9407.316012389867,
+                "network_distance": 14032.877893744453,
+                "sample_size": 1496
+            },
+            "car_passenger": {
+                "euclidean_distance": 14220.94691298773,
+                "network_distance": 20968.12840923582,
+                "sample_size": 265
+            },
+            "pt": {
+                "euclidean_distance": 16345.963595446025,
+                "network_distance": 23854.70682073623,
+                "sample_size": 313
+            },
+            "walk": {
+                "euclidean_distance": 501.96506512112836,
+                "network_distance": 789.5480609616184,
+                "sample_size": 1080
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 5027.013861386138,
+                "network_distance": 7038.493069306931,
+                "sample_size": 505
+            },
+            "car": {
+                "euclidean_distance": 9456.476783310902,
+                "network_distance": 15829.577052489905,
+                "sample_size": 2972
+            },
+            "car_passenger": {
+                "euclidean_distance": 9852.911037891268,
+                "network_distance": 17516.054365733115,
+                "sample_size": 607
+            },
+            "pt": {
+                "euclidean_distance": 10333.282639885223,
+                "network_distance": 16966.067431850788,
+                "sample_size": 697
+            },
+            "walk": {
+                "euclidean_distance": 1542.3201238390093,
+                "network_distance": 2005.6482972136223,
+                "sample_size": 1615
+            }
+        }
+    },
+    "Jura": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 930.4012219382757,
+                "network_distance": 1805.2941390509168,
+                "sample_size": 126
+            },
+            "car": {
+                "euclidean_distance": 6789.870403324607,
+                "network_distance": 10310.42564970325,
+                "sample_size": 1064
+            },
+            "car_passenger": {
+                "euclidean_distance": 8873.332406943724,
+                "network_distance": 15649.740451994021,
+                "sample_size": 233
+            },
+            "pt": {
+                "euclidean_distance": 14428.85695859579,
+                "network_distance": 20914.842312799803,
+                "sample_size": 126
+            },
+            "walk": {
+                "euclidean_distance": 397.6522848686257,
+                "network_distance": 687.4283837077754,
+                "sample_size": 388
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 5417.649484536082,
+                "network_distance": 7585.458762886598,
+                "sample_size": 194
+            },
+            "car": {
+                "euclidean_distance": 8628.544938505203,
+                "network_distance": 14359.925260170294,
+                "sample_size": 1057
+            },
+            "car_passenger": {
+                "euclidean_distance": 10297.476377952757,
+                "network_distance": 17457.232283464567,
+                "sample_size": 254
+            },
+            "pt": {
+                "euclidean_distance": 9538.791821561339,
+                "network_distance": 17510.085501858735,
+                "sample_size": 269
+            },
+            "walk": {
+                "euclidean_distance": 1192.7116040955632,
+                "network_distance": 1551.1160409556314,
+                "sample_size": 586
+            }
+        }
+    },
+    "Luzern": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1731.0472972846183,
+                "network_distance": 2733.995737066452,
+                "sample_size": 660
+            },
+            "car": {
+                "euclidean_distance": 8325.643628915652,
+                "network_distance": 12217.410527425296,
+                "sample_size": 2947
+            },
+            "car_passenger": {
+                "euclidean_distance": 10648.960525293149,
+                "network_distance": 16071.92278426972,
+                "sample_size": 565
+            },
+            "pt": {
+                "euclidean_distance": 11865.15736665116,
+                "network_distance": 19222.42254447674,
+                "sample_size": 871
+            },
+            "walk": {
+                "euclidean_distance": 477.22474734579947,
+                "network_distance": 757.3504566684564,
+                "sample_size": 1553
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 3593.987990392314,
+                "network_distance": 5032.281024819856,
+                "sample_size": 1249
+            },
+            "car": {
+                "euclidean_distance": 8578.98778954929,
+                "network_distance": 13456.620398635303,
+                "sample_size": 5569
+            },
+            "car_passenger": {
+                "euclidean_distance": 9896.497904442582,
+                "network_distance": 15877.344509639564,
+                "sample_size": 1193
+            },
+            "pt": {
+                "euclidean_distance": 8562.333156216791,
+                "network_distance": 14735.094048884166,
+                "sample_size": 1882
+            },
+            "walk": {
+                "euclidean_distance": 1219.7381333333333,
+                "network_distance": 1586.2613333333334,
+                "sample_size": 3750
+            }
+        }
+    },
+    "Neuchatel": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1834.1568238978828,
+                "network_distance": 3250.846020140537,
+                "sample_size": 143
+            },
+            "car": {
+                "euclidean_distance": 7717.6495020701805,
+                "network_distance": 11065.691200956075,
+                "sample_size": 2988
+            },
+            "car_passenger": {
+                "euclidean_distance": 10583.1123435985,
+                "network_distance": 16109.026109834564,
+                "sample_size": 715
+            },
+            "pt": {
+                "euclidean_distance": 9179.853039862257,
+                "network_distance": 13771.398266343434,
+                "sample_size": 693
+            },
+            "walk": {
+                "euclidean_distance": 501.96273379255746,
+                "network_distance": 808.7052022961209,
+                "sample_size": 1770
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 4633.1137339055795,
+                "network_distance": 6487.034334763948,
+                "sample_size": 466
+            },
+            "car": {
+                "euclidean_distance": 8401.15414444983,
+                "network_distance": 13238.986912263694,
+                "sample_size": 2063
+            },
+            "car_passenger": {
+                "euclidean_distance": 9217.811650485437,
+                "network_distance": 15001.2,
+                "sample_size": 515
+            },
+            "pt": {
+                "euclidean_distance": 9403.93741851369,
+                "network_distance": 16450.417209908734,
+                "sample_size": 767
+            },
+            "walk": {
+                "euclidean_distance": 1238.973163841808,
+                "network_distance": 1611.2966101694915,
+                "sample_size": 1416
+            }
+        }
+    },
+    "Nidwalden": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1572.4310663919953,
+                "network_distance": 1952.7014859690898,
+                "sample_size": 157
+            },
+            "car": {
+                "euclidean_distance": 7135.898988722687,
+                "network_distance": 10799.755435320052,
+                "sample_size": 511
+            },
+            "car_passenger": {
+                "euclidean_distance": 6551.104998525767,
+                "network_distance": 10329.460385937275,
+                "sample_size": 114
+            },
+            "pt": {
+                "euclidean_distance": 12936.867339281196,
+                "network_distance": 26653.444327465775,
+                "sample_size": 76
+            },
+            "walk": {
+                "euclidean_distance": 450.9680667889917,
+                "network_distance": 721.3384199326883,
+                "sample_size": 252
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 3643.1348314606744,
+                "network_distance": 5101.0224719101125,
+                "sample_size": 89
+            },
+            "car": {
+                "euclidean_distance": 8946.400696864112,
+                "network_distance": 16307.393728222996,
+                "sample_size": 574
+            },
+            "car_passenger": {
+                "euclidean_distance": 9423.59,
+                "network_distance": 17287.23,
+                "sample_size": 100
+            },
+            "pt": {
+                "euclidean_distance": 8177.620689655172,
+                "network_distance": 15171.358620689654,
+                "sample_size": 145
+            },
+            "walk": {
+                "euclidean_distance": 1431.989898989899,
+                "network_distance": 1862.2222222222222,
+                "sample_size": 297
+            }
+        }
+    },
+    "Obwalden": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1275.4812736984295,
+                "network_distance": 2164.697773906079,
+                "sample_size": 111
+            },
+            "car": {
+                "euclidean_distance": 8025.680898600599,
+                "network_distance": 11741.955961707874,
+                "sample_size": 595
+            },
+            "car_passenger": {
+                "euclidean_distance": 12643.263676996221,
+                "network_distance": 20284.634411809664,
+                "sample_size": 119
+            },
+            "pt": {
+                "euclidean_distance": 20054.3992024156,
+                "network_distance": 35089.223873291005,
+                "sample_size": 95
+            },
+            "walk": {
+                "euclidean_distance": 531.0480522904784,
+                "network_distance": 839.8327911341387,
+                "sample_size": 322
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 5437.952380952381,
+                "network_distance": 7613.6547619047615,
+                "sample_size": 84
+            },
+            "car": {
+                "euclidean_distance": 9038.454212454213,
+                "network_distance": 15693.551282051281,
+                "sample_size": 546
+            },
+            "car_passenger": {
+                "euclidean_distance": 13781.884955752212,
+                "network_distance": 23192.725663716814,
+                "sample_size": 113
+            },
+            "pt": {
+                "euclidean_distance": 12524.62015503876,
+                "network_distance": 20249.51937984496,
+                "sample_size": 129
+            },
+            "walk": {
+                "euclidean_distance": 1001.3194888178914,
+                "network_distance": 1302.2811501597444,
+                "sample_size": 313
+            }
+        }
+    },
+    "Schaffhausen": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1004.6925119753473,
+                "network_distance": 1657.9109564635726,
+                "sample_size": 112
+            },
+            "car": {
+                "euclidean_distance": 8088.346178733401,
+                "network_distance": 11849.797367913532,
+                "sample_size": 667
+            },
+            "car_passenger": {
+                "euclidean_distance": 8985.174280608537,
+                "network_distance": 14295.86423328945,
+                "sample_size": 106
+            },
+            "pt": {
+                "euclidean_distance": 11194.229681333243,
+                "network_distance": 18289.79517711568,
+                "sample_size": 251
+            },
+            "walk": {
+                "euclidean_distance": 542.4067604997775,
+                "network_distance": 860.4010359634815,
+                "sample_size": 412
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 3716.4851485148515,
+                "network_distance": 5203.747524752475,
+                "sample_size": 202
+            },
+            "car": {
+                "euclidean_distance": 7731.728624535316,
+                "network_distance": 12551.767657992565,
+                "sample_size": 1076
+            },
+            "car_passenger": {
+                "euclidean_distance": 8007.353159851301,
+                "network_distance": 12966.100371747212,
+                "sample_size": 269
+            },
+            "pt": {
+                "euclidean_distance": 7608.397674418605,
+                "network_distance": 12727.762790697674,
+                "sample_size": 430
+            },
+            "walk": {
+                "euclidean_distance": 1081.461741424802,
+                "network_distance": 1406.5435356200528,
+                "sample_size": 758
+            }
+        }
+    },
+    "Schwyz": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1488.5684235201893,
+                "network_distance": 2264.1309656555195,
+                "sample_size": 231
+            },
+            "car": {
+                "euclidean_distance": 8391.435583281698,
+                "network_distance": 12686.826385164237,
+                "sample_size": 1434
+            },
+            "car_passenger": {
+                "euclidean_distance": 7768.233170882819,
+                "network_distance": 12344.432745377077,
+                "sample_size": 339
+            },
+            "pt": {
+                "euclidean_distance": 15767.057265081707,
+                "network_distance": 24886.079849179274,
+                "sample_size": 255
+            },
+            "walk": {
+                "euclidean_distance": 556.1298754090445,
+                "network_distance": 822.7711392011931,
+                "sample_size": 788
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 3785.953804347826,
+                "network_distance": 5301.054347826087,
+                "sample_size": 368
+            },
+            "car": {
+                "euclidean_distance": 8478.484032846716,
+                "network_distance": 14141.643704379561,
+                "sample_size": 2192
+            },
+            "car_passenger": {
+                "euclidean_distance": 9933.52483801296,
+                "network_distance": 16906.85745140389,
+                "sample_size": 463
+            },
+            "pt": {
+                "euclidean_distance": 9769.877477477477,
+                "network_distance": 16688.37657657658,
+                "sample_size": 555
+            },
+            "walk": {
+                "euclidean_distance": 1380.028343666962,
+                "network_distance": 1794.6341895482728,
+                "sample_size": 1129
+            }
+        }
+    },
+    "Solothurn": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1137.8606488990179,
+                "network_distance": 1796.3822257820798,
+                "sample_size": 529
+            },
+            "car": {
+                "euclidean_distance": 8036.351399364958,
+                "network_distance": 11420.636918529746,
+                "sample_size": 2065
+            },
+            "car_passenger": {
+                "euclidean_distance": 9492.613213637353,
+                "network_distance": 13818.245904216103,
+                "sample_size": 460
+            },
+            "pt": {
+                "euclidean_distance": 17732.294585828837,
+                "network_distance": 25194.26926118492,
+                "sample_size": 460
+            },
+            "walk": {
+                "euclidean_distance": 514.6120549378995,
+                "network_distance": 797.2267379565745,
+                "sample_size": 1032
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 4651.10641627543,
+                "network_distance": 6512.214397496087,
+                "sample_size": 639
+            },
+            "car": {
+                "euclidean_distance": 8572.430084170514,
+                "network_distance": 13365.704860168342,
+                "sample_size": 3683
+            },
+            "car_passenger": {
+                "euclidean_distance": 9565.124300111982,
+                "network_distance": 15329.133258678612,
+                "sample_size": 893
+            },
+            "pt": {
+                "euclidean_distance": 10128.818713450293,
+                "network_distance": 16974.4044834308,
+                "sample_size": 1026
+            },
+            "walk": {
+                "euclidean_distance": 1379.476653696498,
+                "network_distance": 1793.9469844357977,
+                "sample_size": 2056
+            }
+        }
+    },
+    "StGallen": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1401.9781815427039,
+                "network_distance": 2208.7912496441936,
+                "sample_size": 879
+            },
+            "car": {
+                "euclidean_distance": 8669.563054345355,
+                "network_distance": 12722.827032081725,
+                "sample_size": 3220
+            },
+            "car_passenger": {
+                "euclidean_distance": 8957.686643954887,
+                "network_distance": 14324.913285751474,
+                "sample_size": 695
+            },
+            "pt": {
+                "euclidean_distance": 12623.271411221516,
+                "network_distance": 20590.948800359693,
+                "sample_size": 713
+            },
+            "walk": {
+                "euclidean_distance": 539.8388246257954,
+                "network_distance": 825.8434266498901,
+                "sample_size": 1673
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 3914.689107413011,
+                "network_distance": 5481.268532526475,
+                "sample_size": 1322
+            },
+            "car": {
+                "euclidean_distance": 8004.841630841769,
+                "network_distance": 12634.073637498266,
+                "sample_size": 7211
+            },
+            "car_passenger": {
+                "euclidean_distance": 8078.0971112476955,
+                "network_distance": 13107.59311616472,
+                "sample_size": 1627
+            },
+            "pt": {
+                "euclidean_distance": 9069.084486873508,
+                "network_distance": 15291.68830548926,
+                "sample_size": 2095
+            },
+            "walk": {
+                "euclidean_distance": 1132.3799258229021,
+                "network_distance": 1472.722763096894,
+                "sample_size": 4314
+            }
+        }
+    },
+    "Thurgau": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1534.459813791854,
+                "network_distance": 2276.190853811136,
+                "sample_size": 836
+            },
+            "car": {
+                "euclidean_distance": 8487.951741547056,
+                "network_distance": 12016.885298115187,
+                "sample_size": 3017
+            },
+            "car_passenger": {
+                "euclidean_distance": 10473.165159838167,
+                "network_distance": 15667.869318428086,
+                "sample_size": 596
+            },
+            "pt": {
+                "euclidean_distance": 23161.7935945979,
+                "network_distance": 33471.0251591989,
+                "sample_size": 404
+            },
+            "walk": {
+                "euclidean_distance": 550.411792886948,
+                "network_distance": 783.2683148581176,
+                "sample_size": 1337
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 4327.390625,
+                "network_distance": 6059.0125,
+                "sample_size": 640
+            },
+            "car": {
+                "euclidean_distance": 8430.95129008922,
+                "network_distance": 12091.362430672776,
+                "sample_size": 4147
+            },
+            "car_passenger": {
+                "euclidean_distance": 8406.534838076546,
+                "network_distance": 12156.516192345436,
+                "sample_size": 1019
+            },
+            "pt": {
+                "euclidean_distance": 10850.467706013364,
+                "network_distance": 19076.5579064588,
+                "sample_size": 898
+            },
+            "walk": {
+                "euclidean_distance": 1288.2924623115578,
+                "network_distance": 1675.4195979899498,
+                "sample_size": 1990
+            }
+        }
+    },
+    "Ticino": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1195.187972275761,
+                "network_distance": 1860.3165241590818,
+                "sample_size": 218
+            },
+            "car": {
+                "euclidean_distance": 6121.364618280746,
+                "network_distance": 9364.39813092342,
+                "sample_size": 2946
+            },
+            "car_passenger": {
+                "euclidean_distance": 6718.197402150519,
+                "network_distance": 10616.754487695745,
+                "sample_size": 778
+            },
+            "pt": {
+                "euclidean_distance": 10427.481550438786,
+                "network_distance": 19730.987784514677,
+                "sample_size": 404
+            },
+            "walk": {
+                "euclidean_distance": 457.2360990029967,
+                "network_distance": 678.8398826162984,
+                "sample_size": 1736
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 4037.936868686869,
+                "network_distance": 5653.80808080808,
+                "sample_size": 792
+            },
+            "car": {
+                "euclidean_distance": 7335.511040339703,
+                "network_distance": 12527.164331210191,
+                "sample_size": 4710
+            },
+            "car_passenger": {
+                "euclidean_distance": 7509.104821802935,
+                "network_distance": 13368.147798742139,
+                "sample_size": 954
+            },
+            "pt": {
+                "euclidean_distance": 7316.514175257732,
+                "network_distance": 11932.588917525773,
+                "sample_size": 1552
+            },
+            "walk": {
+                "euclidean_distance": 1027.3066947073257,
+                "network_distance": 1336.1272344900106,
+                "sample_size": 2853
+            }
+        }
+    },
+    "Uri": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1466.5345876959632,
+                "network_distance": 2183.3673690527053,
+                "sample_size": 82
+            },
+            "car": {
+                "euclidean_distance": 10310.140290047866,
+                "network_distance": 15317.284189202945,
+                "sample_size": 253
+            },
+            "car_passenger": {
+                "euclidean_distance": 9070.935918132167,
+                "network_distance": 13331.88461442722,
+                "sample_size": 75
+            },
+            "pt": {
+                "euclidean_distance": 15289.108395607278,
+                "network_distance": 26081.728289919298,
+                "sample_size": 62
+            },
+            "walk": {
+                "euclidean_distance": 590.0289193295432,
+                "network_distance": 964.8842874303824,
+                "sample_size": 150
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 3533.3826086956524,
+                "network_distance": 4947.460869565218,
+                "sample_size": 115
+            },
+            "car": {
+                "euclidean_distance": 9596.692477876106,
+                "network_distance": 15737.579646017699,
+                "sample_size": 452
+            },
+            "car_passenger": {
+                "euclidean_distance": 12406.410256410256,
+                "network_distance": 21928.1452991453,
+                "sample_size": 117
+            },
+            "pt": {
+                "euclidean_distance": 11868.9921875,
+                "network_distance": 20161.796875,
+                "sample_size": 128
+            },
+            "walk": {
+                "euclidean_distance": 1391.820610687023,
+                "network_distance": 1809.9351145038167,
+                "sample_size": 262
+            }
+        }
+    },
+    "Valais": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1183.5410364973457,
+                "network_distance": 1881.2940674827953,
+                "sample_size": 184
+            },
+            "car": {
+                "euclidean_distance": 7906.849043690619,
+                "network_distance": 12037.071422902387,
+                "sample_size": 2078
+            },
+            "car_passenger": {
+                "euclidean_distance": 7994.206177221252,
+                "network_distance": 12329.982077636525,
+                "sample_size": 520
+            },
+            "pt": {
+                "euclidean_distance": 15579.380802770529,
+                "network_distance": 24968.674042753035,
+                "sample_size": 301
+            },
+            "walk": {
+                "euclidean_distance": 512.203166921126,
+                "network_distance": 803.6850179123948,
+                "sample_size": 1318
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 4068.5511551155114,
+                "network_distance": 5696.662266226623,
+                "sample_size": 909
+            },
+            "car": {
+                "euclidean_distance": 7905.173575129534,
+                "network_distance": 15338.6578318055,
+                "sample_size": 5018
+            },
+            "car_passenger": {
+                "euclidean_distance": 8840.415619389587,
+                "network_distance": 18104.175044883305,
+                "sample_size": 1114
+            },
+            "pt": {
+                "euclidean_distance": 9929.271790808241,
+                "network_distance": 17497.65530903328,
+                "sample_size": 1262
+            },
+            "walk": {
+                "euclidean_distance": 1514.047141796585,
+                "network_distance": 1968.8641425389756,
+                "sample_size": 2694
+            }
+        }
+    },
+    "Vaud": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1597.7679013650484,
+                "network_distance": 2291.2602488833863,
+                "sample_size": 339
+            },
+            "car": {
+                "euclidean_distance": 8775.793587796259,
+                "network_distance": 12813.873558783936,
+                "sample_size": 5636
+            },
+            "car_passenger": {
+                "euclidean_distance": 9238.99235729221,
+                "network_distance": 13649.35356007649,
+                "sample_size": 1348
+            },
+            "pt": {
+                "euclidean_distance": 11443.33779676111,
+                "network_distance": 16174.38809330221,
+                "sample_size": 1634
+            },
+            "walk": {
+                "euclidean_distance": 470.1803929028564,
+                "network_distance": 755.9017244327441,
+                "sample_size": 3256
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 4695.752707581228,
+                "network_distance": 6574.732400722021,
+                "sample_size": 2216
+            },
+            "car": {
+                "euclidean_distance": 9127.15221291866,
+                "network_distance": 13735.35885167464,
+                "sample_size": 10032
+            },
+            "car_passenger": {
+                "euclidean_distance": 8016.260778568439,
+                "network_distance": 12540.205943909586,
+                "sample_size": 2389
+            },
+            "pt": {
+                "euclidean_distance": 9070.80128040973,
+                "network_distance": 14703.569782330345,
+                "sample_size": 3905
+            },
+            "walk": {
+                "euclidean_distance": 1295.8289978094194,
+                "network_distance": 1685.2083789704272,
+                "sample_size": 7304
+            }
+        }
+    },
+    "Zug": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1622.943485333983,
+                "network_distance": 2815.2436102416605,
+                "sample_size": 178
+            },
+            "car": {
+                "euclidean_distance": 8754.593585496883,
+                "network_distance": 13695.488315627197,
+                "sample_size": 641
+            },
+            "car_passenger": {
+                "euclidean_distance": 9924.137275247196,
+                "network_distance": 15179.01423757141,
+                "sample_size": 132
+            },
+            "pt": {
+                "euclidean_distance": 10186.673305027365,
+                "network_distance": 16076.013199881505,
+                "sample_size": 193
+            },
+            "walk": {
+                "euclidean_distance": 514.815526329637,
+                "network_distance": 827.5134060955437,
+                "sample_size": 447
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 4446.519540229885,
+                "network_distance": 6225.8,
+                "sample_size": 435
+            },
+            "car": {
+                "euclidean_distance": 8770.512420566147,
+                "network_distance": 14335.627383015599,
+                "sample_size": 1731
+            },
+            "car_passenger": {
+                "euclidean_distance": 10497.461126005363,
+                "network_distance": 16902.544235924932,
+                "sample_size": 373
+            },
+            "pt": {
+                "euclidean_distance": 9005.238826815643,
+                "network_distance": 15465.701117318436,
+                "sample_size": 716
+            },
+            "walk": {
+                "euclidean_distance": 1199.986438258387,
+                "network_distance": 1560.591006423983,
+                "sample_size": 1401
+            }
+        }
+    },
+    "Zurich": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1683.4534323279906,
+                "network_distance": 2593.659257974692,
+                "sample_size": 1478
+            },
+            "car": {
+                "euclidean_distance": 8610.082658396717,
+                "network_distance": 12421.953091421366,
+                "sample_size": 5352
+            },
+            "car_passenger": {
+                "euclidean_distance": 9460.423762727134,
+                "network_distance": 14061.107599130952,
+                "sample_size": 1269
+            },
+            "pt": {
+                "euclidean_distance": 11832.293880306415,
+                "network_distance": 17773.31561659922,
+                "sample_size": 3122
+            },
+            "walk": {
+                "euclidean_distance": 549.4770875916766,
+                "network_distance": 819.0981341320543,
+                "sample_size": 3948
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 3934.3308452693163,
+                "network_distance": 5508.741981036917,
+                "sample_size": 4957
+            },
+            "car": {
+                "euclidean_distance": 8392.56912181303,
+                "network_distance": 12715.598073654392,
+                "sample_size": 17650
+            },
+            "car_passenger": {
+                "euclidean_distance": 8282.073676680973,
+                "network_distance": 12807.449213161659,
+                "sample_size": 4194
+            },
+            "pt": {
+                "euclidean_distance": 8120.19028752547,
+                "network_distance": 13325.801562146253,
+                "sample_size": 8834
+            },
+            "walk": {
+                "euclidean_distance": 1143.8741021036428,
+                "network_distance": 1487.6498204207285,
+                "sample_size": 15592
+            }
+        }
+    },
+    "All": {
+        "Microcensus": {
+            "bike": {
+                "euclidean_distance": 1567.2875012651666,
+                "network_distance": 2446.3117887005415,
+                "sample_size": 11096.0
+            },
+            "car": {
+                "euclidean_distance": 8196.075579731547,
+                "network_distance": 12066.64126561008,
+                "sample_size": 53459.0
+            },
+            "car_passenger": {
+                "euclidean_distance": 9563.73436068225,
+                "network_distance": 14624.429236743932,
+                "sample_size": 12219.0
+            },
+            "pt": {
+                "euclidean_distance": 12054.094398659872,
+                "network_distance": 18233.376796355013,
+                "sample_size": 16629.0
+            },
+            "walk": {
+                "euclidean_distance": 539.1981529604525,
+                "network_distance": 783.9512805320769,
+                "sample_size": 32808.0
+            }
+        },
+        "Synthetic": {
+            "bike": {
+                "euclidean_distance": 4038.895304888292,
+                "network_distance": 5655.129556526122,
+                "sample_size": 23812.0
+            },
+            "car": {
+                "euclidean_distance": 8413.236923946848,
+                "network_distance": 13243.631681669358,
+                "sample_size": 109647.0
+            },
+            "car_passenger": {
+                "euclidean_distance": 8652.091636654663,
+                "network_distance": 14018.270108043218,
+                "sample_size": 24990.0
+            },
+            "pt": {
+                "euclidean_distance": 8648.521410709222,
+                "network_distance": 14471.725592307097,
+                "sample_size": 38789.0
+            },
+            "walk": {
+                "euclidean_distance": 1214.3216359671019,
+                "network_distance": 1579.2389573534435,
+                "sample_size": 76114.0
+            }
+        }
+    }
+}

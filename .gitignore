@@ -21,7 +21,6 @@ dist-ssr/
 .env
 .env.*.local
 *.local
-
 # OS/system files
 .DS_Store
 Thumbs.db
@@ -35,3 +34,6 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+*.venv
+./auth/database
+./webmap/backend/dummy_data
