@@ -4,8 +4,6 @@ const HomeModule = ({
   inputURL,
   setInputURL,
   setDataURL,
-  selectedAggCol,
-  setSelectedAggCol,
   fileMap,
   fileInputRef,
   handleFolderUpload
@@ -76,24 +74,18 @@ const HomeModule = ({
         </p>
       </div>
 
-      {/* AggCol Selector */}
-      <div className="mode-filter-container">
-        <label className="mode-filter-label">Group Graphs By:</label>
-        <select
-          multiple
-          value={[selectedAggCol]}
-          onChange={(e) => {
-            const selected = Array.from(e.target.selectedOptions).map(opt => opt.value);
-            if (selected.length > 0) {
-              setSelectedAggCol(selected[selected.length - 1]);
-            }
-          }}
-          className="mode-filter-select"
+      {/* Dashboard Link */}
+      <p style={{ fontSize: "14px", marginTop: "16px", marginLeft: "6px" }}>
+        <span>To view plots: </span>
+        <a
+          href="https://matsim-eth.github.io/dashboard/"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ fontWeight: "bold", color: "#1a73e8" }}
         >
-          <option value="mode">Mode</option>
-          <option value="purpose">Purpose</option>
-        </select>
-      </div>
+          Open Dashboard
+        </a>
+      </p>
     </div>
   );
 };

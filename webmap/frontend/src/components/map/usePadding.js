@@ -26,15 +26,11 @@ export default function useCantons({
     let rightPadding = 50;
     
     if (isSidebarOpen) {
-      const wideGraphs = ['Graph 3', 'Graph 4'];
       const mediumGraphs = [
-        'Graph 1', 'Graph 2', 'Graph 5', 'Graph 6', 'Graph 7', 
-        'Graph 8', 'Graph 9', 'Destination', 'PtBoardings'
+        'Destination', 'PtBoardings'
       ];
-      
-      if (wideGraphs.includes(isGraphExpanded)) {
-        rightPadding = 950;
-      } else if (isGraphExpanded === 'Volumes' || isGraphExpanded === 'TransitVolumes' || isGraphExpanded === 'Transit') {
+
+      if (isGraphExpanded === 'Volumes' || isGraphExpanded === 'TransitVolumes' || isGraphExpanded === 'Transit') {
         // Volumes/TransitVolumes/Transit modules: 950px when table open, 650px otherwise
         rightPadding = isFeatureTableOpen ? 950 : 650;
       } else if (mediumGraphs.includes(isGraphExpanded)) {

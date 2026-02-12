@@ -91,23 +91,6 @@ const SidebarControls = ({ setInputURL }) => {
                     <option value="TransitVolumes">Transit Link Volumes</option>
                     <option value="Destination">Destination Zones</option>
                     <option value="PtBoardings">PT Boardings by Vehicle</option>
-                    <option value="Graph 1">
-                        Average Distance by {selectedAggCol.charAt(0).toUpperCase() + selectedAggCol.slice(1)}
-                    </option>
-                    <option value="Graph 2">
-                        Distance Distribution by {selectedAggCol.charAt(0).toUpperCase() + selectedAggCol.slice(1)}
-                    </option>
-                    <option value="Graph 3">
-                        {selectedAggCol.charAt(0).toUpperCase() + selectedAggCol.slice(1)} by Distance (Stacked)
-                    </option>
-                    <option value="Graph 4">
-                        {selectedAggCol.charAt(0).toUpperCase() + selectedAggCol.slice(1)} by Time/Distance (Line)
-                    </option>
-                    <option value="Graph 5">Activity Distribution</option>
-                    <option value="Graph 6">Public Transport Subscriptions</option>
-                    <option value="Graph 7">Car Availability Class</option>
-                    <option value="Graph 8">Departure Times</option>
-                    <option value="Graph 9">Demographics</option>
                 </select>
             </div>
         </div>

@@ -102,18 +102,7 @@ export default function useCantons({
         let rightPadding = 50; // Default for collapsed sidebar
 
 
-        if (graphExpandedRef.current === "Graph 3" || graphExpandedRef.current === "Graph 4"
-        ) {
-          rightPadding = 950; // Adjust for 900px width
-        } else if (
-          graphExpandedRef.current === "Graph 1"
-          || graphExpandedRef.current === "Graph 2"
-          || graphExpandedRef.current === "Graph 5"
-          || graphExpandedRef.current === "Graph 6"
-          || graphExpandedRef.current === "Graph 7"
-          || graphExpandedRef.current === "Graph 8"
-          || graphExpandedRef.current === "Graph 9"
-          || graphExpandedRef.current === "Volumes"
+        if (graphExpandedRef.current === "Volumes"
           || graphExpandedRef.current === "Transit"
           || graphExpandedRef.current === "Destination"
           || graphExpandedRef.current === "PtBoardings") {

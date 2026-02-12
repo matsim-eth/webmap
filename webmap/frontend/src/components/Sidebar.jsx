@@ -6,16 +6,7 @@ import SidebarControls from "./sidebar/SidebarControls";
 
 // ======================= IMPORT MODULES / GRAPHS =======================
 
-// Graphs
-import ActivityDist from "./plots/ActivityDist";
-import AverageDist from "./plots/AverageDist";
-import Histogram from "./plots/Histogram";
-import StackedBarPlot from "./plots/StackedBarPlot";
-import CarAvailability from "./plots/CarAvailability";
-import DepartureTimes from "./plots/DepartureTimes";
-import ModeShareLinePlot from "./plots/ModeShareLinePlot";
-import PtSubscription from "./plots/PtSubscription";
-import Demographics from "./plots/Demographics";
+// Modules
 import DestinationZones from "./plots/DestinationZones";
 import PtBoardings from "./plots/PtBoardings";
 
@@ -180,13 +171,11 @@ const Sidebar = () => {
   return (
     <div
       className={`floating-panel ${isSidebarOpen
-        ? isGraphExpanded === "Graph 3" || isGraphExpanded === "Graph 4"
-          ? "expanded-graph3"
-          : isGraphExpanded === "Choropleth" || isGraphExpanded === "Network"
-            ? "open"
-            : isGraphExpanded
-              ? "expanded"
-              : "open"
+        ? isGraphExpanded === "Choropleth" || isGraphExpanded === "Network"
+          ? "open"
+          : isGraphExpanded
+            ? "expanded"
+            : "open"
         : "collapsed"
         } ${isFeatureTableOpen ? "feature-table-open" : ""}`}
     >
@@ -208,59 +197,10 @@ const Sidebar = () => {
                 inputURL={inputURL}
                 setInputURL={setInputURL}
                 setDataURL={setDataURL}
-                selectedAggCol={selectedAggCol}
-                setSelectedAggCol={setSelectedAggCol}
                 fileMap={fileMap}
                 fileInputRef={fileInputRef}
                 handleFolderUpload={handleFolderUpload}
               />
-            )}
-
-            {/* Rendering for graphs */}
-            {isGraphExpanded === "Graph 1" && (
-              <div className="plot-container">
-                <AverageDist canton={canton || "All"} aggCol={selectedAggCol} />
-              </div>
-            )}
-            {isGraphExpanded === "Graph 2" && (
-              <div className="plot-container">
-                <Histogram canton={canton || "All"} aggCol={selectedAggCol} />
-              </div>
-            )}
-            {isGraphExpanded === "Graph 3" && (
-              <div className="plot-container">
-                <StackedBarPlot canton={canton || "All"} aggCol={selectedAggCol} />
-              </div>
-            )}
-            {isGraphExpanded === "Graph 4" && (
-              <div className="plot-container">
-                <ModeShareLinePlot canton={canton || "All"} aggCol={selectedAggCol} />
-              </div>
-            )}
-            {isGraphExpanded === "Graph 5" && (
-              <div className="plot-container">
-                <ActivityDist canton={canton || "All"} />
-              </div>
-            )}
-            {isGraphExpanded === "Graph 6" && (
-              <div className="plot-container">
-                <PtSubscription canton={canton || "All"} />
-              </div>
-            )}
-            {isGraphExpanded === "Graph 7" && (
-              <div className="plot-container">
-                <CarAvailability canton={canton || "All"} />
-              </div>
-            )}
-            {isGraphExpanded === "Graph 8" && (
-              <div className="plot-container">
-                <DepartureTimes canton={canton || "All"} />
-              </div>
-            )}
-            {isGraphExpanded === "Graph 9" && (
-              <div className="plot-container">
-                <Demographics canton={canton || "All"} />
-              </div>
             )}
 
             {/* Mode Share Choropleth Selection */}
@@ -273,6 +213,7 @@ const Sidebar = () => {
                   setSelectedDataset={setSelectedDataset}
                   updateMapChoropleth={updateMapChoropleth}
                   aggCol={selectedAggCol}
+                  setAggCol={setSelectedAggCol}
                 />
                 <CantonModeShareTable
                   canton={canton}

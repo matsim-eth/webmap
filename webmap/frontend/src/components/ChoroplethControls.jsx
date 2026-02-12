@@ -45,6 +45,7 @@ const ChoroplethControls = ({
   setSelectedDataset,
   updateMapChoropleth,
   aggCol = "mode",
+  setAggCol,
 }) => {
   const [maxSharePerMode, setMaxSharePerMode] = useState(null);
   const loadWithFallback = useLoadWithFallback();
@@ -72,6 +73,22 @@ useEffect(() => {
 
   return (
     <div className="choropleth-controls">
+      {setAggCol && (
+        <div>
+          <label>Group By:</label>
+          <select
+            value={aggCol}
+            onChange={(e) => {
+              setAggCol(e.target.value);
+              setSelectedMode("None");
+              updateMapChoropleth("None", selectedDataset);
+            }}
+          >
+            <option value="mode">Mode</option>
+            <option value="purpose">Purpose</option>
+          </select>
+        </div>
+      )}
       <label>Select {aggCol === "mode" ? "Mode" : "Purpose"}:</label>
       <select value={selectedMode} onChange={handleModeChange}>
         <option value="None">None</option>
