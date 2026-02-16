@@ -1,6 +1,6 @@
 const CONFIG = {
   API_BASE: "/authentification/backend",
-  DEFAULT_RETURN_TO: "/webmap2/",
+  DEFAULT_RETURN_TO: "/webmap/",
 };
 
 const el = (id) => document.getElementById(id);
