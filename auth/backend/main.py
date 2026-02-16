@@ -64,7 +64,7 @@ logger = logging.getLogger(APP_NAME)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     if os.getenv("DB_CREATE_TABLES", "0") == "1":
-        await AuthAPI.create_tables()
+        await AuthAPI.create_tables() #TODO: Race-Condition when starting
     yield
     await AuthAPI.close()
 
@@ -327,7 +327,7 @@ async def logout(
     db: AsyncSession = Depends(get_db),
 ):
     refresh_token = (x_refresh_token or "").strip() or (((payload.refresh_token if payload else "") or "").strip()) or (refresh_cookie or "").strip()
-
+    print("request");
     if refresh_token:
         try:
             decoded = decode_token(refresh_token)
@@ -337,7 +337,7 @@ async def logout(
                     await db.execute(update(RefreshToken).where(RefreshToken.jti == jti).values(revoked=True))
                     await db.commit()
         except Exception:
-            pass
+            return {"ok": False}
 
     _clear_auth_cookies(response)
     return {"ok": True}
