@@ -376,15 +376,14 @@ export default function useFeatureSelectionFocus({
           ]),
         ];
       } else {
-        // Network mode filter
+        // Network mode filter: wrap with commas for exact matching (prevents "car" matching "cable car")
+        const wrappedModes = ["concat", ",", ["get", "modes"], ","];
         modeFilter = [
           "any",
           ...selectedNetworkModes.map((mode) => [
-            "match",
-            ["index-of", mode, ["get", "modes"]],
-            -1,
-            false,
-            true,
+            ">=",
+            ["index-of", `,${mode},`, wrappedModes],
+            0,
           ]),
         ];
       }
@@ -867,12 +866,8 @@ export default function useFeatureSelectionFocus({
       
       // If we're in Volumes mode, enforce additional filters
       if (isGraphExpanded === 'Volumes') {
-        // Match "car" but exclude "cable car"
-        const carFilter = [
-          "all",
-          [">=", ["index-of", "car", ["get", "modes"]], 0],
-          ["==", ["index-of", "cable car", ["get", "modes"]], -1]
-        ];
+        // Exact match for "car" mode (prevents matching "cable car")
+        const carFilter = [">=", ["index-of", ",car,", ["concat", ",", ["get", "modes"], ","]], 0];
         const majorRoadsFilter = [">", ["get", "capacity"], 1200];
         
         // Build Volumes-specific filters

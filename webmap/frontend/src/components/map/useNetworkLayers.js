@@ -85,12 +85,8 @@ export default function useNetworkLayers({
   
   // Ensure labels in Volumes mode are always car-only (optionally major roads only)
   const applyLabelCarAndMajorFilter = (map, showMajorRoadsOnly) => {
-    // Match "car" but exclude "cable car"
-    const carFilter = [
-      'all',
-      ['>=', ['index-of', 'car', ['get', 'modes']], 0],  // contains "car"
-      ['==', ['index-of', 'cable car', ['get', 'modes']], -1]  // does NOT contain "cable car"
-    ];
+    // Exact match for "car" mode (prevents matching "cable car")
+    const carFilter = ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0];
     const labelFilter = showMajorRoadsOnly
     ? ['all', carFilter, ['>', ['get', 'capacity'], 1200]]
     : carFilter;
@@ -302,12 +298,8 @@ export default function useNetworkLayers({
     updateNetworkFilter(selectedNetworkModesRef.current);
     
     if (graphExpandedRef.current === 'Volumes') {
-      // Match "car" but exclude "cable car"
-      const carFilter = [
-        'all',
-        ['>=', ['index-of', 'car', ['get', 'modes']], 0],
-        ['==', ['index-of', 'cable car', ['get', 'modes']], -1]
-      ];
+      // Exact match for "car" mode (prevents matching "cable car")
+      const carFilter = ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0];
       let filter = carFilter;
       if (showMajorRoadsOnly) {
         filter = ['all', carFilter, ['>', ['get', 'capacity'], 1200]];
@@ -375,9 +367,11 @@ export default function useNetworkLayers({
         applyLabelFilter(map, null);
       }
     } else {
+      // Wrap modes with commas for exact matching (prevents "car" matching "cable car")
+      const wrappedModes = ['concat', ',', ['get', 'modes'], ','];
       const filter = [
         'any',
-        ...modes.map(mode => ['match', ['index-of', mode, ['get', 'modes']], -1, false, true])
+        ...modes.map(mode => ['>=', ['index-of', `,${mode},`, wrappedModes], 0])
       ];
       ['network-layer', 'click-network-layer', 'network-highlight'].forEach(id => {
         if (map.getLayer(id)) map.setFilter(id, filter);
@@ -418,12 +412,8 @@ export default function useNetworkLayers({
     const map = mapRef.current;
     if (!map || graphExpandedRef.current !== 'Volumes') return;
     
-    // Match "car" but exclude "cable car"
-    const carFilter = [
-      'all',
-      ['>=', ['index-of', 'car', ['get', 'modes']], 0],
-      ['==', ['index-of', 'cable car', ['get', 'modes']], -1]
-    ];
+    // Exact match for "car" mode (prevents matching "cable car")
+    const carFilter = ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0];
     const fullFilter =
     isGraphExpanded === 'Volumes' && showMajorRoadsOnly
     ? ['all', carFilter, ['>', ['get', 'capacity'], 1200]]
