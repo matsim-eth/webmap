@@ -2,16 +2,14 @@ import React, { useState, useEffect, useRef } from "react";
 import "./Sidebar.css";
 import { useFileContext } from "../FileContext";
 import { useApp } from "../context/AppContext";
-import SidebarControls from "./sidebar/SidebarControls";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTableList, faFileCsv, faXmark, faChevronLeft } from "@fortawesome/free-solid-svg-icons";
 
 // ======================= IMPORT MODULES / GRAPHS =======================
 
 // Modules
 import DestinationZones from "./plots/DestinationZones";
 import PtBoardings from "./plots/PtBoardings";
-
-// Home Module
-import HomeModule from "./HomeModule";
 
 // Choropleth
 import ChoroplethControls from "./ChoroplethControls";
@@ -33,10 +31,9 @@ import { useLoadWithFallback } from "../utils/useLoadWithFallback";
 
 const Sidebar = () => {
   const {
-    dataURL, setDataURL,
+    dataURL,
     isSidebarOpen, setIsSidebarOpen,
-    isGraphExpanded, setIsGraphExpanded,
-    resetMapView,
+    isGraphExpanded,
     isFeatureTableOpen, setIsFeatureTableOpen, setTableFilterQuery,
     featureGeoJSON,
     clickedCanton: canton, // Alias to match existing code
@@ -58,13 +55,10 @@ const Sidebar = () => {
     timeRange, setTimeRange,
     aggCol: selectedAggCol, // Alias
     setAggCol: setSelectedAggCol, // Alias
-    setResetMapTrigger,
     labelSize, setLabelSize
   } = useApp();
 
   // Alias for functions that were passed as props with different names
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-  const onExpandGraph = setIsGraphExpanded;
   const onFocusNetworkFeature = setFeatureSelection;
   const onFocusTransitFeature = setFeatureSelection;
 
@@ -74,7 +68,6 @@ const Sidebar = () => {
   const [selectedDataset, setSelectedDataset] = useState("Microcensus"); // Choropleth dataset
   const [availableModes, setAvailableModes] = useState([]); // Available modes for network filter
   const [modesByCanton, setModesByCanton] = useState({}); // For mode filter (only show modes available in each canton)
-  const [inputURL, setInputURL] = useState("");
 
   // Add state for destination outflow data
   const [destinationOutflowData, setDestinationOutflowData] = useState(null);
@@ -83,10 +76,9 @@ const Sidebar = () => {
   const [availableTransitModes, setAvailableTransitModes] = useState([]);
   const [transitModesByCanton, setTransitModesByCanton] = useState({});
 
-  // Data upload
-  const { handleFolderUpload, fileMap, clearFileMap } = useFileContext();
+  // Data loading
+  const { fileMap } = useFileContext();
   const loadWithFallback = useLoadWithFallback(dataURL);
-  const fileInputRef = useRef();
   const featureTableRef = useRef(null);
   const transitFeatureTableRef = useRef(null);
 
@@ -168,42 +160,90 @@ const Sidebar = () => {
 
 
   // ======================= SIDEBAR ITEMS =======================
+
+  // Module labels for the header
+  const moduleLabels = {
+    Choropleth: "Choropleth",
+    Network: "MATSim Network",
+    Volumes: "Road Volumes",
+    Transit: "Transit Stops",
+    TransitVolumes: "Transit Volumes",
+    Destination: "Destination Zones",
+    PtBoardings: "PT Boardings",
+    VolumeFlow: "Volume Flow",
+  };
+
+  // Does this module have a feature table?
+  const hasTable = ["Network", "Volumes", "Transit", "TransitVolumes"].includes(isGraphExpanded);
+
+  // Determine width class
+  let sidebarClass = "hidden";
+  if (isGraphExpanded) {
+    if (!isSidebarOpen) {
+      sidebarClass = "collapsed";
+    } else if (isFeatureTableOpen) {
+      sidebarClass = "feature-table-open";
+    } else if (isGraphExpanded === "Choropleth" || isGraphExpanded === "Network") {
+      sidebarClass = "open";
+    } else {
+      sidebarClass = "expanded";
+    }
+  }
+
   return (
-    <div
-      className={`floating-panel ${isSidebarOpen
-        ? isGraphExpanded === "Choropleth" || isGraphExpanded === "Network"
-          ? "open"
-          : isGraphExpanded
-            ? "expanded"
-            : "open"
-        : "collapsed"
-        } ${isFeatureTableOpen ? "feature-table-open" : ""}`}
-    >
-      <button className="toggle-button" onClick={toggleSidebar}>
-        {isSidebarOpen ? "✕" : "☰"}
-      </button>
+    <aside className={`right-sidebar ${sidebarClass}`}>
+      {isGraphExpanded && (
+        <>
+      {/* Header */}
+      <div className="right-sidebar-header">
+        {isSidebarOpen && (
+          <span className="right-sidebar-title">{moduleLabels[isGraphExpanded]}</span>
+        )}
+        <button
+          className="right-sidebar-close"
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          title={isSidebarOpen ? "Collapse" : "Expand"}
+        >
+          <FontAwesomeIcon icon={isSidebarOpen ? faXmark : faChevronLeft} />
+        </button>
+      </div>
 
       {isSidebarOpen && (
         <>
-          {/* Scroll area */}
-          <div className="floating-content">
-            <br />
+          {/* Toolbar — show table / export icons */}
+          {hasTable && canton && (
+            <div className="right-sidebar-toolbar">
+              <button
+                className="panel-toolbar-btn"
+                onClick={() => setIsFeatureTableOpen((prev) => !prev)}
+              >
+                <FontAwesomeIcon icon={faTableList} />
+                <span>{isFeatureTableOpen ? "Close Table" : "Open Table"}</span>
+              </button>
 
-            <SidebarControls setInputURL={setInputURL} />
+              {isFeatureTableOpen && (
+                <button
+                  className="panel-toolbar-btn"
+                  onClick={() => {
+                    const ref = isGraphExpanded === "TransitVolumes"
+                      ? transitFeatureTableRef
+                      : featureTableRef;
+                    const exported = ref.current?.exportCsv?.();
+                    if (!exported) {
+                      console.warn("Export skipped: no table data available.");
+                    }
+                  }}
+                >
+                  <FontAwesomeIcon icon={faFileCsv} />
+                  <span>Export Table</span>
+                </button>
+              )}
+            </div>
+          )}
 
-            {/* Default View */}
-            {!isGraphExpanded && (
-              <HomeModule
-                inputURL={inputURL}
-                setInputURL={setInputURL}
-                setDataURL={setDataURL}
-                fileMap={fileMap}
-                fileInputRef={fileInputRef}
-                handleFolderUpload={handleFolderUpload}
-              />
-            )}
-
-            {/* Mode Share Choropleth Selection */}
+          {/* Scrollable content */}
+          <div className="right-sidebar-content">
+            {/* Mode Share Choropleth */}
             {isGraphExpanded === "Choropleth" && (
               <div>
                 <ChoroplethControls
@@ -259,215 +299,102 @@ const Sidebar = () => {
 
             {/* Network Module */}
             {isGraphExpanded === "Network" && (
-              <>
-                {/* Buttons ABOVE the module */}
-                {canton && (
-                  <div className="network-buttons-row">
-                    <button
-                      className="search-button"
-                      onClick={() =>
-                        setIsFeatureTableOpen((prev) => !prev)}
-                    >
-                      {isFeatureTableOpen ? "Hide Table" : "Show Table"}
-                    </button>
-
-                    {isFeatureTableOpen && (
-                      <button
-                        className="search-button secondary"
-                        onClick={() => {
-                          const exported = featureTableRef.current?.exportCsv?.();
-                          if (!exported) {
-                            console.warn('Export skipped: no table data available.');
-                          }
-                        }}
-                      >
-                        Export Data
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                <NetworkModule
-                  canton={canton}
-                  selectedGraph={isGraphExpanded}
-                  selectedNetworkModes={selectedNetworkModes}
-                  availableModes={availableModes}
-                  selectedNetworkFeature={selectedNetworkFeature}
-                  setSelectedNetworkFeature={setSelectedNetworkFeature}
-                  handleModeChange={handleModeChange}
-                  isFeatureTableOpen={isFeatureTableOpen}
-                  featureGeoJSON={featureGeoJSON}
-                  onFocusNetworkFeature={onFocusNetworkFeature}
-                  featureTableRef={featureTableRef}
-                  setTableFilterQuery={setTableFilterQuery}
-                />
-              </>
+              <NetworkModule
+                canton={canton}
+                selectedGraph={isGraphExpanded}
+                selectedNetworkModes={selectedNetworkModes}
+                availableModes={availableModes}
+                selectedNetworkFeature={selectedNetworkFeature}
+                setSelectedNetworkFeature={setSelectedNetworkFeature}
+                handleModeChange={handleModeChange}
+                isFeatureTableOpen={isFeatureTableOpen}
+                featureGeoJSON={featureGeoJSON}
+                onFocusNetworkFeature={onFocusNetworkFeature}
+                featureTableRef={featureTableRef}
+                setTableFilterQuery={setTableFilterQuery}
+              />
             )}
 
             {/* Road Volume Module */}
             {isGraphExpanded === "Volumes" && (
-              <>
-                {/* Buttons ABOVE the module */}
-                {canton && (
-                  <div className="network-buttons-row">
-                    <button
-                      className="search-button"
-                      onClick={() =>
-                        setIsFeatureTableOpen((prev) => !prev)}
-                    >
-                      {isFeatureTableOpen ? "Hide Table" : "Show Table"}
-                    </button>
-
-                    {isFeatureTableOpen && (
-                      <button
-                        className="search-button secondary"
-                        onClick={() => {
-                          const exported = featureTableRef.current?.exportCsv?.();
-                          if (!exported) {
-                            console.warn('Export skipped: no table data available.');
-                          }
-                        }}
-                      >
-                        Export Data
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                <VolumesModule
-                  selectedNetworkFeature={selectedNetworkFeature}
-                  setSelectedNetworkFeature={setSelectedNetworkFeature}
-                  selectedGraph={isGraphExpanded}
-                  visualizeLinkId={visualizeLinkId}
-                  setVisualizeLinkId={setVisualizeLinkId}
-                  canton={canton}
-                  timeRange={timeRange}
-                  setTimeRange={setTimeRange}
-                  showMajorRoadsOnly={showMajorRoadsOnly}
-                  setShowMajorRoadsOnly={setShowMajorRoadsOnly}
-                  labelSize={labelSize}
-                  setLabelSize={setLabelSize}
-                  isFeatureTableOpen={isFeatureTableOpen}
-                  featureGeoJSON={featureGeoJSON}
-                  onFocusNetworkFeature={onFocusNetworkFeature}
-                  featureTableRef={featureTableRef}
-                  setTableFilterQuery={setTableFilterQuery}
-                  selectedNetworkModes={selectedNetworkModes}
-                />
-              </>
+              <VolumesModule
+                selectedNetworkFeature={selectedNetworkFeature}
+                setSelectedNetworkFeature={setSelectedNetworkFeature}
+                selectedGraph={isGraphExpanded}
+                visualizeLinkId={visualizeLinkId}
+                setVisualizeLinkId={setVisualizeLinkId}
+                canton={canton}
+                timeRange={timeRange}
+                setTimeRange={setTimeRange}
+                showMajorRoadsOnly={showMajorRoadsOnly}
+                setShowMajorRoadsOnly={setShowMajorRoadsOnly}
+                labelSize={labelSize}
+                setLabelSize={setLabelSize}
+                isFeatureTableOpen={isFeatureTableOpen}
+                featureGeoJSON={featureGeoJSON}
+                onFocusNetworkFeature={onFocusNetworkFeature}
+                featureTableRef={featureTableRef}
+                setTableFilterQuery={setTableFilterQuery}
+                selectedNetworkModes={selectedNetworkModes}
+              />
             )}
 
             {/* Transit Module */}
             {isGraphExpanded === "Transit" && (
-              <>
-                {/* Buttons for table */}
-                {canton && (
-                  <div className="network-buttons-row">
-                    <button
-                      className="search-button"
-                      onClick={() =>
-                        setIsFeatureTableOpen((prev) => !prev)}
-                    >
-                      {isFeatureTableOpen ? "Hide Table" : "Show Table"}
-                    </button>
-
-                    {isFeatureTableOpen && (
-                      <button
-                        className="search-button secondary"
-                        onClick={() => {
-                          if (featureTableRef.current?.exportCsv) {
-                            featureTableRef.current.exportCsv();
-                          }
-                        }}
-                      >
-                        Export Data
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                <TransitModule
-                  selectedTransitModes={selectedTransitModes}
-                  setSelectedTransitModes={setSelectedTransitModes}
-                  availableTransitModes={availableTransitModes}
-                  selectedTransitStop={selectedTransitStop}
-                  setSelectedTransitStop={setSelectedTransitStop}
-                  highlightedLineId={highlightedLineId}
-                  setHighlightedLineId={setHighlightedLineId}
-                  setHighlightedRouteIds={setHighlightedRouteIds}
-                  setHoveredRouteId={setHoveredRouteId}
-                  showStopVolumeSymbology={showStopVolumeSymbology}
-                  setShowStopVolumeSymbology={setShowStopVolumeSymbology}
-                  canton={canton}
-                  timeRange={timeRange}
-                  setTimeRange={setTimeRange}
-                  isFeatureTableOpen={isFeatureTableOpen}
-                  featureGeoJSON={featureGeoJSON}
-                  featureTableRef={featureTableRef}
-                  setTableFilterQuery={setTableFilterQuery}
-                  onFocusTransitFeature={onFocusTransitFeature}
-                />
-              </>
+              <TransitModule
+                selectedTransitModes={selectedTransitModes}
+                setSelectedTransitModes={setSelectedTransitModes}
+                availableTransitModes={availableTransitModes}
+                selectedTransitStop={selectedTransitStop}
+                setSelectedTransitStop={setSelectedTransitStop}
+                highlightedLineId={highlightedLineId}
+                setHighlightedLineId={setHighlightedLineId}
+                setHighlightedRouteIds={setHighlightedRouteIds}
+                setHoveredRouteId={setHoveredRouteId}
+                showStopVolumeSymbology={showStopVolumeSymbology}
+                setShowStopVolumeSymbology={setShowStopVolumeSymbology}
+                canton={canton}
+                timeRange={timeRange}
+                setTimeRange={setTimeRange}
+                isFeatureTableOpen={isFeatureTableOpen}
+                featureGeoJSON={featureGeoJSON}
+                featureTableRef={featureTableRef}
+                setTableFilterQuery={setTableFilterQuery}
+                onFocusTransitFeature={onFocusTransitFeature}
+              />
             )}
 
+            {/* Transit Volumes Module */}
             {isGraphExpanded === "TransitVolumes" && (
-              <>
-                {/* Buttons ABOVE the module */}
-                {canton && (
-                  <div className="network-buttons-row">
-                    <button
-                      className="search-button"
-                      onClick={() =>
-                        setIsFeatureTableOpen((prev) => !prev)}
-                    >
-                      {isFeatureTableOpen ? "Hide Table" : "Show Table"}
-                    </button>
-
-                    {isFeatureTableOpen && (
-                      <button
-                        className="search-button secondary"
-                        onClick={() => {
-                          const exported = transitFeatureTableRef.current?.exportCsv?.();
-                          if (!exported) {
-                            console.warn('Export skipped: no table data available.');
-                          }
-                        }}
-                      >
-                        Export Data
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                <TransitVolumesModule
-                  selectedTransitModes={selectedTransitModes}
-                  setSelectedTransitModes={setSelectedTransitModes}
-                  selectedTransitLink={selectedTransitLink}
-                  selectedGraph={isGraphExpanded}
-                  canton={canton}
-                  timeRange={timeRange}
-                  setTimeRange={setTimeRange}
-                  availableTransitModes={availableTransitModes}
-                  showLineSymbology={showLineSymbology}
-                  setShowLineSymbology={setShowLineSymbology}
-                  highlightedLineId={highlightedLineId}
-                  setHighlightedLineId={setHighlightedLineId}
-                  visualizeLinkId={visualizeLinkId}
-                  setVisualizeLinkId={setVisualizeLinkId}
-                  isFeatureTableOpen={isFeatureTableOpen}
-                  featureGeoJSON={featureGeoJSON}
-                  transitFeatureTableRef={transitFeatureTableRef}
-                  setTableFilterQuery={setTableFilterQuery}
-                  setSelectedTransitLink={setSelectedTransitLink}
-                  onFocusTransitFeature={onFocusTransitFeature}
-                />
-              </>
+              <TransitVolumesModule
+                selectedTransitModes={selectedTransitModes}
+                setSelectedTransitModes={setSelectedTransitModes}
+                selectedTransitLink={selectedTransitLink}
+                selectedGraph={isGraphExpanded}
+                canton={canton}
+                timeRange={timeRange}
+                setTimeRange={setTimeRange}
+                availableTransitModes={availableTransitModes}
+                showLineSymbology={showLineSymbology}
+                setShowLineSymbology={setShowLineSymbology}
+                highlightedLineId={highlightedLineId}
+                setHighlightedLineId={setHighlightedLineId}
+                visualizeLinkId={visualizeLinkId}
+                setVisualizeLinkId={setVisualizeLinkId}
+                isFeatureTableOpen={isFeatureTableOpen}
+                featureGeoJSON={featureGeoJSON}
+                transitFeatureTableRef={transitFeatureTableRef}
+                setTableFilterQuery={setTableFilterQuery}
+                setSelectedTransitLink={setSelectedTransitLink}
+                onFocusTransitFeature={onFocusTransitFeature}
+              />
             )}
           </div>
-
         </>
       )}
-    </div>
+      </>
+      )}
+    </aside>
   );
 };
 

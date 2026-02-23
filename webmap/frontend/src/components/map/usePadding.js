@@ -3,6 +3,7 @@ import bboxCache from '../../utils/bboxCanton.json';
 
 export default function useCantons({
   mapRef,
+  mapReady,
   setClickedCanton,
   searchCanton,
   isSidebarOpen,
@@ -10,46 +11,57 @@ export default function useCantons({
   suppressNextSearchZoom,
   graphExpandedRef,
   isFeatureTableOpen,
-  setIsFeatureTableOpen
+  setIsFeatureTableOpen,
+  isLeftSidebarOpen
 }) {
   
-  // avoid changing padding when we select new canton 
+  // avoid changing padding when we select new canton
   const suppressPaddingRef = useRef(false);
-  
+
+  // avoid re-running search-zoom effect on every sidebar toggle —
+  // use a ref so fitBounds always reads the latest value without re-triggering
+  const isLeftSidebarOpenRef = useRef(isLeftSidebarOpen);
+  useEffect(() => { isLeftSidebarOpenRef.current = isLeftSidebarOpen; }, [isLeftSidebarOpen]);
+
   // 1) padding on sidebar resize
   useEffect(() => {
-    
-    if (suppressPaddingRef.current) return;  
+
+    if (!mapReady) return;
+    if (suppressPaddingRef.current) return;
     const map = mapRef.current;
     if (!map) return;
-    
+
+    const leftSidebarWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--left-sidebar-width')) || 60;
+
     let rightPadding = 50;
-    
-    if (isSidebarOpen) {
+    const leftPadding = isLeftSidebarOpen ? 185 : 50;
+
+    // Right sidebar is only visible when both open AND a module is active
+    if (isSidebarOpen && isGraphExpanded) {
       const mediumGraphs = [
         'Destination', 'PtBoardings'
       ];
 
       if (isGraphExpanded === 'Volumes' || isGraphExpanded === 'TransitVolumes' || isGraphExpanded === 'Transit') {
         // Volumes/TransitVolumes/Transit modules: 950px when table open, 650px otherwise
-        rightPadding = isFeatureTableOpen ? 950 : 650;
+        rightPadding = isFeatureTableOpen ? 950 - leftSidebarWidth : 650 - leftSidebarWidth;
       } else if (mediumGraphs.includes(isGraphExpanded)) {
-        rightPadding = 650;
+        rightPadding = 650 - leftSidebarWidth;
       } else {
         // Default (Network/Choropleth): 950px when table open, 350px otherwise
         if(isFeatureTableOpen) {
-          rightPadding = 950;
+          rightPadding = 950 - leftSidebarWidth;
         } else {
-          rightPadding = 350;
+          rightPadding = 350 - leftSidebarWidth;
         }
       }
     }
     
     map.easeTo({
-      padding: { top: 50, bottom: 50, left: 50, right: rightPadding },
+      padding: { top: 50, bottom: 50, left: leftPadding, right: rightPadding },
       duration: 600,
     });
-  }, [mapRef, isSidebarOpen, isGraphExpanded, isFeatureTableOpen]);
+  }, [mapRef, mapReady, isSidebarOpen, isGraphExpanded, isFeatureTableOpen, isLeftSidebarOpen]);
   
   // 2) zoom to canton on search (with correct padding)
   useEffect(() => {
@@ -74,26 +86,24 @@ export default function useCantons({
     map.setFilter('selected-canton-border',['==','NAME',searchCanton]);
     
     // Determine right padding based on sidebar and graph
+    const leftSidebarWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--left-sidebar-width')) || 60;
     let rightPadding = 50;
-    
-    if (isSidebarOpen) {
-      const wideGraphs = ['Graph 3', 'Graph 4'];
+    const leftPadding = isLeftSidebarOpenRef.current ? 185 : 50;
+
+    if (isSidebarOpen && graphExpandedRef.current) {
       const mediumGraphs = [
-        'Graph 1', 'Graph 2', 'Graph 5', 'Graph 6', 'Graph 7',
-        'Graph 8', 'Graph 9', 'Volumes', 'Transit', 'TransitVolumes', 'Destination'
+        'Volumes', 'Transit', 'TransitVolumes', 'Destination', 'PtBoardings', 'VolumeFlow'
       ];
-      
-      if (wideGraphs.includes(graphExpandedRef.current)) {
-        rightPadding = 950;
-      } else if (mediumGraphs.includes(graphExpandedRef.current)) {
-        rightPadding = 650;
+
+      if (mediumGraphs.includes(graphExpandedRef.current)) {
+        rightPadding = 650 - leftSidebarWidth;
       } else {
-        rightPadding = 350;
+        rightPadding = 350 - leftSidebarWidth;
       }
     }
     
     map.fitBounds(bbox, {
-      padding: { top: 50, bottom: 50, left: 50, right: rightPadding },
+      padding: { top: 50, bottom: 50, left: leftPadding, right: rightPadding },
       maxZoom: 10,
       duration: 1000,
     });

@@ -9,6 +9,7 @@ export const AppProvider = ({ children }) => {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Tracks if the sidebar is open or collapsed (hidden)
   const [isGraphExpanded, setIsGraphExpanded] = useState(false); // Tracks the current module on the Sidebar
+  const [isLeftSidebarCollapsed, setIsLeftSidebarCollapsed] = useState(false); // Tracks left sidebar collapse state
 
   // CantonList for search
   const [cantonList, setCantonList] = useState([]);
@@ -123,6 +124,7 @@ export const AppProvider = ({ children }) => {
     clickedCanton, setClickedCanton,
     isSidebarOpen, setIsSidebarOpen,
     isGraphExpanded, setIsGraphExpanded,
+    isLeftSidebarCollapsed, setIsLeftSidebarCollapsed,
     cantonList, setCantonList,
     aggCol, setAggCol,
     selectedMode, setSelectedMode,

@@ -2,7 +2,7 @@
 .network-legend-container {
   position: absolute;
   bottom: 40px;
-  left: 10px;
+  left: calc(var(--left-sidebar-width, 60px) + 15px);
   background: rgba(248, 249, 250, 0.95);
   color: #333;
   padding: 12px 18px;
@@ -13,6 +13,7 @@
   flex-direction: column;
   align-items: flex-start; /* Left align */
   gap: 12px;
+  transition: left 0.3s ease;
 }
 
 /* Legend Title */

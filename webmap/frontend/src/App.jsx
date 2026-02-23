@@ -1,5 +1,6 @@
 import Map from "./components/Map";
 import Sidebar from "./components/Sidebar";
+import LeftSidebar from "./components/LeftSidebar";
 import CantonSearch from "./components/CantonSearch";
 import "./App.css";
 import NetworkLegend from "./components/NetworkLegend";
@@ -19,6 +20,7 @@ function MainContent() {
 
   return (
     <FileProvider dataURL={dataURL}>
+      <LeftSidebar />
       <CantonSearch
         map={mapRef.current}
         onSearch={setClickedCanton}

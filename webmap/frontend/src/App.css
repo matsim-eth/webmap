@@ -1,10 +1,24 @@
 @import "@fontsource/inter"; /* Import Inter */
 
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --left-sidebar-width: 60px;
+}
+
 body {
   font-family: "Inter", sans-serif;
   margin: 0;
   padding: 0;
   background-color: #f8f9fa;
+}
+
+button {
+  font-family: inherit;
 }
 
 #root {

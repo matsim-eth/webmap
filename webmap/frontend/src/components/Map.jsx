@@ -23,6 +23,7 @@ export default function Map() {
     setIsFeatureTableOpen,
     isFeatureTableOpen,
     isSidebarOpen,
+    isLeftSidebarCollapsed,
     selectedNetworkModes,
     showMajorRoadsOnly,
     timeRange,
@@ -88,12 +89,14 @@ export default function Map() {
     suppressNextSearchZoom,
     graphExpandedRef,
     setIsFeatureTableOpen: setIsFeatureTableOpen,
-    isFeatureTableOpen: isFeatureTableOpen
+    isFeatureTableOpen: isFeatureTableOpen,
+    isLeftSidebarOpen: !isLeftSidebarCollapsed
   });
 
   // pan map depending on sidebar state (keeps map in centre regardless of sidebar width)
   usePadding({
     mapRef,
+    mapReady,
     setClickedCanton: setClickedCanton,
     searchCanton: searchCanton,
     isSidebarOpen: isSidebarOpen,
@@ -101,7 +104,8 @@ export default function Map() {
     suppressNextSearchZoom,
     graphExpandedRef,
     isFeatureTableOpen: isFeatureTableOpen,
-    setIsFeatureTableOpen: setIsFeatureTableOpen
+    setIsFeatureTableOpen: setIsFeatureTableOpen,
+    isLeftSidebarOpen: !isLeftSidebarCollapsed
   });
 
   useNetworkLayers({
@@ -204,7 +208,7 @@ export default function Map() {
       center: [8.1642, 46.7592],
       zoom: 7,
       duration: 1000,
-      padding: { top: 50, bottom: 50, left: 50, right: 350 },
+      padding: { top: 50, bottom: 50, left: 50, right: 50 },
     });
   }, [resetMapTrigger, mapReady]);
 

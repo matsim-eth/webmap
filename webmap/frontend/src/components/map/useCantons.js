@@ -9,7 +9,8 @@ export default function useCantons({
   isGraphExpanded,
   suppressNextSearchZoom,
   graphExpandedRef,
-  setIsFeatureTableOpen
+  setIsFeatureTableOpen,
+  isLeftSidebarOpen
 }) {
 
   // 1) load cantons + add layers
@@ -63,6 +64,11 @@ export default function useCantons({
       .catch(err => console.error('Cantons load error', err));
   }, [mapRef, mapReady]);
 
+  // avoid re-running click handler effect on every sidebar toggle —
+  // use a ref so handleMapClick always reads the latest value
+  const isLeftSidebarOpenRef = useRef(isLeftSidebarOpen);
+  useEffect(() => { isLeftSidebarOpenRef.current = isLeftSidebarOpen; }, [isLeftSidebarOpen]);
+
   // 2) zoom to canton on click on layer (with correct padding)
   useEffect(() => {
     if (!mapReady) return; // only run when map is ready
@@ -99,20 +105,21 @@ export default function useCantons({
         }
 
         // Determine the right padding based on which graph is selected
-        let rightPadding = 50; // Default for collapsed sidebar
+        const leftSidebarWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--left-sidebar-width')) || 60;
+        let rightPadding = 50;
+        const leftPadding = isLeftSidebarOpenRef.current ? 185 : 50;
 
-
-        if (graphExpandedRef.current === "Volumes"
-          || graphExpandedRef.current === "Transit"
-          || graphExpandedRef.current === "Destination"
-          || graphExpandedRef.current === "PtBoardings") {
-          rightPadding = 650; // Adjust for 600px width
-        } else {
-          rightPadding = 350; // Default open sidebar
+        if (graphExpandedRef.current) {
+          const mediumGraphs = ['Volumes', 'Transit', 'TransitVolumes', 'Destination', 'PtBoardings', 'VolumeFlow'];
+          if (mediumGraphs.includes(graphExpandedRef.current)) {
+            rightPadding = 650 - leftSidebarWidth;
+          } else {
+            rightPadding = 350 - leftSidebarWidth;
+          }
         }
 
         map.fitBounds(cantonBbox, {
-          padding: { top: 50, bottom: 50, left: 50, right: rightPadding },
+          padding: { top: 50, bottom: 50, left: leftPadding, right: rightPadding },
           maxZoom: 10,
           duration: 1000
         });

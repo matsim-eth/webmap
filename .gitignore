@@ -37,3 +37,5 @@ Thumbs.db
 *.venv
 ./auth/database
 ./webmap/backend/dummy_data
+.claude/
+DTSM Validation.code-workspace
