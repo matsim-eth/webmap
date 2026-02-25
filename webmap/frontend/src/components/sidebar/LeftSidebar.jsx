@@ -183,7 +183,13 @@ const LeftSidebar = () => {
           <nav className="left-sidebar-nav">
             <button
               className="left-sidebar-item"
-              onClick={() => window.open('https://matsim-eth.github.io/dashboard/', 'dashboard-tab')}
+              onClick={() => {
+                const tab = window.open('', 'dashboard-tab');
+                if (!tab.location.href || tab.location.href === 'about:blank') {
+                  tab.location.href = 'https://matsim-eth.github.io/dashboard/';
+                }
+                tab.focus();
+              }}
               title={isCollapsed ? 'Open Dashboard' : ''}
             >
               <span className="left-sidebar-icon"><FontAwesomeIcon icon={faChartSimple} /></span>
