@@ -74,19 +74,26 @@ useEffect(() => {
   return (
     <div className="choropleth-controls">
       {setAggCol && (
-        <div>
+        <div className="group-by-section">
           <label>Group By:</label>
-          <select
-            value={aggCol}
-            onChange={(e) => {
-              setAggCol(e.target.value);
-              setSelectedMode("None");
-              updateMapChoropleth("None", selectedDataset);
-            }}
-          >
-            <option value="mode">Mode</option>
-            <option value="purpose">Purpose</option>
-          </select>
+          <div className="group-by-toggle">
+            {[
+              { value: "mode", label: "Mode" },
+              { value: "purpose", label: "Purpose" },
+            ].map((opt) => (
+              <button
+                key={opt.value}
+                className={`group-by-option ${aggCol === opt.value ? "active" : ""}`}
+                onClick={() => {
+                  setAggCol(opt.value);
+                  setSelectedMode("None");
+                  updateMapChoropleth("None", selectedDataset);
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
       )}
       <label>Select {aggCol === "mode" ? "Mode" : "Purpose"}:</label>

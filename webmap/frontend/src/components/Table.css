@@ -3,49 +3,49 @@
     padding-top: 1px;
     padding-left: 5px;
     padding-right: 5px;
-    background: #f8f9fa;
+    background: #f9fafb;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
     transition: opacity 0.3s ease-in-out;
   }
-  
+
   .canton-mode-share h4 {
     margin-top: 10px;
     margin-bottom: 10px;
     text-align: center;
     font-size: 16px;
     font-weight: bold;
-    color: #333;
+    color: #374151;
   }
-  
+
   .canton-mode-share table {
     width: 100%;
     border-collapse: collapse;
     font-size: 14px;
   }
-  
+
   .canton-mode-share th, .canton-mode-share td {
     padding: 8px;
     text-align: left;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #e5e7eb;
   }
-  
+
   .canton-mode-share th {
-    background: #e9ecef;
+    background: #f3f4f6;
     font-weight: bold;
   }
-  
+
   .canton-mode-share tr:last-child td {
     border-bottom: none;
   }
-  
+
   .canton-mode-share .highlight {
     color: white;
     font-weight: bold;
   }
-  
+
   .canton-mode-share tbody tr:hover {
-    background-color: #ddd;
+    background-color: #e5e7eb;
   }
 
   .mode-badges {
@@ -54,17 +54,17 @@
     gap: 6px;
     padding: 5px 0;
   }
-  
+
   .mode-badge {
     background-color: #dee2e6;
-    color: #333;
+    color: #374151;
     border-radius: 12px;
     padding: 4px 10px;
     font-size: 13px;
     font-weight: 500;
     display: inline-block;
   }
-  
+
   .line-toggle {
   background: none;
   border: none;
@@ -72,7 +72,7 @@
   margin-bottom: 4px;
   font-weight: bold;
   cursor: pointer;
-  color: #333;
+  color: #374151;
 }
 
 .line-group-list {
@@ -83,12 +83,11 @@
 .line-toggle {
   background: none;
   border: none;
-  font-family: inherit;
   font-size: inherit;
   padding: 0;
   margin: 0;
   font-weight: normal;
-  color: #333;
+  color: #374151;
   cursor: pointer;
   text-align: left;
 }
@@ -105,7 +104,7 @@
 
 .route-indent {
   padding-left: 1.2em;
-  color: #666;
+  color: #9ca3af;
   font-style: italic;
 }
 
@@ -118,7 +117,7 @@
 
 .mode-badge {
   background-color: #dee2e6;
-  color: #333;
+  color: #374151;
   border-radius: 12px;
   padding: 4px 10px;
   font-size: 13px;
@@ -133,7 +132,7 @@
 }
 
 .mode-badge.active {
-  background-color: #007bff;
+  background-color: #6366f1;
   color: #fff;
 }
 
@@ -142,16 +141,15 @@
   margin-left: 0;
   padding-left: 1rem;
   font-size: 0.9em;
-  color: #444;
+  color: #374151;
 }
 
 .metric-card {
-  background-color: #f7f9fc;
-  border: 1px solid #ddd;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 0.75rem 1rem;
   min-width: 100px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   text-align: center;
   margin-top: 8px;
   margin-left: 5px;
@@ -160,12 +158,11 @@
 
 .metric-label {
   font-size: 0.85rem;
-  color: #666;
+  color: #9ca3af;
 }
 
 .metric-value {
   font-size: 1.25rem;
   font-weight: bold;
-  color: #007aff;
+  color: #6366f1;
 }
-

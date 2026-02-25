@@ -1,11 +1,13 @@
 import Map from "./components/Map";
-import Sidebar from "./components/Sidebar";
-import LeftSidebar from "./components/LeftSidebar";
+import RightSidebar from "./components/sidebar/RightSidebar";
+import LeftSidebar from "./components/sidebar/LeftSidebar";
 import CantonSearch from "./components/CantonSearch";
 import "./App.css";
 import NetworkLegend from "./components/NetworkLegend";
 import { FileProvider } from "./FileContext";
 import { AppProvider, useApp } from "./context/AppContext";
+
+window.name = 'webmap-tab'; 
 
 function App() {
   return (
@@ -27,7 +29,7 @@ function MainContent() {
       />
       <Map />
 
-      <Sidebar />
+      <RightSidebar />
 
       <NetworkLegend />
     </FileProvider>

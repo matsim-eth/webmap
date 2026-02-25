@@ -31,8 +31,6 @@ export default function useCantons({
     const map = mapRef.current;
     if (!map) return;
 
-    const leftSidebarWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--left-sidebar-width')) || 60;
-
     let rightPadding = 50;
     const leftPadding = isLeftSidebarOpen ? 185 : 50;
 
@@ -43,17 +41,12 @@ export default function useCantons({
       ];
 
       if (isGraphExpanded === 'Volumes' || isGraphExpanded === 'TransitVolumes' || isGraphExpanded === 'Transit') {
-        // Volumes/TransitVolumes/Transit modules: 950px when table open, 650px otherwise
-        rightPadding = isFeatureTableOpen ? 950 - leftSidebarWidth : 650 - leftSidebarWidth;
+        rightPadding = isFeatureTableOpen ? 950 : 650;
       } else if (mediumGraphs.includes(isGraphExpanded)) {
-        rightPadding = 650 - leftSidebarWidth;
+        rightPadding = 650;
       } else {
         // Default (Network/Choropleth): 950px when table open, 350px otherwise
-        if(isFeatureTableOpen) {
-          rightPadding = 950 - leftSidebarWidth;
-        } else {
-          rightPadding = 350 - leftSidebarWidth;
-        }
+        rightPadding = isFeatureTableOpen ? 950 : 350;
       }
     }
     
@@ -86,7 +79,6 @@ export default function useCantons({
     map.setFilter('selected-canton-border',['==','NAME',searchCanton]);
     
     // Determine right padding based on sidebar and graph
-    const leftSidebarWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--left-sidebar-width')) || 60;
     let rightPadding = 50;
     const leftPadding = isLeftSidebarOpenRef.current ? 185 : 50;
 
@@ -96,9 +88,9 @@ export default function useCantons({
       ];
 
       if (mediumGraphs.includes(graphExpandedRef.current)) {
-        rightPadding = 650 - leftSidebarWidth;
+        rightPadding = 650;
       } else {
-        rightPadding = 350 - leftSidebarWidth;
+        rightPadding = 350;
       }
     }
     

@@ -156,24 +156,9 @@ const VolumesModule = ({
     ) : (
       <>
     {/* Time Range Slider UI — shared with Transit */}
-    <div
-    style={{
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "0.5rem 2rem 1rem 1rem",
-    }}
-    >
+    <div className="right-sidebar-control-row">
     <div style={{ flex: 1 }}>
-    <label
-    style={{
-      fontWeight: "bold",
-      fontSize: "10pt",
-      display: "block",
-      marginBottom: "0.25rem",
-      marginLeft: "7%",
-    }}
-    >
+    <label className="right-sidebar-label" style={{ marginLeft: "7%" }}>
     Time: {formatTimeLabel(timeRange[0])} - {formatTimeLabel(timeRange[1])}
     </label>
     <Slider
@@ -188,16 +173,9 @@ const VolumesModule = ({
     style={{ marginLeft: "10%", width: "80%" }}
     />
     </div>
-    
-    <div style={{ padding: "0 2rem 1rem 1rem" }}>
-    <label
-    style={{
-      fontWeight: "bold",
-      fontSize: "10pt",
-      display: "block",
-      marginBottom: 6
-    }}
-    >
+
+    <div style={{ padding: "0 16px 12px 12px" }}>
+    <label className="right-sidebar-label">
     Label size: {labelSize}px
     </label>
     <Slider
@@ -209,13 +187,12 @@ const VolumesModule = ({
     style={{ width: "50%" }}
     />
     </div>
-    
-    
+
+
     {/* Checkbox */}
-    <label style={{ fontWeight: "bold", fontSize: "10pt", whiteSpace: "nowrap" }}>
+    <label className="right-sidebar-checkbox">
     <input
     type="checkbox"
-    style={{ marginRight: "0.5rem" }}
     checked={showMajorRoadsOnly}
     onChange={(e) => setShowMajorRoadsOnly(e.target.checked)}
     />
@@ -250,7 +227,7 @@ const VolumesModule = ({
       onVolumeUpdate={setFilteredVolume}
       />
     ) : (
-      <p style={{ padding: "1rem", fontStyle: "italic", color: "#555" }}>
+      <p style={{ padding: "1rem", fontStyle: "italic", color: "#9ca3af" }}>
       Click a canton and/or segment to see hourly volumes.
       </p>
     )}

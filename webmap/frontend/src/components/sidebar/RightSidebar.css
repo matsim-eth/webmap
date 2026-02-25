@@ -54,11 +54,12 @@
 }
 
 .right-sidebar-title {
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 16px;
+  font-weight: 400;
   color: #374151;
   white-space: nowrap;
   overflow: hidden;
+  margin-left: 12px;
 }
 
 .right-sidebar-close {
@@ -150,17 +151,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #007bff;
+  background: #6366f1;
   color: white;
   border: none;
   cursor: pointer;
   transition: background 0.2s ease-in-out;
 }
 .graph-button.active {
-  background: #0056b3;
+  background: #4f46e5;
   font-weight: bold;
 }
-.graph-button:hover { background: #0056b3; }
+.graph-button:hover { background: #4f46e5; }
 
 .graph-button.small {
   height: 20px;
@@ -223,5 +224,34 @@
   align-items: center;
   justify-content: flex-start;
   gap: 8px;
+}
+
+/* ===== Shared utility classes for right sidebar controls ===== */
+
+.right-sidebar-control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px 12px 12px;
+  gap: 12px;
+}
+
+.right-sidebar-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.right-sidebar-checkbox {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
 }
 

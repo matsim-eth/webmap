@@ -127,6 +127,7 @@ return (
         },
       ]}
       layout={{
+        font: { family: "Inter, sans-serif" },
         margin: { t: 30, r: 10, l: 40, b: 100 },
         xaxis: {
           title: { text: "Hour", standoff: 20 },

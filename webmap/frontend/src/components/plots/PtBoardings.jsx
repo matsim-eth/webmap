@@ -606,6 +606,7 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
                     textfont: { size: 10 }
                   }]}
                   layout={{
+                    font: { family: "Inter, sans-serif" },
                     title: 'Actual Transfers Between Lines',
                     xaxis: { title: 'To Line', tickangle: -45 },
                     yaxis: { title: 'From Line' },
@@ -659,6 +660,7 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
                       name: 'Transfer Count'
                     }]}
                     layout={{
+                      font: { family: "Inter, sans-serif" },
                       title: `Transfer Destinations from ${selectedTransitStop.name}`,
                       xaxis: { title: 'Destination Stop', tickangle: -45 },
                       yaxis: { title: 'Transfer Count' },
@@ -702,6 +704,7 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
             }
           ]}
           layout={{
+            font: { family: "Inter, sans-serif" },
             margin: { t: 30, r: 10, l: 40, b: 10 },
             xaxis: { title: "Hour", tickangle: -45, automargin: true },
             yaxis: { title: "Boarding Count" },

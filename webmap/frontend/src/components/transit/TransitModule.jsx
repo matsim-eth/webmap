@@ -200,24 +200,11 @@ const TransitModule = ({
         
         
         {/* Time Range + Checkbox Row */}
-        <div style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "0.5rem 2rem 2rem 0.5rem",
-            gap: "1rem",
-        }}>
-        
-        
+        <div className="right-sidebar-control-row">
+
         {/* Slider and label */}
         <div style={{ flex: 1 }}>
-        <label style={{
-            fontWeight: "bold",
-            fontSize: "10pt",
-            display: "block",
-            marginBottom: "0.25rem",
-            marginLeft: "7%"
-        }}>
+        <label className="right-sidebar-label" style={{ marginLeft: "7%" }}>
         Time: {formatTimeLabel(timeRange[0])} - {formatTimeLabel(timeRange[1])}
         </label>
         <Slider
@@ -232,18 +219,17 @@ const TransitModule = ({
         style={{ marginLeft: "10%", width: "80%" }}
         />
         </div>
-        
+
         {/* Checkbox */}
-        <label style={{ fontWeight: "bold", fontSize: "10pt", whiteSpace: "nowrap" }}>
+        <label className="right-sidebar-checkbox">
         <input
         type="checkbox"
         checked={showStopVolumeSymbology}
         onChange={(e) => setShowStopVolumeSymbology(e.target.checked)}
-        style={{ marginRight: "0.5rem" }}
         />
         Show stop volumes
         </label>
-        
+
         </div>
         
         </div>

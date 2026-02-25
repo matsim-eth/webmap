@@ -7,8 +7,8 @@ import {
   faRoad, faPersonWalkingLuggage, faLocationDot, faBus, faTicket,
   faArrowsSplitUpAndLeft, faChartSimple, faMap, faRoute
 } from '@fortawesome/free-solid-svg-icons';
-import { useFileContext } from '../FileContext';
-import { useApp } from '../context/AppContext';
+import { useFileContext } from '../../FileContext';
+import { useApp } from '../../context/AppContext';
 
 const LeftSidebar = () => {
   const fileInputRef = useRef(null);
@@ -183,7 +183,7 @@ const LeftSidebar = () => {
           <nav className="left-sidebar-nav">
             <button
               className="left-sidebar-item"
-              onClick={() => window.open('https://matsim-eth.github.io/dashboard/', '_blank')}
+              onClick={() => window.open('https://matsim-eth.github.io/dashboard/', 'dashboard-tab')}
               title={isCollapsed ? 'Open Dashboard' : ''}
             >
               <span className="left-sidebar-icon"><FontAwesomeIcon icon={faChartSimple} /></span>

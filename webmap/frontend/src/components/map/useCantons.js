@@ -105,16 +105,15 @@ export default function useCantons({
         }
 
         // Determine the right padding based on which graph is selected
-        const leftSidebarWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--left-sidebar-width')) || 60;
         let rightPadding = 50;
         const leftPadding = isLeftSidebarOpenRef.current ? 185 : 50;
 
         if (graphExpandedRef.current) {
           const mediumGraphs = ['Volumes', 'Transit', 'TransitVolumes', 'Destination', 'PtBoardings', 'VolumeFlow'];
           if (mediumGraphs.includes(graphExpandedRef.current)) {
-            rightPadding = 650 - leftSidebarWidth;
+            rightPadding = 650;
           } else {
-            rightPadding = 350 - leftSidebarWidth;
+            rightPadding = 350;
           }
         }
 

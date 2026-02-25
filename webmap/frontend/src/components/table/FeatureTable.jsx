@@ -281,7 +281,9 @@ const FeatureTable = forwardRef(
     
     const tableStyles = useMemo(
       () => `
-          .row-selected{background-color:rgba(0,123,255,.12)!important;}
+          #${tableId}_wrapper, #${tableId}_wrapper th, #${tableId}_wrapper td{font-family:Inter,sans-serif;}
+          #${tableId}_wrapper th{font-weight:600;}
+          .row-selected{background-color:rgba(99,102,241,.12)!important;}
           #${tableId}_wrapper .dt-buttons{display:none!important;}
                 
           /* Hide the built-in filter; we provide our own toolbar */

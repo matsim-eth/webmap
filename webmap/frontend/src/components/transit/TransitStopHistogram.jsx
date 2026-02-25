@@ -100,6 +100,7 @@ const filteredAlightings = paddedAlightings.slice(timeRange?.[0] ?? 0, timeRange
     { x: filteredLabels, y: filteredBoardings, name: "Boardings", type: "bar", marker: { color: "#1f77b4" } },
   ]}
   layout={{
+    font: { family: "Inter, sans-serif" },
     margin: { t: 30, r: 10, l: 40, b: 10 },
     xaxis: { title: "Hour", tickangle: -45, automargin: true },
     yaxis: { title: "Passenger Count", range: [0, maxY] },
@@ -116,6 +117,7 @@ const filteredAlightings = paddedAlightings.slice(timeRange?.[0] ?? 0, timeRange
     { x: filteredLabels, y: filteredAlightings, name: "Alightings", type: "bar", marker: { color: "#ff7f0e" } },
   ]}
   layout={{
+    font: { family: "Inter, sans-serif" },
     margin: { t: 30, r: 10, l: 40, b: 10 },
     xaxis: { title: "Hour", tickangle: -45, automargin: true },
     yaxis: { title: "Passenger Count", range: [0, maxY] },

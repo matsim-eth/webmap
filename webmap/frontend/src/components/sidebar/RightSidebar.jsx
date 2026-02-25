@@ -1,35 +1,35 @@
 import React, { useState, useEffect, useRef } from "react";
-import "./Sidebar.css";
-import { useFileContext } from "../FileContext";
-import { useApp } from "../context/AppContext";
+import "./RightSidebar.css";
+import { useFileContext } from "../../FileContext";
+import { useApp } from "../../context/AppContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTableList, faFileCsv, faXmark, faChevronLeft } from "@fortawesome/free-solid-svg-icons";
 
 // ======================= IMPORT MODULES / GRAPHS =======================
 
 // Modules
-import DestinationZones from "./plots/DestinationZones";
-import PtBoardings from "./plots/PtBoardings";
+import DestinationZones from "../plots/DestinationZones";
+import PtBoardings from "../plots/PtBoardings";
 
 // Choropleth
-import ChoroplethControls from "./ChoroplethControls";
-import CantonModeShareTable from "./CantonModeShareTable";
+import ChoroplethControls from "../ChoroplethControls";
+import CantonModeShareTable from "../CantonModeShareTable";
 
 // Matsim Network
-import NetworkModule from "./matsim/NetworkModule";
-import VolumesModule from "./matsim/VolumesModule";
+import NetworkModule from "../matsim/NetworkModule";
+import VolumesModule from "../matsim/VolumesModule";
 
 // Transit
-import TransitModule from "./transit/TransitModule";
-import TransitVolumesModule from "./transit/TransitVolumesModule";
+import TransitModule from "../transit/TransitModule";
+import TransitVolumesModule from "../transit/TransitVolumesModule";
 
 // Volume Flow Analysis
-import VolumeFlowModule from "./matsim/VolumeFlowModule";
+import VolumeFlowModule from "../matsim/VolumeFlowModule";
 
 // Use uploaded data
-import { useLoadWithFallback } from "../utils/useLoadWithFallback";
+import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
 
-const Sidebar = () => {
+const RightSidebar = () => {
   const {
     dataURL,
     isSidebarOpen, setIsSidebarOpen,
@@ -398,4 +398,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default RightSidebar;

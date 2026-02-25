@@ -366,6 +366,7 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
       }
     ]}
     layout={{
+      font: { family: "Inter, sans-serif" },
       margin: { t: 30, r: 10, l: 40, b: 10 },
       xaxis: { title: "Hour", tickangle: -45, automargin: true },
       yaxis: { title: "Trip Count" },
