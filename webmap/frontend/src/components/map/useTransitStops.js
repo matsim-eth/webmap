@@ -394,7 +394,6 @@ export default function useTransitStops({
     console.log("suppressNextSearchZoom:", suppressNextSearchZoom?.current, "highlightedLineId:", highlightedLineId);
     if (suppressNextSearchZoom?.current && highlightedLineId) {
 
-      console.log("attempt to mask non-line stops");
       const hasLineHere = (updatedGeoJSON.features || []).some(
         (f) => Array.isArray(f.properties.line_ids) && f.properties.line_ids.includes(highlightedLineId)
       );

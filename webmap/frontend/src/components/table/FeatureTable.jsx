@@ -303,6 +303,55 @@ const FeatureTable = forwardRef(
           #${tableId}-toolbar button{
             height:28px; padding:2px 8px;
           }
+
+          /* Search guide tooltip */
+          .search-guide-wrapper{
+            position:relative; display:inline-flex; align-items:center;
+          }
+          .search-guide-icon{
+            display:inline-flex; align-items:center; justify-content:center;
+            width:18px; height:18px; border-radius:50%;
+            border:1.5px solid #9ca3af; color:#6b7280;
+            font-size:11px; font-weight:700; font-style:italic;
+            font-family:Georgia,serif; cursor:help; user-select:none;
+            line-height:1;
+          }
+          .search-guide-wrapper:hover .search-guide-icon{
+            border-color:#6366f1; color:#6366f1;
+          }
+          .search-guide-tooltip{
+            display:none; position:absolute; right:0; top:calc(100% + 8px);
+            width:310px; padding:10px 12px;
+            background:#1f2937; color:#f3f4f6; border-radius:8px;
+            font-size:11.5px; line-height:1.5; z-index:9999;
+            box-shadow:0 4px 12px rgba(0,0,0,.25);
+          }
+          .search-guide-tooltip::before{
+            content:''; position:absolute; right:4px; bottom:100%;
+            border:6px solid transparent; border-bottom-color:#1f2937;
+          }
+          .search-guide-wrapper:hover .search-guide-tooltip{
+            display:block;
+          }
+          .search-guide-tooltip hr{
+            border:none; border-top:1px solid #4b5563; margin:6px 0;
+          }
+          .search-guide-tooltip p{
+            margin:4px 0;
+          }
+          .search-guide-tooltip ul{
+            margin:2px 0 4px 16px; padding:0;
+          }
+          .search-guide-tooltip li{
+            margin:1px 0;
+          }
+          .search-guide-tooltip code{
+            background:#374151; padding:1px 4px; border-radius:3px;
+            font-size:11px;
+          }
+          .search-guide-tooltip em{
+            color:#9ca3af;
+          }
           `,
       [tableId]
     );
@@ -900,6 +949,28 @@ const FeatureTable = forwardRef(
       >
       Clear
       </button>
+      <span className="search-guide-wrapper">
+        <span className="search-guide-icon">i</span>
+        <div className="search-guide-tooltip">
+          <strong>Search Guide</strong>
+          <hr/>
+          <p><b>Basic search:</b> type any text to filter rows</p>
+          <p><b>Multiple terms:</b> separate with <code>;</code> or <code>,</code> to match any<br/>
+            <em>e.g.</em> <code>bus;tram</code></p>
+          <p><b>Numeric comparisons</b> (numeric columns only):</p>
+          <ul>
+            <li><code>&gt;100</code> - greater than</li>
+            <li><code>&lt;100</code> - less than</li>
+            <li><code>&gt;=100</code> - greater than or equal</li>
+            <li><code>&lt;=100</code> - less than or equal</li>
+          </ul>
+          <p><b>All columns:</b> partial match across every column</p>
+          <p><b>Specific column:</b> exact match (except Modes{selectedGraph === 'Transit' ? <> &amp; Stop Name</> : null} which use partial match)</p>
+          {selectedGraph === 'Transit' && (
+            <p><b>Accent insensitive:</b> <code>geneve</code> matches <code>Genève</code></p>
+          )}
+        </div>
+      </span>
       </div>
       
       <table
