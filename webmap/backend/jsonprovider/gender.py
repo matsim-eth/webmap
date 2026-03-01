@@ -54,17 +54,19 @@ class gender(FileProvider):
 
     def _default_paths(self):
         root = self._get_root_dir()
-        p = os.path.join(root, "persons.parquet")
-        return p, p
+        print(root)
+        m = os.path.join(root, "microcensus/persons.parquet")
+        s = os.path.join(root, "synthetic/persons.parquet")
+        return s, m
 
     def deliver(self, flt):
         synthetic_path, microcensus_path = self._default_paths()
 
         gender_col = "sex"
-        if isinstance(flt, dict):
-            synthetic_path = flt.get("synthetic_path") or synthetic_path
-            microcensus_path = flt.get("microcensus_path") or microcensus_path
-            gender_col = flt.get("gender_column") or gender_col
+
+        synthetic_path = synthetic_path
+        microcensus_path = microcensus_path
+        gender_col = gender_col
 
         con = duckdb.connect()
 

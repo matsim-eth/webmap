@@ -5,7 +5,15 @@ import sys
 from pathlib import Path
 
 from jsonprovider.gender import gender
-
+from jsonprovider.departure_times import departure_times
+from jsonprovider.car_availability import car_availability
+from jsonprovider.num_cars_age import num_cars_age
+from jsonprovider.num_cars_gender import num_cars_gender
+from jsonprovider.num_cars_income import num_cars_income
+from jsonprovider.pt_subscriptions import pt_subscriptions
+from jsonprovider.pt_sub_age import pt_sub_age
+from jsonprovider.pt_sub_gender import pt_sub_gender
+from jsonprovider.pt_sub_income import pt_sub_income
 BACKEND_DIR = Path(__file__).resolve().parent
 WEBMAP_DIR = BACKEND_DIR.parent
 PROJECT_ROOT = WEBMAP_DIR.parent
@@ -86,6 +94,16 @@ app = FastAPI(
 #mount_provider(app, pt_link_volumes_link_line_Glarus(), prefix="/data")
 mount_provider(app, age(), prefix="/data")
 mount_provider(app, gender(), prefix="/data")
+mount_provider(app, departure_times(), prefix="/data")
+mount_provider(app, car_availability(), prefix="/data")
+mount_provider(app, num_cars_age(), prefix="/data")
+mount_provider(app, num_cars_gender(), prefix="/data")
+mount_provider(app, num_cars_income(), prefix="/data")
+mount_provider(app, pt_subscriptions(), prefix="/data")
+mount_provider(app, pt_sub_age(), prefix="/data")
+mount_provider(app, pt_sub_gender(), prefix="/data")
+mount_provider(app, pt_sub_income(), prefix="/data")
+
 
 if TRUSTED_HOSTS:
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=TRUSTED_HOSTS)

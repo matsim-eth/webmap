@@ -5,3 +5,5 @@ starlette~=0.50.0
 SQLAlchemy~=2.0.45
 Extractor~=0.5
 pyasn1~=0.6.2
+pandas~=3.0.0
+duckdb~=1.4.4
