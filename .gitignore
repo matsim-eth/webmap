@@ -37,3 +37,5 @@ Thumbs.db
 *.venv
 ./auth/database
 ./webmap/backend/dummy_data
+/webmap/backend/dummy_data/webmap_data/json_preview/
+/webmap/backend/dummy_data/
