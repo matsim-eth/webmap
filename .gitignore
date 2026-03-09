@@ -39,3 +39,5 @@ Thumbs.db
 ./webmap/backend/dummy_data
 .claude/
 DTSM Validation.code-workspace
+/webmap/backend/dummy_data/webmap_data/json_preview/
+/webmap/backend/dummy_data/
