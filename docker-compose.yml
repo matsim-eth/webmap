@@ -46,16 +46,33 @@ services:
     networks:
       - internal
 
-  webmap_frontend_dev:
+  backend:
     build:
-      context: ./webmap/frontend
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      LOCAL_RUN: "1"
+      WEBMAP_ROOT: "./dummy_data/webmap_data/"
+      CORS_ORIGINS: "*"
+    expose:
+      - "5031"
+    volumes:
+      - ./backend:/app
+    restart: unless-stopped
+    profiles: ["deploy", "dev"]
+    networks:
+      - internal
+
+  webmap_dev:
+    build:
+      context: ./webmap
       dockerfile: Dockerfile
       target: dev
     expose:
       - "5121"
     volumes:
-      - ./webmap/frontend:/app
-      - frontend_node_modules:/app/node_modules
+      - ./webmap:/app
+      - webmap_node_modules:/app/node_modules
     environment:
       CHOKIDAR_USEPOLLING: "true"
       CHOKIDAR_INTERVAL: "100"
@@ -63,16 +80,44 @@ services:
     networks:
       - internal
 
-  webmap_frontend_prod:
+  webmap_prod:
     build:
-      context: ./webmap/frontend
+      context: ./webmap
       dockerfile: Dockerfile
       target: prod
     volumes:
-      - ./webmap/frontend/webconfig/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./webmap/frontend/webconfig/frontend_prod.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./webmap/webconfig/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./webmap/webconfig/frontend_prod.conf:/etc/nginx/conf.d/default.conf:ro
     expose:
       - "5021"
+    profiles: ["deploy"]
+    networks:
+      - internal
+
+  dashboard_dev:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+      target: dev
+    expose:
+      - "5122"
+    volumes:
+      - ./dashboard:/app
+      - dashboard_node_modules:/app/node_modules
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "100"
+    profiles: ["dev"]
+    networks:
+      - internal
+
+  dashboard_prod:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+      target: prod
+    expose:
+      - "5023"
     profiles: ["deploy"]
     networks:
       - internal
@@ -85,7 +130,11 @@ services:
       - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./proxy/dev.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
-      webmap_frontend_dev:
+      webmap_dev:
+        condition: service_started
+      dashboard_dev:
+        condition: service_started
+      backend:
         condition: service_started
       authentification_frontend:
         condition: service_started
@@ -104,7 +153,11 @@ services:
       - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./proxy/deploy.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
-      webmap_frontend_prod:
+      webmap_prod:
+        condition: service_started
+      dashboard_prod:
+        condition: service_started
+      backend:
         condition: service_started
       authentification_frontend:
         condition: service_started
@@ -123,7 +176,8 @@ volumes:
       type: none
       o: bind
       device: ./auth/database
-  frontend_node_modules:
+  webmap_node_modules:
+  dashboard_node_modules:
 
 networks:
   internal:
@@ -138,18 +192,16 @@ networks:
 #
 # Deploy:
 #   5011 -> proxy_deploy (HTTP, einziger externer Entry-Point)
-#   frontend_prod -> intern :80 (nur über Proxy erreichbar)
-#   backend       -> intern :8090 (nur über Proxy erreichbar)
+#   webmap_prod  -> intern :80 (nur über Proxy erreichbar)
+#   backend      -> intern :5031 (nur über Proxy erreichbar)
 #
 # Dev:
 #   5111 -> proxy_dev (HTTP)
-#   5121 -> webmap_frontend_dev (Vite Dev Server, optional direkter Zugriff)
-#   backend -> intern :8090 (über Proxy erreichbar)
+#   5121 -> webmap_dev (Vite Dev Server, optional direkter Zugriff)
+#   backend -> intern :5031 (über Proxy erreichbar)
 #
 # WICHTIG:
 # - Proxy ist der einzige Service mit Host-Port im Deploy.
 # - In nginx-upstreams IMMER Service-Namen + Container-Port verwenden
-#   (z.B. backend:8090, webmap_frontend_prod:80), NIE Host-Ports.
-# - /webmap/frontend/... und /webmap/backend/... werden im Proxy
-#   per Rewrite auf /... gestripped.
+#   (z.B. backend:5031, webmap_prod:80), NIE Host-Ports.
 # ========================================================================

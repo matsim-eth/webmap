@@ -35,9 +35,10 @@ Thumbs.db
 *.sln
 *.sw?
 *.venv
-./auth/database
-./webmap/backend/dummy_data
+__pycache__/
+*.pyc
+/auth/database/
+/backend/dummy_data/
+/webmap/public/data
 .claude/
 DTSM Validation.code-workspace
-/webmap/backend/dummy_data/webmap_data/json_preview/
-/webmap/backend/dummy_data/
