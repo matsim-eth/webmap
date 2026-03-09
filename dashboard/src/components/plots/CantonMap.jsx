@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useDashboard } from '../../context/DashboardContext';
-import { useLoadWithFallback } from '../../utils/useLoadWithFallback';
+import { useData } from '../../context/DataContext';
 
 // Canton bounding boxes for zooming
 const CANTON_BOUNDS = {
@@ -42,7 +42,7 @@ const CantonMap = ({ sidebarCollapsed, isExpanded = false, activeTab }) => {
   const activeTabRef = useRef(activeTab); // Track current activeTab for map handlers
   const { selectedCanton, setSelectedCanton, selectedTransitStop, setSelectedTransitStop, setSelectedTransitLine } = useDashboard();
   const initialCantonRef = useRef(selectedCanton); // Store initial canton on mount
-  const loadWithFallback = useLoadWithFallback();
+  const { getCantonData } = useData();
 
   // Update activeTab ref and toggle map interactions when it changes
   useEffect(() => {
@@ -232,7 +232,7 @@ const CantonMap = ({ sidebarCollapsed, isExpanded = false, activeTab }) => {
     const loadTransitStops = async () => {
       try {
         const stopsPath = `matsim/transit/stops_by_canton/${selectedCanton}_stops.geojson`;
-        const geojson = await loadWithFallback(stopsPath);
+        const geojson = await getCantonData(stopsPath);
         
         if (map.current.getSource('transit-stops')) {
           map.current.getSource('transit-stops').setData(geojson);

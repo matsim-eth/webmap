@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import Plot from "react-plotly.js";
 import { useDashboard } from "../../context/DashboardContext";
-import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
+import { useData } from "../../context/DataContext";
 
 const MODE_COLORS = {
   car: "#636efa",
@@ -30,8 +30,7 @@ const ShareLinePlot = ({
   exportFilename
 }) => {
   const { selectedCanton, distanceType, selectedMode, selectedPurpose } = useDashboard();
-  const [plotData, setPlotData] = useState(null);
-  const loadWithFallback = useLoadWithFallback();
+  const { getData } = useData();
 
   // Select colors and filter based on type
   const colors = type === 'mode' ? MODE_COLORS : PURPOSE_COLORS;
@@ -45,7 +44,7 @@ const ShareLinePlot = ({
     return () => clearTimeout(timer);
   }, [sidebarCollapsed]);
 
-  useEffect(() => {
+  const plotData = useMemo(() => {
     let filename;
     if (plotType === 'departure') {
       filename = `lineplot_departure_time_data_${type}.json`;
@@ -53,16 +52,10 @@ const ShareLinePlot = ({
       const selectedVariable = distanceType === "euclidean" ? "euclidean_distance" : "network_distance";
       filename = `lineplot_${selectedVariable}_data_${type}.json`;
     }
-
-    loadWithFallback(filename)
-      .then((jsonData) => {
-        const cantonKey = selectedCanton || "All";
-        if (jsonData[cantonKey]) {
-          setPlotData(jsonData[cantonKey]);
-        }
-      })
-      .catch((error) => console.error("Error loading data:", error));
-  }, [selectedCanton, type, plotType, distanceType]);
+    const raw = getData(filename);
+    const cantonKey = selectedCanton || "All";
+    return raw?.[cantonKey] || null;
+  }, [getData, selectedCanton, type, plotType, distanceType]);
 
   if (!plotData) return <div className="plot-loading">Loading...</div>;
 

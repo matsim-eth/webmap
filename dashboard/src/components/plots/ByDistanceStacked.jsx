@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import Plot from "react-plotly.js";
 import { useDashboard } from "../../context/DashboardContext";
-import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
+import { useData } from "../../context/DataContext";
+
 
 const MODE_COLORS = {
   car: "#636efa",
@@ -26,8 +27,7 @@ const DATASETS = ["Microcensus", "Synthetic"];
 
 const ByDistanceStacked = ({ sidebarCollapsed, isExpanded = false, type = 'mode' }) => {
   const { selectedCanton, distanceType, selectedMode, selectedPurpose } = useDashboard();
-  const [data, setData] = useState(null);
-  const loadWithFallback = useLoadWithFallback();
+  const { getData } = useData();
 
   // Select colors and filter based on type
   const colors = type === 'mode' ? MODE_COLORS : PURPOSE_COLORS;
@@ -43,20 +43,14 @@ const ByDistanceStacked = ({ sidebarCollapsed, isExpanded = false, type = 'mode'
     return () => clearTimeout(timer);
   }, [sidebarCollapsed]);
 
-  useEffect(() => {
-    const filename = distanceType === "euclidean" 
+  const data = useMemo(() => {
+    const filename = distanceType === "euclidean"
       ? `stacked_bar_euclidean_distance_${type}.json`
       : `stacked_bar_network_distance_${type}.json`;
-    
-    loadWithFallback(filename)
-      .then((jsonData) => {
-        const cantonKey = selectedCanton || "All";
-        if (jsonData[cantonKey]) {
-          setData(jsonData[cantonKey]);
-        }
-      })
-      .catch((error) => console.error("Error loading data:", error));
-  }, [selectedCanton, distanceType, type]);
+    const raw = getData(filename);
+    const cantonKey = selectedCanton || "All";
+    return raw?.[cantonKey] || null;
+  }, [getData, selectedCanton, distanceType, type]);
 
   if (!data) return <div className="plot-loading">Loading...</div>;
 

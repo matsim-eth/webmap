@@ -1,63 +1,61 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useDashboard } from "../../context/DashboardContext";
-import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
+import { useData } from "../../context/DataContext";
 import cantonAlias from "../../utils/canton_alias.json";
 
 const TransitStopSummary = () => {
   const { selectedCanton, selectedTransitStop, selectedTransitLine } = useDashboard();
-  const [totals, setTotals] = useState(null);
-  const loadWithFallback = useLoadWithFallback();
+  const { getCantonData } = useData();
+  const [rawData, setRawData] = useState(null);
 
   useEffect(() => {
     if (!selectedCanton || selectedCanton === "All") {
-      setTotals(null);
+      setRawData(null);
       return;
     }
 
-    const dataPath = `matsim/transit/per_canton_counts/${selectedCanton}_counts.json`;
+    getCantonData(`matsim/transit/per_canton_counts/${selectedCanton}_counts.json`)
+      .then(setRawData)
+      .catch(() => setRawData(null));
+  }, [selectedCanton, getCantonData]);
 
-    loadWithFallback(dataPath)
-      .then((data) => {
-        let filteredData = data;
+  const totals = useMemo(() => {
+    if (!rawData) return null;
 
-        // Filter by selected stop
-        if (selectedTransitStop && selectedTransitStop.stop_ids) {
-          const cleanedIds = selectedTransitStop.stop_ids.flatMap((s) => {
-            if (Array.isArray(s)) return s;
-            try {
-              return JSON.parse(s);
-            } catch {
-              return String(s).split(",").map((id) => id.trim());
-            }
-          });
-          filteredData = data.filter((d) => cleanedIds.includes(String(d.stop_id)));
+    let filteredData = rawData;
+
+    // Filter by selected stop
+    if (selectedTransitStop && selectedTransitStop.stop_ids) {
+      const cleanedIds = selectedTransitStop.stop_ids.flatMap((s) => {
+        if (Array.isArray(s)) return s;
+        try {
+          return JSON.parse(s);
+        } catch {
+          return String(s).split(",").map((id) => id.trim());
         }
-
-        // Filter by selected line
-        if (selectedTransitLine) {
-          filteredData = filteredData.filter(
-            (d) => String(d.line_id) === String(selectedTransitLine)
-          );
-        }
-
-        // Sum all boardings and alightings across all time bins
-        let totalBoardings = 0;
-        let totalAlightings = 0;
-        for (const row of filteredData) {
-          for (const t of row.data) {
-            totalBoardings += t.boardings ?? 0;
-            totalAlightings += t.alightings ?? 0;
-          }
-        }
-
-        setTotals({ boardings: totalBoardings, alightings: totalAlightings });
-      })
-      .catch((error) => {
-        console.error("Error loading summary data:", error);
-        setTotals(null);
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCanton, selectedTransitStop, selectedTransitLine]);
+      filteredData = rawData.filter((d) => cleanedIds.includes(String(d.stop_id)));
+    }
+
+    // Filter by selected line
+    if (selectedTransitLine) {
+      filteredData = filteredData.filter(
+        (d) => String(d.line_id) === String(selectedTransitLine)
+      );
+    }
+
+    // Sum all boardings and alightings across all time bins
+    let totalBoardings = 0;
+    let totalAlightings = 0;
+    for (const row of filteredData) {
+      for (const t of row.data) {
+        totalBoardings += t.boardings ?? 0;
+        totalAlightings += t.alightings ?? 0;
+      }
+    }
+
+    return { boardings: totalBoardings, alightings: totalAlightings };
+  }, [rawData, selectedTransitStop, selectedTransitLine]);
 
   // --- Lines / routes stats (from stop properties, no extra fetch needed) ---
   const lineStats = (() => {

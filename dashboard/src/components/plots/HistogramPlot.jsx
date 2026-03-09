@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import Plot from "react-plotly.js";
 import { useDashboard } from "../../context/DashboardContext";
-import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
+import { useData } from "../../context/DataContext";
 
 const DATASET_COLORS = {
   Microcensus: "#4A90E2",
@@ -20,14 +20,11 @@ const HistogramPlot = ({
   exportFilename
 }) => {
   const { selectedCanton, distanceType, selectedMode, selectedPurpose } = useDashboard();
-  const [euclideanData, setEuclideanData] = useState(null);
-  const [networkData, setNetworkData] = useState(null);
-  const [singleData, setSingleData] = useState(null);
-  const loadWithFallback = useLoadWithFallback();
+  const { getData } = useData();
 
   // Use mode or purpose based on type prop (for distance plots)
   const selectedFilter = type === 'mode' ? selectedMode : selectedPurpose;
-  
+
   // For duration/departure plots, use selectedPurpose
   const activityFilter = selectedPurpose;
 
@@ -39,37 +36,25 @@ const HistogramPlot = ({
     return () => clearTimeout(timer);
   }, [sidebarCollapsed]);
 
-  useEffect(() => {
-    const cantonKey = selectedCanton || "All";
+  const cantonKey = selectedCanton || "All";
 
-    if (plotType === 'distance') {
-      // Load both euclidean and network for distance plots
-      loadWithFallback(`histogram_euclidean_distance_${type}.json`)
-        .then((jsonData) => {
-          if (jsonData[cantonKey]) {
-            setEuclideanData(jsonData[cantonKey]);
-          }
-        })
-        .catch((error) => console.error("Error loading Euclidean JSON:", error));
+  const euclideanData = useMemo(() => {
+    if (plotType !== 'distance') return null;
+    const raw = getData(`histogram_euclidean_distance_${type}.json`);
+    return raw?.[cantonKey] || null;
+  }, [getData, type, plotType, cantonKey]);
 
-      loadWithFallback(`histogram_network_distance_${type}.json`)
-        .then((jsonData) => {
-          if (jsonData[cantonKey]) {
-            setNetworkData(jsonData[cantonKey]);
-          }
-        })
-        .catch((error) => console.error("Error loading Network JSON:", error));
-    } else {
-      // Load single file for duration/departure plots
-      loadWithFallback(dataFile)
-        .then((jsonData) => {
-          if (jsonData[cantonKey]) {
-            setSingleData(jsonData[cantonKey]);
-          }
-        })
-        .catch((error) => console.error(`Error loading ${dataFile}:`, error));
-    }
-  }, [selectedCanton, type, plotType, dataFile]);
+  const networkData = useMemo(() => {
+    if (plotType !== 'distance') return null;
+    const raw = getData(`histogram_network_distance_${type}.json`);
+    return raw?.[cantonKey] || null;
+  }, [getData, type, plotType, cantonKey]);
+
+  const singleData = useMemo(() => {
+    if (plotType === 'distance') return null;
+    const raw = getData(dataFile);
+    return raw?.[cantonKey] || null;
+  }, [getData, dataFile, plotType, cantonKey]);
 
   // Distance plot logic
   if (plotType === 'distance') {

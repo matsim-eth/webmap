@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import Plot from "react-plotly.js";
 import { useDashboard } from "../../context/DashboardContext";
-import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
+import { useData } from "../../context/DataContext";
 import cantonAlias from "../../utils/canton_alias.json";
 
 const METRICS = {
@@ -11,8 +11,8 @@ const METRICS = {
 
 const PassengersByStop = ({ sidebarCollapsed, isExpanded = false, metric = "boardings" }) => {
   const { selectedCanton, selectedTransitStop, selectedTransitLine } = useDashboard();
-  const [hourlyCounts, setHourlyCounts] = useState(null);
-  const loadWithFallback = useLoadWithFallback();
+  const { getCantonData } = useData();
+  const [rawData, setRawData] = useState(null);
 
   const { label, color } = METRICS[metric] || METRICS.boardings;
 
@@ -25,51 +25,48 @@ const PassengersByStop = ({ sidebarCollapsed, isExpanded = false, metric = "boar
 
   useEffect(() => {
     if (!selectedCanton || selectedCanton === "All") {
-      setHourlyCounts(null);
+      setRawData(null);
       return;
     }
 
-    const dataPath = `matsim/transit/per_canton_counts/${selectedCanton}_counts.json`;
+    getCantonData(`matsim/transit/per_canton_counts/${selectedCanton}_counts.json`)
+      .then(setRawData)
+      .catch(() => setRawData(null));
+  }, [selectedCanton, getCantonData]);
 
-    loadWithFallback(dataPath)
-      .then((data) => {
-        let filteredData = data;
-        if (selectedTransitStop && selectedTransitStop.stop_ids) {
-          const cleanedIds = selectedTransitStop.stop_ids.flatMap((s) => {
-            if (Array.isArray(s)) return s;
-            try {
-              return JSON.parse(s);
-            } catch {
-              return String(s).split(",").map((id) => id.trim());
-            }
-          });
-          filteredData = data.filter((d) => cleanedIds.includes(String(d.stop_id)));
+  const hourlyCounts = useMemo(() => {
+    if (!rawData) return null;
+
+    let filteredData = rawData;
+    if (selectedTransitStop && selectedTransitStop.stop_ids) {
+      const cleanedIds = selectedTransitStop.stop_ids.flatMap((s) => {
+        if (Array.isArray(s)) return s;
+        try {
+          return JSON.parse(s);
+        } catch {
+          return String(s).split(",").map((id) => id.trim());
         }
-
-        if (selectedTransitLine) {
-          filteredData = filteredData.filter(
-            (d) => String(d.line_id) === String(selectedTransitLine)
-          );
-        }
-
-        // Aggregate by time bin
-        const grouped = {};
-        for (const row of filteredData) {
-          for (const t of row.data) {
-            if (!grouped[t.time_bin]) grouped[t.time_bin] = 0;
-            grouped[t.time_bin] += t[metric] ?? 0;
-          }
-        }
-
-        const sorted = Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
-        setHourlyCounts(sorted);
-      })
-      .catch((error) => {
-        console.error(`Error loading ${metric} data:`, error);
-        setHourlyCounts(null);
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCanton, selectedTransitStop, selectedTransitLine, metric]);
+      filteredData = rawData.filter((d) => cleanedIds.includes(String(d.stop_id)));
+    }
+
+    if (selectedTransitLine) {
+      filteredData = filteredData.filter(
+        (d) => String(d.line_id) === String(selectedTransitLine)
+      );
+    }
+
+    // Aggregate by time bin
+    const grouped = {};
+    for (const row of filteredData) {
+      for (const t of row.data) {
+        if (!grouped[t.time_bin]) grouped[t.time_bin] = 0;
+        grouped[t.time_bin] += t[metric] ?? 0;
+      }
+    }
+
+    return Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
+  }, [rawData, selectedTransitStop, selectedTransitLine, metric]);
 
   if (!selectedCanton || selectedCanton === "All") {
     return <div className="plot-loading">Please select a specific canton</div>;

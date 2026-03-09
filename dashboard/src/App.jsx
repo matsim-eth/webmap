@@ -5,6 +5,7 @@ import PlotGrid from './components/PlotGrid'
 import ControlsBar from './components/ControlsBar'
 import { DashboardProvider, useDashboard } from './context/DashboardContext'
 import { FileProvider } from './context/FileContext'
+import { DataProvider } from './context/DataContext'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import { useFileContext } from './context/FileContext'
@@ -112,7 +113,9 @@ function App() {
   return (
     <DashboardProvider>
       <FileProvider>
-        <AppContent />
+        <DataProvider>
+          <AppContent />
+        </DataProvider>
       </FileProvider>
     </DashboardProvider>
   )

@@ -1,13 +1,14 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import Plot from "react-plotly.js";
 import { useDashboard } from "../../context/DashboardContext";
-import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
+import { useData } from "../../context/DataContext";
 
 const TransferMatrix = ({ sidebarCollapsed, isExpanded = false }) => {
   const { selectedCanton, selectedTransitStop } = useDashboard();
-  const [transferData, setTransferData] = useState(null);
-  const [boardingData, setBoardingData] = useState(null);
-  const loadWithFallback = useLoadWithFallback();
+  const { getData } = useData();
+
+  const transferData = getData("stop_transfer_data_by_canton.json");
+  const boardingData = getData("boarding_data_by_line.json");
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -15,27 +16,6 @@ const TransferMatrix = ({ sidebarCollapsed, isExpanded = false }) => {
     }, 100);
     return () => clearTimeout(timer);
   }, [sidebarCollapsed]);
-
-  useEffect(() => {
-    if (!selectedCanton || selectedCanton === "All") {
-      setTransferData(null);
-      setBoardingData(null);
-      return;
-    }
-
-    Promise.all([
-      loadWithFallback("stop_transfer_data_by_canton.json"),
-      loadWithFallback("boarding_data_by_line.json"),
-    ])
-      .then(([tData, bData]) => {
-        setTransferData(tData);
-        setBoardingData(bData);
-      })
-      .catch((err) => {
-        console.error("Error loading transfer data:", err);
-      });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCanton]);
 
   const matrixResult = useMemo(() => {
     if (!selectedTransitStop || !transferData || !boardingData || !selectedCanton) {

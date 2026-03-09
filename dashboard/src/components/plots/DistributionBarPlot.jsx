@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import Plot from "react-plotly.js";
 import { useDashboard } from "../../context/DashboardContext";
-import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
+import { useData } from "../../context/DataContext";
 
 const DATASET_COLORS = {
   Microcensus: "#4A90E2",
@@ -24,8 +24,7 @@ const DistributionBarPlot = ({
   exportFilename
 }) => {
   const { selectedCanton, selectedIncome, selectedAge, selectedGender, distanceType } = useDashboard();
-  const [data, setData] = useState(null);
-  const loadWithFallback = useLoadWithFallback();
+  const { getData } = useData();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -34,17 +33,12 @@ const DistributionBarPlot = ({
     return () => clearTimeout(timer);
   }, [sidebarCollapsed]);
 
-  useEffect(() => {
+  const data = useMemo(() => {
+    const jsonData = getData(dataFile);
+    if (!jsonData) return null;
     const cantonKey = selectedCanton || "All";
-    
-    loadWithFallback(dataFile)
-      .then((jsonData) => {
-        if (jsonData[cantonKey]) {
-          setData(jsonData[cantonKey]);
-        }
-      })
-      .catch((error) => console.error("Error loading data:", error));
-  }, [selectedCanton, dataFile]);
+    return jsonData[cantonKey] || null;
+  }, [getData, dataFile, selectedCanton]);
 
   if (!data) return <div className="plot-loading">Loading...</div>;
 

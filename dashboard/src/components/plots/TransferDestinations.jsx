@@ -1,13 +1,14 @@
 import React, { useEffect, useState, useMemo } from "react";
 import Plot from "react-plotly.js";
 import { useDashboard } from "../../context/DashboardContext";
-import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
+import { useData } from "../../context/DataContext";
 
 const TransferDestinations = ({ sidebarCollapsed, isExpanded = false }) => {
   const { selectedCanton, selectedTransitStop } = useDashboard();
-  const [transferData, setTransferData] = useState(null);
+  const { getData, getCantonData } = useData();
+
+  const transferData = getData("stop_transfer_data_by_canton.json");
   const [stopsData, setStopsData] = useState(null);
-  const loadWithFallback = useLoadWithFallback();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -18,24 +19,16 @@ const TransferDestinations = ({ sidebarCollapsed, isExpanded = false }) => {
 
   useEffect(() => {
     if (!selectedCanton || selectedCanton === "All") {
-      setTransferData(null);
       setStopsData(null);
       return;
     }
 
-    Promise.all([
-      loadWithFallback("stop_transfer_data_by_canton.json"),
-      loadWithFallback(`matsim/transit/stops_by_canton/${selectedCanton}_stops.geojson`),
-    ])
-      .then(([tData, geojson]) => {
-        setTransferData(tData);
+    getCantonData(`matsim/transit/stops_by_canton/${selectedCanton}_stops.geojson`)
+      .then((geojson) => {
         setStopsData(geojson?.features || []);
       })
-      .catch((err) => {
-        console.error("Error loading transfer destinations data:", err);
-      });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCanton]);
+      .catch(() => setStopsData(null));
+  }, [selectedCanton, getCantonData]);
 
   // Build a lookup from stop ID fragments to stop names
   const stopIdToName = useMemo(() => {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './TransitStopSearch.css';
-import { useLoadWithFallback } from '../../utils/useLoadWithFallback';
+import { useData } from '../../context/DataContext';
 import { useDashboard } from '../../context/DashboardContext';
 
 const TransitStopSearch = ({ canton }) => {
@@ -9,7 +9,7 @@ const TransitStopSearch = ({ canton }) => {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [stopsData, setStopsData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const loadWithFallback = useLoadWithFallback();
+  const { getCantonData } = useData();
   const { selectedTransitStop, setSelectedTransitStop, selectedTransitLine, setSelectedTransitLine } = useDashboard();
 
   // Load transit stops data when canton changes
@@ -18,36 +18,34 @@ const TransitStopSearch = ({ canton }) => {
       setStopsData(null);
       setFilteredStops([]);
       setSearchTerm('');
-      setSelectedTransitStop(null); // Clear selected stop when canton changes
+      setSelectedTransitStop(null);
       return;
     }
 
-    const loadStopsData = async () => {
-      setLoading(true);
-      setSearchTerm(''); // Clear search term when canton changes
-      setFilteredStops([]); // Clear filtered stops
-      setSelectedTransitStop(null); // Clear on reload
-      try {
-        const stopsPath = `matsim/transit/stops_by_canton/${canton}_stops.geojson`;
-        const geojson = await loadWithFallback(stopsPath);
-        
-        if (!geojson || !geojson.features || geojson.features.length === 0) {
-          throw new Error('No transit stops data found');
-        }
-        
-        setStopsData(geojson.features);
-        console.log(`Loaded ${geojson.features.length} transit stops for canton ${canton}`);
-      } catch (error) {
-        console.error('Error loading transit stops:', error);
-        setStopsData(null);
-      } finally {
-        setLoading(false);
-      }
-    };
+    let cancelled = false;
+    setLoading(true);
+    setSearchTerm('');
+    setFilteredStops([]);
+    setSelectedTransitStop(null);
 
-    loadStopsData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canton]);
+    getCantonData(`matsim/transit/stops_by_canton/${canton}_stops.geojson`)
+      .then((geojson) => {
+        if (cancelled) return;
+        if (!geojson || !geojson.features || geojson.features.length === 0) {
+          setStopsData(null);
+        } else {
+          setStopsData(geojson.features);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setStopsData(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [canton, getCantonData]);
 
   // Sync search term when stop is selected from map
   useEffect(() => {
