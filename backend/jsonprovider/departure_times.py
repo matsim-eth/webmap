@@ -41,7 +41,7 @@ class departure_times(FileProvider):
         return (
             os.path.join(root, "synthetic/trips.parquet"),
             os.path.join(root, "microcensus/trips.parquet"),
-            os.path.join(root, "synthetic/persons.parquet"),
+            os.path.join(root, "synthetic/switzerland_persons.parquet"),
             os.path.join(root, "microcensus/persons.parquet"),
         )
 

@@ -38,8 +38,8 @@ class pt_sub_income(FileProvider):
     def _default_paths(self):
         root = self._get_root_dir()
         return (
-            os.path.join(root, "synthetic/persons.parquet"),
-            os.path.join(root, "synthetic/households.parquet"),
+            os.path.join(root, "synthetic/switzerland_persons.parquet"),
+            os.path.join(root, "synthetic/switzerland_households.parquet"),
             os.path.join(root, "microcensus/persons.parquet"),
             os.path.join(root, "microcensus/households.parquet"),
         )
