@@ -1,13 +1,13 @@
 import duckdb
 
 from .base import DataProvider
-from .constants import canton_name
+
 from .helpers import canton_filter_sql, gender_filter_sql, parse_source_param, build_canton_lookup
 from .paths import get_data_paths
 
 
 class CarAvailabilityProvider(DataProvider):
-    """Car availability (number_of_cars_class) distribution per canton and source.
+    """Car availability distribution per canton and source.
 
     Query params:
         canton  (str): Comma-separated canton names to include.
@@ -38,26 +38,18 @@ class CarAvailabilityProvider(DataProvider):
             counts[(source, "All", key)] = counts.get((source, "All", key), 0) + 1
             totals[(source, "All")]      = totals.get((source, "All"), 0) + 1
 
-        if "Synthetic" in sources:
+        for source, path in [("Synthetic", paths.synthetic_persons),
+                             ("Microcensus", paths.microcensus_persons)]:
+            if source not in sources:
+                continue
             rows = con.execute(f"""
-                SELECT p.canton_id, h.number_of_cars_class
+                SELECT p.canton_id, p.car_availability
                 FROM read_parquet(?) p
-                INNER JOIN read_parquet(?) h ON p.household_id = h.household_id
-                WHERE p.canton_id IS NOT NULL AND h.number_of_cars_class IS NOT NULL
+                WHERE p.canton_id IS NOT NULL AND p.car_availability IS NOT NULL
                 {cf}{gf}
-            """, [paths.synthetic_persons, paths.synthetic_households]).fetchall()
+            """, [path]).fetchall()
             for cid, val in rows:
-                tally("Synthetic", int(cid), val)
-
-        if "Microcensus" in sources:
-            rows = con.execute(f"""
-                SELECT p.canton_id, p.number_of_cars_class
-                FROM read_parquet(?) p
-                WHERE p.canton_id IS NOT NULL AND p.number_of_cars_class IS NOT NULL
-                {cf}{gf}
-            """, [paths.microcensus_persons]).fetchall()
-            for cid, val in rows:
-                tally("Microcensus", int(cid), val)
+                tally(source, int(cid), val)
 
         canton_names, canton_ids_by_name = build_canton_lookup(seen_cantons)
         car_classes = sorted({k for (_, _, k) in counts.keys()}, key=lambda x: int(x))
