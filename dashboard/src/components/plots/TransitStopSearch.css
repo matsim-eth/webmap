@@ -1,0 +1,136 @@
+.transit-stop-search-inline {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.transit-stop-search-inline .control-label {
+  white-space: nowrap;
+  margin-bottom: 0;
+}
+
+.search-wrapper {
+  position: relative;
+  width: 300px;
+}
+
+.transit-stop-input-inline {
+  width: 100%;
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  outline: none;
+  font-size: 13px;
+  font-family: "Inter", sans-serif;
+  color: #374151;
+  background: #ffffff;
+  transition: border-color 0.15s ease;
+}
+
+.transit-stop-input-inline:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
+.transit-stop-input-inline:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.transit-stop-dropdown {
+  list-style: none;
+  margin: 4px 0 0 0;
+  padding: 4px 0;
+  background: #ffffff;
+  border-radius: 6px;
+  width: 100%;
+  max-height: 300px;
+  overflow-y: auto;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e5e7eb;
+}
+
+.transit-stop-dropdown li {
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.transit-stop-dropdown li:last-child {
+  border-bottom: none;
+}
+
+.transit-stop-dropdown li:hover,
+.transit-stop-dropdown li.selected {
+  background: #eef2ff;
+}
+
+.stop-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 2px;
+}
+
+.stop-modes {
+  font-size: 11px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Scrollbar styling */
+.transit-stop-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.transit-stop-dropdown::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 3px;
+}
+
+.transit-stop-dropdown::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.transit-stop-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+.line-filter-wrapper {
+  position: relative;
+  width: 250px;
+}
+
+.transit-line-select {
+  width: 100%;
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  outline: none;
+  font-size: 13px;
+  font-family: "Inter", sans-serif;
+  color: #374151;
+  background: #ffffff;
+  transition: border-color 0.15s ease;
+  cursor: pointer;
+}
+
+.transit-line-select:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
+.transit-line-select:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.6;
+}

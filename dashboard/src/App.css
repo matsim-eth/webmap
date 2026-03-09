@@ -1,0 +1,76 @@
+@import "@fontsource/inter";
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background-color: #f3f4f6;
+}
+
+#root {
+  width: 100%;
+  height: 100vh;
+}
+
+.app-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 200px; /* Same as sidebar width */
+  background-color: #f3f4f6;
+  transition: margin-left 0.3s ease;
+}
+
+.main-content.sidebar-collapsed {
+  margin-left: 60px; /* Same as collapsed sidebar width */
+}
+
+/* Plotly mode bar styling */
+.js-plotly-plot .plotly .modebar,
+.js-plotly-plot .modebar,
+.modebar,
+.modebar-container {
+  background: transparent !important;
+  background-color: transparent !important;
+  padding: 4px !important;
+  left: 10px !important;
+  top: -8px !important;
+  right: auto !important;
+}
+
+.js-plotly-plot .plotly .modebar-group,
+.modebar-group {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+.js-plotly-plot .plotly .modebar-btn {
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 4px !important;
+  margin: 2px !important;
+}
+
+.js-plotly-plot .plotly .modebar-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.js-plotly-plot .plotly .modebar-btn svg {
+  fill: #000000 !important;
+  opacity: 0.3 !important;
+}
+
+.js-plotly-plot .plotly .modebar-btn:hover svg {
+  opacity: 1 !important;
+}
+
+.js-plotly-plot .plotly .modebar-btn svg path {
+  fill: #000000 !important;
+}
