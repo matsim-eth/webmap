@@ -31,6 +31,7 @@ class DataPaths:
     microcensus_households: str
     microcensus_trips: str
     json_preview_dir: str
+    spider_db: str
 
 
 def get_data_paths() -> DataPaths:
@@ -57,4 +58,5 @@ def get_data_paths() -> DataPaths:
         microcensus_households=str(m / "households.parquet"),
         microcensus_trips=str(m / "trips.parquet"),
         json_preview_dir=str(j),
+        spider_db=str(s / "spider.duckdb"),
     )

@@ -8,62 +8,74 @@ To add a new endpoint:
 The ROUTE value (not the filename) determines the URL: /data/<ROUTE>.
 """
 
+# --- Existing providers ---
 from .age import AgeProvider
 from .gender import GenderProvider
 from .departure_times import DepartureTimesProvider
 from .car_availability import CarAvailabilityProvider
-from .num_cars_age import NumCarsAgeProvider
-from .num_cars_gender import NumCarsGenderProvider
-from .num_cars_income import NumCarsIncomeProvider
-from .pt_subscriptions import PtSubscriptionsProvider
-from .pt_sub_age import PtSubAgeProvider
-from .pt_sub_gender import PtSubGenderProvider
-from .pt_sub_income import PtSubIncomeProvider
+
+# --- Consolidated providers ---
+from .num_cars import NumCarsProvider
+from .pt_sub import PtSubProvider
+from .avg_distance import AvgDistanceProvider
+from .histogram_distance import HistogramDistanceProvider
+from .lineplot import LineplotProvider
+from .stacked_bar_distance import StackedBarDistanceProvider
+from .tlm_kantonsgebiet import TlmKantonsgebietProvider
+
+# --- Trip-based providers ---
 from .mode_share import ModeShareProvider
 from .purpose_share import PurposeShareProvider
-from .avg_dist_data_mode import AvgDistDataModeProvider
-from .avg_dist_data_purpose import AvgDistDataPurposeProvider
+
+# --- Activity-based providers ---
 from .activity_durations import ActivityDurationsProvider
 from .num_activities import NumActivitiesProvider
 from .out_of_home import OutOfHomeProvider
 from .frequent_sequences import FrequentSequencesProvider
-from .stacked_bar_euclidean_distance_mode import StackedBarEuclideanDistanceModeProvider
-from .stacked_bar_euclidean_distance_purpose import StackedBarEuclideanDistancePurposeProvider
-from .stacked_bar_network_distance_mode import StackedBarNetworkDistanceModeProvider
-from .stacked_bar_network_distance_purpose import StackedBarNetworkDistancePurposeProvider
+
+# --- Special providers ---
 from .modes_by_canton import ModesByCantonProvider
 from .boarding_data import BoardingDataProvider
 from .stop_transfer_data import StopTransferDataProvider
-from .tlm_kantonsgebiet_json import TlmKantonsgebietJsonProvider
-from .tlm_kantonsgebiet_geojson import TlmKantonsgebietGeojsonProvider
+
+# --- Spider analysis ---
+from .spider_analysis import SpiderInflowProvider, SpiderOutflowProvider, SpiderOverlayProvider
 
 ALL_PROVIDERS = [
+    # Demographics
     AgeProvider(),
     GenderProvider(),
-    DepartureTimesProvider(),
     CarAvailabilityProvider(),
-    NumCarsAgeProvider(),
-    NumCarsGenderProvider(),
-    NumCarsIncomeProvider(),
-    PtSubscriptionsProvider(),
-    PtSubAgeProvider(),
-    PtSubGenderProvider(),
-    PtSubIncomeProvider(),
+    # Departure times
+    DepartureTimesProvider(),
+    # Number of cars (consolidated: ?breakdown=age/gender/income)
+    NumCarsProvider(),
+    # PT subscriptions (consolidated: ?breakdown=overall/age/gender/income)
+    PtSubProvider(),
+    # Trip-based
     ModeShareProvider(),
     PurposeShareProvider(),
-    AvgDistDataModeProvider(),
-    AvgDistDataPurposeProvider(),
+    # Average distance (consolidated: ?group_by=mode/purpose)
+    AvgDistanceProvider(),
+    # Activity-based
     ActivityDurationsProvider(),
     NumActivitiesProvider(),
     OutOfHomeProvider(),
     FrequentSequencesProvider(),
-    StackedBarEuclideanDistanceModeProvider(),
-    StackedBarEuclideanDistancePurposeProvider(),
-    StackedBarNetworkDistanceModeProvider(),
-    StackedBarNetworkDistancePurposeProvider(),
+    # Histogram (consolidated: ?distance_type=euclidean/network&group_by=mode/purpose)
+    HistogramDistanceProvider(),
+    # Lineplot (consolidated: ?metric=departure_time/euclidean_distance/network_distance&group_by=mode/purpose)
+    LineplotProvider(),
+    # Stacked bar (consolidated: ?distance_type=euclidean/network&group_by=mode/purpose)
+    StackedBarDistanceProvider(),
+    # Special
     ModesByCantonProvider(),
     BoardingDataProvider(),
     StopTransferDataProvider(),
-    TlmKantonsgebietJsonProvider(),
-    TlmKantonsgebietGeojsonProvider(),
+    # Geographic (consolidated: ?format=geojson/json)
+    TlmKantonsgebietProvider(),
+    # Spider analysis
+    SpiderInflowProvider(),
+    SpiderOutflowProvider(),
+    SpiderOverlayProvider(),
 ]
