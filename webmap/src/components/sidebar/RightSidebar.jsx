@@ -3,7 +3,7 @@ import "./RightSidebar.css";
 import { useFileContext } from "../../FileContext";
 import { useApp } from "../../context/AppContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTableList, faFileCsv, faXmark, faChevronLeft } from "@fortawesome/free-solid-svg-icons";
+import { faTableList, faFileCsv, faXmark, faChevronLeft, faRotateLeft } from "@fortawesome/free-solid-svg-icons";
 
 // ======================= IMPORT MODULES / GRAPHS =======================
 
@@ -55,7 +55,9 @@ const RightSidebar = () => {
     timeRange, setTimeRange,
     aggCol: selectedAggCol, // Alias
     setAggCol: setSelectedAggCol, // Alias
-    labelSize, setLabelSize
+    labelSize, setLabelSize,
+    setVolumeFlowSegment,
+    mapRef
   } = useApp();
 
   // Alias for functions that were passed as props with different names
@@ -174,7 +176,7 @@ const RightSidebar = () => {
   };
 
   // Does this module have a feature table?
-  const hasTable = ["Network", "Volumes", "Transit", "TransitVolumes"].includes(isGraphExpanded);
+  const hasTable = ["Network", "Volumes", "Transit", "TransitVolumes", "VolumeFlow"].includes(isGraphExpanded);
 
   // Determine width class
   let sidebarClass = "hidden";
@@ -220,6 +222,27 @@ const RightSidebar = () => {
                 <FontAwesomeIcon icon={faTableList} />
                 <span>{isFeatureTableOpen ? "Close Table" : "Open Table"}</span>
               </button>
+
+              {/* Reset Link button — only when table is closed, only for VolumeFlow */}
+              {!isFeatureTableOpen && isGraphExpanded === "VolumeFlow" && (
+                <button
+                  className="panel-toolbar-btn"
+                  onClick={() => {
+                    setVolumeFlowSegment(null);
+                    // Hide spider flow layers on the map
+                    const map = mapRef?.current;
+                    if (map) {
+                      const hiddenFilter = ['==', ['get', 'featureIndex'], -1];
+                      if (map.getLayer('volume-flow-highlight')) map.setFilter('volume-flow-highlight', hiddenFilter);
+                      if (map.getLayer('volume-flow-labels')) map.setFilter('volume-flow-labels', hiddenFilter);
+                      if (map.getLayer('volume-flow-target')) map.setPaintProperty('volume-flow-target', 'line-width', 8);
+                    }
+                  }}
+                >
+                  <FontAwesomeIcon icon={faRotateLeft} />
+                  <span>Reset Link</span>
+                </button>
+              )}
 
               {isFeatureTableOpen && (
                 <button
@@ -292,9 +315,11 @@ const RightSidebar = () => {
 
             {/* Volume Flow Analysis Module */}
             {isGraphExpanded === "VolumeFlow" && (
-              <div className="plot-container">
-                <VolumeFlowModule />
-              </div>
+              <VolumeFlowModule
+                isFeatureTableOpen={isFeatureTableOpen}
+                featureTableRef={featureTableRef}
+                setTableFilterQuery={setTableFilterQuery}
+              />
             )}
 
             {/* Network Module */}

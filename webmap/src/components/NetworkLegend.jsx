@@ -96,7 +96,7 @@ const Legend = () => {
           <div className="capacity-legend">
             <div className="capacity-item">
               <div className="capacity-line" style={{ height: '2px', background: '#ff8c00', width: '30px' }}></div>
-              <span className="network-legend-label">50</span>
+              <span className="network-legend-label">10</span>
             </div>
             <div className="capacity-item">
               <div className="capacity-line" style={{ height: '4px', background: '#ff8c00', width: '30px' }}></div>

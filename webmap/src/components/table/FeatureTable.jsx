@@ -271,7 +271,8 @@ const FeatureTable = forwardRef(
       maxRows = 300000,
       loading = false,
       setTableFilterQuery,
-      showMajorRoadsOnly = false // filter by capacity > 1200
+      showMajorRoadsOnly = false, // filter by capacity > 1200
+      initialOrder = [[0, "asc"]] // default sort order
     },
     ref
   ) => {
@@ -383,6 +384,14 @@ const FeatureTable = forwardRef(
     // Single source of truth for columns (used by DT and the toolbar + exporter)
     const columnDefs = useMemo(
       () => {
+        // Volume Flow has simple columns
+        if (selectedGraph === 'VolumeFlow') {
+          return [
+            { key: "directionId", title: "Link ID" },
+            { key: "flow", title: "Flow (trips)" },
+          ];
+        }
+
         // Transit stops have different columns
         if (selectedGraph === 'Transit') {
           return [
@@ -393,7 +402,7 @@ const FeatureTable = forwardRef(
             { key: "alightings", title: "Alightings" },
           ];
         }
-        
+
         const cols = [
           { key: "directionId", title: "Link ID" },
           { key: "length", title: "Length [m]" },        
@@ -431,19 +440,31 @@ const FeatureTable = forwardRef(
     // DataTables columns (maps to the same keys)
     const dtColumns = useMemo(
       () => {
+        // Volume Flow has simple columns
+        if (selectedGraph === 'VolumeFlow') {
+          return [
+            { data: "directionId", title: "Link ID" },
+            {
+              data: "flow",
+              title: "Flow (trips)",
+              render: (data) => Number(data || 0).toLocaleString()
+            },
+          ];
+        }
+
         // Transit stops have different columns
         if (selectedGraph === 'Transit') {
           return [
             { data: "stopName", title: "Stop Name" },
             { data: "modes", title: "Modes" },
             { data: "lineCount", title: "# Lines" },
-            { 
-              data: "boardings", 
+            {
+              data: "boardings",
               title: "Boardings",
               render: (data) => Number(data || 0).toLocaleString()
             },
-            { 
-              data: "alightings", 
+            {
+              data: "alightings",
               title: "Alightings",
               render: (data) => Number(data || 0).toLocaleString()
             },
@@ -455,7 +476,7 @@ const FeatureTable = forwardRef(
             }
           ];
         }
-        
+
         const cols = [
           { data: "directionId", title: "Link ID" },
           { data: "length", title: "Length [m]" },
@@ -599,7 +620,7 @@ const FeatureTable = forwardRef(
           data: tableRows,
           columns: dtColumns,
           autoWidth: false,
-          order: [[0, "asc"]],
+          order: initialOrder,
           // Remove built-in filter ('f'); we'll use our custom toolbar
           dom: useScroller ? "rti" : "rtip",
           ...(useScroller
