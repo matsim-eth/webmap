@@ -21,6 +21,7 @@ dist-ssr/
 .env
 .env.*.local
 *.local
+
 # OS/system files
 .DS_Store
 Thumbs.db
@@ -34,5 +35,17 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Python
 *.venv
-./auth/database
+__pycache__/
+*.pyc
+
+# Data & Storage (NEVER commit these)
+/webmap/backend/dummy_data/
+/webmap/frontend/public/data/
+/dataset/storage/
+/dataset/database/
+/auth/database/
+*.duckdb
+*.parquet

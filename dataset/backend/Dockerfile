@@ -12,4 +12,4 @@ RUN pip install --no-cache-dir -r ./requirements.txt
 
 ENV UVICORN_WORKERS=4
 
-CMD ["sh","-lc","python -m uvicorn main:app --host 0.0.0.0 --port 5031 --workers ${UVICORN_WORKERS} --proxy-headers --forwarded-allow-ips '*'"]
+CMD ["sh","-lc","python -m uvicorn main:app --host 0.0.0.0 --port 5033 --workers ${UVICORN_WORKERS} --proxy-headers --forwarded-allow-ips '*'"]

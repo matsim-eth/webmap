@@ -21,20 +21,21 @@ from .paths import get_data_paths
 
 _NAME_TO_ID = {v: k for k, v in CANTON_MAP.items()}
 
-# Cache loaded data per format
-_CACHE: dict[str, dict | list] = {}
+# Cache loaded data per (json_preview_dir, format)
+_CACHE: dict[tuple[str, str], dict | list] = {}
 
 
 def _load(fmt: str):
-    if fmt not in _CACHE:
-        paths = get_data_paths()
+    paths = get_data_paths()
+    cache_key = (paths.json_preview_dir, fmt)
+    if cache_key not in _CACHE:
         if fmt == "json":
             filepath = os.path.join(paths.json_preview_dir, "TLM_KANTONSGEBIET.json")
         else:
             filepath = os.path.join(paths.json_preview_dir, "TLM_KANTONSGEBIET.geojson")
         with open(filepath, "r") as f:
-            _CACHE[fmt] = json.load(f)
-    return _CACHE[fmt]
+            _CACHE[cache_key] = json.load(f)
+    return _CACHE[cache_key]
 
 
 def _filter_features(data, params: dict):

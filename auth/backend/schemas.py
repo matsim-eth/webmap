@@ -9,7 +9,7 @@ class RegisterCredentialsModel(BaseModel):
     password: str = Field(min_length=8)
     first_name: str
     last_name: str
-    company: str
+    company: Optional[str] = None
     username: Optional[str] = None
     newsletter: bool = False
 
@@ -17,9 +17,9 @@ class RegisterCredentialsModel(BaseModel):
 class LoginModel(BaseModel):
     password: str
 
-    email: Optional[EmailStr] = None
+    email: Optional[str] = None          # kein EmailStr — muss auch "dev@local" akzeptieren
     username: Optional[str] = None
-    identifier: Optional[str] = None  # "email oder username" (Frontend kann das schicken)
+    identifier: Optional[str] = None     # "email oder username" (Frontend kann das schicken)
 
     @model_validator(mode="after")
     def _at_least_one(self):
@@ -40,3 +40,15 @@ class RefreshIn(BaseModel):
 
 class AccessIn(BaseModel):
     access_token: str
+
+
+class AdminUserUpdate(BaseModel):
+    admin: Optional[bool] = None
+    dev: Optional[bool] = None
+    is_active: Optional[bool] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    company: Optional[str] = None
+    email: Optional[EmailStr] = None
+    username: Optional[str] = None
+    password: Optional[str] = Field(None, min_length=8)

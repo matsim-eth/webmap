@@ -1,0 +1,13 @@
+AuthAPI @ git+https://github.com/RaresBares/auth_lib.git
+
+fastapi>=0.110
+uvicorn>=0.27
+
+duckdb>=1.0
+httpx>=0.27
+pydantic>=2.7
+
+python-jose[cryptography]>=3.3
+passlib[bcrypt]>=1.7.4
+
+starlette

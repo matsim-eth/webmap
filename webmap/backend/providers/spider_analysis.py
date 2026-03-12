@@ -44,19 +44,19 @@ from .helpers import canton_filter_sql
 from .paths import get_data_paths
 
 
-# ─── Singleton DuckDB connection (read-only) ────────────────────────
+# ─── Per-dataset DuckDB connections (read-only) ─────────────────────
 
-_con: duckdb.DuckDBPyConnection | None = None
+_connections: dict[str, duckdb.DuckDBPyConnection] = {}
 
 
 def _get_con() -> duckdb.DuckDBPyConnection:
-    """Return a read-only connection to spider.duckdb (lazy singleton)."""
-    global _con
-    if _con is None:
-        paths = get_data_paths()
-        _con = duckdb.connect(paths.spider_db, read_only=True)
-        _con.execute("SET memory_limit = '4GB'")
-    return _con
+    """Return a read-only connection to spider.duckdb for the current dataset."""
+    paths = get_data_paths()
+    db_path = paths.spider_db
+    if db_path not in _connections:
+        _connections[db_path] = duckdb.connect(db_path, read_only=True)
+        _connections[db_path].execute("SET memory_limit = '4GB'")
+    return _connections[db_path]
 
 
 # ─── Shared filter logic ─────────────────────────────────────────────

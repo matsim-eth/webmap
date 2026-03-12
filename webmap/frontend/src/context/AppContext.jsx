@@ -3,7 +3,24 @@ import { createContext, useState, useEffect, useRef, useContext } from "react";
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  const [dataURL, setDataURL] = useState("https://matsim-eth.github.io/webmap/data/");
+  // Dataset ID — fetched from backend on mount (fallback to 1000000001)
+  const [activeDatasetId, setActiveDatasetId] = useState(null);
+  const [dataURL, setDataURL] = useState(null);
+
+  // Fetch the public demo dataset ID on first mount
+  useEffect(() => {
+    fetch("/webmap/backend/public-demo-id")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        const id = data?.id || 1000000001;
+        setActiveDatasetId(id);
+        setDataURL(`/webmap/backend/data/${id}/`);
+      })
+      .catch(() => {
+        setActiveDatasetId(1000000001);
+        setDataURL(`/webmap/backend/data/1000000001/`);
+      });
+  }, []);
 
   const [clickedCanton, setClickedCanton] = useState(null); // Store clicked canton
 
@@ -120,6 +137,7 @@ export const AppProvider = ({ children }) => {
 
   const value = {
     dataURL, setDataURL,
+    activeDatasetId, setActiveDatasetId,
     clickedCanton, setClickedCanton,
     isSidebarOpen, setIsSidebarOpen,
     isGraphExpanded, setIsGraphExpanded,

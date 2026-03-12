@@ -43,6 +43,7 @@ import { useLoadWithFallback } from "../utils/useLoadWithFallback";
 const Sidebar = () => {
   const {
     dataURL, setDataURL,
+    activeDatasetId, setActiveDatasetId,
     isSidebarOpen, setIsSidebarOpen,
     isGraphExpanded, setIsGraphExpanded,
     resetMapView,
@@ -208,6 +209,8 @@ const Sidebar = () => {
                 inputURL={inputURL}
                 setInputURL={setInputURL}
                 setDataURL={setDataURL}
+                activeDatasetId={activeDatasetId}
+                setActiveDatasetId={setActiveDatasetId}
                 selectedAggCol={selectedAggCol}
                 setSelectedAggCol={setSelectedAggCol}
                 fileMap={fileMap}

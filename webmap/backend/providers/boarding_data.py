@@ -5,6 +5,10 @@ from .base import DataProvider
 from .paths import get_data_paths
 
 
+# Per-dataset cache for boarding data
+_data_cache: dict[str, list] = {}
+
+
 class BoardingDataProvider(DataProvider):
     """Boarding data by line, loaded from static JSON and filtered.
 
@@ -19,15 +23,15 @@ class BoardingDataProvider(DataProvider):
     """
 
     ROUTE = "boarding_data_by_line.json"
-    _data: list | None = None
 
     def _load(self) -> list:
-        if BoardingDataProvider._data is None:
-            paths = get_data_paths()
+        paths = get_data_paths()
+        cache_key = paths.json_preview_dir
+        if cache_key not in _data_cache:
             filepath = os.path.join(paths.json_preview_dir, "boarding_data_by_line.json")
             with open(filepath, "r") as f:
-                BoardingDataProvider._data = json.load(f)
-        return BoardingDataProvider._data
+                _data_cache[cache_key] = json.load(f)
+        return _data_cache[cache_key]
 
     def deliver(self, params: dict) -> dict:
         data = self._load()
