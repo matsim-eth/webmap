@@ -229,13 +229,15 @@ const RightSidebar = () => {
                   className="panel-toolbar-btn"
                   onClick={() => {
                     setVolumeFlowSegment(null);
-                    // Hide spider flow layers on the map
+                    // Remove spider overlay source + layers
                     const map = mapRef?.current;
                     if (map) {
-                      const hiddenFilter = ['==', ['get', 'featureIndex'], -1];
-                      if (map.getLayer('volume-flow-highlight')) map.setFilter('volume-flow-highlight', hiddenFilter);
-                      if (map.getLayer('volume-flow-labels')) map.setFilter('volume-flow-labels', hiddenFilter);
-                      if (map.getLayer('volume-flow-target')) map.setPaintProperty('volume-flow-target', 'line-width', 8);
+                      ['volume-flow-target-label','volume-flow-labels','volume-flow-target','volume-flow-highlight'].forEach(id => {
+                        if (map.getLayer(id)) map.removeLayer(id);
+                      });
+                      if (map.getSource('volume-flow-spider')) map.removeSource('volume-flow-spider');
+                      // Restore base network opacity
+                      if (map.getLayer('network-layer')) map.setPaintProperty('network-layer', 'line-opacity', 0.4);
                     }
                   }}
                 >

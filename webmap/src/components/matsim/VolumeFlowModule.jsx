@@ -9,7 +9,7 @@ const VolumeFlowModule = ({
     featureTableRef,
     setTableFilterQuery
 }) => {
-    const { volumeFlowSegment, setFeatureSelection } = useApp();
+    const { volumeFlowSegment, clickedCanton, setFeatureSelection } = useApp();
 
     const handleRowClick = useCallback((row) => {
         if (!row) return;
@@ -46,7 +46,11 @@ const VolumeFlowModule = ({
                     {!volumeFlowSegment && (
                         <div className="no-selection">
                             <p>No link selected</p>
-                            <p className="hint">Click on the blue target link on the map</p>
+                            <p className="hint">
+                                {clickedCanton
+                                    ? 'Click on any link on the map to analyze volume flow'
+                                    : 'Select a canton to load the network'}
+                            </p>
                         </div>
                     )}
 

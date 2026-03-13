@@ -82,9 +82,6 @@ export default function useCantons({
       const clickedLayerIds = [...new Set(clickedFeatures.map(f => f.layer.id))];
       const isStopClick = clickedLayerIds.includes("inter-cantonal-stops");
 
-      // If VolumeFlow module is active, disable canton zoom on click
-      if (isGraphExpanded === 'VolumeFlow') return;
-
       // If select same as previous canton, don't do anything
       // (we extract prev canton by getting the current selected-canton-border)
       if (e.features.length > 0 && e.features[0].properties.NAME != map.getFilter("selected-canton-border")[2]) {

@@ -264,7 +264,9 @@ export default function useNetworkLayers({
       type: 'line',
       source: 'network-source',
       paint: {
-        'line-width': ['interpolate', ['linear'], ['get', 'capacity'], 300, 7, 4000, 14],
+        'line-width': (graphExpandedRef.current === 'VolumeFlow')
+          ? 3
+          : ['interpolate', ['linear'], ['get', 'capacity'], 300, 10, 4000, 21],
         'line-opacity': 0
       }
     });
@@ -276,17 +278,24 @@ export default function useNetworkLayers({
       paint: {
         'line-width': ['interpolate', ['linear'], ['get', 'capacity'], 300, 1, 4000, 8],
         'line-color':
-        (graphExpandedRef.current === 'Volumes')
-        ? ['interpolate', ['linear'], ['get', 'daily_avg_volume'],
-        0, '#ffffcc', 50, '#c2e699', 100, '#78c679', 250, '#31a354', 500, '#006837']
-        : ['interpolate', ['linear'], ['get', 'freespeed'],
-        0, '#ffffb2', 25, '#fed976', 50, '#feb24c', 75, '#fd8d3c', 100, '#fc4e2a', 125, '#e31a1c', 150, '#b10026']
+          ((graphExpandedRef.current === 'Volumes' || graphExpandedRef.current === 'VolumeFlow'))
+          ? ['interpolate', ['linear'], ['get', 'daily_avg_volume'],
+            0, '#ffffcc', 50, '#c2e699', 100, '#78c679', 250, '#31a354', 500, '#006837']
+          : ['interpolate', ['linear'], ['get', 'freespeed'],
+            0, '#ffffb2', 25, '#fed976', 50, '#feb24c', 75, '#fd8d3c', 100, '#fc4e2a', 125, '#e31a1c', 150, '#b10026']
       }
     });
+
+    // VolumeFlow: override to gray immediately after creation
+    if (graphExpandedRef.current === 'VolumeFlow') {
+      map.setPaintProperty('network-layer', 'line-color', '#aaa');
+      map.setPaintProperty('network-layer', 'line-width', 2);
+      map.setPaintProperty('network-layer', 'line-opacity', 0.4);
+    }
     
     // ensure labels exist for this source
     addLabelLayersIfMissing(map);
-    if (graphExpandedRef.current === 'Volumes') {
+    if ((graphExpandedRef.current === 'Volumes' || graphExpandedRef.current === 'VolumeFlow')) {
       applyLabelCarAndMajorFilter(map, showMajorRoadsOnly);
     } else {
       applyLabelFilter(map, showMajorRoadsOnly);
@@ -297,7 +306,7 @@ export default function useNetworkLayers({
     
     updateNetworkFilter(selectedNetworkModesRef.current);
     
-    if (graphExpandedRef.current === 'Volumes') {
+    if ((graphExpandedRef.current === 'Volumes' || graphExpandedRef.current === 'VolumeFlow')) {
       // Exact match for "car" mode (prevents matching "cable car")
       const carFilter = ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0];
       let filter = carFilter;
@@ -310,7 +319,7 @@ export default function useNetworkLayers({
       // labels mirror car (+major roads) filter in Volumes
       applyLabelCarAndMajorFilter(map, showMajorRoadsOnly);
     }
-    if (graphExpandedRef.current === 'Volumes') {
+    if ((graphExpandedRef.current === 'Volumes' || graphExpandedRef.current === 'VolumeFlow')) {
       addLabelLayersIfMissing(map);
       applyLabelCarAndMajorFilter(map, showMajorRoadsOnly);
     }
@@ -321,6 +330,8 @@ export default function useNetworkLayers({
     // UPDATED click handler: use clicked feature directly (no single id anymore)
     map.on('click', 'click-network-layer', (e) => {
       if (!e.features.length) return;
+      // VolumeFlow has its own click handler on this layer
+      if (graphExpandedRef.current === 'VolumeFlow') return;
       
       if (map.getLayer('ant-line')) map.removeLayer('ant-line');
       ['network-highlight'].forEach(id => {
@@ -360,7 +371,7 @@ export default function useNetworkLayers({
         if (map.getLayer(id)) map.setFilter(id, null);
       });
       // In Volumes, labels stay car-only regardless of sidebar mode filter
-      if (graphExpandedRef.current === 'Volumes') {
+      if ((graphExpandedRef.current === 'Volumes' || graphExpandedRef.current === 'VolumeFlow')) {
         applyLabelCarAndMajorFilter(map, showMajorRoadsOnly);
       } else {
         // In Network, clear label filter too
@@ -376,7 +387,7 @@ export default function useNetworkLayers({
       ['network-layer', 'click-network-layer', 'network-highlight'].forEach(id => {
         if (map.getLayer(id)) map.setFilter(id, filter);
       });
-      if (graphExpandedRef.current === 'Volumes') {
+      if ((graphExpandedRef.current === 'Volumes' || graphExpandedRef.current === 'VolumeFlow')) {
         // Keep labels car-only in Volumes
         applyLabelCarAndMajorFilter(map, showMajorRoadsOnly);
       } else {
@@ -410,12 +421,12 @@ export default function useNetworkLayers({
   // major roads filter changes
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || graphExpandedRef.current !== 'Volumes') return;
-    
+    if (!map || !(graphExpandedRef.current === 'Volumes' || graphExpandedRef.current === 'VolumeFlow')) return;
+
     // Exact match for "car" mode (prevents matching "cable car")
     const carFilter = ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0];
     const fullFilter =
-    isGraphExpanded === 'Volumes' && showMajorRoadsOnly
+    (isGraphExpanded === 'Volumes' || isGraphExpanded === 'VolumeFlow') && showMajorRoadsOnly
     ? ['all', carFilter, ['>', ['get', 'capacity'], 1200]]
     : carFilter;
     
@@ -429,7 +440,7 @@ export default function useNetworkLayers({
     });
     
     // filter labels too
-    if (graphExpandedRef.current === 'Volumes') {
+    if ((graphExpandedRef.current === 'Volumes' || graphExpandedRef.current === 'VolumeFlow')) {
       applyLabelCarAndMajorFilter(map, showMajorRoadsOnly);
     }
   }, [showMajorRoadsOnly, isGraphExpanded, originalNetworkGeoJSON]);
@@ -452,7 +463,7 @@ export default function useNetworkLayers({
         'network-label-left','network-label-right']
         .forEach(id => { if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'visible'); });
         
-        if (isGraphExpanded === 'Network' || isGraphExpanded === 'Volumes') {
+        if (isGraphExpanded === 'Network' || isGraphExpanded === 'Volumes' || isGraphExpanded === 'VolumeFlow') {
           if (map.getLayer('network-layer')) {
             show();
             if (isGraphExpanded === 'Network') {
@@ -474,7 +485,7 @@ export default function useNetworkLayers({
             loadNetworkForCanton(canton);
             addLabelLayersIfMissing(map);          
             applyLabelFilter(map, showMajorRoadsOnly);
-            if (graphExpandedRef.current === 'Volumes') {
+            if ((graphExpandedRef.current === 'Volumes' || graphExpandedRef.current === 'VolumeFlow')) {
               applyLabelCarAndMajorFilter(map, showMajorRoadsOnly);
             }
           }
@@ -484,13 +495,35 @@ export default function useNetworkLayers({
         
         if (!map.getLayer('network-layer')) return;
         
-        const colorRamp = isGraphExpanded === 'Volumes'
-        ? ['interpolate', ['linear'], ['get', 'daily_avg_volume'],
-        0, '#ffffcc', 50, '#c2e699', 100, '#78c679', 250, '#31a354', 500, '#006837']
-        : ['interpolate', ['linear'], ['get', 'freespeed'],
-        0, '#ffffb2', 25, '#fed976', 50, '#feb24c', 75, '#fd8d3c', 100, '#fc4e2a', 125, '#e31a1c', 150, '#b10026']
-        
-        map.setPaintProperty('network-layer', 'line-color', colorRamp);
+        if (isGraphExpanded === 'VolumeFlow') {
+          // VolumeFlow: subtle gray roads, flat click hitbox, no labels
+          map.setPaintProperty('network-layer', 'line-color', '#aaa');
+          map.setPaintProperty('network-layer', 'line-width', 2);
+          map.setPaintProperty('network-layer', 'line-opacity', 0.4);
+          map.setPaintProperty('click-network-layer', 'line-width', 3);
+          setLabelVisibility(map, false);
+          // Apply car-mode filter (roads only)
+          const carFilter = ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0];
+          const roadFilter = showMajorRoadsOnly
+            ? ['all', carFilter, ['>', ['get', 'capacity'], 1200]]
+            : carFilter;
+          ['network-layer', 'click-network-layer'].forEach(id => {
+            if (map.getLayer(id)) map.setFilter(id, roadFilter);
+          });
+        } else {
+          // Network / Volumes: full color ramp
+          const colorRamp = isGraphExpanded === 'Volumes'
+            ? ['interpolate', ['linear'], ['get', 'daily_avg_volume'],
+              0, '#ffffcc', 50, '#c2e699', 100, '#78c679', 250, '#31a354', 500, '#006837']
+            : ['interpolate', ['linear'], ['get', 'freespeed'],
+              0, '#ffffb2', 25, '#fed976', 50, '#feb24c', 75, '#fd8d3c', 100, '#fc4e2a', 125, '#e31a1c', 150, '#b10026'];
+          map.setPaintProperty('network-layer', 'line-color', colorRamp);
+          map.setPaintProperty('network-layer', 'line-width',
+            ['interpolate', ['linear'], ['get', 'capacity'], 300, 1, 4000, 8]);
+          map.setPaintProperty('network-layer', 'line-opacity', 1);
+          map.setPaintProperty('click-network-layer', 'line-width',
+            ['interpolate', ['linear'], ['get', 'capacity'], 300, 10, 4000, 21]);
+        }
         
         if (map.getLayer('ant-line')) map.removeLayer('ant-line');
         
@@ -566,7 +599,7 @@ export default function useNetworkLayers({
         const map = mapRef.current;
         if (!map) return;
         
-        if (searchCanton && (graphExpandedRef.current === 'Network' || graphExpandedRef.current === 'Volumes')) {
+        if (searchCanton && (graphExpandedRef.current === 'Network' || (graphExpandedRef.current === 'Volumes' || graphExpandedRef.current === 'VolumeFlow') || graphExpandedRef.current === 'VolumeFlow')) {
           loadNetworkForCanton(searchCanton);
         } else {
           ['network-layer','click-network-layer','network-highlight',

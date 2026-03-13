@@ -178,7 +178,6 @@ export default function Map() {
   useVolumeFlowLayers({
     mapRef,
     mapReady,
-    suppressNextSearchZoom
   });
 
   // Combined feature selection focus for both network and transit (uses shared network-highlight)
