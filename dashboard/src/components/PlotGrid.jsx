@@ -13,6 +13,7 @@ import TransferDestinations from './plots/TransferDestinations';
 import PlotExpanded from './PlotExpanded';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExpand } from '@fortawesome/free-solid-svg-icons';
+import { useDashboard } from '../context/DashboardContext';
 
 const TAB_LABELS = {
   'home': 'Home',
@@ -28,6 +29,11 @@ const TAB_LABELS = {
 
 const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
   const [expandedPlot, setExpandedPlot] = useState(null);
+  const {
+    selectedCanton,
+    selectedGender,
+    selectedIncome,
+  } = useDashboard();
 
   const isTwoPlotLayout = activeTab === 'demographics' || activeTab === 'car-ownership';
 
@@ -272,21 +278,21 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
     { 
       id: 'car-ownership-distribution', 
       component: DistributionBarPlot, 
-      title: 'Car Ownership Distribution', 
+      title: 'Car Availability Distribution', 
       gridArea: 'top',
       props: {
         dataFile: 'car_availability.json',
-        title: 'Car Ownership Distribution',
+        title: 'Car Availability Distribution',
         xAxisLabel: 'Number of Cars',
         filterType: null,
+        backendUrl: '/backend/data/1/car_availability.json',
         rightLegend: true,
         customCategories: [
-          { label: '0', key: '0' },
-          { label: '1', key: '1' },
-          { label: '2', key: '2' },
-          { label: '3+', key: '3' }
+          { label: 'Always', key: '0' },
+          { label: 'Sometimes', key: '1' },
+          { label: 'Never', key: '2' },
         ],
-        exportFilename: 'car-ownership-distribution'
+        exportFilename: 'car-availability-distribution'
       }
     },
     { 
@@ -296,17 +302,19 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
       gridArea: 'bottom',
       props: {
         dataFile: 'num_cars_income.json',
+        canton: selectedCanton,
         title: 'Car Ownership by Income',
         xAxisLabel: 'Number of Cars',
         filterType: 'income',
+        backendUrl: '/backend/data/1/num_cars.json?breakdown=income',
         rightLegend: true,
         customCategories: [
           { label: '0', key: '0' },
           { label: '1', key: '1' },
           { label: '2', key: '2' },
-          { label: '3+', key: '3' }
+          { label: '3+', key: '3' },
         ],
-        exportFilename: 'car-ownership-by-income'
+        exportFilename: 'car-ownership-by-filter'
       }
     },
   ];
@@ -319,9 +327,11 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
       gridArea: 'top',
       props: {
         dataFile: 'age.json',
+        canton: selectedCanton,
         title: 'Age Group Distribution',
         xAxisLabel: 'Age Group',
         filterType: null,
+        backendUrl: '/backend/data/1/age.json',
         exportFilename: 'age-distribution'
       }
     },
@@ -332,9 +342,11 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
       gridArea: 'bottom',
       props: {
         dataFile: 'gender.json',
+        canton: selectedCanton,
         title: 'Gender Distribution',
         xAxisLabel: 'Gender',
         filterType: null,
+        backendUrl: '/backend/data/1/gender.json',
         customCategories: [
           { label: 'Male', key: '0' },
           { label: 'Female', key: '1' }

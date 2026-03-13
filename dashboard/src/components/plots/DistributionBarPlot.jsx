@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Plot from "react-plotly.js";
 import { useDashboard } from "../../context/DashboardContext";
 import { useData } from "../../context/DataContext";
@@ -8,10 +8,23 @@ const DATASET_COLORS = {
   Synthetic: "#E07A5F",
 };
 
+const buildBackendUrl = (baseUrl, query) => {
+  if (!baseUrl) return null;
+  if (!query) return baseUrl;
+
+  const url = new URL(baseUrl, window.location.origin);
+  Object.entries(query).forEach(([key, value]) => {
+    if (value == null || value === "") return;
+    url.searchParams.set(key, String(value));
+  });
+  return `${url.pathname}${url.search}`;
+};
+
 const DistributionBarPlot = ({ 
   sidebarCollapsed, 
   isExpanded = false,
   dataFile,
+  canton,
   title,
   xAxisLabel,
   yAxisLabel = "Percentage [%]", // optional: custom y-axis label
@@ -21,10 +34,16 @@ const DistributionBarPlot = ({
   yAxisRange = null, // optional: [min, max] for fixed y-axis range
   xAxisRange = null, // optional: [min, max] for fixed x-axis range
   rightLegend = false, // optional: position legend on right side
+  backendUrl = null,
+  backendQuery = null,
+  nestedGroupKey = null,
   exportFilename
 }) => {
   const { selectedCanton, selectedIncome, selectedAge, selectedGender, distanceType } = useDashboard();
-  const { getData } = useData();
+  const { getData, getUrlData } = useData();
+  const [backendData, setBackendData] = useState(null);
+  const cantonKey = canton ?? selectedCanton ?? "All";
+  const requestUrl = useMemo(() => buildBackendUrl(backendUrl, backendQuery), [backendQuery, backendUrl]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -33,17 +52,50 @@ const DistributionBarPlot = ({
     return () => clearTimeout(timer);
   }, [sidebarCollapsed]);
 
+  useEffect(() => {
+    if (!requestUrl) {
+      setBackendData(null);
+      return;
+    }
+
+    setBackendData(null);
+
+    getUrlData(requestUrl).then((payload) => {
+      const cantonData = payload?.[cantonKey] ?? {};
+
+      if (nestedGroupKey) {
+        setBackendData({
+          Synthetic: cantonData?.Synthetic?.[nestedGroupKey] ?? {},
+          Microcensus: cantonData?.Microcensus?.[nestedGroupKey] ?? {},
+        });
+        return;
+      }
+
+      setBackendData(cantonData);
+    });
+  }, [cantonKey, getUrlData, nestedGroupKey, requestUrl]);
+
   const data = useMemo(() => {
+    if (requestUrl) {
+      return backendData;
+    }
+
     const jsonData = getData(dataFile);
     if (!jsonData) return null;
-    const cantonKey = selectedCanton || "All";
     return jsonData[cantonKey] || null;
-  }, [getData, dataFile, selectedCanton]);
+  }, [backendData, cantonKey, dataFile, getData, requestUrl]);
 
   if (!data) return <div className="plot-loading">Loading...</div>;
 
   // Determine what data to show based on filterType
   let categories, microData, synData, titleSuffix = "";
+
+  const resolveGroupedData = (sourceData, key, fallbackKey = null) => {
+    if (!sourceData) return null;
+    if (key && sourceData[key]) return sourceData[key];
+    if (fallbackKey && sourceData[fallbackKey]) return sourceData[fallbackKey];
+    return sourceData.All || sourceData.all || null;
+  };
 
   if (filterType === null) {
     // General distribution - no filter
@@ -58,18 +110,18 @@ const DistributionBarPlot = ({
       synData = data["Synthetic"];
     }
   } else if (filterType === "income") {
-    microData = data["Microcensus"][selectedIncome];
-    synData = data["Synthetic"][selectedIncome];
-    titleSuffix = ` (Class ${selectedIncome})`;
+    microData = resolveGroupedData(data["Microcensus"], selectedIncome);
+    synData = resolveGroupedData(data["Synthetic"], selectedIncome);
+    titleSuffix = selectedIncome === "all" ? " (All)" : ` (Class ${selectedIncome})`;
   } else if (filterType === "age") {
     microData = data["Microcensus"][selectedAge];
     synData = data["Synthetic"][selectedAge];
     titleSuffix = ` (${selectedAge})`;
   } else if (filterType === "gender") {
-    const genderKey = selectedGender === "male" ? "0" : "1";
-    microData = data["Microcensus"][genderKey];
-    synData = data["Synthetic"][genderKey];
-    titleSuffix = ` (${selectedGender.charAt(0).toUpperCase() + selectedGender.slice(1)})`;
+    const genderKey = selectedGender === "male" ? "0" : selectedGender === "female" ? "1" : null;
+    microData = resolveGroupedData(data["Microcensus"], genderKey, selectedGender);
+    synData = resolveGroupedData(data["Synthetic"], genderKey, selectedGender);
+    titleSuffix = selectedGender === "all" ? "" : ` (${selectedGender.charAt(0).toUpperCase() + selectedGender.slice(1)})`;
   } else if (filterType === "distance") {
     // For distance-based data, just use the main data without filtering
     microData = data["Microcensus"];

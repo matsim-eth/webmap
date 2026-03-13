@@ -37,6 +37,7 @@ const GENDERS = [
 ];
 
 const INCOMES = [
+  { id: "all", label: "All" },
   { id: "1", label: "1" },
   { id: "2", label: "2" },
   { id: "3", label: "3" },
@@ -64,7 +65,7 @@ const ControlsBar = ({ activeTab }) => {
     selectedPurpose, setSelectedPurpose,
     selectedGender, setSelectedGender,
     selectedIncome, setSelectedIncome,
-    selectedAge, setSelectedAge
+    selectedAge, setSelectedAge,
   } = useDashboard();
 
   // Determine which filters to show based on active tab
@@ -207,20 +208,23 @@ const ControlsBar = ({ activeTab }) => {
 
       {/* Car Ownership Filters - only show income on Car Ownership tab */}
       {showCarOwnershipFilters && (
-        <div className="control-group">
-          <label className="control-label">Income</label>
-          <div className="toggle-group income-toggle">
-            {INCOMES.map((income) => (
-              <button
-                key={income.id}
-                className={`toggle-btn ${selectedIncome === income.id ? 'active' : ''}`}
-                onClick={() => setSelectedIncome(income.id)}
-              >
-                {income.label}
-              </button>
-            ))}
+        <>
+          <div className="control-group">
+            <label className="control-label">Income</label>
+            <div className="toggle-group income-toggle">
+              {INCOMES.map((income) => (
+                <button
+                  key={income.id}
+                  className={`toggle-btn ${selectedIncome === income.id ? 'active' : ''}`}
+                  onClick={() => setSelectedIncome(income.id)}
+                >
+                  {income.label}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+
+        </>
       )}
     </div>
   );

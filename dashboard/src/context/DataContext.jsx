@@ -2,6 +2,11 @@ import React, { createContext, useContext, useState, useRef, useCallback } from 
 import { useLoadWithFallback } from "../utils/useLoadWithFallback";
 
 const DataContext = createContext();
+const DEFAULT_CACHE_LIMIT_MB = Number(import.meta.env.VITE_DATA_CACHE_MB ?? 25);
+const CACHE_LIMIT_BYTES =
+  (Number.isFinite(DEFAULT_CACHE_LIMIT_MB) && DEFAULT_CACHE_LIMIT_MB > 0
+    ? DEFAULT_CACHE_LIMIT_MB
+    : 25) * 1024 * 1024;
 
 const estimateSize = (obj) => {
   const str = JSON.stringify(obj);
@@ -34,55 +39,115 @@ const logCacheStatus = (cache, label) => {
 
 export const DataProvider = ({ children }) => {
   const cacheRef = useRef({});
+  const cacheOrderRef = useRef(new Map()); // key -> estimated size in bytes (insertion order = LRU)
+  const cacheSizeRef = useRef(0);
   const loadingRef = useRef(new Set());
   const [cacheVersion, setCacheVersion] = useState(0);
   const loadWithFallback = useLoadWithFallback();
   const loaderRef = useRef(loadWithFallback);
   loaderRef.current = loadWithFallback; // always keep latest ref
 
+  const getCached = useCallback((key) => {
+    if (!(key in cacheRef.current)) return undefined;
+
+    // Touch key so it becomes most recently used.
+    const prevSize = cacheOrderRef.current.get(key) ?? 0;
+    cacheOrderRef.current.delete(key);
+    cacheOrderRef.current.set(key, prevSize);
+    return cacheRef.current[key];
+  }, []);
+
+  const evictIfNeeded = useCallback((pinnedKey) => {
+    while (cacheSizeRef.current > CACHE_LIMIT_BYTES && cacheOrderRef.current.size > 0) {
+      const oldestKey = cacheOrderRef.current.keys().next().value;
+      if (!oldestKey) break;
+
+      // Keep the just-written key even if it alone is above the limit.
+      if (oldestKey === pinnedKey && cacheOrderRef.current.size === 1) break;
+
+      const oldestSize = cacheOrderRef.current.get(oldestKey) ?? 0;
+      cacheOrderRef.current.delete(oldestKey);
+      delete cacheRef.current[oldestKey];
+      cacheSizeRef.current = Math.max(0, cacheSizeRef.current - oldestSize);
+      loadingRef.current.delete(oldestKey);
+    }
+  }, []);
+
+  const setCached = useCallback(
+    (key, value) => {
+      const prevSize = cacheOrderRef.current.get(key) ?? 0;
+      const nextSize = value == null ? 0 : estimateSize(value);
+
+      cacheRef.current[key] = value;
+      cacheOrderRef.current.delete(key);
+      cacheOrderRef.current.set(key, nextSize);
+
+      cacheSizeRef.current = Math.max(0, cacheSizeRef.current - prevSize) + nextSize;
+      evictIfNeeded(key);
+      logCacheStatus(cacheRef.current, `Loaded ${key} (limit ${formatBytes(CACHE_LIMIT_BYTES)})`);
+    },
+    [evictIfNeeded]
+  );
+
   // Synchronous data access: returns cached data or null (triggers background fetch)
   // Components use this in useMemo — first render returns null ("Loading..."),
   // once fetched the cache updates, getData gets a new identity, useMemo re-runs.
   const getData = useCallback((filename) => {
-    if (filename in cacheRef.current) return cacheRef.current[filename];
+    const cached = getCached(filename);
+    if (cached !== undefined) return cached;
 
     if (!loadingRef.current.has(filename)) {
       loadingRef.current.add(filename);
       loaderRef.current(filename)
         .then((data) => {
-          cacheRef.current[filename] = data;
-          logCacheStatus(cacheRef.current, `Loaded ${filename}`);
+          setCached(filename, data);
+          loadingRef.current.delete(filename);
           setCacheVersion((v) => v + 1);
         })
         .catch((err) => {
           console.warn(`Failed to load ${filename}:`, err);
-          cacheRef.current[filename] = null;
+          setCached(filename, null);
+          loadingRef.current.delete(filename);
           setCacheVersion((v) => v + 1);
         });
     }
 
     return null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cacheVersion]);
+  }, [cacheVersion, getCached, setCached]);
 
   // Async data access with caching (for per-canton files used in useEffect)
   const getCantonData = useCallback(async (relativePath) => {
-    if (relativePath in cacheRef.current) return cacheRef.current[relativePath];
+    const cached = getCached(relativePath);
+    if (cached !== undefined) return cached;
 
     try {
       const data = await loaderRef.current(relativePath);
-      cacheRef.current[relativePath] = data;
-      logCacheStatus(cacheRef.current, `Loaded ${relativePath}`);
+      setCached(relativePath, data);
       return data;
     } catch (err) {
       console.warn(`Failed to load: ${relativePath}`, err);
-      cacheRef.current[relativePath] = null;
+      setCached(relativePath, null);
       return null;
     }
-  }, []);
+  }, [getCached, setCached]);
+
+  const getUrlData = useCallback(async (url) => {
+    const cached = getCached(url);
+    if (cached !== undefined) return cached;
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to load ${url}: HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    setCached(url, data);
+    return data;
+  }, [getCached, setCached]);
 
   return (
-    <DataContext.Provider value={{ getData, getCantonData }}>
+    <DataContext.Provider value={{ getData, getCantonData, getUrlData }}>
       {children}
     </DataContext.Provider>
   );

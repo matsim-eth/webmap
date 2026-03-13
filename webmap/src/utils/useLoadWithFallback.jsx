@@ -1,8 +1,10 @@
 import { useFileContext } from "../FileContext";
+import { DATASET_ID } from "../config";
 
 export const useLoadWithFallback = (explicitDataURL) => {
   const { fileMap, readJSONFile, dataURL: contextDataURL } = useFileContext();
-  
+
+  const BACKEND_DATA_URL = `/backend/data/${DATASET_ID}/`;
   const DEFAULT_DATA_URL = "https://matsim-eth.github.io/webmap/data/";
   
   const loadWithFallback = async (relativePath) => {
@@ -23,6 +25,7 @@ export const useLoadWithFallback = (explicitDataURL) => {
     const candidates = [
       explicitDataURL,
       contextDataURL,
+      BACKEND_DATA_URL,
       DEFAULT_DATA_URL
     ].filter(Boolean); // remove undefined/null
     
