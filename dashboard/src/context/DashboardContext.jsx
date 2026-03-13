@@ -7,8 +7,8 @@ export const DashboardProvider = ({ children }) => {
   const [distanceType, setDistanceType] = useState("euclidean"); // "euclidean" or "network"
   const [selectedMode, setSelectedMode] = useState("all"); // "all", "bike", "car", "car_passenger", "pt", "walk"
   const [selectedPurpose, setSelectedPurpose] = useState("all"); // "all", "education", "work", "leisure", "shopping", "business", "escort"
-  const [selectedGender, setSelectedGender] = useState("male"); // "male", "female"
-  const [selectedIncome, setSelectedIncome] = useState("1"); // "1", "2", ..., "8"
+  const [selectedGender, setSelectedGender] = useState("all"); // "all", "male", "female"
+  const [selectedIncome, setSelectedIncome] = useState("all"); // "all", "1", ..., "8"
   const [selectedAge, setSelectedAge] = useState("[6, 15)"); // "[6, 15)", "[15, 18)", "[18, 24)", "[24, 30)", "[30, 45)", "[45, 65)"
   const [selectedTransitStop, setSelectedTransitStop] = useState(null); // { name, stop_id, coords, ... }
   const [selectedTransitLine, setSelectedTransitLine] = useState(null); // null (all) or line_id string

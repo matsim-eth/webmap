@@ -88,6 +88,8 @@ class NumCarsProvider(DataProvider):
 
         counts: dict = {}
         totals: dict = {}
+        overall_counts: dict = {}
+        overall_totals: dict = {}
         seen_cantons: set = set()
 
         def tally(source: str, cid: int, age, val) -> None:
@@ -100,6 +102,10 @@ class NumCarsProvider(DataProvider):
             totals[(source, cid, bin_label)]         = totals.get((source, cid, bin_label), 0) + 1
             counts[(source, "All", bin_label, cc)]   = counts.get((source, "All", bin_label, cc), 0) + 1
             totals[(source, "All", bin_label)]       = totals.get((source, "All", bin_label), 0) + 1
+            overall_counts[(source, cid, cc)] = overall_counts.get((source, cid, cc), 0) + 1
+            overall_totals[(source, cid)] = overall_totals.get((source, cid), 0) + 1
+            overall_counts[(source, "All", cc)] = overall_counts.get((source, "All", cc), 0) + 1
+            overall_totals[(source, "All")] = overall_totals.get((source, "All"), 0) + 1
 
         if "Synthetic" in sources:
             rows = con.execute(f"""
@@ -138,6 +144,11 @@ class NumCarsProvider(DataProvider):
                         num = float(counts.get((source, cid, bin_label, cc), 0))
                         share = round(num / denom, 6) if denom > 0 else 0.0
                         out.setdefault(cname, {}).setdefault(source, {}).setdefault(bin_label, {})[cc] = share
+                overall_denom = float(overall_totals.get((source, cid), 0))
+                for cc in car_classes:
+                    num = float(overall_counts.get((source, cid, cc), 0))
+                    share = round(num / overall_denom, 6) if overall_denom > 0 else 0.0
+                    out.setdefault(cname, {}).setdefault(source, {}).setdefault("All", {})[cc] = share
 
         return out
 
@@ -151,6 +162,8 @@ class NumCarsProvider(DataProvider):
 
         counts: dict = {}
         totals: dict = {}
+        overall_counts: dict = {}
+        overall_totals: dict = {}
         seen_cantons: set = set()
 
         def tally(source: str, cid: int, sex, val) -> None:
@@ -164,6 +177,10 @@ class NumCarsProvider(DataProvider):
             totals[(source, cid, g)]     = totals.get((source, cid, g), 0) + 1
             counts[(source, "All", g, cc)] = counts.get((source, "All", g, cc), 0) + 1
             totals[(source, "All", g)]     = totals.get((source, "All", g), 0) + 1
+            overall_counts[(source, cid, cc)] = overall_counts.get((source, cid, cc), 0) + 1
+            overall_totals[(source, cid)] = overall_totals.get((source, cid), 0) + 1
+            overall_counts[(source, "All", cc)] = overall_counts.get((source, "All", cc), 0) + 1
+            overall_totals[(source, "All")] = overall_totals.get((source, "All"), 0) + 1
 
         if "Synthetic" in sources:
             rows = con.execute(f"""
@@ -205,6 +222,11 @@ class NumCarsProvider(DataProvider):
                         num = float(counts.get((source, cid, g, cc), 0))
                         share = round(num / denom, 6) if denom > 0 else 0.0
                         out.setdefault(cname, {}).setdefault(source, {}).setdefault(g, {})[cc] = share
+                overall_denom = float(overall_totals.get((source, cid), 0))
+                for cc in car_classes:
+                    num = float(overall_counts.get((source, cid, cc), 0))
+                    share = round(num / overall_denom, 6) if overall_denom > 0 else 0.0
+                    out.setdefault(cname, {}).setdefault(source, {}).setdefault("All", {})[cc] = share
 
         return out
 
@@ -216,6 +238,8 @@ class NumCarsProvider(DataProvider):
 
         counts: dict = {}
         totals: dict = {}
+        overall_counts: dict = {}
+        overall_totals: dict = {}
         seen_cantons: set = set()
 
         def tally(source: str, cid: int, income, cars) -> None:
@@ -229,6 +253,10 @@ class NumCarsProvider(DataProvider):
             totals[(source, cid, ic)]        = totals.get((source, cid, ic), 0) + 1
             counts[(source, "All", ic, cc)]  = counts.get((source, "All", ic, cc), 0) + 1
             totals[(source, "All", ic)]      = totals.get((source, "All", ic), 0) + 1
+            overall_counts[(source, cid, cc)] = overall_counts.get((source, cid, cc), 0) + 1
+            overall_totals[(source, cid)] = overall_totals.get((source, cid), 0) + 1
+            overall_counts[(source, "All", cc)] = overall_counts.get((source, "All", cc), 0) + 1
+            overall_totals[(source, "All")] = overall_totals.get((source, "All"), 0) + 1
 
         if "Synthetic" in sources:
             ic_filter = ""
@@ -279,5 +307,10 @@ class NumCarsProvider(DataProvider):
                         num = float(counts.get((source, cid, ic, cc), 0))
                         share = round(num / denom, 6) if denom > 0 else 0.0
                         out.setdefault(cname, {}).setdefault(source, {}).setdefault(ic, {})[cc] = share
+                overall_denom = float(overall_totals.get((source, cid), 0))
+                for cc in car_classes:
+                    num = float(overall_counts.get((source, cid, cc), 0))
+                    share = round(num / overall_denom, 6) if overall_denom > 0 else 0.0
+                    out.setdefault(cname, {}).setdefault(source, {}).setdefault("All", {})[cc] = share
 
         return out
