@@ -2,17 +2,164 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [main]
   pull_request:
-    branches: [ "main" ]
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/matsim-eth/webmap
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
-
-  build:
-
+  # ── Detect which services changed ────────────────────────────
+  changes:
     runs-on: ubuntu-latest
-
+    outputs:
+      auth-backend: ${{ steps.filter.outputs.auth-backend }}
+      auth-frontend: ${{ steps.filter.outputs.auth-frontend }}
+      dataset-backend: ${{ steps.filter.outputs.dataset-backend }}
+      webmap-backend: ${{ steps.filter.outputs.webmap-backend }}
+      webmap-frontend: ${{ steps.filter.outputs.webmap-frontend }}
+      dashboard-frontend: ${{ steps.filter.outputs.dashboard-frontend }}
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            auth-backend:
+              - 'authentification-backend/**'
+            auth-frontend:
+              - 'authentification-frontend/**'
+            dataset-backend:
+              - 'dataset-backend/**'
+            webmap-backend:
+              - 'webmap-backend/**'
+            webmap-frontend:
+              - 'webmap-frontend/**'
+            dashboard-frontend:
+              - 'dashboard-frontend/**'
+
+  # ── Build & push images ──────────────────────────────────────
+  auth-backend:
+    needs: changes
+    if: needs.changes.outputs.auth-backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./authentification-backend
+          target: prod
+          push: ${{ github.event_name == 'push' }}
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/authentification-backend:latest
+            ${{ env.IMAGE_PREFIX }}/authentification-backend:${{ github.sha }}
+
+  auth-frontend:
+    needs: changes
+    if: needs.changes.outputs.auth-frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./authentification-frontend
+          push: ${{ github.event_name == 'push' }}
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/authentification-frontend:latest
+            ${{ env.IMAGE_PREFIX }}/authentification-frontend:${{ github.sha }}
+
+  dataset-backend:
+    needs: changes
+    if: needs.changes.outputs.dataset-backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./dataset-backend
+          target: prod
+          push: ${{ github.event_name == 'push' }}
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/dataset-backend:latest
+            ${{ env.IMAGE_PREFIX }}/dataset-backend:${{ github.sha }}
+
+  webmap-backend:
+    needs: changes
+    if: needs.changes.outputs.webmap-backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./webmap-backend
+          target: prod
+          push: ${{ github.event_name == 'push' }}
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/webmap-backend:latest
+            ${{ env.IMAGE_PREFIX }}/webmap-backend:${{ github.sha }}
+
+  webmap-frontend:
+    needs: changes
+    if: needs.changes.outputs.webmap-frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./webmap-frontend
+          target: prod
+          push: ${{ github.event_name == 'push' }}
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/webmap-frontend:latest
+            ${{ env.IMAGE_PREFIX }}/webmap-frontend:${{ github.sha }}
+
+  dashboard-frontend:
+    needs: changes
+    if: needs.changes.outputs.dashboard-frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./dashboard-frontend
+          target: prod
+          push: ${{ github.event_name == 'push' }}
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/dashboard-frontend:latest
+            ${{ env.IMAGE_PREFIX }}/dashboard-frontend:${{ github.sha }}
