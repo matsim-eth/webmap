@@ -1,6 +1,6 @@
 import duckdb
 
-from .base import DataProvider
+from .base import DataProvider, Param, CANTON, SOURCE, PURPOSE
 from .helpers import canton_filter_sql, parse_source_param, build_canton_lookup, purpose_filter_sql
 from .paths import get_data_paths
 
@@ -29,6 +29,9 @@ class ActivityDurationsProvider(DataProvider):
     """
 
     ROUTE = "activity_durations.json"
+    PARAMS = [CANTON, SOURCE, PURPOSE,
+              Param("step_min", "Slot width in minutes (default 30)", param_type="integer"),
+              Param("max_hours", "Maximum duration in hours (default 24)", param_type="integer")]
 
     def deliver(self, params: dict) -> dict:
         paths = get_data_paths()

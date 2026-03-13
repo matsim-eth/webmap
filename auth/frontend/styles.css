@@ -110,3 +110,43 @@ body{
   from{ opacity: 0; transform: translateY(6px); }
   to{ opacity: 1; transform: translateY(0); }
 }
+
+/* ── Admin panel ──────────────────────────────────────────────── */
+
+.admin-card{
+  max-width: 960px;
+  background: var(--bs-body-bg);
+  border: 1px solid var(--soft-border);
+  border-radius: var(--card-radius);
+  padding: 18px;
+  box-shadow: var(--soft-shadow);
+  transform: translateY(6px);
+  opacity: 0;
+  animation: cardIn 280ms cubic-bezier(.2,.8,.2,1) forwards;
+}
+
+@media (min-width: 768px){
+  .admin-card{ padding: 22px; }
+}
+
+.admin-card .table th{
+  font-weight: 600;
+  font-size: .8rem;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  border-bottom: 2px solid #dee2e6;
+  white-space: nowrap;
+}
+
+.admin-card .table td{
+  font-size: .85rem;
+  vertical-align: middle;
+}
+
+.admin-card .badge{
+  border-radius: 8px;
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+}

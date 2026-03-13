@@ -2,19 +2,18 @@ services:
   authentification_database:
     image: postgres:16
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
-      POSTGRES_DB: appdb
+      POSTGRES_USER: "${AUTH_DB_USER:-user}"
+      POSTGRES_PASSWORD: "${AUTH_DB_PASSWORD:-pass}"
+      POSTGRES_DB: "${AUTH_DB_NAME:-appdb}"
     volumes:
       - auth_db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d appdb"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 2s
       timeout: 5s
       retries: 30
     networks:
       - internal
-
 
   authentification_frontend:
     build:
@@ -23,6 +22,9 @@ services:
     volumes:
       - ./auth/frontend/webserver/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./auth/frontend/webserver/auth_frontend.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./auth/frontend/admin/:/usr/share/nginx/html/admin/:ro
+      - ./auth/frontend/index.html:/usr/share/nginx/html/index.html:ro
+      - ./auth/frontend/styles.css:/usr/share/nginx/html/styles.css:ro
     expose:
       - "5022"
     profiles: ["deploy", "dev"]
@@ -35,7 +37,19 @@ services:
       dockerfile: Dockerfile
     environment:
       DB_CREATE_TABLES: "1"
-      DATABASE_URL: postgresql+asyncpg://user:pass@authentification_database:5432/appdb
+      UVICORN_WORKERS: "1"
+      DATABASE_URL: "postgresql+asyncpg://${AUTH_DB_USER:-user}:${AUTH_DB_PASSWORD:-pass}@authentification_database:5432/${AUTH_DB_NAME:-appdb}"
+      JWT_SECRET: "${JWT_SECRET:-UltraSecretKey}"
+      ACCESS_TOKEN_MINUTES: "${ACCESS_TOKEN_MINUTES:-15}"
+      REFRESH_TOKEN_DAYS: "${REFRESH_TOKEN_DAYS:-14}"
+      ENV: "${ENV:-prod}"
+      DEV_MODE: "${DEV_MODE:-0}"
+      ADMIN_EMAIL: "${ADMIN_EMAIL:-admin@webmap.local}"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD:-}"
+      DEV_EMAIL: "${DEV_EMAIL:-dev@local}"
+      DEV_PASSWORD: "${DEV_PASSWORD:-dev}"
+      DATASET_SERVICE_URL: http://dataset_backend:5033
+      ROOT_PATH: /authentification/backend
     depends_on:
       authentification_database:
         condition: service_healthy
@@ -46,19 +60,69 @@ services:
     networks:
       - internal
 
+  dataset_database:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: "${DATASET_DB_USER:-dataset_user}"
+      POSTGRES_PASSWORD: "${DATASET_DB_PASSWORD:-dataset_pass}"
+      POSTGRES_DB: "${DATASET_DB_NAME:-datasetdb}"
+    volumes:
+      - dataset_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+    networks:
+      - internal
+
+  dataset_backend:
+    build:
+      context: ./dataset/backend
+      dockerfile: Dockerfile
+    environment:
+      DB_CREATE_TABLES: "1"
+      UVICORN_WORKERS: "1"
+      DATABASE_URL: "postgresql+asyncpg://${DATASET_DB_USER:-dataset_user}:${DATASET_DB_PASSWORD:-dataset_pass}@dataset_database:5432/${DATASET_DB_NAME:-datasetdb}"
+      JWT_SECRET: "${JWT_SECRET:-UltraSecretKey}"
+      ACCESS_TOKEN_MINUTES: "${ACCESS_TOKEN_MINUTES:-15}"
+      REFRESH_TOKEN_DAYS: "${REFRESH_TOKEN_DAYS:-14}"
+      DATASET_STORAGE_ROOT: /data/datasets
+      ROOT_PATH: /backend/datasets
+    volumes:
+      - dataset_storage:/data/datasets
+    depends_on:
+      dataset_database:
+        condition: service_healthy
+    restart: unless-stopped
+    expose:
+      - "5033"
+    profiles: ["deploy", "dev"]
+    networks:
+      - internal
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     environment:
-      LOCAL_RUN: "1"
-      WEBMAP_ROOT: "./dummy_data/webmap_data/"
-      CORS_ORIGINS: "*"
+      JWT_SECRET: "${JWT_SECRET:-UltraSecretKey}"
+      ACCESS_TOKEN_MINUTES: "${ACCESS_TOKEN_MINUTES:-15}"
+      REFRESH_TOKEN_DAYS: "${REFRESH_TOKEN_DAYS:-14}"
+      DATASET_SERVICE_URL: http://dataset_backend:5033
+      DATASET_STORAGE_ROOT: /data/datasets
+      WEBMAP_ROOT: "${WEBMAP_ROOT:-/data/datasets/public}"
+      ROOT_PATH: /backend
+      LOCAL_RUN: "${LOCAL_RUN:-0}"
+      CORS_ORIGINS: "${CORS_ORIGINS:-}"
+    volumes:
+      - dataset_storage:/data/datasets:ro
+    depends_on:
+      dataset_backend:
+        condition: service_started
+    restart: unless-stopped
     expose:
       - "5031"
-    volumes:
-      - ./backend:/app
-    restart: unless-stopped
     profiles: ["deploy", "dev"]
     networks:
       - internal
@@ -136,6 +200,8 @@ services:
         condition: service_started
       backend:
         condition: service_started
+      dataset_backend:
+        condition: service_started
       authentification_frontend:
         condition: service_started
       authentification_backend:
@@ -159,11 +225,12 @@ services:
         condition: service_started
       backend:
         condition: service_started
+      dataset_backend:
+        condition: service_started
       authentification_frontend:
         condition: service_started
       authentification_backend:
         condition: service_started
-
     restart: unless-stopped
     profiles: ["deploy"]
     networks:
@@ -176,6 +243,18 @@ volumes:
       type: none
       o: bind
       device: ./auth/database
+  dataset_db_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./dataset/database
+  dataset_storage:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./dataset/storage
   webmap_node_modules:
   dashboard_node_modules:
 
@@ -188,20 +267,26 @@ networks:
 # Port-Code: 5 M S T
 #   M = Mode    (0 = deploy, 1 = dev)
 #   S = Service (1 = proxy, 2 = frontend, 3 = backend, 4 = db)
-#   T = Type    (1 = webmap, 2 = auth)
+#   T = Type    (1 = webmap, 2 = auth, 3 = dataset)
 #
-# Deploy:
-#   5011 -> proxy_deploy (HTTP, einziger externer Entry-Point)
-#   webmap_prod  -> intern :80 (nur über Proxy erreichbar)
-#   backend      -> intern :5031 (nur über Proxy erreichbar)
-#
-# Dev:
-#   5111 -> proxy_dev (HTTP)
-#   5121 -> webmap_dev (Vite Dev Server, optional direkter Zugriff)
-#   backend -> intern :5031 (über Proxy erreichbar)
+# Services:
+#   authentification_database  -> intern :5432  (T=2, S=4)
+#   authentification_backend   -> :5032         (T=2, S=3)
+#   authentification_frontend  -> :5022         (T=2, S=2)
+#   dataset_database           -> intern :5432  (T=3, S=4)
+#   dataset_backend            -> :5033         (T=3, S=3)
+#   backend                    -> :5031         (T=1, S=3)
+#   webmap_dev                 -> :5121         (T=1, S=2, dev)
+#   webmap_prod                -> :5021         (T=1, S=2, deploy)
+#   dashboard_dev              -> :5122         (T=1, S=2, dev)
+#   dashboard_prod             -> :5023         (T=1, S=2, deploy)
+#   proxy_dev                  -> :80           (dev)
+#   proxy_deploy               -> :80           (deploy)
 #
 # WICHTIG:
 # - Proxy ist der einzige Service mit Host-Port im Deploy.
-# - In nginx-upstreams IMMER Service-Namen + Container-Port verwenden
-#   (z.B. backend:5031, webmap_prod:80), NIE Host-Ports.
+# - In nginx-upstreams IMMER Service-Namen + Container-Port verwenden.
+# - /backend/..., /backend/datasets/..., /authentification/backend/...
+#   werden im Proxy per Rewrite auf /... gestripped.
+# - ALLE konfigurierbaren Variablen stehen in der root .env Datei.
 # ========================================================================

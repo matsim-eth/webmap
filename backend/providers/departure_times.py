@@ -1,6 +1,6 @@
 import duckdb
 
-from .base import DataProvider
+from .base import DataProvider, Param, CANTON, SOURCE, MODE
 from .constants import canton_name
 from .helpers import canton_filter_sql, parse_source_param, build_canton_lookup, mode_filter_sql
 from .paths import get_data_paths
@@ -27,6 +27,12 @@ class DepartureTimesProvider(DataProvider):
     """
 
     ROUTE = "departure_times.json"
+    PARAMS = [
+        CANTON, SOURCE, MODE,
+        Param("start_min", "Start of time window in minutes from midnight", default=0, param_type="integer"),
+        Param("end_min", "End of time window in minutes from midnight", default=1440, param_type="integer"),
+        Param("step_min", "Bin width in minutes", default=30, param_type="integer"),
+    ]
 
     def deliver(self, params: dict) -> dict:
         paths = get_data_paths()

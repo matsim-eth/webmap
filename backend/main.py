@@ -1,83 +1,98 @@
-# main.py
-
-import os
-import sys
-from pathlib import Path
-
-from jsonprovider.gender import gender
-from jsonprovider.departure_times import departure_times
-from jsonprovider.car_availability import car_availability
-from jsonprovider.num_cars_age import num_cars_age
-from jsonprovider.num_cars_gender import num_cars_gender
-from jsonprovider.num_cars_income import num_cars_income
-from jsonprovider.pt_subscriptions import pt_subscriptions
-from jsonprovider.pt_sub_age import pt_sub_age
-from jsonprovider.pt_sub_gender import pt_sub_gender
-from jsonprovider.pt_sub_income import pt_sub_income
-BACKEND_DIR = Path(__file__).resolve().parent
-WEBMAP_DIR = BACKEND_DIR.parent
-PROJECT_ROOT = WEBMAP_DIR.parent
-
-sys.path.insert(0, str(BACKEND_DIR))
-sys.path.insert(0, str(PROJECT_ROOT))
-
-from jsonprovider.DataProvider import mount_provider
-from jsonprovider.age import age
 import logging
+import os
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-try:
-    from AuthAPI import User, create_refresh_token, token_hash, RefreshToken, get_db, create_access_token, decode_token, \
-        verify_password, hash_password, Base, RequireUser
-except ImportError:
-    RequireUser = None
-from fastapi import FastAPI, Request, Response, status, Depends
+
+from AuthAPI import API, decode_token
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.gzip import GZipMiddleware
-
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-os.environ["WEBMAP_ROOT"] = "./dummy_data/webmap_data/"
+from providers import ALL_PROVIDERS
+from providers.base import mount_provider
 
-LOCAL_RUN = (os.getenv("LOCAL_RUN", "0").strip().lower() in {"1", "true"})
+# ---------------------------------------------------------------------------
+# Environment / config
+# ---------------------------------------------------------------------------
 
-def LocalUser():
-    return {"username": "local"}
+os.environ.setdefault("WEBMAP_ROOT", "/data/datasets/public")
 
-
-
-
-async def OptionalUser(request: Request):
-    if LOCAL_RUN:
-        return LocalUser()
-    u = RequireUser(request)
-    if hasattr(u, "__await__"):
-        u = await u
-    return u
-
-
-APP_NAME = os.getenv("APP_NAME", "backend")
-ENV = os.getenv("ENV", "dev")
+APP_NAME  = os.getenv("APP_NAME", "backend")
+ENV       = os.getenv("ENV", "dev")
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 
-ALLOWED_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
-TRUSTED_HOSTS = [h.strip() for h in os.getenv("TRUSTED_HOSTS", "").split(",") if h.strip()]
+LOCAL_RUN = os.getenv("LOCAL_RUN", "0").strip().lower() in {"1", "true"}
 
-COOKIE_SECURE = os.getenv("COOKIE_SECURE", "1" if ENV == "prod" else "0") == "1"
-COOKIE_SAMESITE = os.getenv("COOKIE_SAMESITE", "lax")
-ACCESS_COOKIE_NAME = os.getenv("ACCESS_COOKIE_NAME", "access_token")
+ALLOWED_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
+TRUSTED_HOSTS   = [h.strip() for h in os.getenv("TRUSTED_HOSTS", "").split(",") if h.strip()]
+
+COOKIE_SECURE    = os.getenv("COOKIE_SECURE", "1" if ENV == "prod" else "0") == "1"
+COOKIE_SAMESITE  = os.getenv("COOKIE_SAMESITE", "lax")
+ACCESS_COOKIE_NAME  = os.getenv("ACCESS_COOKIE_NAME",  "access_token")
 REFRESH_COOKIE_NAME = os.getenv("REFRESH_COOKIE_NAME", "refresh_token")
 
-docs_url = None if ENV == "prod" else "/docs"
-redoc_url = None if ENV == "prod" else "/redoc"
+docs_url    = None if ENV == "prod" else "/docs"
+redoc_url   = None if ENV == "prod" else "/redoc"
 openapi_url = None if ENV == "prod" else "/openapi.json"
+
+# ---------------------------------------------------------------------------
+# AuthAPI (JWT-only, no database)
+# ---------------------------------------------------------------------------
+
+if not LOCAL_RUN:
+    API.init(
+        secret_key=os.getenv("JWT_SECRET", "UltraSecretKey"),
+        algorithm=os.getenv("JWT_ALG", "HS256"),
+        access_minutes=int(os.getenv("ACCESS_TOKEN_MINUTES", "15")),
+        refresh_days=int(os.getenv("REFRESH_TOKEN_DAYS", "14")),
+        bcrypt_rounds=int(os.getenv("BCRYPT_ROUNDS", "12")),
+        access_cookie_name=ACCESS_COOKIE_NAME,
+        use_db=False,
+    )
+
+# ---------------------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------------------
 
 logging.basicConfig(level=LOG_LEVEL, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 logger = logging.getLogger(APP_NAME)
 
+# ---------------------------------------------------------------------------
+# Auth helpers
+# ---------------------------------------------------------------------------
+
+def _local_user() -> dict:
+    return {"username": "local"}
+
+
+async def OptionalUser(request: Request) -> dict:
+    if LOCAL_RUN:
+        return _local_user()
+    token = request.cookies.get(ACCESS_COOKIE_NAME)
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    try:
+        claims = decode_token(token)
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    return claims
+
+
+def _ttl_seconds_from_exp(exp: int | None) -> int | None:
+    if not exp:
+        return None
+    now = int(datetime.now(timezone.utc).timestamp())
+    ttl = int(exp) - now
+    return ttl if ttl > 0 else 0
+
+# ---------------------------------------------------------------------------
+# App
+# ---------------------------------------------------------------------------
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -87,24 +102,42 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=APP_NAME,
     lifespan=lifespan,
-    root_path="/backend",
     docs_url=docs_url,
     redoc_url=redoc_url,
     openapi_url=openapi_url,
+    root_path=os.getenv("ROOT_PATH", ""),
 )
 
-mount_provider(app, age(), prefix="/data")
-mount_provider(app, gender(), prefix="/data")
-mount_provider(app, departure_times(), prefix="/data")
-mount_provider(app, car_availability(), prefix="/data")
-mount_provider(app, num_cars_age(), prefix="/data")
-mount_provider(app, num_cars_gender(), prefix="/data")
-mount_provider(app, num_cars_income(), prefix="/data")
-mount_provider(app, pt_subscriptions(), prefix="/data")
-mount_provider(app, pt_sub_age(), prefix="/data")
-mount_provider(app, pt_sub_gender(), prefix="/data")
-mount_provider(app, pt_sub_income(), prefix="/data")
+# --- Auth middleware -------------------------------------------------------
 
+_PUBLIC_PATHS = {"/health", "/docs", "/redoc", "/openapi.json"}
+
+
+class AuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        if LOCAL_RUN:
+            return await call_next(request)
+        if request.url.path in _PUBLIC_PATHS:
+            return await call_next(request)
+        token = request.cookies.get(ACCESS_COOKIE_NAME)
+        if not token:
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Not authenticated"},
+            )
+        try:
+            decode_token(token)
+        except Exception:
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Invalid or expired token"},
+            )
+        return await call_next(request)
+
+
+# --- Middleware (order matters: added last = outermost) --------------------
+
+app.add_middleware(AuthMiddleware)
 
 if TRUSTED_HOSTS:
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=TRUSTED_HOSTS)
@@ -121,6 +154,12 @@ if ALLOWED_ORIGINS:
         expose_headers=["Location", "Set-Cookie"],
     )
 
+# --- Data providers -------------------------------------------------------
+
+for provider in ALL_PROVIDERS:
+    mount_provider(app, provider, prefix="/data")
+
+# --- Exception handlers ---------------------------------------------------
 
 class ErrorOut(BaseModel):
     detail: str
@@ -143,16 +182,9 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
         content={"detail": "Internal Server Error"},
     )
 
-
-def _ttl_seconds_from_exp(exp: int | None) -> int | None:
-    if not exp:
-        return None
-    now = int(datetime.now(timezone.utc).timestamp())
-    ttl = int(exp) - now
-    return ttl if ttl > 0 else 0
-
+# --- Routes ---------------------------------------------------------------
 
 
 @app.get("/health", response_model=dict)
-async def health(user = Depends(OptionalUser)):
-    return {"status": "ok", "local_run": LOCAL_RUN, "name": user.get("username")}
+async def health():
+    return {"status": "ok", "local_run": LOCAL_RUN, "env": ENV}

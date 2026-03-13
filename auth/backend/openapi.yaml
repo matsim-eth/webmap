@@ -1,0 +1,484 @@
+openapi: 3.1.0
+info:
+  title: Auth Service
+  description: Authentication and user management service. Handles registration, login, JWT token lifecycle, and admin user operations.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:5032
+    description: Local development
+  - url: /authentification/backend
+    description: Via Nginx proxy
+
+security:
+  - cookieAuth: []
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      operationId: health
+      security: []
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  env:
+                    type: string
+                    example: dev
+
+  /register:
+    post:
+      summary: Register a new user
+      operationId: register
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "200":
+          description: User created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  email:
+                    type: string
+        "409":
+          description: Email or username already taken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /login:
+    post:
+      summary: Authenticate user and issue JWT tokens
+      operationId: login
+      security: []
+      description: |
+        Accepts email, username, or a generic identifier field.
+        Sets access_token and refresh_token as HttpOnly cookies.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful. Tokens set as cookies.
+          headers:
+            Set-Cookie:
+              description: access_token and refresh_token HttpOnly cookies
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /refresh:
+    post:
+      summary: Refresh access token using refresh token
+      operationId: refreshToken
+      description: |
+        Accepts refresh token via cookie, X-Refresh-Token header, or request body.
+        Rotates the refresh token (old one is revoked).
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+      parameters:
+        - name: X-Refresh-Token
+          in: header
+          schema:
+            type: string
+      responses:
+        "200":
+          description: New token pair issued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+        "401":
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /me:
+    get:
+      summary: Get current user profile
+      operationId: me
+      responses:
+        "200":
+          description: Current user info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /logout:
+    get:
+      summary: Logout (GET)
+      operationId: logoutGet
+      description: Revokes refresh token and clears auth cookies.
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+    post:
+      summary: Logout (POST)
+      operationId: logoutPost
+      description: Revokes refresh token and clears auth cookies.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+      parameters:
+        - name: X-Refresh-Token
+          in: header
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+
+  # ── Admin endpoints ──────────────────────────────────────────
+
+  /admin/users:
+    get:
+      summary: List all users (admin only)
+      operationId: adminListUsers
+      tags: [admin]
+      responses:
+        "200":
+          description: All users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AdminUserOut"
+        "403":
+          description: Not an admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /admin/users/{user_id}:
+    get:
+      summary: Get a single user (admin only)
+      operationId: adminGetUser
+      tags: [admin]
+      parameters:
+        - $ref: "#/components/parameters/userId"
+      responses:
+        "200":
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserOut"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    patch:
+      summary: Update a user (admin only)
+      operationId: adminUpdateUser
+      tags: [admin]
+      parameters:
+        - $ref: "#/components/parameters/userId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUserUpdateRequest"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  email:
+                    type: string
+                  admin:
+                    type: boolean
+                  dev:
+                    type: boolean
+                  is_active:
+                    type: boolean
+        "400":
+          description: Cannot modify system account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Username already taken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      summary: Delete a user (admin only)
+      operationId: adminDeleteUser
+      tags: [admin]
+      parameters:
+        - $ref: "#/components/parameters/userId"
+        - name: hard
+          in: query
+          description: "true = permanently delete user and storage. false = soft-delete (deactivate)."
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: User deleted or deactivated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  id:
+                    type: integer
+                  action:
+                    type: string
+                    enum: [hard_deleted, deactivated]
+        "400":
+          description: Cannot delete system account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token
+
+  parameters:
+    userId:
+      name: user_id
+      in: path
+      required: true
+      schema:
+        type: integer
+
+  schemas:
+    Error:
+      type: object
+      required: [detail]
+      properties:
+        detail:
+          type: string
+
+    RegisterRequest:
+      type: object
+      required: [email, password, first_name, last_name]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        first_name:
+          type: string
+        last_name:
+          type: string
+        company:
+          type: string
+          nullable: true
+        username:
+          type: string
+          nullable: true
+        newsletter:
+          type: boolean
+          default: false
+
+    LoginRequest:
+      type: object
+      required: [password]
+      description: At least one of email, username, or identifier must be provided.
+      properties:
+        password:
+          type: string
+        email:
+          type: string
+          nullable: true
+        username:
+          type: string
+          nullable: true
+        identifier:
+          type: string
+          nullable: true
+          description: Generic field — auto-detected as email or username.
+
+    RefreshRequest:
+      type: object
+      properties:
+        refresh_token:
+          type: string
+          nullable: true
+
+    TokenResponse:
+      type: object
+      required: [access_token, refresh_token]
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        token_type:
+          type: string
+          default: bearer
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        username:
+          type: string
+          nullable: true
+        admin:
+          type: boolean
+        dev:
+          type: boolean
+        first_name:
+          type: string
+        last_name:
+          type: string
+        is_active:
+          type: boolean
+        company:
+          type: string
+          nullable: true
+        newsletter:
+          type: boolean
+
+    AdminUserOut:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        username:
+          type: string
+          nullable: true
+        first_name:
+          type: string
+        last_name:
+          type: string
+        company:
+          type: string
+          nullable: true
+        admin:
+          type: boolean
+        dev:
+          type: boolean
+        is_active:
+          type: boolean
+        newsletter:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    AdminUserUpdateRequest:
+      type: object
+      properties:
+        admin:
+          type: boolean
+          nullable: true
+        dev:
+          type: boolean
+          nullable: true
+        is_active:
+          type: boolean
+          nullable: true
+        first_name:
+          type: string
+          nullable: true
+        last_name:
+          type: string
+          nullable: true
+        company:
+          type: string
+          nullable: true
+        email:
+          type: string
+          format: email
+          nullable: true
+        username:
+          type: string
+          nullable: true
+        password:
+          type: string
+          minLength: 8
+          nullable: true

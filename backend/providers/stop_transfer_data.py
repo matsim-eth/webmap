@@ -1,7 +1,7 @@
 import json
 import os
 
-from .base import DataProvider
+from .base import DataProvider, Param
 from .paths import get_data_paths
 
 
@@ -21,6 +21,12 @@ class StopTransferDataProvider(DataProvider):
     """
 
     ROUTE = "stop_transfer_data_by_canton.json"
+    PARAMS = [
+        Param("canton", "Comma-separated canton names to include"),
+        Param("min_boardings", "Only include stops with at least this many boardings", param_type="integer"),
+        Param("min_transfers", "Only include stops with at least this many transfers", param_type="integer"),
+        Param("stop_id", "Comma-separated stop IDs to include"),
+    ]
     _data: dict | None = None
 
     def _load(self) -> dict:

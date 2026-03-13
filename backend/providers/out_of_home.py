@@ -1,7 +1,7 @@
 import duckdb
 from collections import defaultdict
 
-from .base import DataProvider
+from .base import DataProvider, Param, CANTON, SOURCE, GENDER
 from .helpers import canton_filter_sql, gender_filter_sql, parse_source_param, build_canton_lookup
 from .paths import get_data_paths
 
@@ -26,6 +26,8 @@ class OutOfHomeProvider(DataProvider):
     """
 
     ROUTE = "out_of_home.json"
+    PARAMS = [CANTON, SOURCE, GENDER,
+              Param("top_n", "Number of top categories to return (default 10)", param_type="integer")]
 
     def deliver(self, params: dict) -> dict:
         paths = get_data_paths()

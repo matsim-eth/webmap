@@ -1,7 +1,7 @@
 import duckdb
 from collections import defaultdict
 
-from .base import DataProvider
+from .base import DataProvider, Param, CANTON, SOURCE
 from .helpers import canton_filter_sql, parse_source_param, build_canton_lookup
 from .paths import get_data_paths
 
@@ -26,6 +26,9 @@ class FrequentSequencesProvider(DataProvider):
     """
 
     ROUTE = "frequent_sequences.json"
+    PARAMS = [CANTON, SOURCE,
+              Param("top_n", "Number of top sequences to return (default 9)", param_type="integer"),
+              Param("min_share", "Minimum share threshold to include", param_type="number")]
 
     def deliver(self, params: dict) -> dict:
         paths = get_data_paths()

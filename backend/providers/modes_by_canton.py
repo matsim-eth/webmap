@@ -1,6 +1,6 @@
 import duckdb
 
-from .base import DataProvider
+from .base import DataProvider, Param, CANTON, SOURCE
 from .constants import canton_name, CANTON_MAP
 from .helpers import canton_filter_sql, parse_source_param, build_canton_lookup
 from .paths import get_data_paths
@@ -18,6 +18,8 @@ class ModesByCantonProvider(DataProvider):
     """
 
     ROUTE = "modes_by_canton.json"
+    PARAMS = [CANTON, SOURCE,
+              Param("exclude_modes", "Comma-separated modes to exclude from results")]
 
     def deliver(self, params: dict) -> dict:
         paths = get_data_paths()

@@ -1,6 +1,6 @@
 import duckdb
 
-from .base import DataProvider
+from .base import DataProvider, CANTON, SOURCE, GENDER
 
 from .helpers import canton_filter_sql, gender_filter_sql, parse_source_param, build_canton_lookup
 from .paths import get_data_paths
@@ -18,6 +18,7 @@ class CarAvailabilityProvider(DataProvider):
     """
 
     ROUTE = "car_availability.json"
+    PARAMS = [CANTON, SOURCE, GENDER]
 
     def deliver(self, params: dict) -> dict:
         paths = get_data_paths()

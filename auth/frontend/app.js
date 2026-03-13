@@ -22,21 +22,7 @@ const toastBody = el("toastBody");
 
 let toast;
 
-(function traceRedirects() {
-  try {
-    const _assign = window.location.assign.bind(window.location);
-    const _replace = window.location.replace.bind(window.location);
-    window.location.assign = (u) => {
-      console.trace("location.assign", u);
-      return _assign(u);
-    };
-    window.location.replace = (u) => {
-      console.trace("location.replace", u);
-      return _replace(u);
-    };
-  } catch {
-  }
-})();
+// ── Helpers ──────────────────────────────────────────────────────
 
 function setLoading(btn, spinner, on) {
   if (btn) btn.disabled = !!on;
@@ -63,8 +49,15 @@ function redirectAfterLogin() {
 function isProbablyEmail(s) {
   const v = String(s || "").trim();
   if (!v) return false;
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+  return v.includes("@");
 }
+
+function showView(view) {
+  el("authView").classList.toggle("d-none", view !== "auth");
+  el("loggedInView").classList.toggle("d-none", view !== "loggedIn");
+}
+
+// ── Password match validation ───────────────────────────────────
 
 function updatePasswordMatchValidity() {
   if (!regPassword || !regPassword2) return;
@@ -81,6 +74,8 @@ if (regPassword && regPassword2) {
   regPassword.addEventListener("input", updatePasswordMatchValidity);
   regPassword2.addEventListener("input", updatePasswordMatchValidity);
 }
+
+// ── API helpers ─────────────────────────────────────────────────
 
 async function readJsonOrText(res) {
   const ct = (res.headers.get("content-type") || "").toLowerCase();
@@ -132,18 +127,6 @@ async function api(path, { method = "GET", body = null, allow401 = false } = {})
   return res;
 }
 
-async function isLoggedIn() {
-  const r1 = await api("/me", { method: "GET", allow401: true });
-  if (r1.ok) return true;
-  if (r1.status !== 401) return false;
-
-  const ok = await refresh().catch(() => false);
-  if (!ok) return false;
-
-  const r2 = await api("/me", { method: "GET", allow401: true });
-  return r2.ok;
-}
-
 function fdToObj(form) {
   const fd = new FormData(form);
   const obj = {};
@@ -158,6 +141,8 @@ function loginPayload(identifier, password) {
   if (isProbablyEmail(id)) return { email: id.toLowerCase(), password: pw };
   return { username: id, password: pw };
 }
+
+// ── Login form ──────────────────────────────────────────────────
 
 if (loginForm) {
   loginForm.addEventListener("submit", async (e) => {
@@ -185,6 +170,16 @@ if (loginForm) {
         return;
       }
 
+      // After login, check if admin/dev → redirect to admin panel, else app
+      const meRes = await api("/me", { allow401: true });
+      if (meRes.ok) {
+        const userData = await meRes.json();
+        if (userData.admin || userData.dev) {
+          window.location.assign("/authentification/admin/");
+          return;
+        }
+      }
+
       redirectAfterLogin();
     } catch {
       showToast("Network error");
@@ -193,6 +188,8 @@ if (loginForm) {
     }
   });
 }
+
+// ── Register form ───────────────────────────────────────────────
 
 if (registerForm) {
   registerForm.addEventListener("submit", async (e) => {
@@ -246,6 +243,8 @@ if (registerForm) {
   });
 }
 
+// ── Tab links ───────────────────────────────────────────────────
+
 const toRegister = el("toRegister");
 const toLogin = el("toLogin");
 
@@ -261,13 +260,48 @@ if (toLogin) {
   });
 }
 
+// ── Logout handlers ─────────────────────────────────────────────
+
+function attachLogout(btnId) {
+  const btn = el(btnId);
+  if (!btn) return;
+  btn.addEventListener("click", async () => {
+    btn.disabled = true;
+    try {
+      await api("/logout", { method: "POST", body: {}, allow401: true });
+    } catch { /* ignore */ }
+    window.location.reload();
+  });
+}
+
+attachLogout("logoutBtn");
+
+// ── Init ────────────────────────────────────────────────────────
+
 (async function init() {
   try {
-    const ok = await isLoggedIn();
-    if (ok) {
-      window.location.assign(CONFIG.DEFAULT_RETURN_TO);
+    let meRes = await api("/me", { method: "GET", allow401: true });
+
+    if (!meRes.ok && meRes.status === 401) {
+      const ok = await refresh().catch(() => false);
+      if (ok) {
+        meRes = await api("/me", { method: "GET", allow401: true });
+      }
+    }
+
+    if (!meRes.ok) {
+      showView("auth");
       return;
     }
+
+    const userData = await meRes.json();
+
+    if (userData.admin || userData.dev) {
+      window.location.assign("/authentification/admin/");
+    } else {
+      showView("loggedIn");
+    }
   } catch {
+    showView("auth");
   }
 })();

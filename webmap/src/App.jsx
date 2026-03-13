@@ -7,7 +7,7 @@ import NetworkLegend from "./components/NetworkLegend";
 import { FileProvider } from "./FileContext";
 import { AppProvider, useApp } from "./context/AppContext";
 
-window.name = 'webmap-tab'; 
+window.name = 'webmap-tab';
 
 function App() {
   return (

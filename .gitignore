@@ -19,11 +19,16 @@ dist-ssr/
 
 # Environment variables
 .env
+**/.env
 .env.*.local
 *.local
+
 # OS/system files
 .DS_Store
 Thumbs.db
+
+# Claude
+.claude/
 
 # Editor settings
 .vscode/
@@ -34,11 +39,17 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Python
 *.venv
 __pycache__/
 *.pyc
-/auth/database/
+
+# Data & Storage (NEVER commit these)
 /backend/dummy_data/
-/webmap/public/data
-.claude/
-DTSM Validation.code-workspace
+/webmap/public/data/
+/dataset/storage/
+/dataset/database/
+/auth/database/
+*.duckdb
+*.parquet

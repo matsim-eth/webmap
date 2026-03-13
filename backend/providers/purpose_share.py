@@ -1,6 +1,6 @@
 import duckdb
 
-from .base import DataProvider
+from .base import DataProvider, CANTON, SOURCE, GENDER, MODE, PURPOSE
 from .constants import canton_name
 from .helpers import (
     canton_filter_sql,
@@ -27,6 +27,7 @@ class PurposeShareProvider(DataProvider):
     """
 
     ROUTE = "purpose_share.json"
+    PARAMS = [CANTON, SOURCE, GENDER, MODE, PURPOSE]
 
     def deliver(self, params: dict) -> dict:
         paths = get_data_paths()

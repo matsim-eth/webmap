@@ -1,0 +1,582 @@
+openapi: 3.1.0
+info:
+  title: Dataset Service
+  description: |
+    Manages per-user datasets, file uploads, and storage lifecycle.
+    Provides both public endpoints (routed via Nginx) and internal
+    service-to-service endpoints (called directly by auth-service).
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:5033
+    description: Local development
+  - url: /backend/datasets
+    description: Via Nginx proxy (public endpoints)
+
+security:
+  - cookieAuth: []
+
+paths:
+  # ── Health ──────────────────────────────────────────────────────
+
+  /health:
+    get:
+      summary: Health check
+      operationId: health
+      security: []
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  service:
+                    type: string
+                    example: dataset-service
+                  env:
+                    type: string
+                    example: dev
+
+  # ── Dataset CRUD ────────────────────────────────────────────────
+
+  /datasets:
+    get:
+      summary: List datasets accessible to the current user
+      operationId: listDatasets
+      description: Returns the user's own private datasets plus all public datasets.
+      responses:
+        "200":
+          description: Dataset list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetListOut"
+
+    post:
+      summary: Create a new dataset
+      operationId: createDataset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DatasetCreate"
+      responses:
+        "201":
+          description: Dataset created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetOut"
+        "409":
+          description: Dataset with this name already exists for this user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /datasets/{dataset_id}:
+    get:
+      summary: Get a single dataset
+      operationId: getDataset
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+      responses:
+        "200":
+          description: Dataset details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetOut"
+        "403":
+          description: No access to this dataset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Dataset not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    patch:
+      summary: Update dataset name or description
+      operationId: updateDataset
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DatasetUpdate"
+      responses:
+        "200":
+          description: Updated dataset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetOut"
+        "403":
+          description: Only owner can update
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      summary: Delete a dataset and its files
+      operationId: deleteDataset
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+      responses:
+        "204":
+          description: Dataset deleted
+        "403":
+          description: Only owner can delete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ── File operations ─────────────────────────────────────────────
+
+  /datasets/{dataset_id}/upload/{category}:
+    post:
+      summary: Upload files to a dataset category
+      operationId: uploadFiles
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - name: category
+          in: path
+          required: true
+          description: "File category: synthetic or microcensus"
+          schema:
+            type: string
+            enum: [synthetic, microcensus]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [files]
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: One or more files to upload
+      responses:
+        "200":
+          description: Files uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uploaded:
+                    type: array
+                    items:
+                      type: string
+                    description: List of uploaded filenames
+                  category:
+                    type: string
+        "400":
+          description: Invalid category or filename
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Only owner can upload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /datasets/{dataset_id}/files:
+    get:
+      summary: List files in a dataset by category
+      operationId: getFiles
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+      responses:
+        "200":
+          description: Files grouped by category
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FileListOut"
+
+  /datasets/{dataset_id}/validate:
+    post:
+      summary: Re-check dataset completeness flags
+      operationId: validateDataset
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+      responses:
+        "200":
+          description: Updated dataset with recalculated flags
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetOut"
+        "403":
+          description: Only owner can validate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ── Resolve (used by webmap-backend) ────────────────────────────
+
+  /datasets/{dataset_id}/resolve:
+    get:
+      summary: Resolve dataset filesystem path
+      operationId: resolveDataset
+      description: |
+        Returns the filesystem root path for a dataset.
+        Used internally by the webmap-backend to locate data files.
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+      responses:
+        "200":
+          description: Resolved path
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetResolveOut"
+        "403":
+          description: No access
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ── Internal (service-to-service) ───────────────────────────────
+
+  /internal/init-user/{user_id}:
+    post:
+      summary: Create per-user storage directory
+      operationId: initUserStorage
+      tags: [internal]
+      security: []
+      description: Called by auth-service after user registration.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Storage initialized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  path:
+                    type: string
+
+  /internal/delete-user/{user_id}:
+    delete:
+      summary: Delete all datasets and storage for a user
+      operationId: deleteUserStorage
+      tags: [internal]
+      security: []
+      description: Called by auth-service on hard user delete.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User storage deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  deleted_datasets:
+                    type: integer
+
+  # ── Admin endpoints ─────────────────────────────────────────────
+
+  /admin/datasets:
+    get:
+      summary: List all datasets in the system (admin only)
+      operationId: adminListDatasets
+      tags: [admin]
+      parameters:
+        - name: owner_id
+          in: query
+          description: Filter by owner user ID
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: All datasets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  datasets:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/DatasetOut"
+
+    post:
+      summary: Create a dataset for any user (admin only)
+      operationId: adminCreateDataset
+      tags: [admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminDatasetCreate"
+      responses:
+        "201":
+          description: Dataset created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetOut"
+
+  /admin/datasets/{dataset_id}:
+    patch:
+      summary: Update any dataset (admin only)
+      operationId: adminUpdateDataset
+      tags: [admin]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminDatasetUpdate"
+      responses:
+        "200":
+          description: Updated dataset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetOut"
+        "404":
+          description: Dataset not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: New dataset ID already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      summary: Delete any dataset (admin only)
+      operationId: adminDeleteDataset
+      tags: [admin]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+      responses:
+        "204":
+          description: Dataset deleted
+        "404":
+          description: Dataset not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token
+
+  parameters:
+    datasetId:
+      name: dataset_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+      description: 10-digit dataset ID
+
+  schemas:
+    Error:
+      type: object
+      required: [detail]
+      properties:
+        detail:
+          type: string
+
+    DatasetCreate:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+
+    DatasetUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          nullable: true
+        description:
+          type: string
+          nullable: true
+
+    AdminDatasetCreate:
+      type: object
+      required: [name, owner_id]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+        owner_id:
+          type: integer
+        owner_username:
+          type: string
+          default: unknown
+        is_public:
+          type: boolean
+          default: false
+
+    AdminDatasetUpdate:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          nullable: true
+          description: Change the dataset ID
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [active, inactive]
+          nullable: true
+        is_public:
+          type: boolean
+          nullable: true
+
+    DatasetOut:
+      type: object
+      required: [id, name, slug, owner_id, owner_username, status, is_public]
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+          nullable: true
+        owner_id:
+          type: integer
+        owner_username:
+          type: string
+        status:
+          type: string
+          enum: [active, inactive]
+        is_public:
+          type: boolean
+        has_synthetic:
+          type: boolean
+        has_microcensus:
+          type: boolean
+        has_json_preview:
+          type: boolean
+        has_spider_db:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    DatasetListOut:
+      type: object
+      required: [datasets]
+      properties:
+        datasets:
+          type: array
+          items:
+            $ref: "#/components/schemas/DatasetOut"
+
+    DatasetResolveOut:
+      type: object
+      required: [dataset_id, root_path]
+      properties:
+        dataset_id:
+          type: integer
+          format: int64
+        root_path:
+          type: string
+          description: Absolute filesystem path to the dataset directory
+        has_synthetic:
+          type: boolean
+        has_microcensus:
+          type: boolean
+        has_json_preview:
+          type: boolean
+        has_spider_db:
+          type: boolean
+
+    FileListOut:
+      type: object
+      required: [category, files]
+      properties:
+        category:
+          type: string
+        files:
+          type: array
+          items:
+            type: string

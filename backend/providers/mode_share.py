@@ -1,6 +1,6 @@
 import duckdb
 
-from .base import DataProvider
+from .base import DataProvider, TRIP_FILTERS
 from .constants import canton_name
 from .helpers import (
     canton_filter_sql,
@@ -28,6 +28,7 @@ class ModeShareProvider(DataProvider):
     """
 
     ROUTE = "mode_share.json"
+    PARAMS = TRIP_FILTERS
 
     def deliver(self, params: dict) -> dict:
         paths = get_data_paths()

@@ -1,0 +1,953 @@
+openapi: 3.1.0
+info:
+  title: Webmap Backend
+  description: |
+    Data visualization backend. Provides JSON endpoints for all chart/map data.
+    Each endpoint resolves a dataset via the dataset-service, then computes
+    the requested analysis from parquet/duckdb files.
+
+    All data endpoints follow the pattern: GET /data/{dataset_id}/{provider}.json
+
+    ## Common filters (available on most endpoints)
+    - `canton` — Filter by canton name or ID (comma-separated for multiple)
+    - `source` — Data source: "synthetic", "microcensus", or both (default)
+    - `gender` — Gender filter: 0 or 1
+    - `age_min` / `age_max` — Age range filter
+    - `mode` — Transport mode filter (comma-separated)
+    - `purpose` — Trip purpose filter (comma-separated)
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:5031
+    description: Local development
+  - url: /backend
+    description: Via Nginx proxy
+
+security:
+  - cookieAuth: []
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      operationId: health
+      security: []
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  local_run:
+                    type: boolean
+                  env:
+                    type: string
+
+  # ── Demographics ────────────────────────────────────────────────
+
+  /data/{dataset_id}/age.json:
+    get:
+      summary: Age distribution
+      operationId: dataAge
+      tags: [demographics]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - $ref: "#/components/parameters/canton"
+        - name: bounds
+          in: query
+          description: "Custom age bin boundaries (comma-separated, e.g. 0,18,30,50,65,100)"
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Age distribution data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderResponse"
+
+  /data/{dataset_id}/gender.json:
+    get:
+      summary: Gender distribution
+      operationId: dataGender
+      tags: [demographics]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - $ref: "#/components/parameters/canton"
+      responses:
+        "200":
+          description: Gender distribution data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderResponse"
+
+  /data/{dataset_id}/car_availability.json:
+    get:
+      summary: Car availability distribution
+      operationId: dataCarAvailability
+      tags: [demographics]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - $ref: "#/components/parameters/canton"
+      responses:
+        "200":
+          description: Car availability data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderResponse"
+
+  # ── Departure times ─────────────────────────────────────────────
+
+  /data/{dataset_id}/departure_times.json:
+    get:
+      summary: Departure time distribution
+      operationId: dataDepartureTimes
+      tags: [temporal]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - $ref: "#/components/parameters/canton"
+        - $ref: "#/components/parameters/source"
+        - $ref: "#/components/parameters/gender"
+        - $ref: "#/components/parameters/age_min"
+        - $ref: "#/components/parameters/age_max"
+        - $ref: "#/components/parameters/mode"
+        - $ref: "#/components/parameters/purpose"
+        - name: start_min
+          in: query
+          description: Start of time range in minutes from midnight (default 0)
+          schema:
+            type: integer
+            default: 0
+        - name: end_min
+          in: query
+          description: End of time range in minutes from midnight (default 1440)
+          schema:
+            type: integer
+            default: 1440
+        - name: step_min
+          in: query
+          description: Bin width in minutes (default 30)
+          schema:
+            type: integer
+            default: 30
+      responses:
+        "200":
+          description: Departure time data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderResponse"
+
+  # ── Vehicle ownership ───────────────────────────────────────────
+
+  /data/{dataset_id}/num_cars.json:
+    get:
+      summary: Number of cars per household
+      operationId: dataNumCars
+      tags: [vehicles]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - $ref: "#/components/parameters/canton"
+        - name: breakdown
+          in: query
+          description: Breakdown dimension
+          schema:
+            type: string
+            enum: [age, gender, income]
+            default: age
+        - name: bounds
+          in: query
+          description: "Custom bin boundaries (comma-separated, e.g. 0,18,30,50,65,100)"
+          schema:
+            type: string
+        - name: car_class
+          in: query
+          description: Filter by specific car count class
+          schema:
+            type: string
+        - name: income_class
+          in: query
+          description: Filter by income class (comma-separated)
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Car count data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderResponse"
+
+  /data/{dataset_id}/pt_sub.json:
+    get:
+      summary: Public transport subscription data
+      operationId: dataPtSub
+      tags: [vehicles]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - $ref: "#/components/parameters/canton"
+        - name: breakdown
+          in: query
+          description: Breakdown dimension
+          schema:
+            type: string
+            enum: [overall, age, gender, income]
+            default: overall
+        - name: bounds
+          in: query
+          description: "Custom age bin boundaries (comma-separated)"
+          schema:
+            type: string
+        - name: subscription
+          in: query
+          description: Filter by subscription type
+          schema:
+            type: string
+        - name: income_class
+          in: query
+          description: Filter by income class (comma-separated)
+          schema:
+            type: string
+      responses:
+        "200":
+          description: PT subscription data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderResponse"
+
+  # ── Trip-based ──────────────────────────────────────────────────
+
+  /data/{dataset_id}/mode_share.json:
+    get:
+      summary: Transport mode share
+      operationId: dataModeShare
+      tags: [trips]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - $ref: "#/components/parameters/canton"
+        - $ref: "#/components/parameters/source"
+        - $ref: "#/components/parameters/gender"
+        - $ref: "#/components/parameters/age_min"
+        - $ref: "#/components/parameters/age_max"
+        - $ref: "#/components/parameters/mode"
+        - $ref: "#/components/parameters/purpose"
+      responses:
+        "200":
+          description: Mode share data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderResponse"
+
+  /data/{dataset_id}/purpose_share.json:
+    get:
+      summary: Trip purpose share
+      operationId: dataPurposeShare
+      tags: [trips]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - $ref: "#/components/parameters/canton"
+        - $ref: "#/components/parameters/source"
+        - $ref: "#/components/parameters/gender"
+        - $ref: "#/components/parameters/age_min"
+        - $ref: "#/components/parameters/age_max"
+        - $ref: "#/components/parameters/mode"
+        - $ref: "#/components/parameters/purpose"
+      responses:
+        "200":
+          description: Purpose share data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderResponse"
+
+  /data/{dataset_id}/avg_distance.json:
+    get:
+      summary: Average trip distance
+      operationId: dataAvgDistance
+      tags: [trips]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - $ref: "#/components/parameters/canton"
+        - $ref: "#/components/parameters/source"
+        - $ref: "#/components/parameters/gender"
+        - $ref: "#/components/parameters/age_min"
+        - $ref: "#/components/parameters/age_max"
+        - $ref: "#/components/parameters/mode"
+        - $ref: "#/components/parameters/purpose"
+        - name: group_by
+          in: query
+          description: Grouping dimension
+          schema:
+            type: string
+            enum: [mode, purpose]
+            default: mode
+        - name: min_sample_size
+          in: query
+          description: Minimum sample size to include a group (default 0)
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Average distance data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderResponse"
+
+  # ── Distance analysis ──────────────────────────────────────────
+
+  /data/{dataset_id}/histogram_distance.json:
+    get:
+      summary: Distance histogram
+      operationId: dataHistogramDistance
+      tags: [distance]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - $ref: "#/components/parameters/canton"
+        - $ref: "#/components/parameters/source"
+        - $ref: "#/components/parameters/gender"
+        - $ref: "#/components/parameters/age_min"
+        - $ref: "#/components/parameters/age_max"
+        - $ref: "#/components/parameters/mode"
+        - $ref: "#/components/parameters/purpose"
+        - name: distance_type
+          in: query
+          description: Distance metric to use
+          schema:
+            type: string
+            enum: [euclidean, network]
+            default: euclidean
+        - name: group_by
+          in: query
+          description: Grouping dimension
+          schema:
+            type: string
+            enum: [mode, purpose]
+            default: mode
+        - name: num_bins
+          in: query
+          description: Number of histogram bins (default 100)
+          schema:
+            type: integer
+            default: 100
+        - name: max_distance
+          in: query
+          description: Maximum distance to include (clips outliers)
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Histogram data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderResponse"
+
+  /data/{dataset_id}/stacked_bar_distance.json:
+    get:
+      summary: Stacked bar chart of distances
+      operationId: dataStackedBarDistance
+      tags: [distance]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - $ref: "#/components/parameters/canton"
+        - $ref: "#/components/parameters/source"
+        - $ref: "#/components/parameters/gender"
+        - $ref: "#/components/parameters/age_min"
+        - $ref: "#/components/parameters/age_max"
+        - $ref: "#/components/parameters/mode"
+        - $ref: "#/components/parameters/purpose"
+        - name: distance_type
+          in: query
+          description: Distance metric to use
+          schema:
+            type: string
+            enum: [euclidean, network]
+            default: euclidean
+        - name: group_by
+          in: query
+          description: Grouping dimension
+          schema:
+            type: string
+            enum: [mode, purpose]
+            default: mode
+        - name: categories
+          in: query
+          description: "Custom distance bin boundaries (comma-separated, e.g. 0,1,5,10,25,50)"
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Stacked bar data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderResponse"
+
+  /data/{dataset_id}/lineplot.json:
+    get:
+      summary: Line plot data
+      operationId: dataLineplot
+      tags: [distance]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - $ref: "#/components/parameters/canton"
+        - $ref: "#/components/parameters/source"
+        - $ref: "#/components/parameters/gender"
+        - $ref: "#/components/parameters/age_min"
+        - $ref: "#/components/parameters/age_max"
+        - $ref: "#/components/parameters/mode"
+        - $ref: "#/components/parameters/purpose"
+        - name: metric
+          in: query
+          description: Metric for the x-axis
+          schema:
+            type: string
+            enum: [departure_time, euclidean_distance, network_distance]
+            default: departure_time
+        - name: group_by
+          in: query
+          description: Grouping dimension
+          schema:
+            type: string
+            enum: [mode, purpose]
+            default: mode
+        - name: num_bins
+          in: query
+          description: Number of bins (default 32)
+          schema:
+            type: integer
+            default: 32
+        - name: max_value
+          in: query
+          description: Maximum value to include (clips outliers)
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Line plot data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderResponse"
+
+  # ── Activity-based ─────────────────────────────────────────────
+
+  /data/{dataset_id}/activity_durations.json:
+    get:
+      summary: Activity duration distribution
+      operationId: dataActivityDurations
+      tags: [activities]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - $ref: "#/components/parameters/canton"
+        - $ref: "#/components/parameters/source"
+        - $ref: "#/components/parameters/gender"
+        - $ref: "#/components/parameters/age_min"
+        - $ref: "#/components/parameters/age_max"
+        - name: step_min
+          in: query
+          description: Bin width in minutes (default 30)
+          schema:
+            type: integer
+            default: 30
+        - name: max_hours
+          in: query
+          description: Maximum duration in hours (default 24)
+          schema:
+            type: integer
+            default: 24
+      responses:
+        "200":
+          description: Activity duration data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderResponse"
+
+  /data/{dataset_id}/num_activities.json:
+    get:
+      summary: Number of activities per person
+      operationId: dataNumActivities
+      tags: [activities]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - $ref: "#/components/parameters/canton"
+        - $ref: "#/components/parameters/source"
+        - $ref: "#/components/parameters/gender"
+        - $ref: "#/components/parameters/age_min"
+        - $ref: "#/components/parameters/age_max"
+        - name: max_activities
+          in: query
+          description: Maximum activity count to show (default 19)
+          schema:
+            type: integer
+            default: 19
+      responses:
+        "200":
+          description: Activity count data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderResponse"
+
+  /data/{dataset_id}/out_of_home.json:
+    get:
+      summary: Out-of-home time distribution
+      operationId: dataOutOfHome
+      tags: [activities]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - $ref: "#/components/parameters/canton"
+        - $ref: "#/components/parameters/source"
+        - $ref: "#/components/parameters/gender"
+        - $ref: "#/components/parameters/age_min"
+        - $ref: "#/components/parameters/age_max"
+        - name: top_n
+          in: query
+          description: Number of top activity types to show (default 10)
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Out-of-home time data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderResponse"
+
+  /data/{dataset_id}/frequent_sequences.json:
+    get:
+      summary: Frequent activity sequences
+      operationId: dataFrequentSequences
+      tags: [activities]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - $ref: "#/components/parameters/canton"
+        - $ref: "#/components/parameters/source"
+        - $ref: "#/components/parameters/gender"
+        - $ref: "#/components/parameters/age_min"
+        - $ref: "#/components/parameters/age_max"
+        - name: top_n
+          in: query
+          description: Number of top sequences to return (default 9)
+          schema:
+            type: integer
+            default: 9
+        - name: min_share
+          in: query
+          description: Minimum share threshold to include (default 0)
+          schema:
+            type: number
+            default: 0
+      responses:
+        "200":
+          description: Frequent sequence data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderResponse"
+
+  # ── Geographic / cantonal ──────────────────────────────────────
+
+  /data/{dataset_id}/modes_by_canton.json:
+    get:
+      summary: Mode share by canton
+      operationId: dataModesByCanton
+      tags: [geographic]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - $ref: "#/components/parameters/canton"
+        - $ref: "#/components/parameters/source"
+        - $ref: "#/components/parameters/gender"
+        - $ref: "#/components/parameters/age_min"
+        - $ref: "#/components/parameters/age_max"
+        - name: exclude_modes
+          in: query
+          description: "Modes to exclude (comma-separated, e.g. walk,other)"
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Mode share per canton
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderResponse"
+
+  /data/{dataset_id}/tlm_kantonsgebiet.json:
+    get:
+      summary: Canton boundaries (TLM)
+      operationId: dataTlmKantonsgebiet
+      tags: [geographic]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - name: format
+          in: query
+          description: Response format
+          schema:
+            type: string
+            enum: [geojson, json]
+            default: geojson
+        - name: canton
+          in: query
+          description: Filter by canton ID (comma-separated)
+          schema:
+            type: string
+        - name: canton_name
+          in: query
+          description: Filter by canton name (comma-separated)
+          schema:
+            type: string
+        - name: simplify
+          in: query
+          description: Simplify geometry (true/false)
+          schema:
+            type: string
+            enum: ["true", "false"]
+            default: "false"
+      responses:
+        "200":
+          description: Canton geometry data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderResponse"
+
+  # ── Public transport ───────────────────────────────────────────
+
+  /data/{dataset_id}/boarding_data_by_line.json:
+    get:
+      summary: Boarding data by transit line
+      operationId: dataBoardingData
+      tags: [public-transport]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - name: canton
+          in: query
+          description: Filter by canton
+          schema:
+            type: string
+        - name: vehicle
+          in: query
+          description: Filter by vehicle type
+          schema:
+            type: string
+        - name: line_name
+          in: query
+          description: Filter by line name
+          schema:
+            type: string
+        - name: line_id
+          in: query
+          description: Filter by line ID
+          schema:
+            type: string
+        - name: time_range
+          in: query
+          description: Filter by time range
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Boarding data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderResponse"
+
+  /data/{dataset_id}/stop_transfer_data_by_canton.json:
+    get:
+      summary: Stop transfer data by canton
+      operationId: dataStopTransferData
+      tags: [public-transport]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - name: canton
+          in: query
+          description: Filter by canton
+          schema:
+            type: string
+        - name: min_boardings
+          in: query
+          description: Minimum boarding count to include a stop
+          schema:
+            type: integer
+        - name: min_transfers
+          in: query
+          description: Minimum transfer count to include a stop
+          schema:
+            type: integer
+        - name: stop_id
+          in: query
+          description: Filter by stop ID (comma-separated)
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Transfer data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderResponse"
+
+  # ── Spider analysis ────────────────────────────────────────────
+
+  /data/{dataset_id}/spider_inflow.json:
+    get:
+      summary: Spider inflow analysis
+      operationId: dataSpiderInflow
+      tags: [spider]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - $ref: "#/components/parameters/spiderLinkId"
+        - $ref: "#/components/parameters/spiderSex"
+        - $ref: "#/components/parameters/spiderAgeMin"
+        - $ref: "#/components/parameters/spiderAgeMax"
+        - $ref: "#/components/parameters/spiderEmployed"
+        - $ref: "#/components/parameters/spiderHasLicense"
+        - $ref: "#/components/parameters/spiderCarAvailability"
+        - $ref: "#/components/parameters/spiderHomeCanton"
+        - $ref: "#/components/parameters/spiderIncome"
+        - $ref: "#/components/parameters/spiderMinuteStart"
+        - $ref: "#/components/parameters/spiderMinuteEnd"
+      responses:
+        "200":
+          description: Inflow data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderResponse"
+
+  /data/{dataset_id}/spider_outflow.json:
+    get:
+      summary: Spider outflow analysis
+      operationId: dataSpiderOutflow
+      tags: [spider]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - $ref: "#/components/parameters/spiderLinkId"
+        - $ref: "#/components/parameters/spiderSex"
+        - $ref: "#/components/parameters/spiderAgeMin"
+        - $ref: "#/components/parameters/spiderAgeMax"
+        - $ref: "#/components/parameters/spiderEmployed"
+        - $ref: "#/components/parameters/spiderHasLicense"
+        - $ref: "#/components/parameters/spiderCarAvailability"
+        - $ref: "#/components/parameters/spiderHomeCanton"
+        - $ref: "#/components/parameters/spiderIncome"
+        - $ref: "#/components/parameters/spiderMinuteStart"
+        - $ref: "#/components/parameters/spiderMinuteEnd"
+      responses:
+        "200":
+          description: Outflow data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderResponse"
+
+  /data/{dataset_id}/spider_bothflow.json:
+    get:
+      summary: Spider overlay (both directions)
+      operationId: dataSpiderOverlay
+      tags: [spider]
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - $ref: "#/components/parameters/spiderLinkId"
+        - $ref: "#/components/parameters/spiderSex"
+        - $ref: "#/components/parameters/spiderAgeMin"
+        - $ref: "#/components/parameters/spiderAgeMax"
+        - $ref: "#/components/parameters/spiderEmployed"
+        - $ref: "#/components/parameters/spiderHasLicense"
+        - $ref: "#/components/parameters/spiderCarAvailability"
+        - $ref: "#/components/parameters/spiderHomeCanton"
+        - $ref: "#/components/parameters/spiderIncome"
+        - $ref: "#/components/parameters/spiderMinuteStart"
+        - $ref: "#/components/parameters/spiderMinuteEnd"
+      responses:
+        "200":
+          description: Combined flow data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderResponse"
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token
+
+  parameters:
+    datasetId:
+      name: dataset_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+      description: 10-digit dataset ID
+
+    # ── Common filters ────────────────────────────────────────────
+
+    canton:
+      name: canton
+      in: query
+      description: "Filter by canton name or ID (comma-separated for multiple, e.g. Zurich,Bern or 1,2)"
+      schema:
+        type: string
+
+    source:
+      name: source
+      in: query
+      description: "Data source to use"
+      schema:
+        type: string
+        enum: [synthetic, microcensus]
+
+    gender:
+      name: gender
+      in: query
+      description: "Gender filter (0 = male, 1 = female)"
+      schema:
+        type: string
+        enum: ["0", "1"]
+
+    age_min:
+      name: age_min
+      in: query
+      description: Minimum age (inclusive)
+      schema:
+        type: integer
+
+    age_max:
+      name: age_max
+      in: query
+      description: Maximum age (exclusive)
+      schema:
+        type: integer
+
+    mode:
+      name: mode
+      in: query
+      description: "Filter by transport mode (comma-separated, e.g. car,pt,bike)"
+      schema:
+        type: string
+
+    purpose:
+      name: purpose
+      in: query
+      description: "Filter by trip purpose (comma-separated, e.g. work,education)"
+      schema:
+        type: string
+
+    # ── Spider-specific filters ───────────────────────────────────
+
+    spiderLinkId:
+      name: link_id
+      in: query
+      required: true
+      description: Link ID to analyze flows for
+      schema:
+        type: string
+
+    spiderSex:
+      name: sex
+      in: query
+      description: "Filter by sex (0 = male, 1 = female)"
+      schema:
+        type: string
+        enum: ["0", "1"]
+
+    spiderAgeMin:
+      name: age_min
+      in: query
+      description: Minimum age (inclusive)
+      schema:
+        type: integer
+
+    spiderAgeMax:
+      name: age_max
+      in: query
+      description: Maximum age (exclusive)
+      schema:
+        type: integer
+
+    spiderEmployed:
+      name: employed
+      in: query
+      description: "Filter by employment status (true/false)"
+      schema:
+        type: string
+        enum: ["true", "false"]
+
+    spiderHasLicense:
+      name: has_license
+      in: query
+      description: "Filter by driver's license (true/false)"
+      schema:
+        type: string
+        enum: ["true", "false"]
+
+    spiderCarAvailability:
+      name: car_availability
+      in: query
+      description: "Filter by car availability (always, sometimes, never)"
+      schema:
+        type: string
+        enum: [always, sometimes, never]
+
+    spiderHomeCanton:
+      name: home_canton
+      in: query
+      description: Filter by home canton name
+      schema:
+        type: string
+
+    spiderIncome:
+      name: income
+      in: query
+      description: Filter by income class
+      schema:
+        type: string
+
+    spiderMinuteStart:
+      name: minute_start
+      in: query
+      description: Start of time window in minutes from midnight
+      schema:
+        type: integer
+
+    spiderMinuteEnd:
+      name: minute_end
+      in: query
+      description: End of time window in minutes from midnight
+      schema:
+        type: integer
+
+  schemas:
+    Error:
+      type: object
+      required: [detail]
+      properties:
+        detail:
+          type: string
+
+    ProviderResponse:
+      type: object
+      description: |
+        Response structure varies per provider. Each provider returns
+        a JSON object with chart-specific data (labels, values, series, etc.).
+        Refer to the individual provider source code for exact structure.
+      additionalProperties: true

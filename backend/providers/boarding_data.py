@@ -1,8 +1,12 @@
 import json
 import os
 
-from .base import DataProvider
+from .base import DataProvider, Param
 from .paths import get_data_paths
+
+
+# Per-dataset cache for boarding data
+_data_cache: dict[str, list] = {}
 
 
 class BoardingDataProvider(DataProvider):
@@ -19,15 +23,22 @@ class BoardingDataProvider(DataProvider):
     """
 
     ROUTE = "boarding_data_by_line.json"
-    _data: list | None = None
+    PARAMS = [
+        Param("canton", "Filter by canton name"),
+        Param("vehicle", "Filter by vehicle type"),
+        Param("line_name", "Filter by line name (exact match)"),
+        Param("line_id", "Filter by line ID (exact match)"),
+        Param("time_range", "Filter boarding time keys, e.g. '06:00-09:00'"),
+    ]
 
     def _load(self) -> list:
-        if BoardingDataProvider._data is None:
-            paths = get_data_paths()
+        paths = get_data_paths()
+        cache_key = paths.json_preview_dir
+        if cache_key not in _data_cache:
             filepath = os.path.join(paths.json_preview_dir, "boarding_data_by_line.json")
             with open(filepath, "r") as f:
-                BoardingDataProvider._data = json.load(f)
-        return BoardingDataProvider._data
+                _data_cache[cache_key] = json.load(f)
+        return _data_cache[cache_key]
 
     def deliver(self, params: dict) -> dict:
         data = self._load()

@@ -1,6 +1,6 @@
 import duckdb
 
-from .base import DataProvider
+from .base import DataProvider, Param, CANTON, SOURCE, GENDER
 from .constants import DEFAULT_AGE_BINS
 from .helpers import canton_filter_sql, gender_filter_sql, parse_source_param, build_canton_lookup
 from .paths import get_data_paths
@@ -43,6 +43,7 @@ class AgeProvider(DataProvider):
     """
 
     ROUTE = "age.json"
+    PARAMS = [CANTON, SOURCE, GENDER, Param("bounds", "Custom age bin boundaries (comma-separated, e.g. 0,18,30,50,65,100)")]
 
     def deliver(self, params: dict) -> dict:
         paths = get_data_paths()
