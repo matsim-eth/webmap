@@ -1,0 +1,10 @@
+services:
+  webmap_backend:
+    build:
+      context: ./webmap-backend
+      target: dev
+    volumes:
+      - ./webmap-backend:/app
+      - dataset_storage:/data/datasets:ro
+    environment:
+      ENV: dev

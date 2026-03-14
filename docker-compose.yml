@@ -35,6 +35,8 @@ services:
   # ── Auth ────────────────────────────────────────────────────────
   authentification_frontend:
     image: ghcr.io/matsim-eth/webmap/authentification-frontend:latest
+    build:
+      context: ./authentification-frontend
     expose:
       - "5022"
     networks:
@@ -42,6 +44,9 @@ services:
 
   authentification_backend:
     image: ghcr.io/matsim-eth/webmap/authentification-backend:latest
+    build:
+      context: ./authentification-backend
+      target: prod
     environment:
       DB_CREATE_TABLES: "1"
       DATABASE_URL: "postgresql+asyncpg://${AUTH_DB_USER:-user}:${AUTH_DB_PASSWORD:-pass}@authentification_database:5432/${AUTH_DB_NAME:-appdb}"
@@ -68,6 +73,9 @@ services:
   # ── Dataset ─────────────────────────────────────────────────────
   dataset_backend:
     image: ghcr.io/matsim-eth/webmap/dataset-backend:latest
+    build:
+      context: ./dataset-backend
+      target: prod
     environment:
       DB_CREATE_TABLES: "1"
       DATABASE_URL: "postgresql+asyncpg://${DATASET_DB_USER:-dataset_user}:${DATASET_DB_PASSWORD:-dataset_pass}@dataset_database:5432/${DATASET_DB_NAME:-datasetdb}"
@@ -90,6 +98,9 @@ services:
   # ── Webmap Backend ──────────────────────────────────────────────
   webmap_backend:
     image: ghcr.io/matsim-eth/webmap/webmap-backend:latest
+    build:
+      context: ./webmap-backend
+      target: prod
     environment:
       JWT_SECRET: "${JWT_SECRET:-UltraSecretKey}"
       ACCESS_TOKEN_MINUTES: "${ACCESS_TOKEN_MINUTES:-15}"
@@ -114,6 +125,9 @@ services:
   # ── Webmap Frontend ─────────────────────────────────────────────
   webmap_frontend:
     image: ghcr.io/matsim-eth/webmap/webmap-frontend:latest
+    build:
+      context: ./webmap-frontend
+      target: prod
     volumes:
       - ./webmap-frontend/webconfig/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./webmap-frontend/webconfig/frontend_prod.conf:/etc/nginx/conf.d/default.conf:ro
@@ -125,6 +139,9 @@ services:
   # ── Dashboard Frontend ──────────────────────────────────────────
   dashboard_frontend:
     image: ghcr.io/matsim-eth/webmap/dashboard-frontend:latest
+    build:
+      context: ./dashboard-frontend
+      target: prod
     expose:
       - "5023"
     networks:

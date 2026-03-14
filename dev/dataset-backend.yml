@@ -1,0 +1,10 @@
+services:
+  dataset_backend:
+    build:
+      context: ./dataset-backend
+      target: dev
+    volumes:
+      - ./dataset-backend:/app
+      - dataset_storage:/data/datasets
+    environment:
+      UVICORN_WORKERS: "1"

@@ -1,0 +1,32 @@
+# Ersetzt den nginx-Proxy durch den Vite Dev Proxy.
+# Immer als erste dev-Datei angeben:
+#   docker compose -f docker-compose.yml -f dev/proxy.yml [-f dev/<service>.yml] up
+
+services:
+  # nginx-Proxy deaktivieren (startet nur mit --profile nginx)
+  proxy:
+    profiles:
+      - nginx
+
+  # Vite Dev Proxy
+  dev_proxy:
+    build: ./dev-proxy
+    volumes:
+      - ./dev-proxy/vite.config.js:/app/vite.config.js:ro
+    ports:
+      - "80:3000"
+    depends_on:
+      webmap_frontend:
+        condition: service_started
+      dashboard_frontend:
+        condition: service_started
+      webmap_backend:
+        condition: service_started
+      dataset_backend:
+        condition: service_started
+      authentification_frontend:
+        condition: service_started
+      authentification_backend:
+        condition: service_started
+    networks:
+      - internal

@@ -1,0 +1,10 @@
+services:
+  authentification_backend:
+    build:
+      context: ./authentification-backend
+      target: dev
+    volumes:
+      - ./authentification-backend:/app
+    environment:
+      UVICORN_WORKERS: "1"
+      ENV: dev

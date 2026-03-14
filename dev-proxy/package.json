@@ -1,0 +1,10 @@
+{
+  "name": "dev-proxy",
+  "private": true,
+  "scripts": {
+    "dev": "vite"
+  },
+  "dependencies": {
+    "vite": "^6.0.0"
+  }
+}
