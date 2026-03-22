@@ -1,7 +1,9 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import Plot from "react-plotly.js";
+import { useQuery } from "@tanstack/react-query";
 import { useDashboard } from "../../context/DashboardContext";
 import { useData } from "../../context/DataContext";
+import { useResizeOnSidebarChange } from "../../hooks/useResizeOnSidebarChange";
 
 
 const MODE_COLORS = {
@@ -25,9 +27,9 @@ const DISTANCE_CATEGORIES = ["0-1000", "1000-5000", "5000-25000", "25000+"];
 const DISTANCE_LABELS = ["0-1 km", "1-5 km", "5-25 km", "25+ km"];
 const DATASETS = ["Microcensus", "Synthetic"];
 
-const ByDistanceStacked = ({ sidebarCollapsed, isExpanded = false, type = 'mode' }) => {
+const ByDistanceStacked = ({ sidebarCollapsed, isExpanded = false, type = 'mode', backendUrl = null }) => {
   const { selectedCanton, distanceType, selectedMode, selectedPurpose } = useDashboard();
-  const { getData } = useData();
+  const { getData, getUrlData } = useData();
 
   // Select colors and filter based on type
   const colors = type === 'mode' ? MODE_COLORS : PURPOSE_COLORS;
@@ -35,44 +37,54 @@ const ByDistanceStacked = ({ sidebarCollapsed, isExpanded = false, type = 'mode'
   const filterKey = type === 'mode' ? 'mode' : 'purpose';
   const titlePrefix = type === 'mode' ? 'Mode' : 'Purpose';
 
-  // Trigger resize when sidebar collapses/expands
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [sidebarCollapsed]);
+  useResizeOnSidebarChange(sidebarCollapsed);
+
+  // Build the full backend URL with distance_type
+  const fullBackendUrl = useMemo(() => {
+    if (!backendUrl) return null;
+    const sep = backendUrl.includes('?') ? '&' : '?';
+    return `${backendUrl}${sep}distance_type=${distanceType}`;
+  }, [backendUrl, distanceType]);
+
+  const cantonKey = selectedCanton || "All";
+
+  // Fetch from backend
+  const { data: backendData } = useQuery({
+    queryKey: ['byDistanceStacked', fullBackendUrl, cantonKey],
+    queryFn: () => getUrlData(fullBackendUrl).then((payload) => payload?.[cantonKey] || null),
+    enabled: !!fullBackendUrl,
+  });
 
   const data = useMemo(() => {
+    if (backendUrl) return backendData ?? null;
     const filename = distanceType === "euclidean"
       ? `stacked_bar_euclidean_distance_${type}.json`
       : `stacked_bar_network_distance_${type}.json`;
     const raw = getData(filename);
-    const cantonKey = selectedCanton || "All";
     return raw?.[cantonKey] || null;
-  }, [getData, selectedCanton, distanceType, type]);
+  }, [getData, selectedCanton, distanceType, type, backendUrl, backendData, cantonKey]);
 
   if (!data) return <div className="plot-loading">Loading...</div>;
 
   const items = [...new Set(data.map((d) => d[filterKey]))];
   const filteredItems = selectedFilter === "all" ? items : items.filter(i => i === selectedFilter);
-  
+
   // Generate traces for subplots (4 columns for distance categories)
   const generateTraces = () => {
     let traces = [];
-    
+
     DISTANCE_CATEGORIES.forEach((category, i) => {
       DATASETS.forEach((dataset) => {
         const datasetData = data.filter(
           (entry) =>
-            entry.distance_category === category && 
+            entry.distance_category === category &&
             entry.dataset === dataset &&
             filteredItems.includes(entry[filterKey])
         );
-        
+
         datasetData.forEach((entry) => {
           const key = entry[filterKey];
-          
+
           traces.push({
             type: "bar",
             x: [dataset],
@@ -93,7 +105,7 @@ const ByDistanceStacked = ({ sidebarCollapsed, isExpanded = false, type = 'mode'
         });
       });
     });
-    
+
     return traces;
   };
 
@@ -140,15 +152,15 @@ const ByDistanceStacked = ({ sidebarCollapsed, isExpanded = false, type = 'mode'
         }}
         useResizeHandler={true}
         style={{ width: "100%", height: "100%" }}
-        config={{ 
-          responsive: true, 
+        config={{
+          responsive: true,
           displayModeBar: isExpanded ? 'hover' : false,
-          toImageButtonOptions: { 
+          toImageButtonOptions: {
             filename: `${type}-by-distance`,
             format: 'png',
             height: 800,
             width: 1200
-          } 
+          }
         }}
       />
     </div>

@@ -19,6 +19,7 @@
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@mapbox/mapbox-gl-draw": "^1.5.1",
     "@mapbox/mapbox-gl-geocoder": "^5.0.3",
+    "@tanstack/react-query": "^5.90.21",
     "@turf/turf": "^7.3.1",
     "datatables.net": "^2.3.4",
     "datatables.net-buttons": "^3.2.5",

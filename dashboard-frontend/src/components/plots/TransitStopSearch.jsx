@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './TransitStopSearch.css';
+import { useQuery } from '@tanstack/react-query';
 import { useData } from '../../context/DataContext';
 import { useDashboard } from '../../context/DashboardContext';
 
@@ -7,47 +8,34 @@ const TransitStopSearch = ({ canton }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredStops, setFilteredStops] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [stopsData, setStopsData] = useState(null);
-  const [loading, setLoading] = useState(false);
   const { getCantonData } = useData();
   const { selectedTransitStop, setSelectedTransitStop, selectedTransitLine, setSelectedTransitLine } = useDashboard();
+  const prevCantonRef = useRef(canton);
 
   // Load transit stops data when canton changes
-  useEffect(() => {
-    if (!canton || canton === 'All') {
-      setStopsData(null);
-      setFilteredStops([]);
-      setSearchTerm('');
-      setSelectedTransitStop(null);
-      return;
-    }
+  const cantonEnabled = !!canton && canton !== 'All';
+  const { data: stopsData = null, isLoading: loading } = useQuery({
+    queryKey: ['transitStopsSearch', canton],
+    queryFn: async () => {
+      const geojson = await getCantonData(`matsim/transit/stops_by_canton/${canton}_stops.geojson`);
+      if (!geojson || !geojson.features || geojson.features.length === 0) {
+        return null;
+      }
+      return geojson.features;
+    },
+    enabled: cantonEnabled,
+  });
 
-    let cancelled = false;
-    setLoading(true);
+  // Reset UI state when canton changes (move side effects that were in the fetch useEffect)
+  if (prevCantonRef.current !== canton) {
+    prevCantonRef.current = canton;
     setSearchTerm('');
     setFilteredStops([]);
     setSelectedTransitStop(null);
-
-    getCantonData(`matsim/transit/stops_by_canton/${canton}_stops.geojson`)
-      .then((geojson) => {
-        if (cancelled) return;
-        if (!geojson || !geojson.features || geojson.features.length === 0) {
-          setStopsData(null);
-        } else {
-          setStopsData(geojson.features);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setStopsData(null);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => { cancelled = true; };
-  }, [canton, getCantonData]);
+  }
 
   // Sync search term when stop is selected from map
+  // effect:audited - syncs with external state (selected stop from map click)
   useEffect(() => {
     if (selectedTransitStop && selectedTransitStop.name) {
       setSearchTerm(selectedTransitStop.name);

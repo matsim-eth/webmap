@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import TransitLinkAttributesTable from "./TransitLinkAttributesTable";
-import TransitLinkHistogram from "./TransitLinkHistogram"; 
-import FeatureTable, { buildRowsFromGeojson } from "../table/FeatureTable";
+import TransitLinkHistogram from "./TransitLinkHistogram";
+import FeatureTable from "../table/FeatureTable";
 import Slider from "rc-slider";
 import { marks, formatTimeLabel } from "../../utils/timeSliderUtils";
 import "rc-slider/assets/index.css";
+import { useTableRowBuilder } from "../../hooks/useTableRowBuilder";
 
 // get coords and id of selected row
 const buildSelectionPayload = (row) => {
@@ -37,95 +38,38 @@ const TransitVolumesModule = ({
   selectedGraph,
   onFocusTransitFeature
 }) => {
-  
-  // reset selected line when canton changes
-  useEffect(() => {
+
+  // Reset highlighted line when canton changes (was useEffect)
+  const prevCantonRef = useRef(canton);
+  if (prevCantonRef.current !== canton) {
+    prevCantonRef.current = canton;
     setHighlightedLineId(null);
-  }, [canton]);
-  
-  
-  // keep highlightedLineId if new link also has it, else reset it
-  useEffect(() => {
+  }
+
+  // Keep highlightedLineId if new link also has it, else reset (was useEffect)
+  const prevTransitLinkRef = useRef(selectedTransitLink);
+  if (prevTransitLinkRef.current !== selectedTransitLink) {
+    prevTransitLinkRef.current = selectedTransitLink;
     if (!Array.isArray(selectedTransitLink) || selectedTransitLink.length === 0) {
       setHighlightedLineId(null);
-      return;
+    } else {
+      const hasLine = selectedTransitLink.some(link =>
+        link.lines && Object.keys(link.lines).includes(highlightedLineId)
+      );
+      if (!hasLine) setHighlightedLineId(null);
     }
-    
-    const hasLine = selectedTransitLink.some(link =>
-      link.lines && Object.keys(link.lines).includes(highlightedLineId)
-    );
-    
-    if (!hasLine) setHighlightedLineId(null);
-  }, [selectedTransitLink]);
-  
-  // ========= FEATURE TABLE LOGIC =========
-  const [showTable, setShowTable] = useState(false);
-  const [tableRows, setTableRows] = useState([]);
-  const [rowsReady, setRowsReady] = useState(false);
-  
-  useEffect(() => {
-    if (isFeatureTableOpen) {
-      // add delay so sidebar can expand first
-      const timer = setTimeout(() => setShowTable(true), 400);
-      return () => clearTimeout(timer);
-    }
-    setShowTable(false);
-    setTableFilterQuery(null);
-  }, [isFeatureTableOpen]);
-  
-  const ensureRowsForCanton = useCallback(() => {
-    // if missing canton or data, clear
-    if (!canton || !featureGeoJSON) {
-      setTableRows([]);
-      setRowsReady(false);
-      return;
-    }
+  }
 
-    // In TransitVolumes module, always rebuild rows (no caching due to timeRange changes)
-    const builtRows = buildRowsFromGeojson(featureGeoJSON, selectedGraph);
-    setTableRows(builtRows);
-    setRowsReady(true);
-  }, [canton, featureGeoJSON, selectedGraph]);
-  
-  useEffect(() => {
-    if (!canton || !featureGeoJSON) {
-      setTableRows([]);
-      setRowsReady(false);
-      return;
-    }
-    
-    // In TransitVolumes module, always rebuild when geojson changes
-    setTableRows([]);
-    setRowsReady(false);
-  }, [canton, featureGeoJSON]);
-  
-  useEffect(() => {
-    // table not shown, so don't build rows
-    if (!showTable) return;
-    
-    // trigger row building in idle time
-    let cancelled = false;
-    const run = () => {
-      if (!cancelled) ensureRowsForCanton();
-    };
-    
-    if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
-      const idleId = window.requestIdleCallback(run, { timeout: 200 });
-      return () => {
-        cancelled = true;
-        if (typeof window.cancelIdleCallback === 'function') {
-          window.cancelIdleCallback(idleId);
-        }
-      };
-    }
-    
-    const timeoutId = window.setTimeout(run, 0);
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timeoutId);
-    };
-  }, [showTable, ensureRowsForCanton, canton, featureGeoJSON]);
-  
+  // ========= FEATURE TABLE LOGIC =========
+  const { showTable, tableRows, rowsReady } = useTableRowBuilder({
+    isFeatureTableOpen,
+    canton,
+    featureGeoJSON,
+    selectedGraph,
+    setTableFilterQuery,
+    useCache: false,
+  });
+
   const handleTableRowSelect = useCallback(
     (row) => {
       if (!row) return;
@@ -142,7 +86,7 @@ const TransitVolumesModule = ({
     },
     [onFocusTransitFeature, setSelectedTransitLink]
   );
-  
+
   const handleSelectCoords = useCallback(
     (coords, row) => {
       if (!row) return;
@@ -150,8 +94,8 @@ const TransitVolumesModule = ({
     },
     [handleTableRowSelect]
   );
-  
-  
+
+
   // Push to Map the selected transit stop mode filter
   const handleTransitModeChange = (event) => {
     const selectedOptions = Array.from(event.target.selectedOptions).map((option) => option.value);
@@ -161,7 +105,7 @@ const TransitVolumesModule = ({
       setSelectedTransitModes(selectedOptions);
     }
   };
-  
+
   return (
     <div className="plot-container">
     {isFeatureTableOpen ? (
@@ -183,7 +127,7 @@ const TransitVolumesModule = ({
     ) : (
       <>
     <div style={{ overflowY: "auto", overflowX: "hidden", width: "100%" }}>
-    
+
     {/* Mode Filter Dropdown */}
     <div className="mode-filter-container">
     <label className="mode-filter-label">Filter by Mode:</label>
@@ -232,9 +176,9 @@ const TransitVolumesModule = ({
     </label>
 
     </div>
-    
+
     </div>
-    
+
     {/* Link Attributes Table and Histograms */}
     {Array.isArray(selectedTransitLink) && selectedTransitLink.length > 0 && (
       <>
@@ -244,7 +188,9 @@ const TransitVolumesModule = ({
       highlightedLineId={highlightedLineId}
       timeRange={timeRange}
       />
-      
+
+      <div style={{ height: 12 }} />
+
       {(() => {
         // Collect all unique link IDs across all selected segments
         const allLinkIds = new Set();
@@ -254,7 +200,7 @@ const TransitVolumesModule = ({
             : (props.per_id_keys ? props.per_id_keys.split("|").filter(Boolean) : []);
           ids.forEach(id => allLinkIds.add(String(id)));
         });
-        
+
         // Create one histogram per unique link ID
         return Array.from(allLinkIds).map(id => (
           <TransitLinkHistogram
@@ -268,7 +214,7 @@ const TransitVolumesModule = ({
           />
         ));
       })()}
-      
+
       </>
     )}
     </div>

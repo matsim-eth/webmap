@@ -1,29 +1,25 @@
-import duckdb
 from collections import defaultdict
 
 from .base import DataProvider, Param, CANTON, SOURCE
+from .connection import get_connection
 from .helpers import canton_filter_sql, parse_source_param, build_canton_lookup
 from .paths import get_data_paths
 
 
-PURPOSE_MAP = {"home": "H", "work": "W", "shop": "S", "leisure": "L", "education": "E", "other": "O"}
-
-
-def _purpose_letter(purpose: str) -> str:
-    return PURPOSE_MAP.get(purpose, "O")
+_PURPOSE_CASE = """
+    CASE purpose
+        WHEN 'home' THEN 'H'
+        WHEN 'work' THEN 'W'
+        WHEN 'shop' THEN 'S'
+        WHEN 'leisure' THEN 'L'
+        WHEN 'education' THEN 'E'
+        ELSE 'O'
+    END
+"""
 
 
 class FrequentSequencesProvider(DataProvider):
-    """Frequent activity sequence distribution per canton and source.
-
-    Query params:
-        canton    (str):   Comma-separated canton names.
-        source    (str):   "Synthetic", "Microcensus", or omit for both.
-        top_n     (int):   Number of top sequences to return. Default: 9.
-        min_share (float): Minimum share threshold to include. Default: 0 (no filter).
-
-    Example: /data/frequent_sequences.json?canton=Zurich&top_n=12
-    """
+    """Frequent activity sequence distribution per canton and source."""
 
     ROUTE = "frequent_sequences.json"
     PARAMS = [CANTON, SOURCE,
@@ -38,58 +34,65 @@ class FrequentSequencesProvider(DataProvider):
 
         cf = canton_filter_sql(params.get("canton"), "p.canton_id")
 
-        con = duckdb.connect()
+        con = get_connection()
 
-        counts: dict = {}
-        totals: dict = {}
-        seen_cantons: set = set()
-
-        def tally(source: str, cid: int, seq: str) -> None:
-            seen_cantons.add(cid)
-            counts[(source, cid, seq)] = counts.get((source, cid, seq), 0) + 1
-            totals[(source, cid)] = totals.get((source, cid), 0) + 1
-            counts[(source, "All", seq)] = counts.get((source, "All", seq), 0) + 1
-            totals[(source, "All")] = totals.get((source, "All"), 0) + 1
+        counts = defaultdict(int)
+        totals = defaultdict(int)
+        seen_cantons = set()
 
         if "Synthetic" in sources:
+            # Build per-person sequences in SQL using STRING_AGG, then count
             rows = con.execute(f"""
-                SELECT a.person_id, a.activity_index, a.purpose, p.canton_id
-                FROM read_parquet(?) a
-                INNER JOIN read_parquet(?) p ON a.person_id = p.person_id
-                WHERE p.canton_id IS NOT NULL AND a.purpose IS NOT NULL
-                {cf}
-                ORDER BY a.person_id, a.activity_index
+                WITH person_seqs AS (
+                    SELECT p.canton_id,
+                           STRING_AGG({_PURPOSE_CASE.replace('purpose', 'a.purpose')},
+                                      '-' ORDER BY a.activity_index) AS seq
+                    FROM read_parquet(?) a
+                    INNER JOIN read_parquet(?) p ON a.person_id = p.person_id
+                    WHERE p.canton_id IS NOT NULL AND a.purpose IS NOT NULL
+                    {cf}
+                    GROUP BY a.person_id, p.canton_id
+                )
+                SELECT canton_id, seq, COUNT(*) AS cnt
+                FROM person_seqs
+                GROUP BY canton_id, seq
             """, [paths.synthetic_activities, paths.synthetic_persons]).fetchall()
-
-            # Group by person, build sequence ordered by activity_index
-            person_acts: dict[tuple, list[tuple[int, str]]] = defaultdict(list)
-            for pid, aidx, purpose, cid in rows:
-                person_acts[(int(pid), int(cid))].append((int(aidx), str(purpose)))
-
-            for (pid, cid), acts in person_acts.items():
-                acts.sort(key=lambda x: x[0])
-                seq = "-".join(_purpose_letter(p) for _, p in acts)
-                tally("Synthetic", cid, seq)
+            for cid, seq, cnt in rows:
+                seen_cantons.add(int(cid))
+                counts[("Synthetic", int(cid), str(seq))] += cnt
+                totals[("Synthetic", int(cid))] += cnt
 
         if "Microcensus" in sources:
+            # Microcensus: sequence starts with 'H-' then trip purposes
             rows = con.execute(f"""
-                SELECT t.person_id, t.trip_id, t.purpose, p.canton_id
-                FROM read_parquet(?) t
-                INNER JOIN read_parquet(?) p ON t.person_id = p.person_id
-                WHERE p.canton_id IS NOT NULL AND t.purpose IS NOT NULL
-                {cf}
-                ORDER BY t.person_id, t.trip_id
+                WITH person_seqs AS (
+                    SELECT p.canton_id,
+                           'H-' || STRING_AGG({_PURPOSE_CASE.replace('purpose', 't.purpose')},
+                                              '-' ORDER BY t.trip_id) AS seq
+                    FROM read_parquet(?) t
+                    INNER JOIN read_parquet(?) p ON t.person_id = p.person_id
+                    WHERE p.canton_id IS NOT NULL AND t.purpose IS NOT NULL
+                    {cf}
+                    GROUP BY t.person_id, p.canton_id
+                )
+                SELECT canton_id, seq, COUNT(*) AS cnt
+                FROM person_seqs
+                GROUP BY canton_id, seq
             """, [paths.microcensus_trips, paths.microcensus_persons]).fetchall()
+            for cid, seq, cnt in rows:
+                seen_cantons.add(int(cid))
+                counts[("Microcensus", int(cid), str(seq))] += cnt
+                totals[("Microcensus", int(cid))] += cnt
 
-            # Group by person, build sequence: start with H, then append purpose of each trip
-            person_trips: dict[tuple, list[tuple[int, str]]] = defaultdict(list)
-            for pid, tid, purpose, cid in rows:
-                person_trips[(int(pid), int(cid))].append((int(tid), str(purpose)))
-
-            for (pid, cid), trips in person_trips.items():
-                trips.sort(key=lambda x: x[0])
-                seq = "H-" + "-".join(_purpose_letter(p) for _, p in trips)
-                tally("Microcensus", cid, seq)
+        # "All" canton aggregate
+        all_canton_counts = defaultdict(int)
+        all_canton_totals = defaultdict(int)
+        for (source, cid, seq), cnt in counts.items():
+            all_canton_counts[(source, "All", seq)] += cnt
+        counts.update(all_canton_counts)
+        for (source, cid), total in totals.items():
+            all_canton_totals[(source, "All")] += total
+        totals.update(all_canton_totals)
 
         canton_names, canton_ids_by_name = build_canton_lookup(seen_cantons)
 
@@ -100,14 +103,13 @@ class FrequentSequencesProvider(DataProvider):
                 denom = float(totals.get((source, cid), 0))
                 if denom == 0:
                     continue
-                # Collect all sequences for this canton+source
+                # Collect sequences for this canton+source
                 seq_shares = {}
                 for (s, c, seq), cnt in counts.items():
                     if s == source and c == cid:
                         share = round(float(cnt) / denom, 16)
                         if share >= min_share:
                             seq_shares[seq] = share
-                # Sort by share descending, take top_n
                 sorted_seqs = sorted(seq_shares.items(), key=lambda x: -x[1])[:top_n]
                 out.setdefault(cname, {}).setdefault(source, {})
                 for seq, share in sorted_seqs:

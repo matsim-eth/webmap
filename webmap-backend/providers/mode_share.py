@@ -1,6 +1,5 @@
-import duckdb
-
 from .base import DataProvider, TRIP_FILTERS
+from .connection import get_connection
 from .constants import canton_name
 from .helpers import (
     canton_filter_sql,
@@ -37,7 +36,7 @@ class ModeShareProvider(DataProvider):
         mf = mode_filter_sql(params, "t.mode")
         gf = gender_filter_sql(params, "p.sex")
         af = age_filter_sql(params, "p.age")
-        con = duckdb.connect()
+        con = get_connection()
 
         counts: dict = {}
         totals: dict = {}

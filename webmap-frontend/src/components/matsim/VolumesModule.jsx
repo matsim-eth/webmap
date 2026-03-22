@@ -1,10 +1,11 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback } from "react";
 import SegmentAttributesTable from "./SegmentAttributesTable";
 import SegmentVolumeHistogram from "./SegmentVolumeHistogram";
-import FeatureTable, { buildRowsFromGeojson } from "../table/FeatureTable";
+import FeatureTable from "../table/FeatureTable";
 import { marks, formatTimeLabel } from "../../utils/timeSliderUtils";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
+import { useTableRowBuilder } from "../../hooks/useTableRowBuilder";
 
 // get coords and id of selected row
 const buildSelectionPayload = (row) => {
@@ -35,79 +36,18 @@ const VolumesModule = ({
   setTableFilterQuery,
   selectedNetworkModes
 }) => {
-  
+
   const [filteredVolume, setFilteredVolume] = useState(null);
-  const [showTable, setShowTable] = useState(false);
-  const [tableRows, setTableRows] = useState([]);
-  const [rowsReady, setRowsReady] = useState(false);
-  
-  useEffect(() => {
-    if (isFeatureTableOpen) {
-      // add delay so sidebar can expand first
-      const timer = setTimeout(() => setShowTable(true), 400);
-      return () => clearTimeout(timer);
-    }
-    setShowTable(false);
-    setTableFilterQuery(null);
-  }, [isFeatureTableOpen]);
-  
-  const ensureRowsForCanton = useCallback(() => {
 
-    // if missing canton or data, clear
-    if (!canton || !featureGeoJSON) {
-      setTableRows([]);
-      setRowsReady(false);
-      return;
-    }
+  const { showTable, tableRows, rowsReady } = useTableRowBuilder({
+    isFeatureTableOpen,
+    canton,
+    featureGeoJSON,
+    selectedGraph,
+    setTableFilterQuery,
+    useCache: false,
+  });
 
-    // In Volumes module, always rebuild rows (no caching due to timeRange changes)
-    // build rows directly from geojson
-    const builtRows = buildRowsFromGeojson(featureGeoJSON, selectedGraph);
-    setTableRows(builtRows);
-    setRowsReady(true);
-  }, [canton, featureGeoJSON, selectedGraph]);
-  
-  useEffect(() => {
-    if (!canton || !featureGeoJSON) {
-      setTableRows([]);
-      setRowsReady(false);
-      return;
-    }
-    
-    // In Volumes module, always rebuild when geojson changes (no caching)
-    setTableRows([]);
-    setRowsReady(false);
-  }, [canton, featureGeoJSON]);
-  
-  useEffect(() => {
-    // table not shown, so don't build rows
-    if (!showTable) return;
-    
-    // trigger row building in idle time
-    let cancelled = false;
-    const run = () => {
-      if (!cancelled) ensureRowsForCanton();
-    };
-    
-    if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
-      // run when idle, but at most after 200ms
-      const idleId = window.requestIdleCallback(run, { timeout: 200 });
-      return () => {
-        cancelled = true;
-        if (typeof window.cancelIdleCallback === 'function') {
-          window.cancelIdleCallback(idleId);
-        }
-      };
-    }
-    
-    // fallback for browsers without requestIdleCallback
-    const timeoutId = window.setTimeout(run, 0);
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timeoutId);
-    };
-  }, [showTable, ensureRowsForCanton, canton, featureGeoJSON]);
-  
   const handleTableRowSelect = useCallback(
     (row) => {
       if (!row) return;
@@ -124,7 +64,7 @@ const VolumesModule = ({
     },
     [onFocusNetworkFeature, setSelectedNetworkFeature]
   );
-  
+
   const handleSelectCoords = useCallback(
     (coords, row) => {
       if (!row) return;
@@ -132,10 +72,10 @@ const VolumesModule = ({
     },
     [handleTableRowSelect]
   );
-  
-  
+
+
   return (
-    
+
     <div className="plot-container">
     {isFeatureTableOpen ? (
       <FeatureTable
@@ -199,15 +139,15 @@ const VolumesModule = ({
     Show only major roads
     </label>
     </div>
-    
+
     {selectedNetworkFeature && (
-      <SegmentAttributesTable 
+      <SegmentAttributesTable
       propertiesList={selectedNetworkFeature}
       selectedGraph={selectedGraph}
       filteredVolume={filteredVolume}
       />
     )}
-    
+
     {selectedNetworkFeature ? (
       <SegmentVolumeHistogram
       linkId={(() => {
@@ -238,4 +178,3 @@ const VolumesModule = ({
 }
 
 export default VolumesModule;
-

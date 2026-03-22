@@ -1,88 +1,139 @@
 const CONFIG = {
   API_BASE: "/authentification/backend",
-  DEFAULT_RETURN_TO: "/webmap/",
+  ALLOWED_DESTINATIONS: ["/webmap/", "/dashboard/"],
+  DEFAULT_DESTINATION: "/webmap/",
 };
 
+// ── DOM helpers ─────────────────────────────────────────────
+
 const el = (id) => document.getElementById(id);
+const $$ = (sel) => document.querySelectorAll(sel);
 
-const loginForm = el("loginForm");
-const registerForm = el("registerForm");
+// ── Destination management ──────────────────────────────────
 
-const loginSubmit = el("loginSubmit");
-const loginSpinner = el("loginSpinner");
+function getNextFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const next = params.get("next") || "";
+  // Only allow known destinations (prevent open redirect)
+  return CONFIG.ALLOWED_DESTINATIONS.find((d) => next.startsWith(d)) || "";
+}
 
-const registerSubmit = el("registerSubmit");
-const registerSpinner = el("registerSpinner");
+let selectedDestination = getNextFromUrl() || CONFIG.DEFAULT_DESTINATION;
 
-const regPassword = el("regPassword");
-const regPassword2 = el("regPassword2");
+function destDisplayName(dest) {
+  if (dest === "/dashboard/") return "Dashboard";
+  return "Webmap";
+}
+
+function updateDestination(dest) {
+  selectedDestination = dest;
+
+  // Update sidebar active state
+  $$("[data-dest]").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.dest === dest);
+  });
+
+  // Update labels
+  const label = destDisplayName(dest);
+  const destLabel = el("destLabel");
+  if (destLabel) destLabel.textContent = label;
+  const destLabelLoggedIn = el("destLabelLoggedIn");
+  if (destLabelLoggedIn) destLabelLoggedIn.textContent = label;
+  const goApp = el("goApp");
+  if (goApp) goApp.href = dest;
+}
+
+// ── Toast ───────────────────────────────────────────────────
 
 const toastEl = el("toast");
 const toastBody = el("toastBody");
+let toastTimeout = null;
 
-let toast;
+function showToast(msg, type = "error") {
+  if (!toastEl || !toastBody) return;
+  toastBody.textContent = String(msg || "Error");
+  toastEl.className = "toast " + type;
+  // Force reflow for re-animation
+  void toastEl.offsetWidth;
+  toastEl.classList.add("visible");
 
-// ── Helpers ──────────────────────────────────────────────────────
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    toastEl.classList.remove("visible");
+  }, 3000);
+}
+
+// ── Loading state ───────────────────────────────────────────
 
 function setLoading(btn, spinner, on) {
   if (btn) btn.disabled = !!on;
-  if (spinner) spinner.classList.toggle("d-none", !on);
+  if (spinner) spinner.classList.toggle("hidden", !on);
 }
 
-function showToast(msg) {
-  if (!toastEl || !toastBody) return;
-  if (!toast) toast = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 2600, autohide: true });
-  toastBody.textContent = String(msg || "Error");
-  toast.show();
+// ── Form validation ─────────────────────────────────────────
+
+function validateForm(form) {
+  let valid = true;
+  form.querySelectorAll(".form-input[required]").forEach((input) => {
+    if (!input.checkValidity()) {
+      input.classList.add("invalid");
+      valid = false;
+    } else {
+      input.classList.remove("invalid");
+    }
+  });
+  return valid;
 }
 
-function validateBootstrap(form) {
-  if (!form) return false;
-  form.classList.add("was-validated");
-  return form.checkValidity();
+// Clear invalid state on input
+document.addEventListener("input", (e) => {
+  if (e.target.classList.contains("form-input")) {
+    e.target.classList.remove("invalid");
+  }
+});
+
+// ── Tab switching ───────────────────────────────────────────
+
+function switchTab(tabName) {
+  $$(".auth-tab").forEach((t) =>
+    t.classList.toggle("active", t.dataset.tab === tabName)
+  );
+  el("loginForm")?.classList.toggle("hidden", tabName !== "login");
+  el("registerForm")?.classList.toggle("hidden", tabName !== "register");
 }
 
-function redirectAfterLogin() {
-  window.location.assign(CONFIG.DEFAULT_RETURN_TO);
-}
+$$(".auth-tab").forEach((tab) => {
+  tab.addEventListener("click", () => switchTab(tab.dataset.tab));
+});
 
-function isProbablyEmail(s) {
-  const v = String(s || "").trim();
-  if (!v) return false;
-  return v.includes("@");
-}
+
+// ── View switching ──────────────────────────────────────────
 
 function showView(view) {
-  el("authView").classList.toggle("d-none", view !== "auth");
-  el("loggedInView").classList.toggle("d-none", view !== "loggedIn");
+  el("authView")?.classList.toggle("hidden", view !== "auth");
+  el("loggedInView")?.classList.toggle("hidden", view !== "loggedIn");
 }
 
-// ── Password match validation ───────────────────────────────────
+// ── API helpers ─────────────────────────────────────────────
 
-function updatePasswordMatchValidity() {
-  if (!regPassword || !regPassword2) return;
-  const p1 = regPassword.value || "";
-  const p2 = regPassword2.value || "";
-  if (!p2) {
-    regPassword2.setCustomValidity("");
-    return;
-  }
-  regPassword2.setCustomValidity(p1 === p2 ? "" : "Passwords do not match");
+function isProbablyEmail(s) {
+  return String(s || "").trim().includes("@");
 }
-
-if (regPassword && regPassword2) {
-  regPassword.addEventListener("input", updatePasswordMatchValidity);
-  regPassword2.addEventListener("input", updatePasswordMatchValidity);
-}
-
-// ── API helpers ─────────────────────────────────────────────────
 
 async function readJsonOrText(res) {
   const ct = (res.headers.get("content-type") || "").toLowerCase();
   if (ct.includes("application/json")) {
-    try { return await res.json(); } catch { return null; }
+    try {
+      return await res.json();
+    } catch {
+      return null;
+    }
   }
-  try { return await res.text(); } catch { return null; }
+  try {
+    return await res.text();
+  } catch {
+    return null;
+  }
 }
 
 let refreshPromise = null;
@@ -97,12 +148,17 @@ async function refresh() {
         body: "{}",
       });
       return r.ok;
-    })().finally(() => { refreshPromise = null; });
+    })().finally(() => {
+      refreshPromise = null;
+    });
   }
   return refreshPromise;
 }
 
-async function api(path, { method = "GET", body = null, allow401 = false } = {}) {
+async function api(
+  path,
+  { method = "GET", body = null, allow401 = false } = {}
+) {
   const res = await fetch(CONFIG.API_BASE + path, {
     method,
     credentials: "include",
@@ -142,42 +198,67 @@ function loginPayload(identifier, password) {
   return { username: id, password: pw };
 }
 
-// ── Login form ──────────────────────────────────────────────────
+function redirectAfterLogin() {
+  window.location.assign(selectedDestination);
+}
+
+// ── Password match ──────────────────────────────────────────
+
+const regPassword = el("regPassword");
+const regPassword2 = el("regPassword2");
+
+function updatePasswordMatch() {
+  if (!regPassword || !regPassword2) return;
+  const p1 = regPassword.value || "";
+  const p2 = regPassword2.value || "";
+  if (!p2) {
+    regPassword2.setCustomValidity("");
+    regPassword2.classList.remove("invalid");
+    return;
+  }
+  if (p1 !== p2) {
+    regPassword2.setCustomValidity("Passwords do not match");
+    regPassword2.classList.add("invalid");
+  } else {
+    regPassword2.setCustomValidity("");
+    regPassword2.classList.remove("invalid");
+  }
+}
+
+if (regPassword)
+  regPassword.addEventListener("input", updatePasswordMatch);
+if (regPassword2)
+  regPassword2.addEventListener("input", updatePasswordMatch);
+
+// ── Login form ──────────────────────────────────────────────
+
+const loginForm = el("loginForm");
+const loginSubmit = el("loginSubmit");
+const loginSpinner = el("loginSpinner");
 
 if (loginForm) {
   loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!validateBootstrap(loginForm)) return;
+    if (!validateForm(loginForm)) return;
 
     setLoading(loginSubmit, loginSpinner, true);
 
     try {
       const f = fdToObj(loginForm);
-      const payloadIn = loginPayload(f.identifier, f.password);
+      const payload = loginPayload(f.identifier, f.password);
 
       const res = await fetch(CONFIG.API_BASE + "/login", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payloadIn),
+        body: JSON.stringify(payload),
       });
 
-      const payload = await readJsonOrText(res);
+      const data = await readJsonOrText(res);
 
       if (!res.ok) {
-        const msg = payload?.detail || payload || `Login failed (${res.status})`;
-        showToast(msg);
+        showToast(data?.detail || data || `Login failed (${res.status})`);
         return;
-      }
-
-      // After login, check if admin/dev → redirect to admin panel, else app
-      const meRes = await api("/me", { allow401: true });
-      if (meRes.ok) {
-        const userData = await meRes.json();
-        if (userData.admin || userData.dev) {
-          window.location.assign("/authentification/admin/");
-          return;
-        }
       }
 
       redirectAfterLogin();
@@ -189,14 +270,18 @@ if (loginForm) {
   });
 }
 
-// ── Register form ───────────────────────────────────────────────
+// ── Register form ───────────────────────────────────────────
+
+const registerForm = el("registerForm");
+const registerSubmit = el("registerSubmit");
+const registerSpinner = el("registerSpinner");
 
 if (registerForm) {
   registerForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    updatePasswordMatchValidity();
-    if (!validateBootstrap(registerForm)) {
+    updatePasswordMatch();
+    if (!validateForm(registerForm)) {
       if (regPassword2?.validationMessage) showToast("Passwords do not match");
       return;
     }
@@ -221,20 +306,22 @@ if (registerForm) {
         }),
       });
 
-      const payload = await readJsonOrText(res);
+      const data = await readJsonOrText(res);
 
       if (!res.ok) {
-        const msg = payload?.detail || payload || `Registration failed (${res.status})`;
-        showToast(msg);
+        showToast(
+          data?.detail || data || `Registration failed (${res.status})`
+        );
         return;
       }
 
-      showToast("Registration successful. Please log in.");
+      showToast("Registration successful! Please sign in.", "success");
       registerForm.reset();
-      registerForm.classList.remove("was-validated");
+      registerForm
+        .querySelectorAll(".form-input")
+        .forEach((i) => i.classList.remove("invalid"));
       if (regPassword2) regPassword2.setCustomValidity("");
-
-      bootstrap.Tab.getOrCreateInstance(document.querySelector("#login-tab")).show();
+      switchTab("login");
     } catch {
       showToast("Network error");
     } finally {
@@ -243,42 +330,38 @@ if (registerForm) {
   });
 }
 
-// ── Tab links ───────────────────────────────────────────────────
-
-const toRegister = el("toRegister");
-const toLogin = el("toLogin");
-
-if (toRegister) {
-  toRegister.addEventListener("click", () => {
-    bootstrap.Tab.getOrCreateInstance(document.querySelector("#register-tab")).show();
-  });
-}
-
-if (toLogin) {
-  toLogin.addEventListener("click", () => {
-    bootstrap.Tab.getOrCreateInstance(document.querySelector("#login-tab")).show();
-  });
-}
-
-// ── Logout handlers ─────────────────────────────────────────────
+// ── Logout ──────────────────────────────────────────────────
 
 function attachLogout(btnId) {
   const btn = el(btnId);
   if (!btn) return;
   btn.addEventListener("click", async () => {
     btn.disabled = true;
+    const spinner = btn.querySelector(".btn-spinner");
+    if (spinner) spinner.classList.remove("hidden");
     try {
       await api("/logout", { method: "POST", body: {}, allow401: true });
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     window.location.reload();
   });
 }
 
 attachLogout("logoutBtn");
 
-// ── Init ────────────────────────────────────────────────────────
+// ── Init ────────────────────────────────────────────────────
 
 (async function init() {
+  // Set initial destination from ?next= param or default
+  updateDestination(selectedDestination);
+
+  // Wire up destination nav clicks
+  $$("[data-dest]").forEach((btn) => {
+    btn.addEventListener("click", () => updateDestination(btn.dataset.dest));
+  });
+
+  // Check if already logged in
   try {
     let meRes = await api("/me", { method: "GET", allow401: true });
 
@@ -294,13 +377,7 @@ attachLogout("logoutBtn");
       return;
     }
 
-    const userData = await meRes.json();
-
-    if (userData.admin || userData.dev) {
-      window.location.assign("/authentification/admin/");
-    } else {
-      showView("loggedIn");
-    }
+    showView("loggedIn");
   } catch {
     showView("auth");
   }

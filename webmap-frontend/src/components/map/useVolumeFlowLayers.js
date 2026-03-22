@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useApp } from '../../context/AppContext';
 import { DATASET_ID } from '../../config';
+import { handle401 } from '../../utils/auth';
 
 // Spider overlay source + layers (separate from the shared network-source)
 const SPIDER_SOURCE_ID = 'volume-flow-spider';
@@ -15,40 +16,369 @@ const NETWORK_CLICK_LAYER = 'click-network-layer';
 export default function useVolumeFlowLayers({ mapRef, mapReady }) {
     const {
         isGraphExpanded,
+        clickedCanton,
         featureGeoJSON,
         setVolumeFlowSegment,
+        setFeatureSelection,
+        setSelectedNetworkFeature,
+        volumeFlowDirection,
+        volumeFlowSelectedLink,
+        setVolumeFlowSelectedLink,
     } = useApp();
 
     const clickHandlerRef = useRef(null);
+    const featureGeoJSONRef = useRef(featureGeoJSON);
+    featureGeoJSONRef.current = featureGeoJSON;
 
+    // Store last clicked link so we can re-fetch when direction changes
+    const lastClickRef = useRef(null); // { keys, feature }
+    // Cache spider data per key + aggregated so link switching doesn't re-fetch
+    const spiderCacheRef = useRef(null);
+    // Ref to read current selectedLink without adding it to main effect deps
+    const selectedLinkRef = useRef(volumeFlowSelectedLink);
+    selectedLinkRef.current = volumeFlowSelectedLink;
+
+    // --- Cleanup helper: removes spider overlay layers/source only ---
+    const removeSpider = (map) => {
+        [TARGET_LABEL_ID, LABEL_LAYER_ID, TARGET_LAYER_ID, HIGHLIGHT_LAYER_ID].forEach(id => {
+            if (map.getLayer(id)) map.removeLayer(id);
+        });
+        if (map.getSource(SPIDER_SOURCE_ID)) map.removeSource(SPIDER_SOURCE_ID);
+    };
+
+    const removeClickHandler = (map) => {
+        if (clickHandlerRef.current) {
+            map.off('click', NETWORK_CLICK_LAYER, clickHandlerRef.current);
+            clickHandlerRef.current = null;
+        }
+    };
+
+    // --- Render spider overlay from a spiderMap (no fetching) ---
+    const renderSpiderOverlay = useCallback((map, spiderMap, totalTrips, targetKeys, feature, displayLinkId) => {
+        const currentFeatures = featureGeoJSONRef.current?.features;
+        if (!currentFeatures) return null;
+
+        // Build spider overlay features from the shared network GeoJSON
+        const spiderFeatures = [];
+        let idx = 0;
+
+        for (const f of currentFeatures) {
+            const fKeys = (f.properties.per_id_keys || '').split('|');
+            const isTarget = fKeys.some(k => targetKeys.includes(k));
+
+            let maxFlow = 0;
+            for (const k of fKeys) {
+                const vol = spiderMap.get(k);
+                if (vol !== undefined && vol > maxFlow) maxFlow = vol;
+            }
+
+            if (maxFlow > 0 || isTarget) {
+                spiderFeatures.push({
+                    ...f,
+                    id: idx,
+                    properties: {
+                        ...f.properties,
+                        spider_flow: maxFlow,
+                        isTarget: isTarget || undefined,
+                        targetLinkId: isTarget ? displayLinkId : undefined,
+                        featureIndex: idx,
+                    }
+                });
+                idx++;
+            }
+        }
+
+        const spiderGeoJSON = { type: 'FeatureCollection', features: spiderFeatures };
+
+        // Remove existing spider layers before creating/updating
+        removeSpider(map);
+
+        map.addSource(SPIDER_SOURCE_ID, { type: 'geojson', data: spiderGeoJSON });
+
+        // Highlight layer — orange spider flow
+        map.addLayer({
+            id: HIGHLIGHT_LAYER_ID,
+            type: 'line',
+            source: SPIDER_SOURCE_ID,
+            paint: {
+                'line-color': '#ff8c00',
+                'line-width': ['interpolate', ['linear'], ['get', 'spider_flow'],
+                    0, 0, 1, 1, 10, 3, 150, 5, 300, 8, 500, 12, 700, 16
+                ],
+                'line-opacity': 0.85
+            },
+            filter: ['all',
+                ['!=', ['get', 'isTarget'], true],
+                ['>', ['get', 'spider_flow'], 0]
+            ]
+        });
+
+        // Target link — blue
+        map.addLayer({
+            id: TARGET_LAYER_ID,
+            type: 'line',
+            source: SPIDER_SOURCE_ID,
+            paint: {
+                'line-color': '#1a73e8',
+                'line-width': 8,
+                'line-opacity': 1
+            },
+            filter: ['==', ['get', 'isTarget'], true]
+        });
+
+        // Volume labels (zoom 15+)
+        map.addLayer({
+            id: LABEL_LAYER_ID,
+            type: 'symbol',
+            source: SPIDER_SOURCE_ID,
+            minzoom: 15,
+            layout: {
+                'symbol-placement': 'line-center',
+                'text-field': ['to-string', ['get', 'spider_flow']],
+                'text-size': 11,
+                'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+                'text-allow-overlap': true,
+                'text-ignore-placement': true
+            },
+            paint: {
+                'text-color': '#fff',
+                'text-halo-color': '#ff8c00',
+                'text-halo-width': 2
+            },
+            filter: ['all',
+                ['!=', ['get', 'isTarget'], true],
+                ['>', ['get', 'spider_flow'], 0]
+            ]
+        });
+
+        // Target label (zoom 15+)
+        map.addLayer({
+            id: TARGET_LABEL_ID,
+            type: 'symbol',
+            source: SPIDER_SOURCE_ID,
+            minzoom: 15,
+            layout: {
+                'symbol-placement': 'line-center',
+                'text-field': ['to-string', ['get', 'targetLinkId']],
+                'text-size': 14,
+                'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+                'text-allow-overlap': true,
+                'text-ignore-placement': true
+            },
+            paint: {
+                'text-color': '#1a73e8',
+                'text-halo-color': '#fff',
+                'text-halo-width': 2
+            },
+            filter: ['==', ['get', 'isTarget'], true]
+        });
+
+        // Scale target width by trip count
+        let tw = 8;
+        if (totalTrips >= 700) tw = 16;
+        else if (totalTrips >= 500) tw = 12 + (totalTrips - 500) / 200 * 4;
+        else if (totalTrips >= 300) tw = 8 + (totalTrips - 300) / 200 * 4;
+        else if (totalTrips >= 150) tw = 5 + (totalTrips - 150) / 150 * 3;
+        else if (totalTrips >= 50) tw = 3 + (totalTrips - 50) / 100 * 2;
+        else tw = Math.max(3, totalTrips / 50 * 3);
+        map.setPaintProperty(TARGET_LAYER_ID, 'line-width', tw);
+
+        // Fade the base network so the spider overlay stands out
+        if (map.getLayer('network-layer')) {
+            map.setPaintProperty('network-layer', 'line-opacity', 0.2);
+        }
+
+        // Build table rows
+        const tableRows = [];
+        let rowIdx = 0;
+        for (const ef of spiderFeatures) {
+            if (ef.properties.isTarget) continue;
+            const fKeys = (ef.properties.per_id_keys || '').split('|');
+            const g = ef.geometry;
+            const coords = g?.type === 'LineString'
+                ? g.coordinates
+                : g?.type === 'MultiLineString'
+                    ? g.coordinates.flat()
+                    : null;
+
+            for (const k of fKeys) {
+                const vol = spiderMap.get(k);
+                if (vol !== undefined && vol > 0) {
+                    tableRows.push({
+                        rowKey: `vf-${rowIdx}`,
+                        tableId: rowIdx,
+                        directionId: k,
+                        flow: vol,
+                        coords,
+                        feature: ef,
+                        featureProps: ef.properties
+                    });
+                    rowIdx++;
+                }
+            }
+        }
+        tableRows.sort((a, b) => b.flow - a.flow);
+
+        return { tableRows, totalTrips };
+    }, []);
+
+    // --- Fetch spider data for ALL keys, cache, then render for a selection ---
+    const fetchAndCacheSpiders = useCallback(async (map, keys, feature, direction) => {
+        try {
+            // Fetch spider data for all keys in parallel
+            const results = await Promise.all(
+                keys.map(async (key) => {
+                    let res = await fetch(`/backend/data/${DATASET_ID}/spider_${direction}.json?link_id=${key}`);
+                    if (res.status === 401) {
+                      const refreshed = await handle401();
+                      if (!refreshed) return { key, total_trips: 0, spiderMap: new Map() };
+                      res = await fetch(`/backend/data/${DATASET_ID}/spider_${direction}.json?link_id=${key}`);
+                    }
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    const spider = await res.json();
+                    if (spider.error) {
+                        console.warn(`Spider query error for ${key}:`, spider.error);
+                        return { key, total_trips: 0, spiderMap: new Map() };
+                    }
+                    const { total_trips, links: spiderLinks } = spider;
+                    const needsScale = direction === 'inflow' || direction === 'outflow';
+                    const spiderMap = new Map(
+                        Object.entries(spiderLinks).map(([k, v]) => [k, needsScale ? Math.round(v * total_trips) : v])
+                    );
+                    return { key, total_trips, spiderMap };
+                })
+            );
+
+            // Build per-key cache
+            const perKey = {};
+            for (const r of results) {
+                perKey[r.key] = { total_trips: r.total_trips, spiderMap: r.spiderMap };
+            }
+
+            // Build aggregated spider map (sum flows across all keys)
+            const aggSpiderMap = new Map();
+            let aggTotalTrips = 0;
+            for (const r of results) {
+                aggTotalTrips += r.total_trips;
+                for (const [k, v] of r.spiderMap) {
+                    aggSpiderMap.set(k, (aggSpiderMap.get(k) || 0) + v);
+                }
+            }
+
+            const cache = {
+                keys,
+                feature,
+                perKey,
+                aggregated: { total_trips: aggTotalTrips, spiderMap: aggSpiderMap },
+            };
+            spiderCacheRef.current = cache;
+
+            return cache;
+        } catch (err) {
+            console.error('Failed to fetch spider data:', err);
+            return null;
+        }
+    }, []);
+
+    // --- Render from cache for a given selection (null = aggregated, key = specific) ---
+    const renderForSelection = useCallback((map, cache, selectedLink) => {
+        if (!cache) return;
+
+        let data, targetKeys, displayLinkId;
+
+        if (selectedLink && cache.perKey[selectedLink]) {
+            data = cache.perKey[selectedLink];
+            targetKeys = [selectedLink];
+            displayLinkId = selectedLink;
+        } else {
+            // Aggregated view
+            data = cache.aggregated;
+            targetKeys = cache.keys;
+            displayLinkId = cache.keys.length === 1 ? cache.keys[0] : `All (${cache.keys.length})`;
+        }
+
+        const result = renderSpiderOverlay(map, data.spiderMap, data.total_trips, targetKeys, cache.feature, displayLinkId);
+        if (!result) return;
+
+        setVolumeFlowSegment({
+            targetLink: displayLinkId,
+            allKeys: cache.keys,
+            totalTrips: data.total_trips,
+            dailyAvgVolume: cache.feature.properties.daily_avg_volume,
+            modes: cache.feature.properties.modes,
+            tableRows: result.tableRows,
+        });
+    }, [renderSpiderOverlay, setVolumeFlowSegment]);
+
+    // --- Main effect: setup/teardown click handler + re-fetch on direction change ---
     useEffect(() => {
         if (!mapReady || !mapRef.current) return;
         const map = mapRef.current;
 
-        // --- Cleanup helper: only removes spider overlay, not the shared network ---
-        const removeSpider = () => {
-            [TARGET_LABEL_ID, LABEL_LAYER_ID, TARGET_LAYER_ID, HIGHLIGHT_LAYER_ID].forEach(id => {
-                if (map.getLayer(id)) map.removeLayer(id);
-            });
-            if (map.getSource(SPIDER_SOURCE_ID)) map.removeSource(SPIDER_SOURCE_ID);
-            if (clickHandlerRef.current) {
-                map.off('click', NETWORK_CLICK_LAYER, clickHandlerRef.current);
-                clickHandlerRef.current = null;
-            }
-        };
+        // Check if spider was active before cleanup (for direction-change re-fetch)
+        const hadSpider = !!map.getSource(SPIDER_SOURCE_ID);
 
-        // --- Not in VolumeFlow mode → tear down spider overlay ---
-        if (isGraphExpanded !== 'VolumeFlow') {
-            removeSpider();
+        // Direction-only change: keep segment info, just re-fetch spider overlay
+        const isDirectionChange = hadSpider && lastClickRef.current && isGraphExpanded === 'VolumeFlow';
+
+        // Always clean up spider overlay + handler first
+        removeSpider(map);
+        removeClickHandler(map);
+
+        // Only clear segment info when actually leaving VolumeFlow or changing canton/link
+        if (!isDirectionChange) {
             setVolumeFlowSegment(null);
+            spiderCacheRef.current = null;
+        }
+
+        // Not in VolumeFlow → clear stored click and done
+        if (isGraphExpanded !== 'VolumeFlow') {
+            lastClickRef.current = null;
+            setVolumeFlowSelectedLink(null);
             return;
         }
 
-        // Network not loaded yet (useNetworkLayers hasn't finished)
+        // Restore base VolumeFlow opacity (after spider removed)
+        if (map.getLayer('network-layer')) {
+            map.setPaintProperty('network-layer', 'line-opacity', 0.4);
+        }
+
+        // Apply VolumeFlow filter (car roads with >0 volume)
+        const vfFilter = ['all',
+            ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0],
+            ['>', ['get', 'daily_avg_volume'], 0]
+        ];
+        ['network-layer', NETWORK_CLICK_LAYER].forEach(id => {
+            if (map.getLayer(id)) map.setFilter(id, vfFilter);
+        });
+
+        // Network not loaded yet
         if (!featureGeoJSON?.features || !map.getLayer(NETWORK_CLICK_LAYER)) return;
 
-        // Already set up
-        if (clickHandlerRef.current) return;
+        // If there's a stored click AND spider was showing (direction changed), re-fetch
+        if (lastClickRef.current && hadSpider) {
+            const { keys, feature } = lastClickRef.current;
+            fetchAndCacheSpiders(map, keys, feature, volumeFlowDirection).then(cache => {
+                if (cache) renderForSelection(map, cache, selectedLinkRef.current);
+            });
+        }
+        // If no stored click but there's a highlighted feature from Network/Volumes, auto-trigger spider
+        else if (!lastClickRef.current && map.getSource('network-highlight')) {
+            try {
+                const src = map.getSource('network-highlight');
+                const highlightedFeature = src?._data?.features?.[0];
+                if (highlightedFeature) {
+                    const keys = (highlightedFeature.properties.per_id_keys || '').split('|').filter(Boolean);
+                    if (keys.length) {
+                        lastClickRef.current = { keys, feature: highlightedFeature };
+                        setVolumeFlowSelectedLink(null);
+                        fetchAndCacheSpiders(map, keys, highlightedFeature, volumeFlowDirection).then(cache => {
+                            if (cache) renderForSelection(map, cache, null);
+                        });
+                    }
+                }
+            } catch (e) { /* highlight source may not have data */ }
+        }
 
         // --- Click handler: any link on the shared network layer ---
         const handleClick = async (e) => {
@@ -58,206 +388,41 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
             const keys = (feature.properties.per_id_keys || '').split('|').filter(Boolean);
             if (!keys.length) return;
 
-            const linkId = keys[0];
+            // Store for re-fetch on direction change
+            lastClickRef.current = { keys, feature };
+            // Reset link selection to aggregated on new click
+            setVolumeFlowSelectedLink(null);
 
-            try {
-                const res = await fetch(`/backend/data/${DATASET_ID}/spider_bothflow.json?link_id=${linkId}`);
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const spider = await res.json();
-                if (spider.error) {
-                    console.warn('Spider query error:', spider.error);
-                    return;
-                }
-
-                const { total_trips, links: spiderLinks } = spider;
-                const spiderMap = new Map(Object.entries(spiderLinks));
-
-                // Build spider overlay features from the shared network GeoJSON
-                const spiderFeatures = [];
-                let idx = 0;
-
-                for (const f of featureGeoJSON.features) {
-                    const fKeys = (f.properties.per_id_keys || '').split('|');
-                    const isTarget = fKeys.some(k => keys.includes(k));
-
-                    let maxFlow = 0;
-                    for (const k of fKeys) {
-                        const vol = spiderMap.get(k);
-                        if (vol !== undefined && vol > maxFlow) maxFlow = vol;
-                    }
-
-                    if (maxFlow > 0 || isTarget) {
-                        spiderFeatures.push({
-                            ...f,
-                            id: idx,
-                            properties: {
-                                ...f.properties,
-                                spider_flow: maxFlow,
-                                isTarget: isTarget || undefined,
-                                targetLinkId: isTarget ? linkId : undefined,
-                                featureIndex: idx,
-                            }
-                        });
-                        idx++;
-                    }
-                }
-
-                const spiderGeoJSON = { type: 'FeatureCollection', features: spiderFeatures };
-
-                // Create or update the spider source
-                const existingSrc = map.getSource(SPIDER_SOURCE_ID);
-                if (existingSrc) {
-                    existingSrc.setData(spiderGeoJSON);
-                } else {
-                    map.addSource(SPIDER_SOURCE_ID, { type: 'geojson', data: spiderGeoJSON });
-
-                    // Highlight layer — orange spider flow
-                    map.addLayer({
-                        id: HIGHLIGHT_LAYER_ID,
-                        type: 'line',
-                        source: SPIDER_SOURCE_ID,
-                        paint: {
-                            'line-color': '#ff8c00',
-                            'line-width': ['interpolate', ['linear'], ['get', 'spider_flow'],
-                                0, 0, 1, 1, 10, 3, 150, 5, 300, 8, 500, 12, 700, 16
-                            ],
-                            'line-opacity': 0.85
-                        },
-                        filter: ['all',
-                            ['!=', ['get', 'isTarget'], true],
-                            ['>', ['get', 'spider_flow'], 0]
-                        ]
-                    });
-
-                    // Target link — blue
-                    map.addLayer({
-                        id: TARGET_LAYER_ID,
-                        type: 'line',
-                        source: SPIDER_SOURCE_ID,
-                        paint: {
-                            'line-color': '#1a73e8',
-                            'line-width': 8,
-                            'line-opacity': 1
-                        },
-                        filter: ['==', ['get', 'isTarget'], true]
-                    });
-
-                    // Volume labels (zoom 15+)
-                    map.addLayer({
-                        id: LABEL_LAYER_ID,
-                        type: 'symbol',
-                        source: SPIDER_SOURCE_ID,
-                        minzoom: 15,
-                        layout: {
-                            'symbol-placement': 'line-center',
-                            'text-field': ['to-string', ['get', 'spider_flow']],
-                            'text-size': 11,
-                            'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
-                            'text-allow-overlap': true,
-                            'text-ignore-placement': true
-                        },
-                        paint: {
-                            'text-color': '#fff',
-                            'text-halo-color': '#ff8c00',
-                            'text-halo-width': 2
-                        },
-                        filter: ['all',
-                            ['!=', ['get', 'isTarget'], true],
-                            ['>', ['get', 'spider_flow'], 0]
-                        ]
-                    });
-
-                    // Target label (zoom 15+)
-                    map.addLayer({
-                        id: TARGET_LABEL_ID,
-                        type: 'symbol',
-                        source: SPIDER_SOURCE_ID,
-                        minzoom: 15,
-                        layout: {
-                            'symbol-placement': 'line-center',
-                            'text-field': ['to-string', ['get', 'targetLinkId']],
-                            'text-size': 14,
-                            'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
-                            'text-allow-overlap': true,
-                            'text-ignore-placement': true
-                        },
-                        paint: {
-                            'text-color': '#1a73e8',
-                            'text-halo-color': '#fff',
-                            'text-halo-width': 2
-                        },
-                        filter: ['==', ['get', 'isTarget'], true]
-                    });
-                }
-
-                // Scale target width by trip count
-                let tw = 8;
-                if (total_trips >= 700) tw = 16;
-                else if (total_trips >= 500) tw = 12 + (total_trips - 500) / 200 * 4;
-                else if (total_trips >= 300) tw = 8 + (total_trips - 300) / 200 * 4;
-                else if (total_trips >= 150) tw = 5 + (total_trips - 150) / 150 * 3;
-                else if (total_trips >= 50) tw = 3 + (total_trips - 50) / 100 * 2;
-                else tw = Math.max(3, total_trips / 50 * 3);
-                map.setPaintProperty(TARGET_LAYER_ID, 'line-width', tw);
-
-                // Fade the base network so the spider overlay stands out
-                if (map.getLayer('network-layer')) {
-                    map.setPaintProperty('network-layer', 'line-opacity', 0.1);
-                }
-
-                // Build table rows
-                const tableRows = [];
-                let rowIdx = 0;
-                for (const ef of spiderFeatures) {
-                    if (ef.properties.isTarget) continue;
-                    const fKeys = (ef.properties.per_id_keys || '').split('|');
-                    const g = ef.geometry;
-                    const coords = g?.type === 'LineString'
-                        ? g.coordinates
-                        : g?.type === 'MultiLineString'
-                            ? g.coordinates.flat()
-                            : null;
-
-                    for (const k of fKeys) {
-                        const vol = spiderMap.get(k);
-                        if (vol !== undefined && vol > 0) {
-                            tableRows.push({
-                                rowKey: `vf-${rowIdx}`,
-                                tableId: rowIdx,
-                                directionId: k,
-                                flow: vol,
-                                coords,
-                                feature: ef,
-                                featureProps: ef.properties
-                            });
-                            rowIdx++;
-                        }
-                    }
-                }
-                tableRows.sort((a, b) => b.flow - a.flow);
-
-                setVolumeFlowSegment({
-                    targetLink: linkId,
-                    totalTrips: total_trips,
-                    dailyAvgVolume: feature.properties.daily_avg_volume,
-                    modes: feature.properties.modes,
-                    tableRows
-                });
-            } catch (err) {
-                console.error('Failed to fetch spider data:', err);
+            // Sync with shared highlight so selection persists across module switches
+            const g = feature.geometry;
+            const coords = g?.type === 'LineString'
+                ? g.coordinates
+                : g?.type === 'MultiLineString'
+                    ? g.coordinates.flat()
+                    : null;
+            if (coords) {
+                setFeatureSelection({ id: feature.properties.per_id_keys, feature, coords, fromMap: true });
             }
+            setSelectedNetworkFeature([feature.properties]);
+
+            const cache = await fetchAndCacheSpiders(map, keys, feature, volumeFlowDirection);
+            if (cache) renderForSelection(map, cache, null);
         };
 
         map.on('click', NETWORK_CLICK_LAYER, handleClick);
         clickHandlerRef.current = handleClick;
 
-        return () => {
-            if (clickHandlerRef.current) {
-                map.off('click', NETWORK_CLICK_LAYER, clickHandlerRef.current);
-                clickHandlerRef.current = null;
-            }
-        };
-    }, [mapReady, isGraphExpanded, featureGeoJSON, mapRef, setVolumeFlowSegment]);
+        return () => removeClickHandler(map);
+    }, [mapReady, isGraphExpanded, clickedCanton, featureGeoJSON, mapRef, setVolumeFlowSegment, volumeFlowDirection, fetchAndCacheSpiders, renderForSelection, setVolumeFlowSelectedLink]);
+
+    // --- Effect 2: re-render when selected link changes (from sidebar) ---
+    useEffect(() => {
+        if (!mapReady || !mapRef.current || isGraphExpanded !== 'VolumeFlow') return;
+        if (!spiderCacheRef.current) return;
+
+        const map = mapRef.current;
+        renderForSelection(map, spiderCacheRef.current, volumeFlowSelectedLink);
+    }, [volumeFlowSelectedLink, mapReady, mapRef, isGraphExpanded, renderForSelection]);
 
     return null;
 }

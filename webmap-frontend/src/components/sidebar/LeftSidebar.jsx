@@ -1,14 +1,18 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import './LeftSidebar.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faCircleNodes, faRotateLeft, faFolder, faXmark,
   faChevronLeft, faChevronRight,
   faRoad, faPersonWalkingLuggage, faLocationDot, faBus, faTicket,
-  faArrowsSplitUpAndLeft, faChartSimple, faMap, faRoute
+  faArrowsSplitUpAndLeft, faChartSimple, faMap, faRoute,
+  faRightFromBracket,
+  faUserShield
 } from '@fortawesome/free-solid-svg-icons';
 import { useFileContext } from '../../FileContext';
 import { useApp } from '../../context/AppContext';
+import { redirectToLogin, checkIsAdmin } from '../../utils/auth';
+import { useQuery } from '@tanstack/react-query';
 
 const LeftSidebar = () => {
   const fileInputRef = useRef(null);
@@ -31,12 +35,16 @@ const LeftSidebar = () => {
 
   const { handleFolderUpload, fileMap, clearFileMap } = useFileContext();
 
+  const { data: isAdmin = false } = useQuery({
+    queryKey: ['admin-check'],
+    queryFn: () => checkIsAdmin(),
+  });
+
   // Expose sidebar width as CSS variable for search bar positioning
-  useEffect(() => {
-    document.documentElement.style.setProperty(
-      '--left-sidebar-width', isCollapsed ? '60px' : '215px'
-    );
-  }, [isCollapsed]);
+  // effect:audited — DOM side-effect syncing CSS custom property to React state
+  document.documentElement.style.setProperty(
+    '--left-sidebar-width', isCollapsed ? '60px' : '215px'
+  );
 
   const menuItems = [
     { id: 'Choropleth', label: 'Choropleth', icon: faMap },
@@ -102,15 +110,46 @@ const LeftSidebar = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await fetch('/authentification/backend/logout', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}',
+      });
+    } catch { /* ignore */ }
+    redirectToLogin();
+  };
+
   const hasUploadedFiles = fileMap.size > 0;
 
   return (
     <aside className={`left-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="left-sidebar-content">
 
-        {/* Reset button */}
+        {/* Logout + Reset */}
         <div className="left-sidebar-section">
           <nav className="left-sidebar-nav">
+            <button
+              className="left-sidebar-item logout-item"
+              onClick={handleLogout}
+              title={isCollapsed ? 'Sign out' : ''}
+            >
+              <span className="left-sidebar-icon"><FontAwesomeIcon icon={faRightFromBracket} /></span>
+              {!isCollapsed && <span className="left-sidebar-label">Sign out</span>}
+            </button>
+
+            {isAdmin && (
+              <button
+                className="left-sidebar-item admin-item"
+                onClick={() => window.open('/authentification/admin/', '_blank')}
+                title={isCollapsed ? 'Admin Panel' : ''}
+              >
+                <span className="left-sidebar-icon"><FontAwesomeIcon icon={faUserShield} /></span>
+                {!isCollapsed && <span className="left-sidebar-label">Admin</span>}
+              </button>
+            )}
 
             <button
               className="left-sidebar-item reset-item"

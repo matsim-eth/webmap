@@ -1,7 +1,5 @@
-import duckdb
-
 from .base import DataProvider, CANTON, SOURCE, GENDER
-
+from .connection import get_connection
 from .helpers import canton_filter_sql, gender_filter_sql, parse_source_param, build_canton_lookup
 from .paths import get_data_paths
 
@@ -25,7 +23,7 @@ class CarAvailabilityProvider(DataProvider):
         sources = parse_source_param(params)
         cf = canton_filter_sql(params.get("canton"), "p.canton_id")
         gf = gender_filter_sql(params, "p.sex")
-        con = duckdb.connect()
+        con = get_connection()
 
         counts: dict = {}
         totals: dict = {}

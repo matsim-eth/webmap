@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useRef, useContext } from "react";
+import { createContext, useState, useRef, useContext } from "react";
 
 const AppContext = createContext();
 
@@ -67,6 +67,10 @@ export const AppProvider = ({ children }) => {
   const [boardingData, setBoardingData] = useState(null);
   // Volume Flow Analysis - selected segment
   const [volumeFlowSegment, setVolumeFlowSegment] = useState(null);
+  // Volume Flow direction: 'bothflow' | 'inflow' | 'outflow'
+  const [volumeFlowDirection, setVolumeFlowDirection] = useState('bothflow');
+  // Volume Flow selected link: null = aggregated (all), string = specific link ID
+  const [volumeFlowSelectedLink, setVolumeFlowSelectedLink] = useState(null);
 
   // Pass selected mode/dataset from sidebar to map
   const updateMapChoropleth = (mode, dataset) => {
@@ -81,25 +85,26 @@ export const AppProvider = ({ children }) => {
   // Clear feature selection when switching between module groups
   // Groups: Network/Volumes (share highlights), TransitVolumes (separate), Transit (separate)
   const previousModule = useRef(null);
-  useEffect(() => {
-    const getModuleGroup = (module) => {
-      if (module === 'Network' || module === 'Volumes') return 'network';
-      if (module === 'TransitVolumes') return 'transitVolumes';
-      if (module === 'Transit') return 'transit';
-      return null;
-    };
 
-    const currentGroup = getModuleGroup(isGraphExpanded);
-    const previousGroup = getModuleGroup(previousModule.current);
+  const getModuleGroup = (module) => {
+    if (module === 'Network' || module === 'Volumes' || module === 'VolumeFlow') return 'network';
+    if (module === 'TransitVolumes') return 'transitVolumes';
+    if (module === 'Transit') return 'transit';
+    return null;
+  };
 
-    // Only clear if switching between different module groups
-    // Keep selection when switching between Network and Volumes only
-    if (currentGroup !== previousGroup && previousGroup !== null) {
+  // Wrap setIsGraphExpanded to clear selection on group change (was a useEffect)
+  const setIsGraphExpandedWithClear = (nextModule) => {
+    const currentGroup = getModuleGroup(previousModule.current);
+    const nextGroup = getModuleGroup(nextModule);
+
+    if (nextGroup !== currentGroup && currentGroup !== null) {
       setFeatureSelection(null);
     }
 
-    previousModule.current = isGraphExpanded;
-  }, [isGraphExpanded]);
+    previousModule.current = nextModule;
+    setIsGraphExpanded(nextModule);
+  };
 
   // Handle map reset if button clicked in sidebar
   const resetMapView = () => {
@@ -123,7 +128,7 @@ export const AppProvider = ({ children }) => {
     dataURL, setDataURL,
     clickedCanton, setClickedCanton,
     isSidebarOpen, setIsSidebarOpen,
-    isGraphExpanded, setIsGraphExpanded,
+    isGraphExpanded, setIsGraphExpanded: setIsGraphExpandedWithClear,
     isLeftSidebarCollapsed, setIsLeftSidebarCollapsed,
     cantonList, setCantonList,
     aggCol, setAggCol,
@@ -153,7 +158,9 @@ export const AppProvider = ({ children }) => {
     resetMapTrigger, setResetMapTrigger,
     labelSize, setLabelSize,
     resetMapView,
-    volumeFlowSegment, setVolumeFlowSegment
+    volumeFlowSegment, setVolumeFlowSegment,
+    volumeFlowDirection, setVolumeFlowDirection,
+    volumeFlowSelectedLink, setVolumeFlowSelectedLink
   };
 
   return (

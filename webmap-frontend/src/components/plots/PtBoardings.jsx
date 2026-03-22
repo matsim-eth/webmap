@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useRef } from "react";
 import Plot from "react-plotly.js";
 import { marks, formatTimeLabel } from "../../utils/timeSliderUtils";
 import cantonAlias from "../../utils/canton_alias.json";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
+import { useQuery } from "@tanstack/react-query";
 
 const VEHICLE_COLORS = {
   rail: "#636efa",
@@ -16,11 +17,8 @@ const VEHICLE_COLORS = {
 
 
 const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, selectedTransitStop }) => {
-  const [plotData, setPlotData] = useState(null);
-  const [transferData, setTransferData] = useState(null);
   const [selectedVehicle, setSelectedVehicle] = useState('all');
   const [selectedLine, setSelectedLine] = useState('all');
-  const [availableLines, setAvailableLines] = useState([]);
   const [showStopAnalysis, setShowStopAnalysis] = useState(false);
   const loadWithFallback = useLoadWithFallback();
   
@@ -38,88 +36,72 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
     return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
   };
 
-  useEffect(() => {
-    if (!canton) return;
-    
-    // Only fetch if we don't already have data
-    if (plotData && transferData) return;
-    
-    Promise.all([
+  const { data: ptDataBundle } = useQuery({
+    queryKey: ['pt-boardings-data'],
+    queryFn: () => Promise.all([
       loadWithFallback('boarding_data_by_line.json'),
       loadWithFallback('stop_transfer_data_by_canton.json')
-    ])
-    .then(([boardingData, transferData]) => {
-      setPlotData(boardingData);
-      setTransferData(transferData);
-      updateAvailableLines(boardingData, canton, selectedVehicle, selectedTransitStop);
-    })
-    .catch(err => {
-      console.error("Error loading PT data:", err);
-    });
-  }, [canton]); // Remove loadWithFallback from dependencies to prevent constant refetching
+    ]).then(([boardingData, transferData]) => ({ boardingData, transferData })),
+    enabled: !!canton,
+  });
 
-  // Update available lines when vehicle selection changes
-  useEffect(() => {
-    if (plotData && canton) {
-      updateAvailableLines(plotData, canton, selectedVehicle, selectedTransitStop);
-      // Reset line selection when vehicle changes
-      setSelectedLine('all');
-    }
-  }, [selectedVehicle, plotData, canton, selectedTransitStop]);
+  const plotData = ptDataBundle?.boardingData ?? null;
+  const transferData = ptDataBundle?.transferData ?? null;
 
-  // Handle selected transit stop
-  useEffect(() => {
-    if (selectedTransitStop) {
-      setShowStopAnalysis(true);
-    } else {
-      setShowStopAnalysis(false);
-    }
-  }, [selectedTransitStop]);
+  // Derived: available lines based on current filters
+  const availableLines = useMemo(() => {
+    if (!plotData || !canton) return [{ value: 'all', label: 'All Lines' }];
 
-  const updateAvailableLines = (data, canton, vehicleFilter, selectedStop = null) => {
-    // Extract unique lines for the selected canton
     const linesForCanton = [];
     const uniqueLineIds = new Set();
-    
-    Object.values(data).forEach(entry => {
+
+    Object.values(plotData).forEach(entry => {
       if (entry.cantons && entry.cantons.includes(canton)) {
-        // Filter by vehicle type if not 'all'
-        if (vehicleFilter === 'all' || entry.vehicle === vehicleFilter) {
-          // Only add if we haven't seen this line_id before
+        if (selectedVehicle === 'all' || entry.vehicle === selectedVehicle) {
           if (!uniqueLineIds.has(entry.line_id)) {
             uniqueLineIds.add(entry.line_id);
-            
-            // Check if this line serves the selected stop
+
             let isAtSelectedStop = false;
-            if (selectedStop && selectedStop.lines) {
-              isAtSelectedStop = selectedStop.lines.some(stopLine => 
-                stopLine.line_id === entry.line_id || 
+            if (selectedTransitStop && selectedTransitStop.lines) {
+              isAtSelectedStop = selectedTransitStop.lines.some(stopLine =>
+                stopLine.line_id === entry.line_id ||
                 stopLine.line_name === entry.line_name
               );
             }
-            
+
             linesForCanton.push({
               value: entry.line_id,
-              label: `${entry.line_name} (${entry.vehicle})${isAtSelectedStop ? ' ★' : ''}`,
+              label: `${entry.line_name} (${entry.vehicle})${isAtSelectedStop ? ' \u2605' : ''}`,
               isAtSelectedStop
             });
           }
         }
       }
     });
-    
-    // Sort by whether they're at the selected stop first, then by label
+
     const sortedLines = linesForCanton.sort((a, b) => {
       if (a.isAtSelectedStop && !b.isAtSelectedStop) return -1;
       if (!a.isAtSelectedStop && b.isAtSelectedStop) return 1;
       return a.label.localeCompare(b.label);
     });
-    
-    setAvailableLines([
-      { value: 'all', label: 'All Lines' },
-      ...sortedLines
-    ]);
-  };
+
+    return [{ value: 'all', label: 'All Lines' }, ...sortedLines];
+  }, [plotData, canton, selectedVehicle, selectedTransitStop]);
+
+  // Reset line selection when vehicle changes (moved from useEffect to handler below)
+  const prevVehicleRef = useRef(selectedVehicle);
+  if (prevVehicleRef.current !== selectedVehicle) {
+    prevVehicleRef.current = selectedVehicle;
+    if (selectedLine !== 'all') setSelectedLine('all');
+  }
+
+  // Sync showStopAnalysis with selectedTransitStop changes
+  const prevStopRef = useRef(selectedTransitStop);
+  if (selectedTransitStop !== prevStopRef.current) {
+    prevStopRef.current = selectedTransitStop;
+    const nextShow = !!selectedTransitStop;
+    if (nextShow !== showStopAnalysis) setShowStopAnalysis(nextShow);
+  }
 
   const processData = () => {
     if (!plotData || !canton) return null;
@@ -362,39 +344,38 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
   const transferMatrix = createTransferMatrix();
   const destinationDistribution = createDestinationDistribution();
 
-  // Calculate total boardings to propagate to parent component
-  useEffect(() => {
-    if (!plotData || !onTotalBoardingsChange || !canton) return;
-    
-    // Filter data for the selected canton
-    let filteredDataForTotal = Object.values(plotData).filter(entry => 
+  // Derived: compute total boardings and notify parent
+  const prevBoardingsRef = useRef(null);
+  const boardingsPayload = useMemo(() => {
+    if (!plotData || !canton) return null;
+
+    let filteredDataForTotal = Object.values(plotData).filter(entry =>
       entry.cantons && entry.cantons.includes(canton)
     );
-    
+
     const vehicleTotals = { all: 0, rail: 0, bus: 0, tram: 0, funicular: 0 };
     const lineTotals = {};
-    
+
     filteredDataForTotal.forEach(entry => {
       if (entry.boardings) {
         Object.entries(entry.boardings).forEach(([time, cantonBoardings]) => {
           const [hours, minutes] = time.split(':').map(Number);
           const timeIndex = hours * 4 + Math.floor(minutes / 15);
-          
+
           if (timeIndex >= timeRange[0] && timeIndex <= timeRange[1]) {
             const boardingCount = cantonBoardings[canton] || 0;
-            
+
             vehicleTotals.all += boardingCount;
             if (vehicleTotals[entry.vehicle] !== undefined) {
               vehicleTotals[entry.vehicle] += boardingCount;
             }
-            
-            // Track by line
+
             if (!lineTotals[entry.line_id]) {
-              lineTotals[entry.line_id] = { 
-                name: entry.line_name, 
-                vehicle: entry.vehicle, 
+              lineTotals[entry.line_id] = {
+                name: entry.line_name,
+                vehicle: entry.vehicle,
                 count: 0,
-                route_ids: entry.route_id || [] // route_id is already an array in the data
+                route_ids: entry.route_id || []
               };
             }
             lineTotals[entry.line_id].count += boardingCount;
@@ -402,12 +383,11 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
         });
       }
     });
-    
-    // Get detailed information about the selected line
+
     let selectedLineInfo = null;
     let rawLineData = null;
-    if (selectedLine !== 'all' && plotData) {
-      const selectedLineEntry = Object.values(plotData).find(entry => 
+    if (selectedLine !== 'all') {
+      const selectedLineEntry = Object.values(plotData).find(entry =>
         entry.line_id === selectedLine && entry.cantons && entry.cantons.includes(canton)
       );
       if (selectedLineEntry) {
@@ -416,24 +396,32 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
           line_name: selectedLineEntry.line_name,
           vehicle: selectedLineEntry.vehicle,
           cantons: selectedLineEntry.cantons,
-          route_ids: selectedLineEntry.route_id || [] // route_id is already an array in the data
+          route_ids: selectedLineEntry.route_id || []
         };
-        // Pass the raw line data including boarding information for choropleth
         rawLineData = selectedLineEntry;
       }
     }
-    
-    onTotalBoardingsChange({ 
-      byVehicle: vehicleTotals, 
+
+    return {
+      byVehicle: vehicleTotals,
       byLine: lineTotals,
-      selectedVehicle: selectedVehicle,
-      selectedLine: selectedLine,
-      selectedLineInfo: selectedLineInfo,
-      rawLineData: rawLineData,
-      timeRange: timeRange,
-      canton: canton
-    });
+      selectedVehicle,
+      selectedLine,
+      selectedLineInfo,
+      rawLineData,
+      timeRange,
+      canton
+    };
   }, [plotData, selectedVehicle, selectedLine, timeRange, canton]);
+
+  // Notify parent when boarding totals change
+  if (onTotalBoardingsChange && boardingsPayload) {
+    const key = JSON.stringify(boardingsPayload);
+    if (key !== prevBoardingsRef.current) {
+      prevBoardingsRef.current = key;
+      onTotalBoardingsChange(boardingsPayload);
+    }
+  }
 
   if (!plotData) {
     return (

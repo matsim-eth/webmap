@@ -4,12 +4,26 @@ import FeatureTable from '../table/FeatureTable';
 import '../Table.css';
 import './VolumeFlowModule.css';
 
+const DIRECTION_OPTIONS = [
+    { value: 'bothflow', label: 'Both' },
+    { value: 'inflow', label: 'Inflow' },
+    { value: 'outflow', label: 'Outflow' },
+];
+
 const VolumeFlowModule = ({
     isFeatureTableOpen,
     featureTableRef,
     setTableFilterQuery
 }) => {
-    const { volumeFlowSegment, clickedCanton, setFeatureSelection } = useApp();
+    const {
+        volumeFlowSegment,
+        clickedCanton,
+        setFeatureSelection,
+        volumeFlowDirection,
+        setVolumeFlowDirection,
+        volumeFlowSelectedLink,
+        setVolumeFlowSelectedLink,
+    } = useApp();
 
     const handleRowClick = useCallback((row) => {
         if (!row) return;
@@ -25,6 +39,10 @@ const VolumeFlowModule = ({
         if (!row) return;
         handleRowClick({ ...row, coords: coords || row.coords });
     }, [handleRowClick]);
+
+    const directionLabel = volumeFlowDirection === 'bothflow'
+        ? 'Bidirectional'
+        : volumeFlowDirection === 'inflow' ? 'Inflow' : 'Outflow';
 
     return (
         <div className="plot-container">
@@ -43,6 +61,37 @@ const VolumeFlowModule = ({
                 />
             ) : (
                 <>
+                    {/* Link selector — only when multiple link IDs on the clicked segment */}
+                    {volumeFlowSegment?.allKeys && volumeFlowSegment.allKeys.length > 1 && (
+                        <div className="link-selector">
+                            <label>Link ID:</label>
+                            <select
+                                value={volumeFlowSelectedLink || ''}
+                                onChange={(e) => setVolumeFlowSelectedLink(e.target.value || null)}
+                            >
+                                <option value="">All ({volumeFlowSegment.allKeys.length} links)</option>
+                                {volumeFlowSegment.allKeys.map(key => (
+                                    <option key={key} value={key}>{key}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+
+                    {/* Direction toggle — always visible when canton is selected */}
+                    {clickedCanton && (
+                        <div className="flow-direction-toggle">
+                            {DIRECTION_OPTIONS.map(opt => (
+                                <button
+                                    key={opt.value}
+                                    className={`flow-dir-btn${volumeFlowDirection === opt.value ? ' active' : ''}`}
+                                    onClick={() => setVolumeFlowDirection(opt.value)}
+                                >
+                                    {opt.label}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
                     {!volumeFlowSegment && (
                         <div className="no-selection">
                             <p>No link selected</p>
@@ -73,7 +122,7 @@ const VolumeFlowModule = ({
                                     </tr>
                                     <tr>
                                         <td><strong>Direction</strong></td>
-                                        <td>Bidirectional</td>
+                                        <td>{directionLabel}</td>
                                     </tr>
                                     <tr>
                                         <td><strong>Modes</strong></td>

@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import Plot from "react-plotly.js";
 import { useDashboard } from "../../context/DashboardContext";
 import { useData } from "../../context/DataContext";
+import { useResizeOnSidebarChange } from "../../hooks/useResizeOnSidebarChange";
 
 const TransferMatrix = ({ sidebarCollapsed, isExpanded = false }) => {
   const { selectedCanton, selectedTransitStop } = useDashboard();
@@ -10,12 +11,7 @@ const TransferMatrix = ({ sidebarCollapsed, isExpanded = false }) => {
   const transferData = getData("stop_transfer_data_by_canton.json");
   const boardingData = getData("boarding_data_by_line.json");
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      window.dispatchEvent(new Event("resize"));
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [sidebarCollapsed]);
+  useResizeOnSidebarChange(sidebarCollapsed);
 
   const matrixResult = useMemo(() => {
     if (!selectedTransitStop || !transferData || !boardingData || !selectedCanton) {

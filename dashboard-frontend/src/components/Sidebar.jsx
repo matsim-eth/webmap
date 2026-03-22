@@ -1,8 +1,10 @@
     import React, { useRef, useState } from 'react';
     import './Sidebar.css';
     import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-    import { faHouse, faIdCard, faCar, faTrain, faRoad, faBriefcase, faClipboardList, faLocationDot, faImage, faFilePdf, faChevronLeft, faChevronRight, faFolder, faXmark, faSpinner, faCheck, faMap } from '@fortawesome/free-solid-svg-icons';
+    import { faHouse, faIdCard, faCar, faTrain, faRoad, faBriefcase, faClipboardList, faLocationDot, faImage, faFilePdf, faChevronLeft, faChevronRight, faFolder, faXmark, faSpinner, faCheck, faMap, faRightFromBracket, faUserShield } from '@fortawesome/free-solid-svg-icons';
     import { useFileContext } from '../context/FileContext';
+    import { redirectToLogin, checkIsAdmin } from '../utils/auth';
+    import { useQuery } from '@tanstack/react-query';
 
     const Sidebar = ({ activeTab, setActiveTab, isCollapsed, setIsCollapsed, onExportImage, onExportPDF }) => {
     const fileInputRef = useRef(null);
@@ -13,6 +15,12 @@
 
     // get functions and state from FileContext
     const { handleFolderUpload, fileMap, clearFileMap } = useFileContext();
+
+    const { data: isAdmin = false } = useQuery({
+      queryKey: ['isAdmin'],
+      queryFn: () => checkIsAdmin(),
+      staleTime: Infinity,
+    });
 
     const menuItems = [
         //{ id: 'home', label: 'Home', icon: faHouse },
@@ -64,16 +72,52 @@
         }
     };
 
+    const handleLogout = async () => {
+        try {
+            await fetch('/authentification/backend/logout', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: '{}',
+            });
+        } catch { /* ignore */ }
+        redirectToLogin();
+    };
+
     const hasUploadedFiles = fileMap.size > 0;
 
     return (
         <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
-        
+
         <div className="sidebar-content">
+        {/* Sign out + Admin */}
+        <div className="sidebar-section">
+            <nav className="sidebar-nav">
+                <button
+                    className="sidebar-item logout-item"
+                    onClick={handleLogout}
+                    title={isCollapsed ? 'Sign out' : ''}
+                >
+                    <span className="sidebar-icon"><FontAwesomeIcon icon={faRightFromBracket} /></span>
+                    <span className="sidebar-label">Sign out</span>
+                </button>
+                {isAdmin && (
+                    <button
+                        className="sidebar-item admin-item"
+                        onClick={() => window.open('/authentification/admin/', '_blank')}
+                        title={isCollapsed ? 'Admin Panel' : ''}
+                    >
+                        <span className="sidebar-icon"><FontAwesomeIcon icon={faUserShield} /></span>
+                        <span className="sidebar-label">Admin</span>
+                    </button>
+                )}
+            </nav>
+        </div>
+
         {/* Menu Section */}
 
         <div className="sidebar-section">
-            {!isCollapsed && <span className="sidebar-section-title">MENU</span>}
+            <span className="sidebar-section-title">MENU</span>
             <nav className="sidebar-nav">
             {menuItems.map((item) => (
                 <button
@@ -83,7 +127,7 @@
                 title={isCollapsed ? item.label : ''}
                 >
                 <span className="sidebar-icon"><FontAwesomeIcon icon={item.icon} /></span>
-                {!isCollapsed && <span className="sidebar-label">{item.label}</span>}
+                <span className="sidebar-label">{item.label}</span>
                 </button>
             ))}
             </nav>
@@ -92,7 +136,7 @@
         {/* Upload Section */}
 
         <div className="sidebar-section">
-            {!isCollapsed && <span className="sidebar-section-title">UPLOAD</span>}
+            <span className="sidebar-section-title">UPLOAD</span>
             <nav className="sidebar-nav">
             <button
                 className={`sidebar-item ${hasUploadedFiles ? 'uploaded' : ''}`}
@@ -100,7 +144,7 @@
                 title={isCollapsed ? 'Local Folder' : ''}
             >
                 <span className="sidebar-icon"><FontAwesomeIcon icon={faFolder} /></span>
-                {!isCollapsed && <span className="sidebar-label">Local Folder</span>}
+                <span className="sidebar-label">Local Folder</span>
             </button>
             <input
                 ref={fileInputRef}
@@ -115,7 +159,7 @@
             {!isCollapsed && hasUploadedFiles && (
             <div className="sidebar-file-count-container">
                 <span className="sidebar-file-count">{fileMap.size} files uploaded</span>
-                <button 
+                <button
                 className="sidebar-file-reset"
                 onClick={clearFileMap}
                 title="Reset to default data"
@@ -128,14 +172,14 @@
 
         {/* Export Section */}
         <div className="sidebar-section">
-            {!isCollapsed && <span className="sidebar-section-title">EXPORT</span>}
+            <span className="sidebar-section-title">EXPORT</span>
             <nav className="sidebar-nav">
             {exportItems.map((item) => {
                 const isExporting = exportingType === item.id;
                 const isSuccess = exportSuccess === item.id;
                 const icon = isExporting ? faSpinner : isSuccess ? faCheck : item.icon;
                 const label = isExporting ? 'Exporting...' : item.label;
-                
+
                 return (
                     <button
                     key={item.id}
@@ -147,7 +191,7 @@
                     <span className="sidebar-icon">
                         <FontAwesomeIcon icon={icon} spin={isExporting} />
                     </span>
-                    {!isCollapsed && <span className="sidebar-label">{label}</span>}
+                    <span className="sidebar-label">{label}</span>
                     </button>
                 );
             })}
@@ -155,7 +199,7 @@
         </div>
 
         <div className="sidebar-section">
-            {!isCollapsed && <span className="sidebar-section-title">WEBMAP</span>}
+            <span className="sidebar-section-title">WEBMAP</span>
             <nav className="sidebar-nav">
                 <button
                     className="sidebar-item"
@@ -163,7 +207,7 @@
                     title={isCollapsed ? "Open Webmap" : ""}
                 >
                     <span className="sidebar-icon"><FontAwesomeIcon icon={faMap} /></span>
-                    {!isCollapsed && <span className="sidebar-label">Open Webmap</span>}
+                    <span className="sidebar-label">Open Webmap</span>
                 </button>
             </nav>
         </div>

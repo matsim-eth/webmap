@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useMemo, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import "./RightSidebar.css";
 import { useFileContext } from "../../FileContext";
 import { useApp } from "../../context/AppContext";
@@ -68,15 +69,9 @@ const RightSidebar = () => {
   // selectedGraph is now isGraphExpanded from AppContext
   const [selectedMode, setSelectedMode] = useState("None"); // Choropleth mode
   const [selectedDataset, setSelectedDataset] = useState("Microcensus"); // Choropleth dataset
-  const [availableModes, setAvailableModes] = useState([]); // Available modes for network filter
-  const [modesByCanton, setModesByCanton] = useState({}); // For mode filter (only show modes available in each canton)
 
   // Add state for destination outflow data
   const [destinationOutflowData, setDestinationOutflowData] = useState(null);
-
-  // Transit module
-  const [availableTransitModes, setAvailableTransitModes] = useState([]);
-  const [transitModesByCanton, setTransitModesByCanton] = useState({});
 
   // Data loading
   const { fileMap } = useFileContext();
@@ -85,20 +80,17 @@ const RightSidebar = () => {
   const transitFeatureTableRef = useRef(null);
 
   // ======================= MATSIM NETWORK MODULE =======================
-  useEffect(() => {
-    loadWithFallback("modes_by_canton.json")
-      .then((data) => setModesByCanton(data))
-      .catch((err) => console.error("Failed to load modes_by_canton.json", err));
-  }, [dataURL, fileMap]);
+  const { data: modesByCanton = {} } = useQuery({
+    queryKey: ['modes-by-canton', dataURL, fileMap.size],
+    queryFn: () => loadWithFallback("modes_by_canton.json"),
+  });
 
-  useEffect(() => {
+  // Derived state: available modes for the selected canton
+  const availableModes = useMemo(() => {
     if (canton && modesByCanton[canton]) {
-      setAvailableModes(
-        modesByCanton[canton].filter((mode) => !["car_passenger", "truck", "rail", "other", "pt", "taxi"].includes(mode))
-      );
-    } else {
-      setAvailableModes([]);
+      return modesByCanton[canton].filter((mode) => !["car_passenger", "truck", "rail", "other", "pt", "taxi"].includes(mode));
     }
+    return [];
   }, [canton, modesByCanton]);
 
   const handleModeChange = (event) => {
@@ -111,18 +103,17 @@ const RightSidebar = () => {
   };
 
   // ======================== TRANSIT MODULE =======================
-  useEffect(() => {
-    loadWithFallback("matsim/transit/transit_modes_by_canton.json")
-      .then((data) => setTransitModesByCanton(data))
-      .catch((err) => console.error("Failed to load transit modes:", err));
-  }, [dataURL, fileMap]);
+  const { data: transitModesByCanton = {} } = useQuery({
+    queryKey: ['transit-modes-by-canton', dataURL, fileMap.size],
+    queryFn: () => loadWithFallback("matsim/transit/transit_modes_by_canton.json"),
+  });
 
-  useEffect(() => {
+  // Derived state: available transit modes for the selected canton
+  const availableTransitModes = useMemo(() => {
     if (canton && transitModesByCanton[canton]) {
-      setAvailableTransitModes(transitModesByCanton[canton]);
-    } else {
-      setAvailableTransitModes([]);
+      return transitModesByCanton[canton];
     }
+    return [];
   }, [canton, transitModesByCanton]);
 
   // ======================== DESTINATION MODULE =======================
@@ -229,13 +220,16 @@ const RightSidebar = () => {
                   className="panel-toolbar-btn"
                   onClick={() => {
                     setVolumeFlowSegment(null);
-                    // Remove spider overlay source + layers
+                    // Remove spider overlay source + layers and highlighted link
                     const map = mapRef?.current;
                     if (map) {
                       ['volume-flow-target-label','volume-flow-labels','volume-flow-target','volume-flow-highlight'].forEach(id => {
                         if (map.getLayer(id)) map.removeLayer(id);
                       });
                       if (map.getSource('volume-flow-spider')) map.removeSource('volume-flow-spider');
+                      // Remove the highlighted network link
+                      if (map.getLayer('network-highlight')) map.removeLayer('network-highlight');
+                      if (map.getSource('network-highlight')) map.removeSource('network-highlight');
                       // Restore base network opacity
                       if (map.getLayer('network-layer')) map.setPaintProperty('network-layer', 'line-opacity', 0.4);
                     }

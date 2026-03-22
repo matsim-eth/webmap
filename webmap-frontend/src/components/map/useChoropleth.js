@@ -51,8 +51,8 @@ export default function useChoropleth({
 
     // Reset to base style when not active or no mode selected
     const setBaseStyle = () => {
-      map.setPaintProperty("canton-fill", "fill-opacity", 0.15);
-      map.setPaintProperty("canton-fill", "fill-color", "#A07CC5");
+      map.setPaintProperty("canton-fill", "fill-opacity", 0.05);
+      map.setPaintProperty("canton-fill", "fill-color", "#6366f1");
     };
 
     if (selectedMode === "None" || isGraphExpanded !== "Choropleth") {

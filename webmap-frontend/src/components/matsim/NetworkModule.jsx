@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useState, useRef } from "react";
+import React, { useCallback } from "react";
 import SegmentAttributesTable from "./SegmentAttributesTable";
-import FeatureTable, { buildRowsFromGeojson } from "../table/FeatureTable";
+import FeatureTable from "../table/FeatureTable";
+import { useTableRowBuilder } from "../../hooks/useTableRowBuilder";
 
 // get coords and id of selected row
 const buildSelectionPayload = (row) => {
@@ -25,111 +26,15 @@ const NetworkModule = ({
   featureTableRef,
   setTableFilterQuery
 }) => {
-  const [showTable, setShowTable] = useState(false);
-  const [tableRows, setTableRows] = useState([]);
-  const [rowsReady, setRowsReady] = useState(false);
-  const cachedRowsRef = useRef(new Map());
-  
-  useEffect(() => {
-    if (isFeatureTableOpen) {
-      // add delay so sidebar can expand first
-      const timer = setTimeout(() => {
-        setShowTable(true);
-      }, 400);
-      return () => clearTimeout(timer);
-    }
-    setShowTable(false);
-    setTableFilterQuery(null);
-  }, [isFeatureTableOpen]);
-  
-  const ensureRowsForCanton = useCallback(() => {
-    console.log('[NetworkModule] ensureRowsForCanton called', { canton, hasGeoJSON: !!featureGeoJSON, selectedGraph });
+  const { showTable, tableRows, rowsReady } = useTableRowBuilder({
+    isFeatureTableOpen,
+    canton,
+    featureGeoJSON,
+    selectedGraph,
+    setTableFilterQuery,
+    useCache: true,
+  });
 
-    // if missing canton or data, clear
-    if (!canton || !featureGeoJSON) {
-      console.log('[NetworkModule] Missing canton or geojson, clearing rows');
-      setTableRows([]);
-      setRowsReady(false);
-      return;
-    }
-
-    // cache data unless canton changed
-    const cacheKey = canton;
-    const cached = cachedRowsRef.current.get(cacheKey);
-    console.log('[NetworkModule] Cache check:', { cacheKey, hasCached: !!cached, cacheSourceMatch: cached?.source === featureGeoJSON });
-    if (cached && cached.source === featureGeoJSON) {
-      console.log('[NetworkModule] Using cached rows:', cached.rows.length);
-      setTableRows(cached.rows);
-      setRowsReady(true);
-      return;
-    }
-
-    // build rows and then cache from geojson
-    console.log('[NetworkModule] Building rows from geojson');
-    const builtRows = buildRowsFromGeojson(featureGeoJSON, selectedGraph);
-    console.log('[NetworkModule] Built rows:', builtRows.length);
-    cachedRowsRef.current.set(cacheKey, { source: featureGeoJSON, rows: builtRows });
-    setTableRows(builtRows);
-    setRowsReady(true);
-    console.log('[NetworkModule] Rows ready set to true');
-  }, [canton, featureGeoJSON, selectedGraph]);
-  
-  useEffect(() => {
-    if (!canton || !featureGeoJSON) {
-      if (!canton) {
-        cachedRowsRef.current.clear();
-      }
-      setTableRows([]);
-      setRowsReady(false);
-      return;
-    }
-    const cached = cachedRowsRef.current.get(canton);
-
-    // use cached if available
-    if (cached && cached.source === featureGeoJSON) {
-      setTableRows(cached.rows);
-      setRowsReady(true);
-    } else {
-      // clear cache if canton changed
-      cachedRowsRef.current.delete(canton);
-      setTableRows([]);
-      setRowsReady(false);
-    }
-  }, [canton, featureGeoJSON, selectedGraph]);
-  
-  useEffect(() => {
-    // table not shown, so don't build rows
-    if (!showTable) {
-      return;
-    }
-    
-    // trigger row building in idle time
-    let cancelled = false;
-    const run = () => {
-      if (!cancelled) {
-        ensureRowsForCanton();
-      }
-    };
-    
-    if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
-      // run when idle, but at most after 200ms
-      const idleId = window.requestIdleCallback(run, { timeout: 200 });
-      return () => {
-        cancelled = true;
-        if (typeof window.cancelIdleCallback === 'function') {
-          window.cancelIdleCallback(idleId);
-        }
-      };
-    }
-    
-    // fallback for browsers without requestIdleCallback
-    const timeoutId = window.setTimeout(run, 0);
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timeoutId);
-    };
-  }, [showTable, ensureRowsForCanton, canton, featureGeoJSON]);
-  
   const handleTableRowSelect = useCallback(
     (row) => {
       if (!row) return;
@@ -146,7 +51,7 @@ const NetworkModule = ({
     },
     [onFocusNetworkFeature, setSelectedNetworkFeature]
   );
-  
+
   const handleSelectCoords = useCallback(
     (coords, row) => {
       if (!row) return;
@@ -154,7 +59,7 @@ const NetworkModule = ({
     },
     [handleTableRowSelect]
   );
-  
+
   return (
     <div className="plot-container">
     {isFeatureTableOpen ? (
@@ -196,7 +101,7 @@ const NetworkModule = ({
         Click a canton to view MATSim network links.
         </p>
       )}
-      
+
       {selectedNetworkFeature && (
         <SegmentAttributesTable propertiesList={selectedNetworkFeature} />
       )}

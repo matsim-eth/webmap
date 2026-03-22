@@ -32,6 +32,7 @@ const PURPOSES = [
 ];
 
 const GENDERS = [
+  { id: "all", label: "All" },
   { id: "male", label: "Male" },
   { id: "female", label: "Female" },
 ];
@@ -49,6 +50,7 @@ const INCOMES = [
 ];
 
 const AGES = [
+  { id: "all", label: "All" },
   { id: "[6, 15)", label: "6-14" },
   { id: "[15, 18)", label: "15-17" },
   { id: "[18, 24)", label: "18-23" },

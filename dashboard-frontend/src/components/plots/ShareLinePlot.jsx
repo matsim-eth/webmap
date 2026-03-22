@@ -1,7 +1,9 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import Plot from "react-plotly.js";
+import { useQuery } from "@tanstack/react-query";
 import { useDashboard } from "../../context/DashboardContext";
 import { useData } from "../../context/DataContext";
+import { useResizeOnSidebarChange } from "../../hooks/useResizeOnSidebarChange";
 
 const MODE_COLORS = {
   car: "#636efa",
@@ -20,31 +22,47 @@ const PURPOSE_COLORS = {
   work: "#FFEE8C",
 };
 
-const ShareLinePlot = ({ 
-  sidebarCollapsed, 
-  isExpanded = false, 
+const ShareLinePlot = ({
+  sidebarCollapsed,
+  isExpanded = false,
   type = 'mode',
   plotType = 'departure', // 'departure' or 'distance'
   title,
   xAxisLabel,
+  backendUrl = null,
   exportFilename
 }) => {
   const { selectedCanton, distanceType, selectedMode, selectedPurpose } = useDashboard();
-  const { getData } = useData();
+  const { getData, getUrlData } = useData();
 
   // Select colors and filter based on type
   const colors = type === 'mode' ? MODE_COLORS : PURPOSE_COLORS;
   const selectedFilter = type === 'mode' ? selectedMode : selectedPurpose;
 
-  // Trigger resize when sidebar collapses/expands
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [sidebarCollapsed]);
+  useResizeOnSidebarChange(sidebarCollapsed);
+
+  // Build the full backend URL based on plotType and distanceType
+  const fullBackendUrl = useMemo(() => {
+    if (!backendUrl) return null;
+    const sep = backendUrl.includes('?') ? '&' : '?';
+    if (plotType === 'departure') {
+      return `${backendUrl}${sep}metric=departure_time`;
+    }
+    const metric = distanceType === "euclidean" ? "euclidean_distance" : "network_distance";
+    return `${backendUrl}${sep}metric=${metric}`;
+  }, [backendUrl, plotType, distanceType]);
+
+  const cantonKey = selectedCanton || "All";
+
+  // Fetch from backend
+  const { data: backendData } = useQuery({
+    queryKey: ['shareLinePlot', fullBackendUrl, cantonKey],
+    queryFn: () => getUrlData(fullBackendUrl).then((payload) => payload?.[cantonKey] || null),
+    enabled: !!fullBackendUrl,
+  });
 
   const plotData = useMemo(() => {
+    if (backendUrl) return backendData ?? null;
     let filename;
     if (plotType === 'departure') {
       filename = `lineplot_departure_time_data_${type}.json`;
@@ -53,14 +71,13 @@ const ShareLinePlot = ({
       filename = `lineplot_${selectedVariable}_data_${type}.json`;
     }
     const raw = getData(filename);
-    const cantonKey = selectedCanton || "All";
     return raw?.[cantonKey] || null;
-  }, [getData, selectedCanton, type, plotType, distanceType]);
+  }, [getData, selectedCanton, type, plotType, distanceType, backendUrl, backendData, cantonKey]);
 
   if (!plotData) return <div className="plot-loading">Loading...</div>;
 
   const generateTraces = (data, lineStyle) => {
-    const items = selectedFilter === "all" 
+    const items = selectedFilter === "all"
       ? [...new Set(data.map((entry) => entry[type]))]
       : [selectedFilter];
 
@@ -88,10 +105,10 @@ const ShareLinePlot = ({
   ];
 
   // Add dummy traces for color legend (as squares)
-  const items = selectedFilter === "all" 
+  const items = selectedFilter === "all"
     ? Object.keys(colors)
     : [selectedFilter];
-  
+
   const colorTraces = items.map(item => ({
     type: "scatter",
     mode: "markers",
@@ -171,7 +188,7 @@ const ShareLinePlot = ({
             tickangle: 45,
             tickfont: { size: plotType === 'distance' ? 8 : 9 },
           },
-          yaxis: { 
+          yaxis: {
             title: {
               text: `${type.charAt(0).toUpperCase() + type.slice(1)} Share [%]`,
               font: { size: 11 },
@@ -179,9 +196,9 @@ const ShareLinePlot = ({
             },
             tickfont: { size: 9 },
           },
-          legend: { 
-            orientation: "v", 
-            x: 1.02, 
+          legend: {
+            orientation: "v",
+            x: 1.02,
             y: 1,
             xanchor: "left",
             yanchor: "top",
@@ -195,15 +212,15 @@ const ShareLinePlot = ({
         }}
         useResizeHandler={true}
         style={{ width: "100%", height: "100%" }}
-        config={{ 
-          responsive: true, 
+        config={{
+          responsive: true,
           displayModeBar: isExpanded ? 'hover' : false,
-          toImageButtonOptions: { 
+          toImageButtonOptions: {
             filename: exportFilename,
             format: 'png',
             height: 800,
             width: 1200
-          } 
+          }
         }}
       />
     </div>

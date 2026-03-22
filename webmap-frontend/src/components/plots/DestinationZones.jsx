@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useRef } from "react";
 import Plot from "react-plotly.js";
 import { marks, formatTimeLabel } from "../../utils/timeSliderUtils";
 import cantonAlias from "../../utils/canton_alias.json";
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
+import { useQuery } from "@tanstack/react-query";
 
 const MODE_COLORS = {
   car: "#636efa",
@@ -16,12 +17,11 @@ const MODE_COLORS = {
 
 
 const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRange }) => {
-  const [plotData, setPlotData] = useState(null);
   const [selectedMode, setSelectedMode] = useState('all');
   const [selectedPurpose, setSelectedPurpose] = useState('all');
   const [selectedCanton, setSelectedCanton] = useState('all');
   const [isOriginMode, setIsOriginMode] = useState(true);
-  
+
   const loadWithFallback = useLoadWithFallback();
   
   const modes = [
@@ -50,20 +50,12 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
     const minute = (value % 4) * 15;
     return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
   };
-  
-  useEffect(() => {
-    if (!canton) return;
-    
-    const path = `destination_data/${canton}.json`;
-    
-    loadWithFallback(path)
-    .then(data => {
-      setPlotData(data);
-    })
-    .catch(err => {
-      console.error("Error loading plot data:", err);
-    });
-  }, [canton]);
+
+  const { data: plotData } = useQuery({
+    queryKey: ['destination-zones', canton],
+    queryFn: () => loadWithFallback(`destination_data/${canton}.json`),
+    enabled: !!canton,
+  });
   
   const processData = () => {
     if (!plotData) return null;
@@ -128,31 +120,29 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
   
   const data = processData();
   
-  // calculating trip outflow based to propagate to map
-  useEffect(() => {
-    if (!plotData || !onTotalOutflowChange) return;
-    
+  // Derived: compute trip outflow totals and notify parent
+  const prevOutflowRef = useRef(null);
+  const outflowData = useMemo(() => {
+    if (!plotData) return null;
+
     const reverseCantonMap = Object.entries(cantonAlias).reduce((acc, [key, value]) => {
       acc[value] = key;
       return acc;
     }, {});
-    
-    // filter by role (origin/destination mode)
-    let filteredDataForChoropleth = plotData.filter(d => 
+
+    let filteredDataForChoropleth = plotData.filter(d =>
       d.role === (isOriginMode ? 'origin' : 'destination')
     );
-    
+
     if (selectedPurpose !== 'all') {
       filteredDataForChoropleth = filteredDataForChoropleth.filter(d => d.purpose === selectedPurpose);
     }
-    
-    const initModeTotals = () => {
-      return { all: 0, car: 0, pt: 0, bike: 0, walk: 0 };
-    };
-    
+
+    const initModeTotals = () => ({ all: 0, car: 0, pt: 0, bike: 0, walk: 0 });
+
     const modeTotals = initModeTotals();
     const cantonTotals = {};
-    
+
     filteredDataForChoropleth.forEach(entry => {
       Object.entries(entry.time_bins).forEach(([time, count]) => {
         const [hours, minutes] = time.split(':').map(Number);
@@ -162,9 +152,7 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
           if (modeTotals[entry.mode] !== undefined) {
             modeTotals[entry.mode] += count;
           }
-          
-          // When in destination mode, show distribution by origin cantons
-          // When in origin mode, show distribution by destination cantons
+
           let cantonKey = isOriginMode ? entry.destination : entry.origin;
           if (reverseCantonMap[cantonKey]) {
             cantonKey = reverseCantonMap[cantonKey];
@@ -177,13 +165,18 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
         }
       });
     });
-    
-    onTotalOutflowChange({ 
-      all: modeTotals, 
-      perCanton: cantonTotals, 
-      selectedMode: selectedMode 
-    });
+
+    return { all: modeTotals, perCanton: cantonTotals, selectedMode: selectedMode };
   }, [plotData, selectedCanton, selectedMode, selectedPurpose, timeRange, isOriginMode]);
+
+  // Notify parent when outflow data changes
+  if (onTotalOutflowChange && outflowData) {
+    const key = JSON.stringify(outflowData);
+    if (key !== prevOutflowRef.current) {
+      prevOutflowRef.current = key;
+      onTotalOutflowChange(outflowData);
+    }
+  }
   
   if (!plotData) {
     return (

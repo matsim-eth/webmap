@@ -1,34 +1,26 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import Plot from "react-plotly.js";
+import { useQuery } from "@tanstack/react-query";
 import { useDashboard } from "../../context/DashboardContext";
 import { useData } from "../../context/DataContext";
+import { useResizeOnSidebarChange } from "../../hooks/useResizeOnSidebarChange";
 
 const TransferDestinations = ({ sidebarCollapsed, isExpanded = false }) => {
   const { selectedCanton, selectedTransitStop } = useDashboard();
   const { getData, getCantonData } = useData();
 
   const transferData = getData("stop_transfer_data_by_canton.json");
-  const [stopsData, setStopsData] = useState(null);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      window.dispatchEvent(new Event("resize"));
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [sidebarCollapsed]);
+  useResizeOnSidebarChange(sidebarCollapsed);
 
-  useEffect(() => {
-    if (!selectedCanton || selectedCanton === "All") {
-      setStopsData(null);
-      return;
-    }
-
-    getCantonData(`matsim/transit/stops_by_canton/${selectedCanton}_stops.geojson`)
-      .then((geojson) => {
-        setStopsData(geojson?.features || []);
-      })
-      .catch(() => setStopsData(null));
-  }, [selectedCanton, getCantonData]);
+  const { data: stopsData = null } = useQuery({
+    queryKey: ['cantonStops', selectedCanton],
+    queryFn: () =>
+      getCantonData(`matsim/transit/stops_by_canton/${selectedCanton}_stops.geojson`)
+        .then((geojson) => geojson?.features || [])
+        .catch(() => null),
+    enabled: !!selectedCanton && selectedCanton !== "All",
+  });
 
   // Build a lookup from stop ID fragments to stop names
   const stopIdToName = useMemo(() => {

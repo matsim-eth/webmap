@@ -18,10 +18,9 @@ car_class    (str): Comma-separated car classes to include (for breakdown=gender
 income_class (str): Comma-separated income classes to include (for breakdown=income).
 """
 
-import duckdb
-
 from .base import DataProvider, Param, CANTON, SOURCE, GENDER, AGE_MIN, AGE_MAX
 from .constants import DEFAULT_AGE_BINS
+from .connection import get_connection
 from .helpers import (
     canton_filter_sql,
     gender_filter_sql,
@@ -84,7 +83,7 @@ class NumCarsProvider(DataProvider):
         sources = parse_source_param(params)
         cf_p = canton_filter_sql(params.get("canton"), "p.canton_id")
         gf_p = gender_filter_sql(params, "p.sex")
-        con = duckdb.connect()
+        con = get_connection()
 
         counts: dict = {}
         totals: dict = {}
@@ -158,7 +157,7 @@ class NumCarsProvider(DataProvider):
         cf_p = canton_filter_sql(params.get("canton"), "p.canton_id")
         af_p = age_filter_sql(params, "p.age")
         car_class_param = params.get("car_class")
-        con = duckdb.connect()
+        con = get_connection()
 
         counts: dict = {}
         totals: dict = {}
@@ -234,7 +233,7 @@ class NumCarsProvider(DataProvider):
         paths = get_data_paths()
         sources = parse_source_param(params)
         cf_p = canton_filter_sql(params.get("canton"), "p.canton_id")
-        con = duckdb.connect()
+        con = get_connection()
 
         counts: dict = {}
         totals: dict = {}

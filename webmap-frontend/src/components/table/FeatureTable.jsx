@@ -7,6 +7,7 @@ import React, {
   forwardRef,
   useState,
 } from "react";
+import { useDebounced } from "../../hooks/useDebounced";
 
 import $ from "jquery";
 import dt from "datatables.net-dt";
@@ -427,16 +428,6 @@ const FeatureTable = forwardRef(
       [selectedGraph]
     );
     
-    // Simple debounce hook
-    const useDebounced = (value, delay = 200) => {
-      const [debounced, setDebounced] = useState(value);
-      useEffect(() => {
-        const handler = setTimeout(() => setDebounced(value), delay);
-        return () => clearTimeout(handler);
-      }, [value, delay]);
-      return debounced;
-    };
-    
     // DataTables columns (maps to the same keys)
     const dtColumns = useMemo(
       () => {
@@ -543,6 +534,7 @@ const FeatureTable = forwardRef(
       },
     }));
     
+    // effect:audited — jQuery DataTables lifecycle (init/destroy/update) requires imperative DOM sync
     useEffect(() => {
       let cancelled = false;
       const el = tableRef.current;
@@ -698,7 +690,7 @@ const FeatureTable = forwardRef(
         .replace(/[ñ]/gi, 'n');
     };
     
-    // Apply search whenever search state or rows change
+    // effect:audited — jQuery DataTables search API requires imperative calls synced to React state
     useEffect(() => {
       const instance = dtRef.current;
       if (!instance) return;
@@ -876,7 +868,7 @@ const FeatureTable = forwardRef(
       }
     }, [searchCol, debouncedSearch, tableRows, dtColumns, selectedGraph]);
     
-    // send the table search query to map to filter features
+    // effect:audited — syncs DataTables search state to parent map filter query
     useEffect(() => {
       const instance = dtRef.current;
       if (!instance) return;

@@ -1,28 +1,9 @@
-"""Stacked bar chart: distance distribution by mode or purpose.
+"""Stacked bar chart: distance distribution by mode or purpose."""
 
-Consolidates the former 4 endpoints into 1:
-  stacked_bar_euclidean_distance_mode.json    -> ?distance_type=euclidean&group_by=mode
-  stacked_bar_euclidean_distance_purpose.json -> ?distance_type=euclidean&group_by=purpose
-  stacked_bar_network_distance_mode.json      -> ?distance_type=network&group_by=mode
-  stacked_bar_network_distance_purpose.json   -> ?distance_type=network&group_by=purpose
-
-Query params
-------------
-distance_type (str): "euclidean" (default) or "network".
-group_by      (str): "mode" (default) or "purpose".
-canton        (str): Comma-separated canton names.
-source        (str): "Synthetic", "Microcensus", or omit for both.
-mode          (str): Comma-separated transport modes to include.
-purpose       (str): Comma-separated purposes to include.
-categories    (str): Comma-separated distance boundaries (e.g. "0,1000,5000,25000").
-gender        (str): "0" or "1" to filter by sex.
-age_min       (int): Minimum age (inclusive).
-age_max       (int): Maximum age (exclusive).
-"""
-
-import duckdb
+from collections import defaultdict
 
 from .base import DataProvider, Param, TRIP_FILTERS
+from .connection import get_connection
 from .helpers import (
     canton_filter_sql,
     gender_filter_sql,
@@ -41,13 +22,11 @@ DEFAULT_CATEGORIES = [
     (25000, float("inf"), "25000+"),
 ]
 
-# Column mapping: (distance_type) -> (mc_col, syn_col)
 _DIST_COLS = {
     "euclidean": ("crowfly_distance", "euclidean_distance"),
     "network":   ("network_distance", "traveled_distance"),
 }
 
-# Group column mapping: (group_by) -> (mc_col, syn_col)
 _GROUP_COLS = {
     "mode":    ("t.mode", "t.main_mode"),
     "purpose": ("t.purpose", "t.end_activity_type"),
@@ -71,11 +50,15 @@ def _parse_categories(params: dict) -> list[tuple[float, float, str]]:
     return cats
 
 
-def _categorize(distance: float, categories: list[tuple[float, float, str]]) -> str | None:
+def _build_case_sql(categories: list[tuple[float, float, str]], dist_col: str) -> str:
+    """Build a CASE expression to categorize distances in SQL."""
+    parts = []
     for lo, hi, label in categories:
-        if lo <= distance < hi:
-            return label
-    return None
+        if hi == float("inf"):
+            parts.append(f"WHEN {dist_col} >= {lo} THEN '{label}'")
+        else:
+            parts.append(f"WHEN {dist_col} >= {lo} AND {dist_col} < {hi} THEN '{label}'")
+    return "CASE " + " ".join(parts) + " END"
 
 
 class StackedBarDistanceProvider(DataProvider):
@@ -83,7 +66,7 @@ class StackedBarDistanceProvider(DataProvider):
     PARAMS = TRIP_FILTERS + [
         Param("distance_type", "Distance metric", enum=["euclidean", "network"]),
         Param("group_by", "Group results by 'mode' (default) or 'purpose'", enum=["mode", "purpose"]),
-        Param("categories", "Comma-separated distance boundaries (e.g. '0,1000,5000,25000')"),
+        Param("categories", "Comma-separated distance boundaries"),
     ]
 
     def deliver(self, params: dict) -> dict:
@@ -93,7 +76,7 @@ class StackedBarDistanceProvider(DataProvider):
         gf = gender_filter_sql(params, "p.sex")
         af = age_filter_sql(params, "p.age")
         categories = _parse_categories(params)
-        con = duckdb.connect()
+        con = get_connection()
 
         distance_type = params.get("distance_type", "euclidean").lower()
         group_by = params.get("group_by", "mode").lower()
@@ -106,7 +89,6 @@ class StackedBarDistanceProvider(DataProvider):
         mc_dist_col, syn_dist_col = _DIST_COLS[distance_type]
         mc_group_col, syn_group_col = _GROUP_COLS[group_by]
 
-        # Build group filters per source
         if group_by == "mode":
             mc_gf = mode_filter_sql(params, mc_group_col)
             syn_gf = mode_filter_sql(params, syn_group_col)
@@ -114,37 +96,37 @@ class StackedBarDistanceProvider(DataProvider):
             mc_gf = purpose_filter_sql(params, mc_group_col)
             syn_gf = purpose_filter_sql(params, syn_group_col)
 
-        counts: dict = {}
-        cat_totals: dict = {}
-        seen_cantons: set = set()
-
-        def accumulate(source: str, cid: int, distance: float, group_val: str) -> None:
-            cat_label = _categorize(distance, categories)
-            if cat_label is None:
-                return
-            seen_cantons.add(cid)
-            for c in (cid, "All"):
-                key = (source, c, cat_label, group_val)
-                counts[key] = counts.get(key, 0) + 1
-                tkey = (source, c, cat_label)
-                cat_totals[tkey] = cat_totals.get(tkey, 0) + 1
+        counts = defaultdict(int)
+        cat_totals = defaultdict(int)
+        seen_cantons = set()
 
         if "Microcensus" in sources:
+            case_sql = _build_case_sql(categories, f"t.{mc_dist_col}")
             rows = con.execute(f"""
-                SELECT p.canton_id, t.{mc_dist_col}, {mc_group_col}
+                SELECT p.canton_id, {mc_group_col} AS grp,
+                       {case_sql} AS cat_label,
+                       COUNT(*) AS cnt
                 FROM read_parquet(?) t
                 INNER JOIN read_parquet(?) p ON t.person_id = p.person_id
                 WHERE p.canton_id IS NOT NULL
                   AND t.{mc_dist_col} IS NOT NULL
                   AND {mc_group_col} IS NOT NULL
                 {cf}{mc_gf}{gf}{af}
+                GROUP BY p.canton_id, grp, cat_label
+                HAVING cat_label IS NOT NULL
             """, [paths.microcensus_trips, paths.microcensus_persons]).fetchall()
-            for cid, dist, gval in rows:
-                accumulate("Microcensus", int(cid), float(dist), str(gval))
+            for cid, gval, cat, cnt in rows:
+                cid = int(cid)
+                seen_cantons.add(cid)
+                counts[("Microcensus", cid, str(cat), str(gval))] += cnt
+                cat_totals[("Microcensus", cid, str(cat))] += cnt
 
         if "Synthetic" in sources:
+            case_sql = _build_case_sql(categories, f"t.{syn_dist_col}")
             rows = con.execute(f"""
-                SELECT p.canton_id, t.{syn_dist_col}, {syn_group_col}
+                SELECT p.canton_id, {syn_group_col} AS grp,
+                       {case_sql} AS cat_label,
+                       COUNT(*) AS cnt
                 FROM read_parquet(?) t
                 INNER JOIN read_parquet(?) p
                     ON TRY_CAST(t.person AS BIGINT) = p.person_id
@@ -153,9 +135,24 @@ class StackedBarDistanceProvider(DataProvider):
                   AND t.{syn_dist_col} IS NOT NULL
                   AND {syn_group_col} IS NOT NULL
                 {cf}{syn_gf}{gf}{af}
+                GROUP BY p.canton_id, grp, cat_label
+                HAVING cat_label IS NOT NULL
             """, [paths.synthetic_output_trips, paths.synthetic_persons]).fetchall()
-            for cid, dist, gval in rows:
-                accumulate("Synthetic", int(cid), float(dist), str(gval))
+            for cid, gval, cat, cnt in rows:
+                cid = int(cid)
+                seen_cantons.add(cid)
+                counts[("Synthetic", cid, str(cat), str(gval))] += cnt
+                cat_totals[("Synthetic", cid, str(cat))] += cnt
+
+        # "All" canton aggregate
+        all_canton_counts = defaultdict(int)
+        all_canton_totals = defaultdict(int)
+        for (source, cid, cat, gval), cnt in counts.items():
+            all_canton_counts[(source, "All", cat, gval)] += cnt
+        counts.update(all_canton_counts)
+        for (source, cid, cat), total in cat_totals.items():
+            all_canton_totals[(source, "All", cat)] += total
+        cat_totals.update(all_canton_totals)
 
         canton_names, canton_ids_by_name = build_canton_lookup(seen_cantons)
         cat_labels = [c[2] for c in categories]

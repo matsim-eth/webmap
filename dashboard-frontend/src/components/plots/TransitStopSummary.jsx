@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useDashboard } from "../../context/DashboardContext";
 import { useData } from "../../context/DataContext";
 import cantonAlias from "../../utils/canton_alias.json";
@@ -6,18 +7,14 @@ import cantonAlias from "../../utils/canton_alias.json";
 const TransitStopSummary = () => {
   const { selectedCanton, selectedTransitStop, selectedTransitLine } = useDashboard();
   const { getCantonData } = useData();
-  const [rawData, setRawData] = useState(null);
 
-  useEffect(() => {
-    if (!selectedCanton || selectedCanton === "All") {
-      setRawData(null);
-      return;
-    }
-
-    getCantonData(`matsim/transit/per_canton_counts/${selectedCanton}_counts.json`)
-      .then(setRawData)
-      .catch(() => setRawData(null));
-  }, [selectedCanton, getCantonData]);
+  const { data: rawData = null } = useQuery({
+    queryKey: ['cantonCounts', selectedCanton],
+    queryFn: () =>
+      getCantonData(`matsim/transit/per_canton_counts/${selectedCanton}_counts.json`)
+        .catch(() => null),
+    enabled: !!selectedCanton && selectedCanton !== "All",
+  });
 
   const totals = useMemo(() => {
     if (!rawData) return null;

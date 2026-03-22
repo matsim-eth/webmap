@@ -32,7 +32,7 @@ export default function useCantons({
           id: 'canton-fill',
           type: 'fill',
           source: 'cantons',
-          paint: { 'fill-color': '#A07CC5', 'fill-opacity': 0.15 }
+          paint: { 'fill-color': '#6366f1', 'fill-opacity': 0.05 }
         });
 
         // canton border
@@ -40,7 +40,7 @@ export default function useCantons({
           id: 'canton-borders',
           type: 'line',
           source: 'cantons',
-          paint: { 'line-color': '#000', 'line-width': 1 }
+          paint: { 'line-color': '#6366f1', 'line-width': 1 }
         });
 
         // selected canton border
@@ -48,7 +48,7 @@ export default function useCantons({
           id: 'selected-canton-border',
           type: 'line',
           source: 'cantons',
-          paint: { 'line-color': '#F00', 'line-width': 2 },
+          paint: { 'line-color': '#4f46e5', 'line-width': 2 },
           filter: ['==', 'NAME', '']
         });
 
@@ -93,7 +93,7 @@ export default function useCantons({
 
         setClickedCanton(cantonName);
 
-        // Show the red border only for the selected canton
+        // Highlight the selected canton
         map.setFilter('selected-canton-border', ['==', 'NAME', cantonName]);
 
 

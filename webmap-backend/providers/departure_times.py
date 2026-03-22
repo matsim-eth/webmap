@@ -1,7 +1,7 @@
-import duckdb
+from collections import defaultdict
 
 from .base import DataProvider, Param, CANTON, SOURCE, MODE
-from .constants import canton_name
+from .connection import get_connection
 from .helpers import canton_filter_sql, parse_source_param, build_canton_lookup, mode_filter_sql
 from .paths import get_data_paths
 
@@ -22,8 +22,6 @@ class DepartureTimesProvider(DataProvider):
         canton    (str): Comma-separated canton names.
         source    (str): "Synthetic", "Microcensus", or omit for both.
         mode      (str): Comma-separated transport modes to include.
-
-    Example: /data/departure_times.json?start_min=360&end_min=1080&step_min=15&canton=Zurich
     """
 
     ROUTE = "departure_times.json"
@@ -46,52 +44,54 @@ class DepartureTimesProvider(DataProvider):
         cf = canton_filter_sql(params.get("canton"), "p.canton_id")
         mf = mode_filter_sql(params, "t.mode")
 
-        con = duckdb.connect()
+        con = get_connection()
 
-        def read_rows(trips_path: str, persons_path: str, label: str, purpose_col: str) -> list[tuple]:
-            res = con.execute(f"""
-                SELECT t.departure_time, t.{purpose_col}, p.canton_id
+        counts = defaultdict(int)
+        seen_cantons = set()
+        seen_purposes = set()
+
+        def run_query(trip_path, person_path, source, purpose_col):
+            rows = con.execute(f"""
+                SELECT p.canton_id, t.{purpose_col} AS purpose,
+                       (CAST(t.departure_time AS INTEGER) / 60 - {start_min}) / {step} * {step} + {start_min} AS slot,
+                       COUNT(*) AS cnt
                 FROM read_parquet(?) t
                 INNER JOIN read_parquet(?) p ON t.person_id = p.person_id
-                WHERE p.canton_id IS NOT NULL{cf}{mf}
-            """, [trips_path, persons_path]).fetchall()
+                WHERE p.canton_id IS NOT NULL
+                  AND t.departure_time IS NOT NULL
+                  AND t.{purpose_col} IS NOT NULL
+                  AND CAST(t.departure_time AS INTEGER) / 60 >= {start_min}
+                  AND CAST(t.departure_time AS INTEGER) / 60 < {end_min}
+                  {cf}{mf}
+                GROUP BY p.canton_id, purpose, slot
+            """, [trip_path, person_path]).fetchall()
+            for cid, purpose, slot, cnt in rows:
+                seen_cantons.add(int(cid))
+                seen_purposes.add(str(purpose))
+                counts[(source, int(cid), str(purpose), int(slot))] += cnt
 
-            rows = []
-            for dep, purpose, cid in res:
-                if dep is None or purpose is None or cid is None:
-                    continue
-                try:
-                    dep_min = int(dep) // 60
-                except Exception:
-                    continue
-                if dep_min < start_min or dep_min >= end_min:
-                    continue
-                slot = (dep_min - start_min) // step * step + start_min
-                rows.append((label, int(cid), str(purpose), slot))
-            return rows
-
-        rows: list[tuple] = []
         if "Synthetic" in sources:
-            rows.extend(read_rows(paths.synthetic_trips, paths.synthetic_persons, "Synthetic", "preceding_purpose"))
+            run_query(paths.synthetic_trips, paths.synthetic_persons, "Synthetic", "preceding_purpose")
         if "Microcensus" in sources:
-            rows.extend(read_rows(paths.microcensus_trips, paths.microcensus_persons, "Microcensus", "purpose"))
+            run_query(paths.microcensus_trips, paths.microcensus_persons, "Microcensus", "purpose")
 
-        counts: dict = {}
-        totals: dict = {}
-        seen_cantons: set = set()
-        seen_purposes: set = set()
+        # "All" canton aggregate
+        all_canton = defaultdict(int)
+        for (source, cid, purpose, slot), cnt in counts.items():
+            all_canton[(source, "All", purpose, slot)] += cnt
+        counts.update(all_canton)
 
-        for source, cid, purpose, slot in rows:
-            seen_cantons.add(cid)
-            seen_purposes.add(purpose)
-            counts[(source, cid, purpose, slot)]   = counts.get((source, cid, purpose, slot), 0) + 1
-            totals[(source, cid, purpose)]         = totals.get((source, cid, purpose), 0) + 1
-            counts[(source, "All", purpose, slot)] = counts.get((source, "All", purpose, slot), 0) + 1
-            totals[(source, "All", purpose)]       = totals.get((source, "All", purpose), 0) + 1
-            counts[(source, cid, "All", slot)]     = counts.get((source, cid, "All", slot), 0) + 1
-            totals[(source, cid, "All")]           = totals.get((source, cid, "All"), 0) + 1
-            counts[(source, "All", "All", slot)]   = counts.get((source, "All", "All", slot), 0) + 1
-            totals[(source, "All", "All")]         = totals.get((source, "All", "All"), 0) + 1
+        # "All" purpose aggregate
+        all_purpose = defaultdict(int)
+        for (source, cid, purpose, slot), cnt in counts.items():
+            if purpose != "All":
+                all_purpose[(source, cid, "All", slot)] += cnt
+        counts.update(all_purpose)
+
+        # Totals per (source, cid, purpose) for denominator
+        totals = defaultdict(int)
+        for (source, cid, purpose, slot), cnt in counts.items():
+            totals[(source, cid, purpose)] += cnt
 
         canton_names, canton_ids_by_name = build_canton_lookup(seen_cantons)
         purposes = sorted(seen_purposes) + ["All"]

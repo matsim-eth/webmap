@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useRef, useCallback } from "react";
 import { useLoadWithFallback } from "../utils/useLoadWithFallback";
+import { handle401 } from "../utils/auth";
 
 const DataContext = createContext();
 const DEFAULT_CACHE_LIMIT_MB = Number(import.meta.env.VITE_DATA_CACHE_MB ?? 25);
@@ -42,6 +43,7 @@ export const DataProvider = ({ children }) => {
   const cacheOrderRef = useRef(new Map()); // key -> estimated size in bytes (insertion order = LRU)
   const cacheSizeRef = useRef(0);
   const loadingRef = useRef(new Set());
+  const inflightRef = useRef(new Map()); // url -> Promise (dedup in-flight fetches)
   const [cacheVersion, setCacheVersion] = useState(0);
   const loadWithFallback = useLoadWithFallback();
   const loaderRef = useRef(loadWithFallback);
@@ -136,18 +138,44 @@ export const DataProvider = ({ children }) => {
     const cached = getCached(url);
     if (cached !== undefined) return cached;
 
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to load ${url}: HTTP ${response.status}`);
+    // Deduplicate in-flight requests for the same URL
+    if (inflightRef.current.has(url)) {
+      return inflightRef.current.get(url);
     }
 
-    const data = await response.json();
-    setCached(url, data);
-    return data;
+    const promise = (async () => {
+      let response = await fetch(url);
+
+      // 401 from our backend → try token refresh, then retry
+      if (response.status === 401 && url.startsWith("/backend/")) {
+        const refreshed = await handle401();
+        if (!refreshed) return null; // redirecting to login
+        response = await fetch(url);
+      }
+
+      if (!response.ok) {
+        throw new Error(`Failed to load ${url}: HTTP ${response.status}`);
+      }
+      const data = await response.json();
+      setCached(url, data);
+      return data;
+    })().finally(() => {
+      inflightRef.current.delete(url);
+    });
+
+    inflightRef.current.set(url, promise);
+    return promise;
   }, [getCached, setCached]);
 
+  // Fire fetches for multiple URLs in parallel; results are cached for components
+  const prefetchUrls = useCallback((urls) => {
+    urls.forEach((url) => {
+      if (url) getUrlData(url);
+    });
+  }, [getUrlData]);
+
   return (
-    <DataContext.Provider value={{ getData, getCantonData, getUrlData }}>
+    <DataContext.Provider value={{ getData, getCantonData, getUrlData, prefetchUrls }}>
       {children}
     </DataContext.Provider>
   );

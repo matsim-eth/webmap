@@ -1,6 +1,5 @@
-import duckdb
-
 from .base import DataProvider, Param, CANTON, SOURCE
+from .connection import get_connection
 from .constants import canton_name, CANTON_MAP
 from .helpers import canton_filter_sql, parse_source_param, build_canton_lookup
 from .paths import get_data_paths
@@ -25,7 +24,7 @@ class ModesByCantonProvider(DataProvider):
         paths = get_data_paths()
         sources = parse_source_param(params)
         cf = canton_filter_sql(params.get("canton"), "p.canton_id")
-        con = duckdb.connect()
+        con = get_connection()
 
         exclude = set()
         if params.get("exclude_modes"):

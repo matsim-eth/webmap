@@ -1,7 +1,8 @@
-import duckdb
+from collections import defaultdict
 
 from .base import DataProvider, Param, CANTON, SOURCE, GENDER
 from .constants import DEFAULT_AGE_BINS
+from .connection import get_connection
 from .helpers import canton_filter_sql, gender_filter_sql, parse_source_param, build_canton_lookup
 from .paths import get_data_paths
 
@@ -19,31 +20,20 @@ def _parse_age_bins(params: dict) -> list[tuple[int, int, str]]:
         return DEFAULT_AGE_BINS
 
 
-def _age_bin(age, bins: list[tuple[int, int, str]]) -> str | None:
-    try:
-        a = int(age)
-    except Exception:
-        return None
-    for lo, hi, label in bins:
-        if lo <= a < hi:
-            return label
-    return None
+def _age_bin_sql(bins: list[tuple[int, int, str]], col: str = "age") -> str:
+    """Build a SQL CASE expression for age binning."""
+    cases = " ".join(
+        f"WHEN {col} >= {lo} AND {col} < {hi} THEN '{label}'"
+        for lo, hi, label in bins
+    )
+    return f"CASE {cases} END"
 
 
 class AgeProvider(DataProvider):
-    """Age distribution per canton and source.
-
-    Query params:
-        canton  (str): Comma-separated canton names.
-        source  (str): "Synthetic", "Microcensus", or omit for both.
-        gender  (str): "0" or "1" to filter by sex.
-        bounds  (str): Custom age bin boundaries, e.g. "6,18,65,80".
-
-    Example: /data/age.json?canton=Zurich&gender=0&bounds=0,18,30,65,100
-    """
+    """Age distribution per canton and source."""
 
     ROUTE = "age.json"
-    PARAMS = [CANTON, SOURCE, GENDER, Param("bounds", "Custom age bin boundaries (comma-separated, e.g. 0,18,30,50,65,100)")]
+    PARAMS = [CANTON, SOURCE, GENDER, Param("bounds", "Custom age bin boundaries (comma-separated)")]
 
     def deliver(self, params: dict) -> dict:
         paths = get_data_paths()
@@ -52,37 +42,39 @@ class AgeProvider(DataProvider):
         sources = parse_source_param(params)
         cf = canton_filter_sql(params.get("canton"))
         gf = gender_filter_sql(params)
-        con = duckdb.connect()
+        con = get_connection()
 
-        def read_rows(path: str, label: str) -> list[tuple]:
-            res = con.execute(
-                f"SELECT age, canton_id FROM read_parquet(?) WHERE canton_id IS NOT NULL{cf}{gf}",
-                [path],
-            ).fetchall()
-            rows = []
-            for age, cid in res:
-                b = _age_bin(age, bins)
-                if b is None:
-                    continue
-                rows.append((label, int(cid), b))
-            return rows
+        age_case = _age_bin_sql(bins)
 
-        rows: list[tuple] = []
-        if "Synthetic" in sources:
-            rows.extend(read_rows(paths.synthetic_persons, "Synthetic"))
-        if "Microcensus" in sources:
-            rows.extend(read_rows(paths.microcensus_persons, "Microcensus"))
+        counts = defaultdict(int)
+        seen_cantons = set()
 
-        counts: dict = {}
-        totals: dict = {}
+        for source_label, path in [("Synthetic", paths.synthetic_persons),
+                                    ("Microcensus", paths.microcensus_persons)]:
+            if source_label not in sources:
+                continue
+            rows = con.execute(f"""
+                SELECT canton_id, {age_case} AS age_bin, COUNT(*) AS cnt
+                FROM read_parquet(?)
+                WHERE canton_id IS NOT NULL AND age IS NOT NULL{cf}{gf}
+                GROUP BY canton_id, age_bin
+                HAVING age_bin IS NOT NULL
+            """, [path]).fetchall()
+            for cid, bin_label, cnt in rows:
+                seen_cantons.add(int(cid))
+                counts[(source_label, int(cid), str(bin_label))] += cnt
 
-        for source, cid, bin_label in rows:
-            counts[(source, cid, bin_label)] = counts.get((source, cid, bin_label), 0) + 1
-            totals[(source, cid)] = totals.get((source, cid), 0) + 1
-            counts[(source, "All", bin_label)] = counts.get((source, "All", bin_label), 0) + 1
-            totals[(source, "All")] = totals.get((source, "All"), 0) + 1
+        # "All" canton aggregate
+        all_canton = defaultdict(int)
+        for (source, cid, bl), cnt in counts.items():
+            all_canton[(source, "All", bl)] += cnt
+        counts.update(all_canton)
 
-        seen_cantons = {cid for (_, cid, _) in rows if cid != "All"}
+        # Totals per (source, cid)
+        totals = defaultdict(int)
+        for (source, cid, bl), cnt in counts.items():
+            totals[(source, cid)] += cnt
+
         canton_names, canton_ids_by_name = build_canton_lookup(seen_cantons)
 
         out: dict = {}

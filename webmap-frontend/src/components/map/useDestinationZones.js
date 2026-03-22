@@ -35,7 +35,7 @@ export default function useMapPadding({
         type: 'fill',
         source: 'cantons',
         paint: {
-          'fill-color': '#A07CC5',
+          'fill-color': '#6366f1',
           'fill-opacity': 0.6
         }
       }, 'canton-borders');
@@ -192,7 +192,7 @@ export default function useMapPadding({
     
     const map = mapRef.current;
     if (map.getLayer('destination-choropleth') && isGraphExpanded !== "Destination") {
-      map.setPaintProperty("canton-fill", "fill-opacity", 0.15);
+      map.setPaintProperty("canton-fill", "fill-opacity", 0.05);
       map.removeLayer('destination-choropleth')
     }
   }, [isGraphExpanded, selectedDestinationData]);

@@ -278,10 +278,10 @@ export default function useFeatureSelectionFocus({
       // Only react to *new* selections
       const isNew = selectionId !== lastSelectionId.current;
       
-      if (bounds && isNew) {
+      if (bounds && isNew && !selection.fromMap) {
         if (map.stop) map.stop();
         map.fitBounds(bounds, {
-          padding: { top: 250, bottom: 250, left: 250, right: 1200 },
+          padding: { top: 250, bottom: 250, left: 250, right: 800 },
           duration: 1000,
         });
       }
@@ -298,7 +298,7 @@ export default function useFeatureSelectionFocus({
     if (!mapReady || !map) return;
     
     const getModuleGroup = (module) => {
-      if (module === 'Network' || module === 'Volumes') return 'network';
+      if (module === 'Network' || module === 'Volumes' || module === 'VolumeFlow') return 'network';
       if (module === 'TransitVolumes') return 'transitVolumes';
       if (module === 'Transit') return 'transit';
       return null;
@@ -869,19 +869,28 @@ export default function useFeatureSelectionFocus({
         // Exact match for "car" mode (prevents matching "cable car")
         const carFilter = [">=", ["index-of", ",car,", ["concat", ",", ["get", "modes"], ","]], 0];
         const majorRoadsFilter = [">", ["get", "capacity"], 1200];
-        
+
         // Build Volumes-specific filters
         let volumesFilters = [carFilter];
         if (showMajorRoadsOnly) {
           volumesFilters.push(majorRoadsFilter);
         }
-        
+
         // Combine with existing filters
         if (combined) {
           combined = ["all", combined, ...volumesFilters];
         } else {
           combined = volumesFilters.length > 1 ? ["all", ...volumesFilters] : volumesFilters[0];
         }
+      }
+
+      // If we're in VolumeFlow mode, enforce car + volume>0 filter
+      if (isGraphExpanded === 'VolumeFlow') {
+        const carFilter = [">=", ["index-of", ",car,", ["concat", ",", ["get", "modes"], ","]], 0];
+        const volumeFilter = [">", ["get", "daily_avg_volume"], 0];
+        const vfBase = ["all", carFilter, volumeFilter];
+
+        combined = combined ? ["all", combined, vfBase] : vfBase;
       }
       
       map.setFilter(id, combined);

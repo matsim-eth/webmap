@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import "./Table.css";
 import cantonAlias from "../utils/canton_alias.json";
 import { useLoadWithFallback } from "../utils/useLoadWithFallback";
+import { useQuery } from "@tanstack/react-query";
 
 // --- Color & label maps ---
 const COLOR_MAPS = {
@@ -46,19 +47,15 @@ const CantonModeShareTable = ({
   selectedMode,
   aggCol = "mode", // "mode" or "purpose"
 }) => {
-  const [shareData, setShareData] = useState(null);
   const loadWithFallback = useLoadWithFallback();
 
   const COLORS = COLOR_MAPS[aggCol] || {};
   const LABELS = LABEL_MAPS[aggCol] || {};
 
-  useEffect(() => {
-    loadWithFallback(`${aggCol}_share.json`)
-      .then((data) => setShareData(data))
-      .catch((error) =>
-        console.error(`Error loading ${aggCol}_share data:`, error)
-      );
-  }, [aggCol]);
+  const { data: shareData } = useQuery({
+    queryKey: ['share-data', aggCol],
+    queryFn: () => loadWithFallback(`${aggCol}_share.json`),
+  });
 
   if (!canton || !shareData) return null;
 

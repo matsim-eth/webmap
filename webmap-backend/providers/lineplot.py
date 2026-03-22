@@ -23,9 +23,8 @@ age_min   (int): Minimum age (inclusive).
 age_max   (int): Maximum age (exclusive).
 """
 
-import duckdb
-
 from .base import DataProvider, Param, TRIP_FILTERS
+from .connection import get_connection
 from .helpers import (
     canton_filter_sql,
     gender_filter_sql,
@@ -144,7 +143,7 @@ class LineplotProvider(DataProvider):
         else:
             max_value = config["default_max"]
 
-        con = duckdb.connect()
+        con = get_connection()
 
         mc_rows = None
         syn_rows = None

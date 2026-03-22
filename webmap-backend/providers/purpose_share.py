@@ -1,6 +1,5 @@
-import duckdb
-
 from .base import DataProvider, CANTON, SOURCE, GENDER, MODE, PURPOSE
+from .connection import get_connection
 from .constants import canton_name
 from .helpers import (
     canton_filter_sql,
@@ -35,7 +34,7 @@ class PurposeShareProvider(DataProvider):
         cf = canton_filter_sql(params.get("canton"), "p.canton_id")
         mf = mode_filter_sql(params, "t.mode")
         gf = gender_filter_sql(params, "p.sex")
-        con = duckdb.connect()
+        con = get_connection()
 
         counts: dict = {}
         totals: dict = {}

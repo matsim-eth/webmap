@@ -45,7 +45,7 @@ export default function useTransitStops({
       removeTransitLayers();
       // Only clear featureGeoJSON if switching to a module that doesn't use it
       // Network and Volumes modules manage their own featureGeoJSON
-      if (setFeatureGeoJSON && isGraphExpanded !== "Network" && isGraphExpanded !== "Volumes" && isGraphExpanded !== "TransitVolumes") {
+      if (setFeatureGeoJSON && isGraphExpanded !== "Network" && isGraphExpanded !== "Volumes" && isGraphExpanded !== "VolumeFlow" && isGraphExpanded !== "TransitVolumes") {
         setFeatureGeoJSON(null);
       }
       return;

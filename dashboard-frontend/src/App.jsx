@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import './App.css'
 import Sidebar from './components/Sidebar'
 import PlotGrid from './components/PlotGrid'
@@ -14,23 +14,22 @@ window.name = 'dashboard-tab';
 function AppContent() {
   const [activeTab, setActiveTab] = useState('mode')
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [dataRefreshKey, setDataRefreshKey] = useState(0)
   const mainContentRef = useRef(null)
   const { fileMap } = useFileContext()
   const { setSelectedTransitStop, setSelectedTransitLine } = useDashboard()
 
   // Refresh plots when files are uploaded/removed (so they use new data)
-  useEffect(() => {
-    setDataRefreshKey(prev => prev + 1)
-  }, [fileMap.size])
+  // Derived state: dataRefreshKey changes whenever fileMap.size changes
+  const dataRefreshKey = useMemo(() => fileMap.size, [fileMap.size])
 
-  // Clear selected transit stop when leaving transit stops page
-  useEffect(() => {
-    if (activeTab !== 'transit-stops') {
+  const handleSetActiveTab = (tab) => {
+    // Clear selected transit stop when leaving transit stops page
+    if (tab !== 'transit-stops' && activeTab === 'transit-stops') {
       setSelectedTransitStop(null)
       setSelectedTransitLine(null)
     }
-  }, [activeTab])
+    setActiveTab(tab)
+  }
 
   const exportAsImage = async () => {
     if (!mainContentRef.current) return
@@ -92,9 +91,9 @@ function AppContent() {
 
   return (
     <div className="app-container">
-      <Sidebar 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab}
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={handleSetActiveTab}
         isCollapsed={sidebarCollapsed}
         setIsCollapsed={setSidebarCollapsed}
         onExportImage={exportAsImage}

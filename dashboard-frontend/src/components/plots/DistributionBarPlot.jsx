@@ -1,7 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import Plot from "react-plotly.js";
+import { useQuery } from "@tanstack/react-query";
 import { useDashboard } from "../../context/DashboardContext";
 import { useData } from "../../context/DataContext";
+import { useResizeOnSidebarChange } from "../../hooks/useResizeOnSidebarChange";
 
 const DATASET_COLORS = {
   Microcensus: "#4A90E2",
@@ -41,43 +43,30 @@ const DistributionBarPlot = ({
 }) => {
   const { selectedCanton, selectedIncome, selectedAge, selectedGender, distanceType } = useDashboard();
   const { getData, getUrlData } = useData();
-  const [backendData, setBackendData] = useState(null);
   const cantonKey = canton ?? selectedCanton ?? "All";
   const requestUrl = useMemo(() => buildBackendUrl(backendUrl, backendQuery), [backendQuery, backendUrl]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [sidebarCollapsed]);
+  useResizeOnSidebarChange(sidebarCollapsed);
 
-  useEffect(() => {
-    if (!requestUrl) {
-      setBackendData(null);
-      return;
-    }
-
-    setBackendData(null);
-
-    getUrlData(requestUrl).then((payload) => {
-      const cantonData = payload?.[cantonKey] ?? {};
-
-      if (nestedGroupKey) {
-        setBackendData({
-          Synthetic: cantonData?.Synthetic?.[nestedGroupKey] ?? {},
-          Microcensus: cantonData?.Microcensus?.[nestedGroupKey] ?? {},
-        });
-        return;
-      }
-
-      setBackendData(cantonData);
-    });
-  }, [cantonKey, getUrlData, nestedGroupKey, requestUrl]);
+  const { data: backendData } = useQuery({
+    queryKey: ['distributionBar', requestUrl, cantonKey, nestedGroupKey],
+    queryFn: () =>
+      getUrlData(requestUrl).then((payload) => {
+        const cantonData = payload?.[cantonKey] ?? {};
+        if (nestedGroupKey) {
+          return {
+            Synthetic: cantonData?.Synthetic?.[nestedGroupKey] ?? {},
+            Microcensus: cantonData?.Microcensus?.[nestedGroupKey] ?? {},
+          };
+        }
+        return cantonData;
+      }),
+    enabled: !!requestUrl,
+  });
 
   const data = useMemo(() => {
     if (requestUrl) {
-      return backendData;
+      return backendData ?? null;
     }
 
     const jsonData = getData(dataFile);
@@ -114,9 +103,9 @@ const DistributionBarPlot = ({
     synData = resolveGroupedData(data["Synthetic"], selectedIncome);
     titleSuffix = selectedIncome === "all" ? " (All)" : ` (Class ${selectedIncome})`;
   } else if (filterType === "age") {
-    microData = data["Microcensus"][selectedAge];
-    synData = data["Synthetic"][selectedAge];
-    titleSuffix = ` (${selectedAge})`;
+    microData = resolveGroupedData(data["Microcensus"], selectedAge);
+    synData = resolveGroupedData(data["Synthetic"], selectedAge);
+    titleSuffix = selectedAge === "all" ? " (All)" : ` (${selectedAge})`;
   } else if (filterType === "gender") {
     const genderKey = selectedGender === "male" ? "0" : selectedGender === "female" ? "1" : null;
     microData = resolveGroupedData(data["Microcensus"], genderKey, selectedGender);

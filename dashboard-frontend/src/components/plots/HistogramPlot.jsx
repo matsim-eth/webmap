@@ -1,26 +1,29 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import Plot from "react-plotly.js";
+import { useQuery } from "@tanstack/react-query";
 import { useDashboard } from "../../context/DashboardContext";
 import { useData } from "../../context/DataContext";
+import { useResizeOnSidebarChange } from "../../hooks/useResizeOnSidebarChange";
 
 const DATASET_COLORS = {
   Microcensus: "#4A90E2",
   Synthetic: "#E07A5F",
 };
 
-const HistogramPlot = ({ 
-  sidebarCollapsed, 
-  isExpanded = false, 
+const HistogramPlot = ({
+  sidebarCollapsed,
+  isExpanded = false,
   plotType = 'distance', // 'distance', 'duration', or 'departure'
   type = 'mode', // for distance plots: 'mode' or 'purpose'
   title,
   xAxisLabel,
   dataFile,
-  dataTransform = (val) => val * 180000, // default for duration/departure
+  backendUrl = null,
+  dataTransform = (val) => val * 100, // convert fraction to percentage
   exportFilename
 }) => {
   const { selectedCanton, distanceType, selectedMode, selectedPurpose } = useDashboard();
-  const { getData } = useData();
+  const { getData, getUrlData } = useData();
 
   // Use mode or purpose based on type prop (for distance plots)
   const selectedFilter = type === 'mode' ? selectedMode : selectedPurpose;
@@ -28,41 +31,64 @@ const HistogramPlot = ({
   // For duration/departure plots, use selectedPurpose
   const activityFilter = selectedPurpose;
 
-  // Trigger resize when sidebar collapses/expands
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [sidebarCollapsed]);
+  useResizeOnSidebarChange(sidebarCollapsed);
 
   const cantonKey = selectedCanton || "All";
 
+  // Fetch from backend for duration/departure plots
+  const { data: backendData } = useQuery({
+    queryKey: ['histogramSingle', backendUrl, cantonKey],
+    queryFn: () => getUrlData(backendUrl).then((payload) => payload?.[cantonKey] ?? {}),
+    enabled: !!backendUrl && plotType !== 'distance',
+  });
+
+  // Fetch both euclidean and network from backend for distance plots
+  const sep = backendUrl?.includes('?') ? '&' : '?';
+  const { data: backendDistanceData } = useQuery({
+    queryKey: ['histogramDistance', backendUrl, cantonKey],
+    queryFn: () =>
+      Promise.all([
+        getUrlData(`${backendUrl}${sep}distance_type=euclidean`),
+        getUrlData(`${backendUrl}${sep}distance_type=network`),
+      ]).then(([euc, net]) => ({
+        euclidean: euc?.[cantonKey] || null,
+        network: net?.[cantonKey] || null,
+      })),
+    enabled: !!backendUrl && plotType === 'distance',
+  });
+  const backendEuclidean = backendDistanceData?.euclidean ?? null;
+  const backendNetwork = backendDistanceData?.network ?? null;
+
   const euclideanData = useMemo(() => {
     if (plotType !== 'distance') return null;
+    if (backendUrl) return backendEuclidean;
     const raw = getData(`histogram_euclidean_distance_${type}.json`);
     return raw?.[cantonKey] || null;
-  }, [getData, type, plotType, cantonKey]);
+  }, [getData, type, plotType, cantonKey, backendUrl, backendEuclidean]);
 
   const networkData = useMemo(() => {
     if (plotType !== 'distance') return null;
+    if (backendUrl) return backendNetwork;
     const raw = getData(`histogram_network_distance_${type}.json`);
     return raw?.[cantonKey] || null;
-  }, [getData, type, plotType, cantonKey]);
+  }, [getData, type, plotType, cantonKey, backendUrl, backendNetwork]);
 
   const singleData = useMemo(() => {
     if (plotType === 'distance') return null;
+    if (backendUrl) return backendData ?? null;
     const raw = getData(dataFile);
     return raw?.[cantonKey] || null;
-  }, [getData, dataFile, plotType, cantonKey]);
+  }, [getData, dataFile, plotType, cantonKey, backendUrl, backendData]);
 
   // Distance plot logic
   if (plotType === 'distance') {
     if (!euclideanData || !networkData) return <div className="plot-loading">Loading...</div>;
 
     const availableOptions = Object.keys(euclideanData);
-    const currentOption = selectedFilter === "all" ? availableOptions[0] : selectedFilter;
-    
+    const currentOption = selectedFilter === "all"
+      ? (availableOptions.includes("All") ? "All" : availableOptions[0])
+      : selectedFilter;
+
     if (!euclideanData[currentOption] || !networkData[currentOption]) {
       return <div className="plot-loading">No data for selected {type}</div>;
     }
@@ -164,9 +190,9 @@ const HistogramPlot = ({
             },
             margin: { l: 45, r: 20, t: 5, b: 40 },
             showlegend: true,
-            legend: { 
-              orientation: "v", 
-              x: 1.02, 
+            legend: {
+              orientation: "v",
+              x: 1.02,
               y: 1,
               xanchor: "left",
               yanchor: "top",
@@ -194,15 +220,15 @@ const HistogramPlot = ({
           }}
           useResizeHandler={true}
           style={{ width: "100%", height: "100%" }}
-          config={{ 
-            responsive: true, 
+          config={{
+            responsive: true,
             displayModeBar: isExpanded ? 'hover' : false,
-            toImageButtonOptions: { 
+            toImageButtonOptions: {
               filename: exportFilename,
               format: 'png',
               height: 800,
               width: 1200
-            } 
+            }
           }}
         />
       </div>
@@ -214,14 +240,14 @@ const HistogramPlot = ({
 
   const availableOptions = Object.keys(singleData.Microcensus || {});
   let currentActivity = activityFilter;
-  
+
   if (activityFilter === 'all') {
     currentActivity = availableOptions.includes('All') ? 'All' : availableOptions[0];
   }
 
   const microcensusActivityData = singleData.Microcensus?.[currentActivity];
   const syntheticActivityData = singleData.Synthetic?.[currentActivity];
-  
+
   if (!microcensusActivityData || !syntheticActivityData) {
     return <div className="plot-loading">No data available</div>;
   }
@@ -254,13 +280,13 @@ const HistogramPlot = ({
           },
         ]}
         layout={{
-          xaxis: { 
-            title: xAxisLabel, 
+          xaxis: {
+            title: xAxisLabel,
             tickangle: -45,
             tickfont: { size: 9 },
             titlefont: { size: 11 },
           },
-          yaxis: { 
+          yaxis: {
             title: {
               text: 'Percentage [%]',
               font: { size: 11 },
@@ -271,8 +297,8 @@ const HistogramPlot = ({
           barmode: 'overlay',
           bargap: 0,
           margin: { l: 50, r: 15, t: 5, b: 60 },
-          legend: { 
-            orientation: 'h', 
+          legend: {
+            orientation: 'h',
             x: 1,
             xanchor: 'right',
             y: 1.05,
@@ -285,15 +311,15 @@ const HistogramPlot = ({
         }}
         useResizeHandler={true}
         style={{ width: '100%', height: '100%' }}
-        config={{ 
-          responsive: true, 
+        config={{
+          responsive: true,
           displayModeBar: isExpanded ? 'hover' : false,
-          toImageButtonOptions: { 
+          toImageButtonOptions: {
             filename: exportFilename,
             format: 'png',
             height: 800,
             width: 1200
-          } 
+          }
         }}
       />
     </div>

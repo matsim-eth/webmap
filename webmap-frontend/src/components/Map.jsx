@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import "./Loading.css" // loading screen for network
 import { useLoadWithFallback } from '../utils/useLoadWithFallback';
 import useMapbox from './map/useMapbox';
@@ -12,6 +12,7 @@ import usePtBoardings from './map/usePtBoardings';
 import useFeatureSelectionFocus from './map/useFeatureSelectionFocus';
 import useVolumeFlowLayers from './map/useVolumeFlowLayers';
 import { useApp } from '../context/AppContext';
+import { useResetMapView } from '../hooks/useResetMapView';
 
 export default function Map() {
   const {
@@ -48,7 +49,8 @@ export default function Map() {
     aggCol,
     destinationData: selectedDestinationData, // Alias
     boardingData: selectedBoardingData, // Alias
-    featureSelection
+    featureSelection,
+    setFeatureSelection
   } = useApp();
 
   // load util for loading in the data (from link or local upload)
@@ -62,9 +64,7 @@ export default function Map() {
 
   // for keeping track of the current sidebar module
   const graphExpandedRef = useRef(isGraphExpanded);
-  useEffect(() => {
-    graphExpandedRef.current = isGraphExpanded;
-  }, [isGraphExpanded]);
+  graphExpandedRef.current = isGraphExpanded;
 
   // initialize mapbox map instance
   const {
@@ -73,11 +73,10 @@ export default function Map() {
     mapReady
   } = useMapbox(import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoiYW5kd29vIiwiYSI6ImNrMjlnYnNkdTEwMHozaG5wamJvZHJyangifQ.6M4eeri_Ubmo7NedQT7NuQ');
 
-  useEffect(() => {
-    if (contextMapRef) {
-      contextMapRef.current = mapRef.current;
-    }
-  }, [contextMapRef, mapRef, mapReady]);
+  // Sync map instance to context ref (derived assignment, not an effect)
+  if (contextMapRef && mapReady) {
+    contextMapRef.current = mapRef.current;
+  }
 
   // add canton layers + interactions
   useCantons({
@@ -118,6 +117,7 @@ export default function Map() {
     timeRange: timeRange,
     visualizeLinkId: visualizeLinkId,
     setSelectedNetworkFeature: setSelectedNetworkFeature,
+    setFeatureSelection: setFeatureSelection,
     isGraphExpanded: isGraphExpanded,
     resetMapTrigger: resetMapTrigger,
     labelSize: labelSize,
@@ -199,19 +199,7 @@ export default function Map() {
 
   // this is placed in here so that it will overtake the other zooming effects to
   // force it to zoom back to the original Switzerland extent
-  useEffect(() => {
-    if (!mapReady || !mapRef.current) return;
-
-    const leftPadding = isLeftSidebarCollapsed ? 50 : 185;
-
-    // If user clicked reset, go back to full country view
-    mapRef.current.easeTo({
-      center: [8.1642, 46.7592],
-      zoom: 7,
-      duration: 1000,
-      padding: { top: 50, bottom: 50, left: leftPadding, right: 50 },
-    });
-  }, [resetMapTrigger, mapReady]);
+  useResetMapView({ mapRef, mapReady, resetMapTrigger, isLeftSidebarCollapsed });
 
   return (
     <>

@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Plot from "react-plotly.js";
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
+import { useQuery } from "@tanstack/react-query";
 
 const TransitLinkHistogram = ({
   linkId,                      // pass ONE id per chart (string/number)
@@ -10,33 +11,27 @@ const TransitLinkHistogram = ({
   visualizeLinkId,
   setVisualizeLinkId
 }) => {
-  const [volumeData, setVolumeData] = useState(null);
   const loadWithFallback = useLoadWithFallback();
 
   const startTick = timeRange?.[0] ?? 0;
   const endTick   = timeRange?.[1] ?? 96;
 
-  useEffect(() => {
-    if (!linkId || !canton) return;
+  const cleanLinkId = (id) =>
+    String(id).split("_").map(p => p.split(":")[0]).join("_");
 
-    const key = String(linkId);
-    const cleanLinkId = (id) =>
-      String(id).split("_").map(p => p.split(":")[0]).join("_");
-
-    loadWithFallback(
-      `matsim/transit/volumes_by_link_line/pt_link_volumes_by_link_line_${canton}.json`
-    )
-      .then((raw) => {
-        // NEW: array format -> find by link_id, then normalize to lines{lineId:{timeBins,...}}
+  const { data: volumeData } = useQuery({
+    queryKey: ['transit-link-volume', canton, String(linkId)],
+    queryFn: () => {
+      const key = String(linkId);
+      return loadWithFallback(
+        `matsim/transit/volumes_by_link_line/pt_link_volumes_by_link_line_${canton}.json`
+      ).then((raw) => {
         if (Array.isArray(raw)) {
           const entry =
             raw.find(e => String(e.link_id) === key) ||
             raw.find(e => String(e.link_id) === cleanLinkId(key));
 
-          if (!entry) {
-            setVolumeData(null);
-            return;
-          }
+          if (!entry) return null;
 
           const linesObj = {};
           for (const l of entry.lines || []) {
@@ -46,18 +41,17 @@ const TransitLinkHistogram = ({
               mode: l.mode ?? null,
             };
           }
-          setVolumeData({ ...entry, lines: linesObj });
-          return;
+          return { ...entry, lines: linesObj };
         }
 
-        // Legacy object shape (kept for compatibility)
         if (raw && typeof raw === "object") {
-          const objEntry = raw[key] || raw[cleanLinkId(key)] || null;
-          setVolumeData(objEntry || null);
+          return raw[key] || raw[cleanLinkId(key)] || null;
         }
-      })
-      .catch((err) => console.error("Error loading volume data:", err));
-  }, [linkId, canton]);
+        return null;
+      });
+    },
+    enabled: !!linkId && !!canton,
+  });
 
   if (!volumeData) return null;
 

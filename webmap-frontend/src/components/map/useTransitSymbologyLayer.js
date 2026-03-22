@@ -10,6 +10,21 @@ export default function useTransitSymbologyLayer({
     selectedTransitModes
 }) {
     const map = mapRef.current;
+
+    // Shared helper: apply line-based opacity masking to stop layers
+    const applyLineMask = (map, lineId, STOP_LAYER_ID, LABEL_LAYER_ID) => {
+        if (!map.getLayer(STOP_LAYER_ID) || !map.getLayer(LABEL_LAYER_ID)) return;
+        if (lineId) {
+            const matchLineExpr = ["in", lineId, ["get", "line_ids"]];
+            map.setPaintProperty(STOP_LAYER_ID, "circle-opacity", ["case", matchLineExpr, 0.9, 0.1]);
+            map.setPaintProperty(STOP_LAYER_ID, "circle-stroke-opacity", ["case", matchLineExpr, 1.0, 0.1]);
+            map.setPaintProperty(LABEL_LAYER_ID, "text-opacity", ["case", matchLineExpr, 1.0, 0.1]);
+        } else {
+            map.setPaintProperty(STOP_LAYER_ID, "circle-opacity", 0.9);
+            map.setPaintProperty(STOP_LAYER_ID, "circle-stroke-opacity", 1);
+            map.setPaintProperty(LABEL_LAYER_ID, "text-opacity", 1);
+        }
+    };
     
     // === Stops Layer ===
     useEffect(() => {
@@ -111,11 +126,14 @@ export default function useTransitSymbologyLayer({
                 
                 map.setFilter(STOP_LAYER_ID, modeFilter);
                 map.setFilter(STOP_LABEL_LAYER_ID, modeFilter);
+
+                // Apply line masking immediately if a line is already selected
+                applyLineMask(map, highlightedLineId, STOP_LAYER_ID, STOP_LABEL_LAYER_ID);
             } catch (err) {
                 console.error("Failed to load transit stops symbology", err);
             }
         };
-        
+
         loadStops();
         return () => removeStopLayers();
     }, [
@@ -124,59 +142,24 @@ export default function useTransitSymbologyLayer({
         isGraphExpanded,
         showLineSymbology,
         selectedTransitModes,
+        highlightedLineId,
     ]);
     
     
     
     useEffect(() => {
         if (!map || isGraphExpanded !== "TransitVolumes") return;
-        
+
         const STOP_LAYER_ID = "transit-symbology-stops";
         const LABEL_LAYER_ID = "transit-symbology-stops-label";
-        
-        // wrap in function so we can rerun it when the stops layer is added
-        function maskLayers() {
-            if (!map.getLayer(STOP_LAYER_ID) || !map.getLayer(LABEL_LAYER_ID)) return;
-            
-            if (highlightedLineId && showLineSymbology) {
-                const matchLineExpr = ["in", highlightedLineId, ["get", "line_ids"]];
-                
-                map.setPaintProperty(STOP_LAYER_ID, "circle-opacity", [
-                    "case",
-                    matchLineExpr,
-                    0.9,
-                    0.1
-                ]);
-                
-                map.setPaintProperty(STOP_LAYER_ID, "circle-stroke-opacity", [
-                    "case",
-                    matchLineExpr,
-                    1.0,
-                    0.1
-                ]);
-                
-                map.setPaintProperty(LABEL_LAYER_ID, "text-opacity", [
-                    "case",
-                    matchLineExpr,
-                    1.0,
-                    0.1
-                ]);
-            } else {
-                map.setPaintProperty(STOP_LAYER_ID, "circle-opacity", 0.9);
-                map.setPaintProperty(STOP_LAYER_ID, "circle-stroke-opacity", 1);
-                map.setPaintProperty(LABEL_LAYER_ID, "text-opacity", 1);
-            }
-        }
-        
-        // Try once immediately
+        const lineId = showLineSymbology ? highlightedLineId : null;
+
+        const maskLayers = () => applyLineMask(map, lineId, STOP_LAYER_ID, LABEL_LAYER_ID);
+
         maskLayers();
-        
-        // Also try when the map goes idle (i.e. all layers and sources are loaded)
         map.once("idle", maskLayers);
-        
-        return () => {
-            map.off("idle", maskLayers);
-        };
+
+        return () => { map.off("idle", maskLayers); };
     }, [mapRef, highlightedLineId, isGraphExpanded, showLineSymbology]);
     
     

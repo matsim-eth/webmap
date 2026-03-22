@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useMemo, useRef } from "react";
 import Plot from "react-plotly.js";
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
+import { useQuery } from "@tanstack/react-query";
 
 const SegmentVolumeHistogram = ({
   linkId,
@@ -10,31 +11,26 @@ const SegmentVolumeHistogram = ({
   timeRange = [0, 96],        // [startTick, endTick]
   onVolumeUpdate
 }) => {
-  const [volumeData, setVolumeData] = useState(null);
   const loadWithFallback = useLoadWithFallback();
-  
+
   // always treat as array
   const linkIdKey = Array.isArray(linkId) ? linkId.sort().join(",") : linkId?.toString();
   const linkIds = linkIdKey.split(",");
-  
+
   /* ---------- LOAD VOLUME JSON (once per canton / link set) ---------- */
-  useEffect(() => {
-    if (!linkIdKey.length || !canton) return;
-    
-    loadWithFallback(`matsim/${canton}_link_traffic_volumes.json`)
-    .then((raw) => {
-      // keep only requested links, map = { id: [hour0, hour1, ..., hour23] }
-      const mapped = Object.fromEntries(
-        raw
-        .filter((e) => linkIdKey.includes(e.link_id.toString()))
-        .map((e) => [e.link_id.toString(), e.hourly_avg_volumes])
-      );
-      setVolumeData(mapped);
-    })
-    .catch((err) =>
-      console.error("Error loading link traffic volumes:", err)
-  );
-}, [linkIdKey, canton]);               // re-load if either changes
+  const { data: volumeData } = useQuery({
+    queryKey: ['link-traffic-volumes', canton, linkIdKey],
+    queryFn: () => loadWithFallback(`matsim/${canton}_link_traffic_volumes.json`)
+      .then((raw) => {
+        const mapped = Object.fromEntries(
+          raw
+          .filter((e) => linkIdKey.includes(e.link_id.toString()))
+          .map((e) => [e.link_id.toString(), e.hourly_avg_volumes])
+        );
+        return mapped;
+      }),
+    enabled: !!linkIdKey.length && !!canton,
+  });
 
 /* ---------- SLIDER → HOUR RANGE ---------- */
 const startHour = Math.floor((timeRange?.[0] ?? 0) / 4);   // inclusive
@@ -47,39 +43,40 @@ const fullHourLabels = Array.from({ length: 24 }, (_, h) =>
 
 const prevTotalsRef = useRef(null);
 
-// send total volume up to parent
-useEffect(() => {
-  if (!onVolumeUpdate || !volumeData) return;
-  
+// Derived: compute totals from volumeData + time range and notify parent
+const volumeTotals = useMemo(() => {
+  if (!volumeData) return null;
+
   const totals = {};
-  
+
   for (const id of linkIds) {
     const hourly = volumeData[id.toString()];
     if (!hourly) continue;
-    
-    // Validate array format (should have 24 values)
+
     if (!Array.isArray(hourly) || hourly.length !== 24) {
       console.warn(`Invalid hourly data for link ${id}: expected array of 24 values`);
       continue;
     }
-    
+
     let total = 0;
     for (let h = startHour; h < endHour; h++) {
       total += hourly[h] ?? 0;
     }
-    
+
     totals[id] = total;
   }
-  
-  const changed = JSON.stringify(totals) !== JSON.stringify(prevTotalsRef.current);
-  
-  // only update if volume totals changed
+
+  return totals;
+}, [volumeData, startHour, endHour, linkIds]);
+
+// Notify parent when totals change (compare to avoid infinite loops)
+if (onVolumeUpdate && volumeTotals) {
+  const changed = JSON.stringify(volumeTotals) !== JSON.stringify(prevTotalsRef.current);
   if (changed) {
-    prevTotalsRef.current = totals;
-    onVolumeUpdate(totals); // dictionary of { id: filtered_total }
+    prevTotalsRef.current = volumeTotals;
+    onVolumeUpdate(volumeTotals);
   }
-  
-}, [volumeData, startHour, endHour, onVolumeUpdate, linkIds]);
+}
 
 if (!volumeData) return <p>Loading volume data…</p>;
 

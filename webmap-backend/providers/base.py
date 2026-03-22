@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import asyncio
 from dataclasses import dataclass, field
 import logging
 import os
@@ -147,7 +148,7 @@ def mount_provider(app: FastAPI, provider: DataProvider, prefix: str = "/data") 
             return JSONResponse({"error": f"Dataset resolution failed: {exc}"}, status_code=400)
 
         try:
-            result = provider.deliver(params)
+            result = await asyncio.to_thread(provider.deliver, params)
             if isinstance(result, JSONResponse):
                 return result
             # Strip redundant "All" aggregate when a canton filter is active

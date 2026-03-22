@@ -1,5 +1,6 @@
 import { useFileContext } from "../context/FileContext";
 import { DATASET_ID } from "../config";
+import { handle401 } from "./auth";
 
 export const useLoadWithFallback = (explicitDataURL) => {
   const { fileMap, readJSONFile, dataURL: contextDataURL } = useFileContext();
@@ -28,11 +29,19 @@ export const useLoadWithFallback = (explicitDataURL) => {
       BACKEND_DATA_URL,
       DEFAULT_DATA_URL
     ].filter(Boolean);
-    
+
     for (const base of candidates) {
       const finalURL = base + relativePath;
       try {
-        const res = await fetch(finalURL);
+        let res = await fetch(finalURL);
+
+        // 401 from our backend → try token refresh, then retry
+        if (res.status === 401 && finalURL.startsWith("/backend/")) {
+          const refreshed = await handle401();
+          if (!refreshed) return null; // redirecting to login
+          res = await fetch(finalURL);
+        }
+
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
         console.log(`Loaded from remote URL: ${finalURL}`);
@@ -41,9 +50,9 @@ export const useLoadWithFallback = (explicitDataURL) => {
         // silently try next
       }
     }
-    
+
     throw new Error(`All fallback attempts failed for ${relativePath}`);
   };
-  
+
   return loadWithFallback;
 };

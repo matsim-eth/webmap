@@ -6,3 +6,5 @@ services:
       - ./authentification-frontend/admin/:/usr/share/nginx/html/admin/:ro
       - ./authentification-frontend/index.html:/usr/share/nginx/html/index.html:ro
       - ./authentification-frontend/styles.css:/usr/share/nginx/html/styles.css:ro
+      - ./authentification-frontend/auth.css:/usr/share/nginx/html/auth.css:ro
+      - ./authentification-frontend/app.js:/usr/share/nginx/html/app.js:ro

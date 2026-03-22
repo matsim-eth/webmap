@@ -1,3 +1,67 @@
+/* Direction toggle (Inflow / Outflow / Both) */
+.flow-direction-toggle {
+  display: flex;
+  gap: 0;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #d1d5db;
+}
+
+.flow-dir-btn {
+  flex: 1;
+  padding: 6px 0;
+  font-size: 0.82em;
+  font-weight: 500;
+  border: none;
+  background: #f3f4f6;
+  color: #6b7280;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.flow-dir-btn:not(:last-child) {
+  border-right: 1px solid #d1d5db;
+}
+
+.flow-dir-btn:hover {
+  background: #e5e7eb;
+}
+
+.flow-dir-btn.active {
+  background: #2563eb;
+  color: #fff;
+}
+
+/* Link ID selector (when multiple links on one segment) */
+.link-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.link-selector label {
+  font-size: 0.82em;
+  font-weight: 500;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.link-selector select {
+  flex: 1;
+  padding: 5px 8px;
+  font-size: 0.82em;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  cursor: pointer;
+}
+
+.link-selector select:hover {
+  border-color: #9ca3af;
+}
+
 .no-selection {
   text-align: center;
   padding: 30px 20px;

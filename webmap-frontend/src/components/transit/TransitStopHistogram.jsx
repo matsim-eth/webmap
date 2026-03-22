@@ -1,57 +1,57 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useRef } from "react";
 import Plot from "react-plotly.js";
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
+import { useQuery } from "@tanstack/react-query";
 
 const TransitStopHistogram = ({ stopIds, canton, lineId, onVolumeUpdate, timeRange }) => {
-  const [hourlyCounts, setHourlyCounts] = useState(null);
   const loadWithFallback = useLoadWithFallback();
 
+  // Stable key for stopIds
+  const stopIdsKey = Array.isArray(stopIds) ? stopIds.join(',') : '';
+
   // Fetch and process passenger data
-  useEffect(() => {
-    if (!stopIds || stopIds.length === 0 || !canton) return;
+  const { data: hourlyCounts } = useQuery({
+    queryKey: ['transit-stop-histogram', canton, stopIdsKey, lineId],
+    queryFn: () => {
+      return loadWithFallback(`matsim/transit/per_canton_counts/${canton}_counts.json`)
+        .then(data => {
+          const cleanedIds = stopIds.flatMap(s => {
+            if (Array.isArray(s)) return s;
+            try {
+              return JSON.parse(s);
+            } catch {
+              return String(s).split(",").map(id => id.trim());
+            }
+          });
 
-    loadWithFallback(`matsim/transit/per_canton_counts/${canton}_counts.json`)
-      .then(data => {
-        // data is already parsed JSON
-        const cleanedIds = stopIds.flatMap(s => {
-          if (Array.isArray(s)) return s;
-          try {
-            return JSON.parse(s);
-          } catch {
-            return String(s).split(",").map(id => id.trim());
+          let stopData = data.filter(d => cleanedIds.includes(String(d.stop_id)));
+          if (lineId) stopData = stopData.filter(d => d.line_id === lineId);
+
+          const allTimeBins = [];
+          for (const row of stopData) {
+            for (const t of row.data) {
+              allTimeBins.push({
+                time_bin: t.time_bin,
+                boardings: t.boardings,
+                alightings: t.alightings,
+              });
+            }
           }
+
+          const grouped = {};
+          for (const row of allTimeBins) {
+            if (!grouped[row.time_bin]) {
+              grouped[row.time_bin] = { boardings: 0, alightings: 0 };
+            }
+            grouped[row.time_bin].boardings += row.boardings;
+            grouped[row.time_bin].alightings += row.alightings;
+          }
+
+          return Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
         });
-
-        let stopData = data.filter(d => cleanedIds.includes(String(d.stop_id)));
-        if (lineId) stopData = stopData.filter(d => d.line_id === lineId);
-
-        const allTimeBins = [];
-        for (const row of stopData) {
-          for (const t of row.data) {
-            allTimeBins.push({
-              time_bin: t.time_bin,
-              boardings: t.boardings,
-              alightings: t.alightings,
-            });
-          }
-        }
-
-        const grouped = {};
-        for (const row of allTimeBins) {
-          if (!grouped[row.time_bin]) {
-            grouped[row.time_bin] = { boardings: 0, alightings: 0 };
-          }
-          grouped[row.time_bin].boardings += row.boardings;
-          grouped[row.time_bin].alightings += row.alightings;
-        }
-
-        const sorted = Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
-        setHourlyCounts(sorted);
-      })
-      .catch(err => {
-        console.error("Error loading pt passenger counts:", err);
-      });
-  }, [stopIds, canton, lineId]);
+    },
+    enabled: !!stopIds && stopIds.length > 0 && !!canton,
+  });
 
   // Generate full label and padded values
   const fullLabels = [];
@@ -82,13 +82,22 @@ const filteredAlightings = paddedAlightings.slice(timeRange?.[0] ?? 0, timeRange
 
   const maxY = Math.max(...filteredBoardings, ...filteredAlightings);
 
-  // Notify parent of volume totals
-  useEffect(() => {
-    if (!hourlyCounts || !onVolumeUpdate) return;
+  // Derived: compute volume totals and notify parent
+  const prevVolumesRef = useRef(null);
+  const volumeSummary = useMemo(() => {
+    if (!hourlyCounts) return null;
     const totalBoardings = filteredBoardings.reduce((sum, val) => sum + val, 0);
     const totalAlightings = filteredAlightings.reduce((sum, val) => sum + val, 0);
-    onVolumeUpdate({ boardings: totalBoardings, alightings: totalAlightings, total: totalBoardings + totalAlightings });
-  }, [hourlyCounts, timeRange, onVolumeUpdate]);
+    return { boardings: totalBoardings, alightings: totalAlightings, total: totalBoardings + totalAlightings };
+  }, [hourlyCounts, filteredBoardings, filteredAlightings]);
+
+  if (onVolumeUpdate && volumeSummary) {
+    const key = JSON.stringify(volumeSummary);
+    if (key !== prevVolumesRef.current) {
+      prevVolumesRef.current = key;
+      onVolumeUpdate(volumeSummary);
+    }
+  }
 
   if (!hourlyCounts) return <p>Loading passenger data...</p>;
 

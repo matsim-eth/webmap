@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import "./ChoroplethControls.css";
 import { useLoadWithFallback } from "../utils/useLoadWithFallback";
+import { useQuery } from "@tanstack/react-query";
 
 const COLOR_MAPS = {
   mode: {
@@ -47,23 +48,18 @@ const ChoroplethControls = ({
   aggCol = "mode",
   setAggCol,
 }) => {
-  const [maxSharePerMode, setMaxSharePerMode] = useState(null);
   const loadWithFallback = useLoadWithFallback();
 
   const COLORS = COLOR_MAPS[aggCol] || {};
   const LABELS = LABEL_MAPS[aggCol] || {};
 
-useEffect(() => {
-  loadWithFallback(`${aggCol}_share.json`)
-    .then((data) => {
-      // Dynamically extract the max shares for the current aggregation column
+  const { data: maxSharePerMode = null } = useQuery({
+    queryKey: ['max-share-per-mode', aggCol],
+    queryFn: () => loadWithFallback(`${aggCol}_share.json`).then((data) => {
       const maxKey = `max_share_per_${aggCol}`;
-      setMaxSharePerMode(data[maxKey]);
-    })
-    .catch((error) =>
-      console.error("Error loading max share per mode:", error)
-    );
-}, [aggCol]);
+      return data[maxKey] ?? null;
+    }),
+  });
 
   const handleModeChange = (e) => {
     const newMode = e.target.value;

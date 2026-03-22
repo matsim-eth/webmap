@@ -168,6 +168,30 @@
   background-color: #fee2e2;
 }
 
+.left-sidebar-item.logout-item .left-sidebar-icon {
+  color: #6b7280;
+}
+
+.left-sidebar-item.logout-item .left-sidebar-label {
+  color: #6b7280;
+}
+
+.left-sidebar-item.logout-item:hover {
+  background-color: #f3f4f6;
+}
+
+.left-sidebar-item.admin-item .left-sidebar-icon {
+  color: #6366f1;
+}
+
+.left-sidebar-item.admin-item .left-sidebar-label {
+  color: #6366f1;
+}
+
+.left-sidebar-item.admin-item:hover {
+  background-color: #eef2ff;
+}
+
 .left-sidebar-item.reset-item {
   color: #dc2626;
 }
