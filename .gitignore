@@ -53,3 +53,4 @@ __pycache__/
 /auth/database/
 *.duckdb
 *.parquet
+/data/
