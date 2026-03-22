@@ -71,7 +71,7 @@ export default function Map() {
     mapRef,
     mapContainerRef,
     mapReady
-  } = useMapbox(import.meta.env.VITE_MAPBOX_TOKEN);
+  } = useMapbox(import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoiYW5kd29vIiwiYSI6ImNrMjlnYnNkdTEwMHozaG5wamJvZHJyangifQ.6M4eeri_Ubmo7NedQT7NuQ');
 
   useEffect(() => {
     if (contextMapRef) {

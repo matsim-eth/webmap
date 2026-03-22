@@ -1,6 +1,9 @@
 # Ersetzt den nginx-Proxy durch den Vite Dev Proxy.
-# Immer als erste dev-Datei angeben:
-#   docker compose -f docker-compose.yml -f dev/proxy.yml [-f dev/<service>.yml] up
+# Frontends bleiben GHCR images (nginx) — es sei denn man fügt
+# dev/webmap-frontend.yml oder dev/dashboard-frontend.yml hinzu.
+#
+#   docker compose -f docker-compose.yml -f dev/proxy.yml up
+#   docker compose -f docker-compose.yml -f dev/proxy.yml -f dev/webmap-backend.yml up
 
 services:
   # nginx-Proxy deaktivieren (startet nur mit --profile nginx)
@@ -8,7 +11,7 @@ services:
     profiles:
       - nginx
 
-  # Vite Dev Proxy
+  # ── Vite Dev Proxy (ersetzt nginx) ────────────────────────────
   dev_proxy:
     build: ./dev-proxy
     volumes:
