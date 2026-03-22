@@ -1,0 +1,428 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --color-primary: #6366f1;
+  --color-primary-dark: #4f46e5;
+  --color-primary-light: #eef2ff;
+  --color-bg: #f3f4f6;
+  --color-surface: #ffffff;
+  --color-border: #e5e7eb;
+  --color-text: #374151;
+  --color-text-secondary: #6b7280;
+  --color-text-muted: #9ca3af;
+  --color-error: #ef4444;
+  --color-success: #16a34a;
+  --card-radius: 8px;
+  --input-radius: 6px;
+  --btn-radius: 6px;
+  --shadow-soft: 0 12px 40px rgba(0, 0, 0, .06);
+  --transition-fast: 0.15s ease;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Layout ── */
+
+.auth-layout {
+  min-height: 100vh;
+  background:
+    radial-gradient(800px 600px at 30% 20%, rgba(99, 102, 241, 0.04), transparent 60%),
+    radial-gradient(600px 500px at 70% 80%, rgba(99, 102, 241, 0.03), transparent 55%),
+    var(--color-bg);
+}
+
+.main-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+/* ── Auth container ── */
+
+.auth-container {
+  width: 100%;
+  max-width: 480px;
+}
+
+.auth-container.hidden { display: none; }
+
+/* ── Card wrapper: app-tabs + card side by side ── */
+
+.auth-card-wrapper {
+  display: flex;
+  align-items: stretch;
+}
+
+/* ── Vertical app tabs (left edge of card) ── */
+
+.app-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 32px;
+  margin-right: -1px; /* overlap card border for seamless active tab */
+  z-index: 1;
+}
+
+.app-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 1px solid var(--color-border);
+  border-right: none;
+  background: var(--color-bg);
+  border-radius: var(--card-radius) 0 0 var(--card-radius);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.app-tab:hover {
+  background: #eaebed;
+  color: var(--color-text);
+}
+
+.app-tab.active {
+  background: var(--color-surface);
+  color: var(--color-primary-dark);
+  border-color: var(--color-border);
+  box-shadow: -4px 2px 8px rgba(0, 0, 0, .04);
+}
+
+.app-tab.active svg {
+  stroke: var(--color-primary-dark);
+}
+
+.app-tab svg {
+  flex-shrink: 0;
+}
+
+/* ── Auth card ── */
+
+.auth-card {
+  flex: 1;
+  min-width: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0 var(--card-radius) var(--card-radius) 0;
+  padding: 32px;
+  box-shadow: var(--shadow-soft);
+  animation: cardIn 280ms cubic-bezier(.2, .8, .2, 1) forwards;
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(10px) scale(.99); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Auth header ── */
+
+.auth-header {
+  margin-bottom: 24px;
+}
+
+.auth-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.auth-subtitle {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+#destLabel, #destLabelLoggedIn {
+  font-weight: 500;
+  color: var(--color-primary-dark);
+}
+
+/* ── Auth tabs (Login / Register segmented control) ── */
+
+.auth-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--color-bg);
+  border-radius: 6px;
+  padding: 3px;
+  margin-bottom: 24px;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.auth-tab:hover {
+  color: var(--color-text);
+}
+
+.auth-tab.active {
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+}
+
+/* ── Forms ── */
+
+.auth-form.hidden { display: none; }
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  margin-bottom: 6px;
+}
+
+.form-optional {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--input-radius);
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--color-text);
+  background: var(--color-surface);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  outline: none;
+}
+
+.form-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.form-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.form-input.invalid {
+  border-color: var(--color-error);
+}
+
+.form-input.invalid:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+}
+
+.form-error {
+  display: none;
+  font-size: 12px;
+  color: var(--color-error);
+  margin-top: 4px;
+}
+
+.form-input.invalid ~ .form-error {
+  display: block;
+}
+
+.form-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.form-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+/* ── Buttons ── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 11px 20px;
+  border: none;
+  border-radius: var(--btn-radius);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  text-align: center;
+}
+
+.btn:active {
+  transform: scale(.98);
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-dark);
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.btn-outline:hover {
+  background-color: var(--color-bg);
+  border-color: var(--color-text-muted);
+}
+
+/* ── Button spinner ── */
+
+.btn-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+.btn-spinner.hidden { display: none; }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Auth actions (logged-in view) ── */
+
+.auth-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Toast notification ── */
+
+.toast-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1080;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 12px 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .12);
+  font-size: 14px;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 280px;
+  max-width: 420px;
+  opacity: 0;
+  transform: translateY(-10px) scale(.98);
+  transition: all 220ms cubic-bezier(.2, .8, .2, 1);
+  pointer-events: auto;
+}
+
+.toast.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.toast.error {
+  border-left: 3px solid var(--color-error);
+}
+
+.toast.success {
+  border-left: 3px solid var(--color-success);
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 600px) {
+  .auth-card-wrapper {
+    flex-direction: column;
+  }
+
+  .app-tabs {
+    flex-direction: row;
+    padding-top: 0;
+    margin-right: 0;
+    margin-bottom: -1px;
+    z-index: 1;
+  }
+
+  .app-tab {
+    border: 1px solid var(--color-border);
+    border-bottom: none;
+    border-radius: var(--card-radius) var(--card-radius) 0 0;
+    border-right: 1px solid var(--color-border);
+  }
+
+  .app-tab.active {
+    box-shadow: 0 -4px 8px rgba(0, 0, 0, .04);
+  }
+
+  .auth-card {
+    border-radius: 0 0 var(--card-radius) var(--card-radius);
+    padding: 24px;
+  }
+
+  .auth-container {
+    max-width: 100%;
+  }
+}

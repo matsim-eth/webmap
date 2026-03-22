@@ -85,3 +85,4 @@ __pycache__/
 /data/dataset-storage/public/4124676113/synthetic/switzerland_persons.parquet
 /data/dataset-storage/public/4124676113/synthetic/switzerland_trips.gpkg
 /data/dataset-storage/public/4124676113/synthetic/trips.parquet
+data/
