@@ -1,5 +1,5 @@
 # ── Base: shared dependencies ──────────────────────────────────
-FROM python:3.12-slim AS base
+FROM ghcr.io/python:3.12-slim AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
