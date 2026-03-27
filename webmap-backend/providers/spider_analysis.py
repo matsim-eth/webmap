@@ -23,17 +23,21 @@ from .paths import get_data_paths
 
 # ─── Per-dataset DuckDB connections (read-only) ─────────────────────
 
+import threading
+
 _connections: dict[str, duckdb.DuckDBPyConnection] = {}
+_connections_lock = threading.Lock()
 
 
 def _get_con() -> duckdb.DuckDBPyConnection:
-    """Return a read-only connection to spider.duckdb for the current dataset."""
+    """Return a cursor (thread-safe) from a read-only connection to spider.duckdb."""
     paths = get_data_paths()
     db_path = paths.spider_db
-    if db_path not in _connections:
-        _connections[db_path] = duckdb.connect(db_path, read_only=True)
-        _connections[db_path].execute("SET memory_limit = '4GB'")
-    return _connections[db_path]
+    with _connections_lock:
+        if db_path not in _connections:
+            _connections[db_path] = duckdb.connect(db_path, read_only=True)
+            _connections[db_path].execute("SET memory_limit = '4GB'")
+        return _connections[db_path].cursor()
 
 
 # ─── Shared params & filter logic ─────────────────────────────────────

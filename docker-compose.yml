@@ -197,8 +197,8 @@ networks:
 # USAGE:
 #   Alles aus GHCR (prod):
 #     docker compose -f docker-compose.yml up
-#   Alles lokal entwickeln (auto-merge override):
-#     docker compose up
+#   Alles lokal entwickeln:
+#     docker compose -f docker-compose.yml -f dev/all.yml up --build
 #   An einem Service arbeiten (Rest = GHCR images):
 #     docker compose -f docker-compose.yml -f dev/proxy.yml -f dev/webmap-backend.yml up
 #   Mehrere Services gleichzeitig:
