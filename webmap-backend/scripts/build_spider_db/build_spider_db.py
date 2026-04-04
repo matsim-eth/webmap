@@ -173,17 +173,21 @@ def build_spider_db(
     persons_parquet: str | Path,
     households_parquet: str | Path,
     output_db: str | Path,
+    output_trips_parquet: str | Path | None = None,
+    canton_geojson: str | Path | None = None,
     memory_limit: str = "4GB",
 ) -> None:
     """Build spider.duckdb from raw source files.
 
     Parameters
     ----------
-    events_xml        : path to output_events.xml
-    persons_parquet   : path to switzerland_persons.parquet
-    households_parquet: path to households.parquet
-    output_db         : path where spider.duckdb will be written
-    memory_limit      : DuckDB memory limit (default 4GB)
+    events_xml           : path to output_events.xml
+    persons_parquet      : path to switzerland_persons.parquet
+    households_parquet   : path to households.parquet
+    output_db            : path where spider.duckdb will be written
+    output_trips_parquet : path to output_trips.parquet (optional, for zone flows)
+    canton_geojson       : path to TLM_KANTONSGEBIET.geojson (optional, for zone flows)
+    memory_limit         : DuckDB memory limit (default 4GB)
     """
     events_xml = Path(events_xml)
     persons_parquet = Path(persons_parquet)
@@ -193,6 +197,12 @@ def build_spider_db(
     for f in [events_xml, persons_parquet, households_parquet]:
         if not f.exists():
             raise FileNotFoundError(f"Input not found: {f}")
+
+    if output_trips_parquet is not None:
+        output_trips_parquet = Path(output_trips_parquet)
+        if not output_trips_parquet.exists():
+            print(f"  Warning: {output_trips_parquet} not found, skipping zone-flow tables")
+            output_trips_parquet = None
 
     # Remove old DB if exists
     if output_db.exists():
@@ -277,6 +287,118 @@ def build_spider_db(
     con.execute("CREATE INDEX idx_persons_id ON persons(person_id)")
     print("  Done")
 
+    # ── Step 6 (optional): Import output_trips + canton assignment ─────
+    t_cnt = 0
+    if output_trips_parquet is not None:
+        print("[6/7] Importing output_trips ...")
+        con.execute(f"""
+            CREATE TABLE output_trips AS
+            SELECT
+                person,
+                trip_number,
+                CAST(start_link AS VARCHAR) AS start_link,
+                CAST(end_link AS VARCHAR) AS end_link,
+                start_x, start_y, end_x, end_y,
+                main_mode,
+                start_activity_type,
+                end_activity_type,
+                dep_time
+            FROM read_parquet('{output_trips_parquet}')
+        """)
+        t_cnt = con.execute("SELECT COUNT(*) FROM output_trips").fetchone()[0]
+        print(f"  {t_cnt:,} trips")
+
+        # Determine canton for each trip's start and end coordinates
+        # using point-in-polygon with canton boundaries (GeoJSON).
+        mapped = 0
+        if canton_geojson is not None:
+            canton_geojson = Path(canton_geojson)
+            if not canton_geojson.exists():
+                print(f"  Warning: {canton_geojson} not found, skipping canton assignment")
+                canton_geojson = None
+
+        if canton_geojson is not None:
+            print("[7/7] Assigning origin/dest cantons via spatial join ...")
+            con.execute("INSTALL spatial; LOAD spatial;")
+            # Use a temp table to avoid CRS storage issues with older DB formats
+            con.execute(f"""
+                CREATE TEMP TABLE canton_boundaries AS
+                SELECT KANTONSNUMMER AS canton_id, NAME AS canton_name,
+                       CAST(geom AS GEOMETRY) AS geom
+                FROM ST_Read('{canton_geojson}')
+            """)
+
+            # LV95 → WGS84 approximate conversion (swisstopo formulas)
+            # then spatial join with canton polygons.
+            _LV95_TO_WGS84_LON = """
+                (2.6779094
+                 + 4.728982 * ((x - 2600000.0) / 1000000.0)
+                 + 0.791484 * ((x - 2600000.0) / 1000000.0) * ((y - 1200000.0) / 1000000.0)
+                 + 0.1306   * ((x - 2600000.0) / 1000000.0) * POWER((y - 1200000.0) / 1000000.0, 2)
+                 - 0.0436   * POWER((x - 2600000.0) / 1000000.0, 3)
+                ) * 100.0 / 36.0
+            """
+            _LV95_TO_WGS84_LAT = """
+                (16.9023892
+                 + 3.238272  * ((y - 1200000.0) / 1000000.0)
+                 - 0.270978  * POWER((x - 2600000.0) / 1000000.0, 2)
+                 - 0.002528  * POWER((y - 1200000.0) / 1000000.0, 2)
+                 - 0.0447    * POWER((x - 2600000.0) / 1000000.0, 2) * ((y - 1200000.0) / 1000000.0)
+                 - 0.0140    * POWER((y - 1200000.0) / 1000000.0, 3)
+                ) * 100.0 / 36.0
+            """
+
+            # Build origin canton
+            lon_start = _LV95_TO_WGS84_LON.replace("x", "t.start_x").replace("y", "t.start_y")
+            lat_start = _LV95_TO_WGS84_LAT.replace("x", "t.start_x").replace("y", "t.start_y")
+            lon_end = _LV95_TO_WGS84_LON.replace("x", "t.end_x").replace("y", "t.end_y")
+            lat_end = _LV95_TO_WGS84_LAT.replace("x", "t.end_x").replace("y", "t.end_y")
+
+            # Add origin_canton_id and dest_canton_id columns
+            con.execute("ALTER TABLE output_trips ADD COLUMN origin_canton_id INTEGER")
+            con.execute("ALTER TABLE output_trips ADD COLUMN dest_canton_id INTEGER")
+
+            # Update origin canton via spatial join
+            con.execute(f"""
+                UPDATE output_trips t
+                SET origin_canton_id = (
+                    SELECT c.canton_id
+                    FROM canton_boundaries c
+                    WHERE ST_Contains(c.geom, ST_Point({lon_start}, {lat_start}))
+                    LIMIT 1
+                )
+                WHERE t.start_x IS NOT NULL AND t.start_y IS NOT NULL
+            """)
+
+            # Update dest canton via spatial join
+            con.execute(f"""
+                UPDATE output_trips t
+                SET dest_canton_id = (
+                    SELECT c.canton_id
+                    FROM canton_boundaries c
+                    WHERE ST_Contains(c.geom, ST_Point({lon_end}, {lat_end}))
+                    LIMIT 1
+                )
+                WHERE t.end_x IS NOT NULL AND t.end_y IS NOT NULL
+            """)
+
+            mapped = con.execute("""
+                SELECT COUNT(*) FROM output_trips
+                WHERE origin_canton_id IS NOT NULL AND dest_canton_id IS NOT NULL
+            """).fetchone()[0]
+            print(f"  {mapped:,} / {t_cnt:,} trips with both cantons assigned")
+
+            # Temp table is auto-dropped on close, but clean up explicitly
+            con.execute("DROP TABLE IF EXISTS canton_boundaries")
+        else:
+            print("  Skipping canton assignment (no canton GeoJSON provided)")
+            con.execute("ALTER TABLE output_trips ADD COLUMN origin_canton_id INTEGER")
+            con.execute("ALTER TABLE output_trips ADD COLUMN dest_canton_id INTEGER")
+
+        con.execute("CREATE INDEX idx_ot_person ON output_trips(person)")
+        con.execute("CREATE INDEX idx_ot_origin_canton ON output_trips(origin_canton_id)")
+        con.execute("CREATE INDEX idx_ot_dest_canton ON output_trips(dest_canton_id)")
+
     con.close()
 
     size_mb = output_db.stat().st_size / 1e6
@@ -285,3 +407,5 @@ def build_spider_db(
     print(f"  spider_link_index: {cnt:,} rows")
     print(f"  persons:           {p_cnt:,}")
     print(f"  households:        {h_cnt:,}")
+    if output_trips_parquet is not None:
+        print(f"  output_trips:      {t_cnt:,} trips")

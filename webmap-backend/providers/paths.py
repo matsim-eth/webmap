@@ -49,6 +49,8 @@ class DataPaths:
     microcensus_trips: str
     json_preview_dir: str
     spider_db: str
+    network_xml: str
+    link_speeds: str
 
 
 def get_data_paths() -> DataPaths:
@@ -77,4 +79,6 @@ def get_data_paths() -> DataPaths:
         microcensus_trips=str(m / "trips.parquet"),
         json_preview_dir=str(j),
         spider_db=str(s / "spider.duckdb"),
+        network_xml=str(s / "switzerland_network.xml"),
+        link_speeds=str(s / "link_speeds.parquet"),
     )

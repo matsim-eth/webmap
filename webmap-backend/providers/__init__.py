@@ -40,6 +40,11 @@ from .stop_transfer_data import StopTransferDataProvider
 
 # --- Spider analysis ---
 from .spider_analysis import SpiderInflowProvider, SpiderOutflowProvider, SpiderOverlayProvider
+from .node_flows import NodeFlowsProvider
+from .zone_flows import ZoneFlowsProvider
+
+# --- Link speeds ---
+from .link_speeds import LinkSpeedsProvider, SpeedDashboardProvider
 
 ALL_PROVIDERS = [
     # Demographics
@@ -78,4 +83,11 @@ ALL_PROVIDERS = [
     SpiderInflowProvider(),
     SpiderOutflowProvider(),
     SpiderOverlayProvider(),
+    # Node flows (turning-movement matrix)
+    NodeFlowsProvider(),
+    # Zone flows (OD canton flows)
+    ZoneFlowsProvider(),
+    # Link speeds
+    LinkSpeedsProvider(),
+    SpeedDashboardProvider(),
 ]
