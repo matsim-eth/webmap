@@ -2,7 +2,7 @@
 
 from collections import defaultdict
 
-from .base import DataProvider, Param, TRIP_FILTERS
+from .base import DataProvider, Param, TRIP_FILTERS, SUMMARY_ONLY
 from .connection import get_connection
 from .helpers import (
     canton_filter_sql,
@@ -12,6 +12,8 @@ from .helpers import (
     build_canton_lookup,
     mode_filter_sql,
     purpose_filter_sql,
+    is_summary_only,
+    has_person_filters,
 )
 from .paths import get_data_paths
 
@@ -64,6 +66,7 @@ def _build_case_sql(categories: list[tuple[float, float, str]], dist_col: str) -
 class StackedBarDistanceProvider(DataProvider):
     ROUTE = "stacked_bar_distance.json"
     PARAMS = TRIP_FILTERS + [
+        SUMMARY_ONLY,
         Param("distance_type", "Distance metric", enum=["euclidean", "network"]),
         Param("group_by", "Group results by 'mode' (default) or 'purpose'", enum=["mode", "purpose"]),
         Param("categories", "Comma-separated distance boundaries"),
@@ -72,9 +75,10 @@ class StackedBarDistanceProvider(DataProvider):
     def deliver(self, params: dict) -> dict:
         paths = get_data_paths()
         sources = parse_source_param(params)
-        cf = canton_filter_sql(params.get("canton"), "p.canton_id")
-        gf = gender_filter_sql(params, "p.sex")
-        af = age_filter_sql(params, "p.age")
+        summary = is_summary_only(params) and not params.get("canton") and not has_person_filters(params)
+        cf = "" if summary else canton_filter_sql(params.get("canton"), "p.canton_id")
+        gf = "" if summary else gender_filter_sql(params, "p.sex")
+        af = "" if summary else age_filter_sql(params, "p.age")
         categories = _parse_categories(params)
         con = get_connection()
 
@@ -102,64 +106,99 @@ class StackedBarDistanceProvider(DataProvider):
 
         if "Microcensus" in sources:
             case_sql = _build_case_sql(categories, f"t.{mc_dist_col}")
-            rows = con.execute(f"""
-                SELECT p.canton_id, {mc_group_col} AS grp,
-                       {case_sql} AS cat_label,
-                       COUNT(*) AS cnt
-                FROM read_parquet(?) t
-                INNER JOIN read_parquet(?) p ON t.person_id = p.person_id
-                WHERE p.canton_id IS NOT NULL
-                  AND t.{mc_dist_col} IS NOT NULL
-                  AND {mc_group_col} IS NOT NULL
-                {cf}{mc_gf}{gf}{af}
-                GROUP BY p.canton_id, grp, cat_label
-                HAVING cat_label IS NOT NULL
-            """, [paths.microcensus_trips, paths.microcensus_persons]).fetchall()
-            for cid, gval, cat, cnt in rows:
-                cid = int(cid)
-                seen_cantons.add(cid)
-                counts[("Microcensus", cid, str(cat), str(gval))] += cnt
-                cat_totals[("Microcensus", cid, str(cat))] += cnt
+            if summary:
+                rows = con.execute(f"""
+                    SELECT {mc_group_col} AS grp,
+                           {case_sql} AS cat_label,
+                           COUNT(*) AS cnt
+                    FROM read_parquet(?) t
+                    WHERE t.{mc_dist_col} IS NOT NULL
+                      AND {mc_group_col} IS NOT NULL
+                    {mc_gf}
+                    GROUP BY grp, cat_label
+                    HAVING cat_label IS NOT NULL
+                """, [paths.microcensus_trips]).fetchall()
+                for gval, cat, cnt in rows:
+                    counts[("Microcensus", "All", str(cat), str(gval))] += cnt
+                    cat_totals[("Microcensus", "All", str(cat))] += cnt
+            else:
+                rows = con.execute(f"""
+                    SELECT p.canton_id, {mc_group_col} AS grp,
+                           {case_sql} AS cat_label,
+                           COUNT(*) AS cnt
+                    FROM read_parquet(?) t
+                    INNER JOIN read_parquet(?) p ON t.person_id = p.person_id
+                    WHERE p.canton_id IS NOT NULL
+                      AND t.{mc_dist_col} IS NOT NULL
+                      AND {mc_group_col} IS NOT NULL
+                    {cf}{mc_gf}{gf}{af}
+                    GROUP BY p.canton_id, grp, cat_label
+                    HAVING cat_label IS NOT NULL
+                """, [paths.microcensus_trips, paths.microcensus_persons]).fetchall()
+                for cid, gval, cat, cnt in rows:
+                    cid = int(cid)
+                    seen_cantons.add(cid)
+                    counts[("Microcensus", cid, str(cat), str(gval))] += cnt
+                    cat_totals[("Microcensus", cid, str(cat))] += cnt
 
         if "Synthetic" in sources:
             case_sql = _build_case_sql(categories, f"t.{syn_dist_col}")
-            rows = con.execute(f"""
-                SELECT p.canton_id, {syn_group_col} AS grp,
-                       {case_sql} AS cat_label,
-                       COUNT(*) AS cnt
-                FROM read_parquet(?) t
-                INNER JOIN read_parquet(?) p
-                    ON TRY_CAST(t.person AS BIGINT) = p.person_id
-                WHERE TRY_CAST(t.person AS BIGINT) IS NOT NULL
-                  AND p.canton_id IS NOT NULL
-                  AND t.{syn_dist_col} IS NOT NULL
-                  AND {syn_group_col} IS NOT NULL
-                {cf}{syn_gf}{gf}{af}
-                GROUP BY p.canton_id, grp, cat_label
-                HAVING cat_label IS NOT NULL
-            """, [paths.synthetic_output_trips, paths.synthetic_persons]).fetchall()
-            for cid, gval, cat, cnt in rows:
-                cid = int(cid)
-                seen_cantons.add(cid)
-                counts[("Synthetic", cid, str(cat), str(gval))] += cnt
-                cat_totals[("Synthetic", cid, str(cat))] += cnt
+            if summary:
+                rows = con.execute(f"""
+                    SELECT {syn_group_col} AS grp,
+                           {case_sql} AS cat_label,
+                           COUNT(*) AS cnt
+                    FROM read_parquet(?) t
+                    WHERE TRY_CAST(t.person AS BIGINT) IS NOT NULL
+                      AND t.{syn_dist_col} IS NOT NULL
+                      AND {syn_group_col} IS NOT NULL
+                    {syn_gf}
+                    GROUP BY grp, cat_label
+                    HAVING cat_label IS NOT NULL
+                """, [paths.synthetic_output_trips]).fetchall()
+                for gval, cat, cnt in rows:
+                    counts[("Synthetic", "All", str(cat), str(gval))] += cnt
+                    cat_totals[("Synthetic", "All", str(cat))] += cnt
+            else:
+                rows = con.execute(f"""
+                    SELECT p.canton_id, {syn_group_col} AS grp,
+                           {case_sql} AS cat_label,
+                           COUNT(*) AS cnt
+                    FROM read_parquet(?) t
+                    INNER JOIN read_parquet(?) p
+                        ON TRY_CAST(t.person AS BIGINT) = p.person_id
+                    WHERE TRY_CAST(t.person AS BIGINT) IS NOT NULL
+                      AND p.canton_id IS NOT NULL
+                      AND t.{syn_dist_col} IS NOT NULL
+                      AND {syn_group_col} IS NOT NULL
+                    {cf}{syn_gf}{gf}{af}
+                    GROUP BY p.canton_id, grp, cat_label
+                    HAVING cat_label IS NOT NULL
+                """, [paths.synthetic_output_trips, paths.synthetic_persons]).fetchall()
+                for cid, gval, cat, cnt in rows:
+                    cid = int(cid)
+                    seen_cantons.add(cid)
+                    counts[("Synthetic", cid, str(cat), str(gval))] += cnt
+                    cat_totals[("Synthetic", cid, str(cat))] += cnt
 
-        # "All" canton aggregate
-        all_canton_counts = defaultdict(int)
-        all_canton_totals = defaultdict(int)
-        for (source, cid, cat, gval), cnt in counts.items():
-            all_canton_counts[(source, "All", cat, gval)] += cnt
-        counts.update(all_canton_counts)
-        for (source, cid, cat), total in cat_totals.items():
-            all_canton_totals[(source, "All", cat)] += total
-        cat_totals.update(all_canton_totals)
+        # "All" canton aggregate (skip in summary mode — already accumulated under "All")
+        if not summary:
+            all_canton_counts = defaultdict(int)
+            all_canton_totals = defaultdict(int)
+            for (source, cid, cat, gval), cnt in counts.items():
+                all_canton_counts[(source, "All", cat, gval)] += cnt
+            counts.update(all_canton_counts)
+            for (source, cid, cat), total in cat_totals.items():
+                all_canton_totals[(source, "All", cat)] += total
+            cat_totals.update(all_canton_totals)
 
         canton_names, canton_ids_by_name = build_canton_lookup(seen_cantons)
         cat_labels = [c[2] for c in categories]
         group_values = sorted({k[3] for k in counts})
 
         result: dict = {}
-        for cname in canton_names + ["All"]:
+        canton_list = ["All"] if summary else canton_names + ["All"]
+        for cname in canton_list:
             cid = canton_ids_by_name.get(cname, "All")
             rows_out = []
             for cat_label in cat_labels:

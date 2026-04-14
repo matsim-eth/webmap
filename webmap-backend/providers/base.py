@@ -67,6 +67,8 @@ AGE_MAX = Param("age_max", "Maximum age (exclusive)", param_type="integer")
 MODE = Param("mode", "Transport mode filter (comma-separated)")
 PURPOSE = Param("purpose", "Trip purpose filter (comma-separated)")
 
+SUMMARY_ONLY = Param("summary_only", "Only return 'All' aggregate (no per-canton breakdown)")
+
 COMMON_FILTERS = [CANTON, SOURCE, GENDER, AGE_MIN, AGE_MAX, MODE, PURPOSE]
 DEMO_FILTERS = [CANTON]
 TRIP_FILTERS = [CANTON, SOURCE, GENDER, AGE_MIN, AGE_MAX, MODE, PURPOSE]
@@ -154,6 +156,9 @@ def mount_provider(app: FastAPI, provider: DataProvider, prefix: str = "/data") 
             # Strip redundant "All" aggregate when a canton filter is active
             if params.get("canton") and isinstance(result, dict):
                 result.pop("All", None)
+            # summary_only: return only the "All" aggregate for fast initial loads
+            elif params.get("summary_only") and isinstance(result, dict) and "All" in result:
+                result = {"All": result["All"]}
             return JSONResponse(result)
         finally:
             set_root_override(None)

@@ -100,3 +100,18 @@ def check_dataset_completeness(owner_id: int, dataset_id: int, is_public: bool =
         "has_microcensus": has_microcensus,
         "has_spider_db": has_spider_db,
     }
+
+
+# Folders to exclude from data category listing
+_IGNORE_DIRS = {"json_preview", "__pycache__"}
+
+
+def list_data_categories(owner_id: int, dataset_id: int, is_public: bool = False) -> list[str]:
+    """Return names of non-empty data subdirectories (e.g. ['synthetic', 'microcensus'])."""
+    root = dataset_root(owner_id, dataset_id, is_public)
+    if not root.exists():
+        return []
+    return sorted(
+        d.name for d in root.iterdir()
+        if d.is_dir() and d.name not in _IGNORE_DIRS and any(d.iterdir())
+    )

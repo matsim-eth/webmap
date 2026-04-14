@@ -79,6 +79,7 @@ def build_lineplot(
     num_bins: int,
     max_value: float | None,
     tick_fn: str,
+    summary_only: bool = False,
 ) -> dict:
     """Build the lineplot JSON structure.
 
@@ -130,7 +131,6 @@ def build_lineplot(
             cid = int(cid)
             group_val = str(group_val)
             if var_val < 0 or var_val >= max_value:
-                # Clamp: values >= max_value go into last bin
                 if var_val >= max_value:
                     bi = num_bins - 1
                 else:
@@ -140,12 +140,16 @@ def build_lineplot(
                 if bi >= num_bins:
                     bi = num_bins - 1
 
-            seen_cantons.add(cid)
             seen_groups.add(group_val)
 
-            for c in (cid, "All"):
-                counts[(source_name, c, bi, group_val)] += 1.0
-                bin_totals[(source_name, c, bi)] += 1.0
+            if summary_only:
+                counts[(source_name, "All", bi, group_val)] += 1.0
+                bin_totals[(source_name, "All", bi)] += 1.0
+            else:
+                seen_cantons.add(cid)
+                for c in (cid, "All"):
+                    counts[(source_name, c, bi, group_val)] += 1.0
+                    bin_totals[(source_name, c, bi)] += 1.0
 
     canton_names, canton_ids_by_name = build_canton_lookup(seen_cantons)
     sorted_groups = sorted(seen_groups)
@@ -167,7 +171,8 @@ def build_lineplot(
 
     # ---- assemble result
     result: dict = {}
-    for cname in ["All"] + canton_names:
+    canton_list = ["All"] if summary_only else ["All"] + canton_names
+    for cname in canton_list:
         cid = canton_ids_by_name.get(cname, "All")
         canton_block: dict = {}
 

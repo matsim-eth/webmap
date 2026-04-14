@@ -25,6 +25,7 @@ from storage import (
     create_dataset_dirs,
     dataset_root,
     delete_dataset_dirs,
+    list_data_categories,
     list_files,
     slugify,
     validate_filename,
@@ -53,6 +54,7 @@ def _dataset_to_out(ds: Dataset) -> DatasetOut:
         has_microcensus=ds.has_microcensus,
         has_json_preview=ds.has_json_preview,
         has_spider_db=ds.has_spider_db,
+        data_categories=list_data_categories(ds.owner_id, ds.id, ds.is_public),
         created_at=ds.created_at,
         updated_at=ds.updated_at,
     )
@@ -295,6 +297,7 @@ async def admin_list_all_datasets(
                 "has_microcensus": ds.has_microcensus,
                 "has_json_preview": ds.has_json_preview,
                 "has_spider_db": ds.has_spider_db,
+                "data_categories": list_data_categories(ds.owner_id, ds.id, ds.is_public),
                 "created_at": ds.created_at.isoformat() if ds.created_at else None,
                 "updated_at": ds.updated_at.isoformat() if ds.updated_at else None,
             }

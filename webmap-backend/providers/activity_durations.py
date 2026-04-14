@@ -107,11 +107,10 @@ class ActivityDurationsProvider(DataProvider):
                 all_purpose[(source, cid, "All", slot)] += cnt
         counts.update(all_purpose)
 
-        # Compute totals per (source, cid) for denominator
+        # Compute totals per (source, cid, purpose) for denominator
         totals = defaultdict(int)
         for (source, cid, purpose, slot), cnt in counts.items():
-            if purpose == "All":
-                totals[(source, cid)] += cnt
+            totals[(source, cid, purpose)] += cnt
 
         canton_names, canton_ids_by_name = build_canton_lookup(seen_cantons)
         purposes = sorted(seen_purposes) + ["All"]
@@ -121,7 +120,7 @@ class ActivityDurationsProvider(DataProvider):
             cid = canton_ids_by_name.get(cname, "All")
             for source in sources:
                 for purpose in purposes:
-                    denom = float(totals.get((source, cid), 0))
+                    denom = float(totals.get((source, cid, purpose), 0))
                     slot_data = {
                         _slot_label(s): round(float(counts.get((source, cid, purpose, s), 0)) / denom, 8)
                         if denom > 0 else 0.0

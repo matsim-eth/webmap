@@ -5,10 +5,7 @@ const CONFIG = {
 };
 
 const el = (id) => document.getElementById(id);
-
-const toastEl = el("toast");
-const toastBody = el("toastBody");
-let toast;
+const $$ = (sel) => document.querySelectorAll(sel);
 
 // ── Helpers ──────────────────────────────────────────────────────
 
@@ -18,12 +15,75 @@ function esc(s) {
   return d.innerHTML;
 }
 
-function showToast(msg) {
+// ── Toast ────────────────────────────────────────────────────────
+
+const toastEl = el("toast");
+const toastBody = el("toastBody");
+let toastTimeout = null;
+
+function showToast(msg, type = "error") {
   if (!toastEl || !toastBody) return;
-  if (!toast) toast = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 2600, autohide: true });
   toastBody.textContent = String(msg || "Error");
-  toast.show();
+  toastEl.className = "toast " + type;
+  void toastEl.offsetWidth;
+  toastEl.classList.add("visible");
+
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    toastEl.classList.remove("visible");
+  }, 3000);
 }
+
+// ── Modal helpers ────────────────────────────────────────────────
+
+function openModal(id) {
+  const overlay = el(id);
+  if (!overlay) return;
+  overlay.classList.add("visible");
+}
+
+function closeModal(id) {
+  const overlay = el(id);
+  if (!overlay) return;
+  overlay.classList.remove("visible");
+}
+
+// Close modals via dismiss buttons and overlay click
+document.addEventListener("click", (e) => {
+  // Dismiss button
+  if (e.target.matches("[data-dismiss=modal]")) {
+    const overlay = e.target.closest(".modal-overlay");
+    if (overlay) overlay.classList.remove("visible");
+    return;
+  }
+  // Click on overlay background
+  if (e.target.classList.contains("modal-overlay")) {
+    e.target.classList.remove("visible");
+  }
+});
+
+// Close modal on Escape
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    $$(".modal-overlay.visible").forEach((m) => m.classList.remove("visible"));
+  }
+});
+
+// ── Tab switching ────────────────────────────────────────────────
+
+function switchAdminTab(tabName) {
+  $$(".admin-tab").forEach((t) =>
+    t.classList.toggle("active", t.dataset.tab === tabName)
+  );
+  el("users-pane")?.classList.toggle("active", tabName === "users");
+  el("datasets-pane")?.classList.toggle("active", tabName === "datasets");
+}
+
+$$(".admin-tab").forEach((tab) => {
+  tab.addEventListener("click", () => switchAdminTab(tab.dataset.tab));
+});
+
+// ── API helpers ──────────────────────────────────────────────────
 
 async function readJsonOrText(res) {
   const ct = (res.headers.get("content-type") || "").toLowerCase();
@@ -93,7 +153,6 @@ async function datasetApi(path, { method = "GET", body = null } = {}) {
     return res;
   } catch (err) {
     console.warn("datasetApi network error:", err);
-    // Return a fake Response so callers don't crash
     return new Response(JSON.stringify({ detail: "Dataset service unreachable" }), {
       status: 503,
       headers: { "Content-Type": "application/json" },
@@ -121,7 +180,6 @@ async function loadUsers(currentUser) {
   if (!tbody) return;
   tbody.innerHTML = "";
 
-  // Sort: system users at top, then by id
   const users = data.users.sort((a, b) => {
     const aSystem = isSystemUser(a.email) ? 0 : 1;
     const bSystem = isSystemUser(b.email) ? 0 : 1;
@@ -138,36 +196,37 @@ async function loadUsers(currentUser) {
       <td>${u.id}</td>
       <td>
         ${esc(u.email)}
-        ${isSys ? ' <span class="badge bg-secondary system-badge">System</span>' : ""}
+        ${isSys ? ' <span class="badge badge-system">System</span>' : ""}
       </td>
       <td>${esc(u.username || "-")}</td>
       <td>${esc(u.first_name)} ${esc(u.last_name)}</td>
       <td>${esc(u.company || "-")}</td>
       <td>
-        <input type="checkbox" class="form-check-input" data-uid="${u.id}" data-field="admin"
+        <input type="checkbox" class="toggle-checkbox" data-uid="${u.id}" data-field="admin"
                ${u.admin ? "checked" : ""} ${isSys ? "disabled" : ""} />
       </td>
       <td>
-        <input type="checkbox" class="form-check-input" data-uid="${u.id}" data-field="dev"
+        <input type="checkbox" class="toggle-checkbox" data-uid="${u.id}" data-field="dev"
                ${u.dev ? "checked" : ""} ${isSys ? "disabled" : ""} />
       </td>
       <td>
-        <input type="checkbox" class="form-check-input" data-uid="${u.id}" data-field="is_active"
+        <input type="checkbox" class="toggle-checkbox" data-uid="${u.id}" data-field="is_active"
                ${u.is_active ? "checked" : ""} ${isSys ? "disabled" : ""} />
       </td>
       <td>
         ${!isSys ? `
-          <button class="btn btn-outline-primary btn-sm btn-press me-1" data-uid="${u.id}" data-action="edit-user" title="Edit">Edit</button>
-          <button class="btn btn-outline-secondary btn-sm btn-press me-1" data-uid="${u.id}" data-uname="${esc(u.username || u.email)}" data-action="view-datasets">Datasets</button>
-          <button class="btn btn-outline-warning btn-sm btn-press me-1" data-uid="${u.id}" data-action="deactivate">Deactivate</button>
-          <button class="btn btn-outline-danger btn-sm btn-press" data-uid="${u.id}" data-action="hard-delete">Delete</button>
+          <div class="actions">
+            <button class="btn btn-outline btn-sm" data-uid="${u.id}" data-action="edit-user">Edit</button>
+            <button class="btn btn-outline btn-sm" data-uid="${u.id}" data-uname="${esc(u.username || u.email)}" data-action="view-datasets">Datasets</button>
+
+            <button class="btn btn-danger btn-sm" data-uid="${u.id}" data-action="hard-delete">Delete</button>
+          </div>
         ` : ""}
       </td>
     `;
     tbody.appendChild(tr);
   }
 
-  // Store user data for edit modal
   tbody._users = users;
 
   // Checkbox change -> PATCH
@@ -204,24 +263,11 @@ async function loadUsers(currentUser) {
       const uid = parseInt(btn.dataset.uid, 10);
       const uname = btn.dataset.uname;
       loadDatasets(uid, uname);
-      bootstrap.Tab.getOrCreateInstance(document.querySelector("#datasets-tab")).show();
+      switchAdminTab("datasets");
     });
   });
 
-  // Deactivate button
-  tbody.querySelectorAll("button[data-action=deactivate]").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      if (!confirm("Deactivate this user?")) return;
-      const uid = btn.dataset.uid;
-      const res = await api(`/admin/users/${uid}`, { method: "DELETE" });
-      if (res.ok) {
-        await loadUsers(currentUser);
-      } else {
-        const err = await readJsonOrText(res);
-        showToast(err?.detail || "Failed to deactivate");
-      }
-    });
-  });
+
 
   // Hard delete button
   tbody.querySelectorAll("button[data-action=hard-delete]").forEach((btn) => {
@@ -230,7 +276,7 @@ async function loadUsers(currentUser) {
       const uid = btn.dataset.uid;
       const res = await api(`/admin/users/${uid}?hard=true`, { method: "DELETE" });
       if (res.ok) {
-        showToast("User permanently deleted");
+        showToast("User permanently deleted", "success");
         await loadUsers(currentUser);
       } else {
         const err = await readJsonOrText(res);
@@ -250,9 +296,7 @@ function openEditModal(user) {
   el("editLastName").value = user.last_name || "";
   el("editCompany").value = user.company || "";
   el("editPassword").value = "";
-
-  const modal = bootstrap.Modal.getOrCreateInstance(el("editUserModal"));
-  modal.show();
+  openModal("editUserModal");
 }
 
 async function saveUser() {
@@ -275,8 +319,8 @@ async function saveUser() {
 
   const res = await api(`/admin/users/${uid}`, { method: "PATCH", body });
   if (res.ok) {
-    showToast("User updated");
-    bootstrap.Modal.getInstance(el("editUserModal"))?.hide();
+    showToast("User updated", "success");
+    closeModal("editUserModal");
     await loadUsers(_currentUser);
   } else {
     const err = await readJsonOrText(res);
@@ -286,10 +330,8 @@ async function saveUser() {
 
 // ── Datasets ─────────────────────────────────────────────────────
 
-// Track current filter so Add Dataset can pre-select owner
 let _currentOwnerFilter = null;
 let _currentOwnerName = null;
-// Cache all datasets for edit modal lookup
 let _allDatasets = [];
 
 function _renderDatasetRows(tbody, datasets, ownerFilter, ownerName) {
@@ -302,18 +344,20 @@ function _renderDatasetRows(tbody, datasets, ownerFilter, ownerName) {
   }
 
   for (const ds of datasets) {
-    const statusCls = ds.status === "active" ? "bg-success" : "bg-secondary";
+    const statusCls = ds.status === "active" ? "badge-success" : "badge-secondary";
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><code>${ds.id}</code></td>
       <td>${esc(ds.name)}</td>
       <td>${esc(ds.description || "-")}</td>
-      <td>${esc(ds.owner_username || "")} <span class="text-muted small">(${ds.owner_id})</span></td>
+      <td>${esc(ds.owner_username || "")} <span class="text-muted">(${ds.owner_id})</span></td>
       <td><span class="badge ${statusCls}">${esc(ds.status)}</span></td>
       <td>${ds.created_at ? new Date(ds.created_at).toLocaleDateString() : "-"}</td>
       <td class="text-nowrap">
-        <button class="btn btn-outline-primary btn-sm btn-press me-1" data-dsid="${ds.id}" data-action="edit-ds">Edit</button>
-        <button class="btn btn-outline-danger btn-sm btn-press" data-dsid="${ds.id}" data-action="delete-ds">Delete</button>
+        <div class="actions">
+          <button class="btn btn-outline btn-sm" data-dsid="${ds.id}" data-action="edit-ds">Edit</button>
+          <button class="btn btn-danger btn-sm" data-dsid="${ds.id}" data-action="delete-ds">Delete</button>
+        </div>
       </td>
     `;
     tbody.appendChild(tr);
@@ -358,9 +402,9 @@ async function loadDatasets(ownerFilter, ownerName) {
 
   if (ownerFilter && filterDiv && filterBadge) {
     filterBadge.textContent = `Filtered: ${ownerName || "User " + ownerFilter}`;
-    filterDiv.classList.remove("d-none");
+    filterDiv.classList.remove("hidden");
   } else if (filterDiv) {
-    filterDiv.classList.add("d-none");
+    filterDiv.classList.add("hidden");
   }
 
   const res = await datasetApi(url);
@@ -375,7 +419,6 @@ async function loadDatasets(ownerFilter, ownerName) {
   const data = await res.json();
   _allDatasets = data.datasets || [];
 
-  // Split into public and private
   const publicDatasets = _allDatasets.filter((ds) => ds.is_public);
   const privateDatasets = _allDatasets.filter((ds) => !ds.is_public);
 
@@ -383,15 +426,13 @@ async function loadDatasets(ownerFilter, ownerName) {
   _renderDatasetRows(el("privateDatasetsBody"), privateDatasets, ownerFilter, ownerName);
 }
 
-// ── Add Dataset Modal ───────────────────────────────────────────
+// ── Add Dataset Modal ────────────────────────────────────────────
 
 function openAddDatasetModal() {
-  // Populate owner dropdown from cached users
   const select = el("addDsOwner");
   if (!select) return;
   select.innerHTML = "";
 
-  // "Public" option — creates a public dataset (owner_id=0)
   const pubOpt = document.createElement("option");
   pubOpt.value = "public";
   pubOpt.textContent = "Public (available to all users)";
@@ -406,7 +447,6 @@ function openAddDatasetModal() {
     select.appendChild(opt);
   }
 
-  // Pre-select filtered owner if active
   if (_currentOwnerFilter) {
     select.value = String(_currentOwnerFilter);
   }
@@ -414,7 +454,7 @@ function openAddDatasetModal() {
   el("addDsName").value = "";
   el("addDsDescription").value = "";
 
-  bootstrap.Modal.getOrCreateInstance(el("addDatasetModal")).show();
+  openModal("addDatasetModal");
 }
 
 async function createDataset() {
@@ -433,7 +473,6 @@ async function createDataset() {
     return;
   }
 
-  // Get owner username from cached users
   const tbody = el("usersTableBody");
   const users = tbody?._users || [];
   const owner = isPublic ? null : users.find((u) => u.id === ownerId);
@@ -450,8 +489,8 @@ async function createDataset() {
   });
 
   if (res.ok || res.status === 201) {
-    showToast("Dataset created");
-    bootstrap.Modal.getInstance(el("addDatasetModal"))?.hide();
+    showToast("Dataset created", "success");
+    closeModal("addDatasetModal");
     await loadDatasets(_currentOwnerFilter, _currentOwnerName);
   } else {
     const err = await readJsonOrText(res);
@@ -459,7 +498,7 @@ async function createDataset() {
   }
 }
 
-// ── Edit Dataset Modal ──────────────────────────────────────────
+// ── Edit Dataset Modal ───────────────────────────────────────────
 
 function openEditDatasetModal(ds) {
   el("editDsOriginalId").value = ds.id;
@@ -469,7 +508,7 @@ function openEditDatasetModal(ds) {
   el("editDsStatus").value = ds.status || "inactive";
   el("editDsPublic").checked = !!ds.is_public;
 
-  bootstrap.Modal.getOrCreateInstance(el("editDatasetModal")).show();
+  openModal("editDatasetModal");
 }
 
 async function saveDataset() {
@@ -490,7 +529,6 @@ async function saveDataset() {
   }
 
   const body = { name, description: description || null, status: dsStatus, is_public: isPublic };
-  // Include new ID only if it changed
   if (newId !== parseInt(originalId, 10)) {
     body.id = newId;
   }
@@ -501,13 +539,37 @@ async function saveDataset() {
   });
 
   if (res.ok) {
-    showToast("Dataset updated");
-    bootstrap.Modal.getInstance(el("editDatasetModal"))?.hide();
+    showToast("Dataset updated", "success");
+    closeModal("editDatasetModal");
     await loadDatasets(_currentOwnerFilter, _currentOwnerName);
   } else {
     const err = await readJsonOrText(res);
     showToast(err?.detail || "Update failed");
   }
+}
+
+// ── Back to App ───────────────────────────────────────────────────
+
+function getSourceApp() {
+  const params = new URLSearchParams(window.location.search);
+  const from = params.get("from");
+  if (from === "dashboard") return { path: "/dashboard/", tab: "dashboard-tab", label: "Dashboard" };
+  return { path: "/webmap/", tab: "webmap-tab", label: "Webmap" };
+}
+
+function attachBackToApp() {
+  const btn = el("backToAppBtn");
+  if (!btn) return;
+  const source = getSourceApp();
+  btn.textContent = "Back to " + source.label;
+  btn.addEventListener("click", () => {
+    const w = window.open("", source.tab);
+    if (!w || !w.location.href || w.location.href === "about:blank") {
+      window.open(source.path, source.tab);
+    } else {
+      w.focus();
+    }
+  });
 }
 
 // ── Logout ───────────────────────────────────────────────────────
@@ -527,7 +589,6 @@ function attachLogout() {
 // ── Init ─────────────────────────────────────────────────────────
 
 (async function init() {
-  // ── Step 1: authenticate ──────────────────────────────────────
   let userData;
   try {
     let meRes = await api("/me", { method: "GET", allow401: true });
@@ -546,7 +607,6 @@ function attachLogout() {
 
     userData = await meRes.json();
 
-    // Only admin or dev users can access this page
     if (!userData.admin && !userData.dev) {
       window.location.assign("/authentification/");
       return;
@@ -557,8 +617,8 @@ function attachLogout() {
     return;
   }
 
-  // ── Step 2: load UI (errors here must NOT redirect) ───────────
   attachLogout();
+  attachBackToApp();
 
   try { await loadUsers(userData); } catch (err) {
     console.warn("loadUsers failed:", err);
@@ -570,31 +630,26 @@ function attachLogout() {
     showToast("Failed to load datasets");
   }
 
-  // "Show all" button clears the owner filter
   const clearBtn = el("clearDatasetFilter");
   if (clearBtn) {
     clearBtn.addEventListener("click", () => loadDatasets());
   }
 
-  // Save user button in modal
   const saveBtn = el("saveUserBtn");
   if (saveBtn) {
     saveBtn.addEventListener("click", saveUser);
   }
 
-  // Add Dataset button
   const addDsBtn = el("addDatasetBtn");
   if (addDsBtn) {
     addDsBtn.addEventListener("click", openAddDatasetModal);
   }
 
-  // Create Dataset button in modal
   const createDsBtn = el("createDatasetBtn");
   if (createDsBtn) {
     createDsBtn.addEventListener("click", createDataset);
   }
 
-  // Save Dataset button in edit modal
   const saveDsBtn = el("saveDatasetBtn");
   if (saveDsBtn) {
     saveDsBtn.addEventListener("click", saveDataset);

@@ -16,7 +16,8 @@ export default function useNetworkLayers({
   graphExpandedRef,
   setIsLoading,
   labelSize,
-  setFeatureGeoJSON
+  setFeatureGeoJSON,
+  drawRef
 }) {
   const [linkVolumeData, setLinkVolumeData] = useState(null);
   const originalNetworkGeoJSON = useRef(null);
@@ -258,7 +259,7 @@ export default function useNetworkLayers({
     
     setFeatureGeoJSON?.(networkGeojson);
     
-    map.addSource('network-source', { type: 'geojson', data: networkGeojson });
+    map.addSource('network-source', { type: 'geojson', data: networkGeojson, generateId: true });
     
     map.addLayer({
       id: 'click-network-layer',
@@ -338,6 +339,19 @@ export default function useNetworkLayers({
       if (!e.features.length) return;
       // VolumeFlow has its own click handler on this layer
       if (graphExpandedRef.current === 'VolumeFlow') return;
+
+      // Skip selection when actively drawing or clicking on draw features
+      if (drawRef?.current) {
+        const mode = drawRef.current.getMode();
+        if (mode === 'draw_polygon' || mode === 'direct_select') return;
+        const clickedLayers = map.queryRenderedFeatures(e.point).map(fl => fl.layer.id);
+        if (clickedLayers.some(id => id.startsWith('gl-draw'))) return;
+        // Clear drawn polygons on single-click selection
+        if (drawRef.current.getAll?.()?.features?.length > 0) {
+          drawRef.current.deleteAll();
+          map.fire('draw.delete', { features: [] });
+        }
+      }
       
       if (map.getLayer('ant-line')) map.removeLayer('ant-line');
       ['network-highlight'].forEach(id => {
@@ -478,7 +492,16 @@ export default function useNetworkLayers({
     ['network-layer', 'click-network-layer', 'network-highlight'].forEach(id => {
       if (map.getLayer(id)) map.setFilter(id, fullFilter);
     });
-    
+
+    // Clear selection if the highlighted feature is filtered out (e.g. non-car link in Volumes)
+    if (map.getSource('network-highlight') && map.getLayer('network-highlight')) {
+      const visible = map.querySourceFeatures('network-highlight', { filter: fullFilter });
+      if (!visible.length) {
+        setSelectedNetworkFeature(null);
+        setFeatureSelection(null);
+      }
+    }
+
     // filter labels too
     if ((graphExpandedRef.current === 'Volumes' || graphExpandedRef.current === 'VolumeFlow')) {
       applyLabelCarAndMajorFilter(map, showMajorRoadsOnly);
@@ -566,28 +589,6 @@ export default function useNetworkLayers({
         }
         
         if (map.getLayer('ant-line')) map.removeLayer('ant-line');
-        
-        // keep your highlight validity for car mode...
-        if (map.getSource('network-highlight')) {
-          const source = map.getSource('network-highlight');
-          let hasCarMode = false;
-          if (source && source._data) {
-            const features = source._data.features;
-            hasCarMode = features.some(f => {
-              const modes = f.properties?.modes;
-              if (!modes) return false;
-              // Handle both string and array formats
-              const modeArray = typeof modes === 'string' ? modes.split(',') : modes;
-              return modeArray.includes('car');
-            });
-          }
-          if (!hasCarMode) {
-            setSelectedNetworkFeature(null);
-            if (isGraphExpanded === 'Network' && source?._data?.features?.[0]) {
-              setSelectedNetworkFeature([source._data.features[0].properties]);
-            }
-          }
-        }
       }, [isGraphExpanded]);
       
       // --- LOAD per-link hourly volumes (unchanged path format you use) ----------

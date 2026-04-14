@@ -13,8 +13,8 @@
 }
 
 .plot-expanded-content {
-  background-color: #ffffff;
-  border-radius: 12px;
+  background-color: var(--color-surface);
+  border-radius: var(--card-radius);
   width: 95vw;
   height: 90vh;
   max-width: 1600px;
@@ -30,10 +30,10 @@
   right: 16px;
   width: 36px;
   height: 36px;
-  border-radius: 8px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  color: #6b7280;
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -41,12 +41,12 @@
   font-size: 18px;
   transition: all 0.2s ease;
   z-index: 10;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
 }
 
 .plot-expanded-close:hover {
-  background-color: #f3f4f6;
-  color: #374151;
+  background-color: var(--color-bg);
+  color: var(--color-text);
 }
 
 .plot-expanded-body {

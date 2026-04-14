@@ -48,6 +48,7 @@ class DatasetOut(BaseModel):
     has_microcensus: bool
     has_json_preview: bool
     has_spider_db: bool
+    data_categories: list[str] = []
     created_at: datetime
     updated_at: datetime
 

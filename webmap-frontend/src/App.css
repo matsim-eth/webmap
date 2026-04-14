@@ -6,15 +6,45 @@
   box-sizing: border-box;
 }
 
+/* Repeated properties */
 :root {
   --left-sidebar-width: 60px;
+
+  --color-primary: #6366f1;
+  --color-primary-dark: #4f46e5;
+  --color-primary-light: #eef2ff;
+  --color-primary-blue: #2563eb;
+  --color-bg: #f3f4f6;
+  --color-bg-subtle: #f9fafb;
+  --color-surface: #ffffff;
+  --color-border: #e5e7eb;
+  --color-border-light: #d1d5db;
+  --color-text: #374151;
+  --color-text-dark: #1f2937;
+  --color-text-secondary: #6b7280;
+  --color-text-muted: #9ca3af;
+  --color-error: #ef4444;
+  --color-error-dark: #dc2626;
+  --color-error-light: #fee2e2;
+  --color-success: #16a34a;
+  --color-success-light: #dcfce7;
+  --color-accent: #0d9488;
+  --color-accent-light: #ccfbf1;
+  --color-badge-bg: #dee2e6;
+  --radius: 8px;
+  --radius-sm: 6px;
+  --radius-xs: 4px;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-focus: 0 0 0 2px rgba(99, 102, 241, 0.1);
+  --transition-fast: 0.15s ease;
 }
 
 body {
   font-family: "Inter", sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #f8f9fa;
+  background-color: var(--color-bg);
 }
 
 button {

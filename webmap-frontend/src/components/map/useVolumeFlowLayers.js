@@ -1,6 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useApp } from '../../context/AppContext';
-import { DATASET_ID } from '../../config';
 import { handle401 } from '../../utils/auth';
 
 // Spider overlay source + layers (separate from the shared network-source)
@@ -18,12 +17,14 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
         isGraphExpanded,
         clickedCanton,
         featureGeoJSON,
+        featureSelection,
         setVolumeFlowSegment,
         setFeatureSelection,
         setSelectedNetworkFeature,
         volumeFlowDirection,
         volumeFlowSelectedLink,
         setVolumeFlowSelectedLink,
+        datasetId,
     } = useApp();
 
     const clickHandlerRef = useRef(null);
@@ -37,6 +38,11 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
     // Ref to read current selectedLink without adding it to main effect deps
     const selectedLinkRef = useRef(volumeFlowSelectedLink);
     selectedLinkRef.current = volumeFlowSelectedLink;
+    // Track featureSelection from context to sync when re-entering VolumeFlow
+    const featureSelectionRef = useRef(featureSelection);
+    featureSelectionRef.current = featureSelection;
+    // Track canton to clear lastClickRef when canton changes
+    const prevCantonRef = useRef(clickedCanton);
 
     // --- Cleanup helper: removes spider overlay layers/source only ---
     const removeSpider = (map) => {
@@ -228,11 +234,11 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
             // Fetch spider data for all keys in parallel
             const results = await Promise.all(
                 keys.map(async (key) => {
-                    let res = await fetch(`/backend/data/${DATASET_ID}/spider_${direction}.json?link_id=${key}`);
+                    let res = await fetch(`/backend/data/${datasetId}/spider_${direction}.json?link_id=${key}`);
                     if (res.status === 401) {
                       const refreshed = await handle401();
                       if (!refreshed) return { key, total_trips: 0, spiderMap: new Map() };
-                      res = await fetch(`/backend/data/${DATASET_ID}/spider_${direction}.json?link_id=${key}`);
+                      res = await fetch(`/backend/data/${datasetId}/spider_${direction}.json?link_id=${key}`);
                     }
                     if (!res.ok) throw new Error(`HTTP ${res.status}`);
                     const spider = await res.json();
@@ -315,6 +321,12 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
         if (!mapReady || !mapRef.current) return;
         const map = mapRef.current;
 
+        // Clear stored click when canton changes (old link IDs no longer valid)
+        if (clickedCanton !== prevCantonRef.current) {
+            prevCantonRef.current = clickedCanton;
+            lastClickRef.current = null;
+        }
+
         // Check if spider was active before cleanup (for direction-change re-fetch)
         const hadSpider = !!map.getSource(SPIDER_SOURCE_ID);
 
@@ -331,9 +343,8 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
             spiderCacheRef.current = null;
         }
 
-        // Not in VolumeFlow → clear stored click and done
+        // Not in VolumeFlow → keep lastClickRef for restore, but done here
         if (isGraphExpanded !== 'VolumeFlow') {
-            lastClickRef.current = null;
             setVolumeFlowSelectedLink(null);
             return;
         }
@@ -355,29 +366,24 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
         // Network not loaded yet
         if (!featureGeoJSON?.features || !map.getLayer(NETWORK_CLICK_LAYER)) return;
 
-        // If there's a stored click AND spider was showing (direction changed), re-fetch
-        if (lastClickRef.current && hadSpider) {
+        // Sync lastClickRef with current featureSelection (user may have clicked a
+        // different link in Network/Volumes while VolumeFlow was inactive)
+        const sel = featureSelectionRef.current;
+        if (sel?.feature?.properties?.per_id_keys) {
+            const selKeys = sel.feature.properties.per_id_keys.split('|').filter(Boolean);
+            const lastKeys = lastClickRef.current?.keys || [];
+            if (selKeys.length && selKeys.join('|') !== lastKeys.join('|')) {
+                lastClickRef.current = { keys: selKeys, feature: sel.feature };
+                setVolumeFlowSelectedLink(null);
+            }
+        }
+
+        // If there's a stored click (direction change or returning to VolumeFlow), re-fetch
+        if (lastClickRef.current) {
             const { keys, feature } = lastClickRef.current;
             fetchAndCacheSpiders(map, keys, feature, volumeFlowDirection).then(cache => {
                 if (cache) renderForSelection(map, cache, selectedLinkRef.current);
             });
-        }
-        // If no stored click but there's a highlighted feature from Network/Volumes, auto-trigger spider
-        else if (!lastClickRef.current && map.getSource('network-highlight')) {
-            try {
-                const src = map.getSource('network-highlight');
-                const highlightedFeature = src?._data?.features?.[0];
-                if (highlightedFeature) {
-                    const keys = (highlightedFeature.properties.per_id_keys || '').split('|').filter(Boolean);
-                    if (keys.length) {
-                        lastClickRef.current = { keys, feature: highlightedFeature };
-                        setVolumeFlowSelectedLink(null);
-                        fetchAndCacheSpiders(map, keys, highlightedFeature, volumeFlowDirection).then(cache => {
-                            if (cache) renderForSelection(map, cache, null);
-                        });
-                    }
-                }
-            } catch (e) { /* highlight source may not have data */ }
         }
 
         // --- Click handler: any link on the shared network layer ---

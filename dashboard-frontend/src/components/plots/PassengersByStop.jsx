@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useDashboard } from "../../context/DashboardContext";
 import { useData } from "../../context/DataContext";
 import { useResizeOnSidebarChange } from "../../hooks/useResizeOnSidebarChange";
+import PlotLoader from "./PlotLoader";
 import cantonAlias from "../../utils/canton_alias.json";
 
 const METRICS = {
@@ -66,7 +67,7 @@ const PassengersByStop = ({ sidebarCollapsed, isExpanded = false, metric = "boar
   }
 
   if (!hourlyCounts) {
-    return <div className="plot-loading">Loading...</div>;
+    return <PlotLoader />;
   }
 
   // Generate full 15-minute interval labels

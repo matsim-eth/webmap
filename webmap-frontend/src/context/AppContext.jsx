@@ -1,8 +1,9 @@
-import { createContext, useState, useRef, useContext } from "react";
+import { createContext, useState, useRef, useCallback, useContext } from "react";
 
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
+  const [datasetId, setDatasetId] = useState(1);
   const [dataURL, setDataURL] = useState("https://matsim-eth.github.io/webmap/data/");
 
   const [clickedCanton, setClickedCanton] = useState(null); // Store clicked canton
@@ -22,6 +23,8 @@ export const AppProvider = ({ children }) => {
   // Intialize reference to store Mapbox instance
   const mapRef = useRef(null);
 
+  // Reference to MapboxDraw instance (set by useDrawTools)
+  const drawRef = useRef(null);
 
   // ------ FEATURE TABLE --------
   // Track if table is open or not
@@ -69,6 +72,8 @@ export const AppProvider = ({ children }) => {
   const [volumeFlowSegment, setVolumeFlowSegment] = useState(null);
   // Volume Flow direction: 'bothflow' | 'inflow' | 'outflow'
   const [volumeFlowDirection, setVolumeFlowDirection] = useState('bothflow');
+  // Transit line direction filter: 'total' | 'outbound' | 'return'
+  const [selectedDirection, setSelectedDirection] = useState('total');
   // Volume Flow selected link: null = aggregated (all), string = specific link ID
   const [volumeFlowSelectedLink, setVolumeFlowSelectedLink] = useState(null);
 
@@ -122,9 +127,11 @@ export const AppProvider = ({ children }) => {
     setShowMajorRoadsOnly(true); // Reset major roads toggle
     setShowStopVolumeSymbology(false); // Reset stop volume symbology toggle
     setIsFeatureTableOpen(false); // Close feature table if open
+    setSelectedDirection('total'); // Reset direction filter
   };
 
   const value = {
+    datasetId, setDatasetId,
     dataURL, setDataURL,
     clickedCanton, setClickedCanton,
     isSidebarOpen, setIsSidebarOpen,
@@ -160,7 +167,9 @@ export const AppProvider = ({ children }) => {
     resetMapView,
     volumeFlowSegment, setVolumeFlowSegment,
     volumeFlowDirection, setVolumeFlowDirection,
-    volumeFlowSelectedLink, setVolumeFlowSelectedLink
+    volumeFlowSelectedLink, setVolumeFlowSelectedLink,
+    drawRef,
+    selectedDirection, setSelectedDirection
   };
 
   return (

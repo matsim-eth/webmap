@@ -1,17 +1,32 @@
     import React, { useRef, useState } from 'react';
     import './Sidebar.css';
     import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-    import { faHouse, faIdCard, faCar, faTrain, faRoad, faBriefcase, faClipboardList, faLocationDot, faImage, faFilePdf, faChevronLeft, faChevronRight, faFolder, faXmark, faSpinner, faCheck, faMap, faRightFromBracket, faUserShield } from '@fortawesome/free-solid-svg-icons';
+    import { faHouse, faIdCard, faCar, faTrain, faRoad, faBriefcase, faClipboardList, faLocationDot, faImage, faFilePdf, faChevronLeft, faChevronRight, faChevronDown, faChevronUp, faFolder, faXmark, faSpinner, faCheck, faMap, faRightFromBracket, faUserShield } from '@fortawesome/free-solid-svg-icons';
     import { useFileContext } from '../context/FileContext';
     import { redirectToLogin, checkIsAdmin } from '../utils/auth';
     import { useQuery } from '@tanstack/react-query';
+    import DatasetSelector from './DatasetSelector';
+
+    const SectionTitle = ({ label, isOpen, onToggle, isCollapsed }) => {
+      if (isCollapsed) return null;
+      return (
+        <button className="sidebar-section-title" onClick={onToggle}>
+          <span>{label}</span>
+          <FontAwesomeIcon icon={isOpen ? faChevronUp : faChevronDown} className="sidebar-section-chevron" />
+        </button>
+      );
+    };
 
     const Sidebar = ({ activeTab, setActiveTab, isCollapsed, setIsCollapsed, onExportImage, onExportPDF }) => {
     const fileInputRef = useRef(null);
 
+    const [menuOpen, setMenuOpen] = useState(true);
+    const [dataOpen, setDataOpen] = useState(true);
+    const [exportOpen, setExportOpen] = useState(true);
+
     // state for export status
-    const [exportingType, setExportingType] = useState(null); // 'image' or 'pdf' while exporting
-    const [exportSuccess, setExportSuccess] = useState(null); // 'image' or 'pdf' after successful export
+    const [exportingType, setExportingType] = useState(null);
+    const [exportSuccess, setExportSuccess] = useState(null);
 
     // get functions and state from FileContext
     const { handleFolderUpload, fileMap, clearFileMap } = useFileContext();
@@ -23,7 +38,6 @@
     });
 
     const menuItems = [
-        //{ id: 'home', label: 'Home', icon: faHouse },
         { id: 'mode', label: 'Mode', icon: faRoad },
         { id: 'purpose', label: 'Purpose', icon: faBriefcase },
         { id: 'activities', label: 'Activities', icon: faClipboardList },
@@ -32,7 +46,7 @@
         { id: 'demographics', label: 'Demographics', icon: faIdCard },
         { id: 'transit-stops', label: 'Transit Stops', icon: faLocationDot },
     ];
-    
+
     const exportItems = [
         { id: 'image', label: 'Image', icon: faImage },
         { id: 'pdf', label: 'PDF', icon: faFilePdf },
@@ -41,15 +55,14 @@
     const handleExport = async (type) => {
         setExportingType(type);
         setExportSuccess(null);
-        
+
         try {
             if (type === 'image' && onExportImage) {
                 await onExportImage();
             } else if (type === 'pdf' && onExportPDF) {
                 await onExportPDF();
             }
-            
-            // Show success checkmark for 2 seconds
+
             setExportingType(null);
             setExportSuccess(type);
             setTimeout(() => setExportSuccess(null), 2000);
@@ -59,12 +72,10 @@
         }
     };
 
-    // "Clicks" fileInputRef to open file dialog
     const handleUploadClick = () => {
-        fileInputRef.current?.click(); 
+        fileInputRef.current?.click();
     };
 
-    // Triggers when files are selected
     const handleFileChange = (e) => {
         const files = e.target.files;
         if (files && files.length > 0) {
@@ -90,21 +101,21 @@
         <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
 
         <div className="sidebar-content">
-        {/* Sign out + Admin */}
+        {/* Sign Out + Admin */}
         <div className="sidebar-section">
             <nav className="sidebar-nav">
                 <button
                     className="sidebar-item logout-item"
                     onClick={handleLogout}
-                    title={isCollapsed ? 'Sign out' : ''}
+                    title={isCollapsed ? 'Sign Out' : ''}
                 >
                     <span className="sidebar-icon"><FontAwesomeIcon icon={faRightFromBracket} /></span>
-                    <span className="sidebar-label">Sign out</span>
+                    <span className="sidebar-label">Sign Out</span>
                 </button>
                 {isAdmin && (
                     <button
                         className="sidebar-item admin-item"
-                        onClick={() => window.open('/authentification/admin/', '_blank')}
+                        onClick={() => window.open('/authentification/admin/?from=dashboard', 'admin-tab')}
                         title={isCollapsed ? 'Admin Panel' : ''}
                     >
                         <span className="sidebar-icon"><FontAwesomeIcon icon={faUserShield} /></span>
@@ -115,9 +126,9 @@
         </div>
 
         {/* Menu Section */}
-
         <div className="sidebar-section">
-            <span className="sidebar-section-title">MENU</span>
+            <SectionTitle label="MENU" isOpen={menuOpen} onToggle={() => setMenuOpen(v => !v)} isCollapsed={isCollapsed} />
+            {(menuOpen || isCollapsed) && (
             <nav className="sidebar-nav">
             {menuItems.map((item) => (
                 <button
@@ -131,12 +142,15 @@
                 </button>
             ))}
             </nav>
+            )}
         </div>
 
-        {/* Upload Section */}
-
+        {/* Data Section (dataset + upload) */}
         <div className="sidebar-section">
-            <span className="sidebar-section-title">UPLOAD</span>
+            <SectionTitle label="DATA" isOpen={dataOpen} onToggle={() => setDataOpen(v => !v)} isCollapsed={isCollapsed} />
+            {(dataOpen || isCollapsed) && (
+            <>
+            <DatasetSelector isCollapsed={isCollapsed} />
             <nav className="sidebar-nav">
             <button
                 className={`sidebar-item ${hasUploadedFiles ? 'uploaded' : ''}`}
@@ -168,11 +182,14 @@
                 </button>
             </div>
             )}
+            </>
+            )}
         </div>
 
         {/* Export Section */}
         <div className="sidebar-section">
-            <span className="sidebar-section-title">EXPORT</span>
+            <SectionTitle label="EXPORT" isOpen={exportOpen} onToggle={() => setExportOpen(v => !v)} isCollapsed={isCollapsed} />
+            {(exportOpen || isCollapsed) && (
             <nav className="sidebar-nav">
             {exportItems.map((item) => {
                 const isExporting = exportingType === item.id;
@@ -196,14 +213,21 @@
                 );
             })}
             </nav>
+            )}
         </div>
 
         <div className="sidebar-section">
-            <span className="sidebar-section-title">WEBMAP</span>
             <nav className="sidebar-nav">
                 <button
-                    className="sidebar-item"
-                    onClick={() => window.open('/webmap/', 'webmap-tab')}
+                    className="sidebar-item crosslink-item"
+                    onClick={() => {
+                      const w = window.open('', 'webmap-tab');
+                      if (!w || !w.location.href || w.location.href === 'about:blank') {
+                        window.open('/webmap/', 'webmap-tab');
+                      } else {
+                        w.focus();
+                      }
+                    }}
                     title={isCollapsed ? "Open Webmap" : ""}
                 >
                     <span className="sidebar-icon"><FontAwesomeIcon icon={faMap} /></span>
@@ -214,7 +238,7 @@
         </div>
 
     {/* Collapse/Expand Button */}
-        <button 
+        <button
             className="sidebar-toggle"
             onClick={() => setIsCollapsed(!isCollapsed)}
             title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}

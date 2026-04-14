@@ -1,78 +1,78 @@
 .canton-mode-share {
-    margin-top: 15px;
-    padding-top: 1px;
-    padding-left: 5px;
-    padding-right: 5px;
-    background: #f9fafb;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-    transition: opacity 0.3s ease-in-out;
-  }
+  margin-top: 15px;
+  padding-top: 1px;
+  padding-left: 5px;
+  padding-right: 5px;
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  transition: opacity 0.3s ease-in-out;
+}
 
-  .canton-mode-share h4 {
-    margin-top: 10px;
-    margin-bottom: 10px;
-    text-align: center;
-    font-size: 16px;
-    font-weight: bold;
-    color: #374151;
-  }
+.canton-mode-share h4 {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--color-text);
+}
 
-  .canton-mode-share table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-  }
+.canton-mode-share table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
 
-  .canton-mode-share th, .canton-mode-share td {
-    padding: 8px;
-    text-align: left;
-    border-bottom: 1px solid #e5e7eb;
-  }
+.canton-mode-share th, .canton-mode-share td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
 
-  .canton-mode-share th {
-    background: #f3f4f6;
-    font-weight: bold;
-  }
+.canton-mode-share th {
+  background: var(--color-bg);
+  font-weight: bold;
+}
 
-  .canton-mode-share tr:last-child td {
-    border-bottom: none;
-  }
+.canton-mode-share tr:last-child td {
+  border-bottom: none;
+}
 
-  .canton-mode-share .highlight {
-    color: white;
-    font-weight: bold;
-  }
+.canton-mode-share .highlight {
+  color: white;
+  font-weight: bold;
+}
 
-  .canton-mode-share tbody tr:hover {
-    background-color: #e5e7eb;
-  }
+.canton-mode-share tbody tr:hover {
+  background-color: var(--color-border);
+}
 
-  .mode-badges {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: 5px 0;
-  }
+.mode-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 5px 0;
+}
 
-  .mode-badge {
-    background-color: #dee2e6;
-    color: #374151;
-    border-radius: 12px;
-    padding: 4px 10px;
-    font-size: 13px;
-    font-weight: 500;
-    display: inline-block;
-  }
+.mode-badge {
+  background-color: var(--color-badge-bg);
+  color: var(--color-text);
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-block;
+}
 
-  .line-toggle {
+.line-toggle {
   background: none;
   border: none;
   padding: 0;
   margin-bottom: 4px;
   font-weight: bold;
   cursor: pointer;
-  color: #374151;
+  color: var(--color-text);
 }
 
 .line-group-list {
@@ -87,7 +87,7 @@
   padding: 0;
   margin: 0;
   font-weight: normal;
-  color: #374151;
+  color: var(--color-text);
   cursor: pointer;
   text-align: left;
 }
@@ -104,7 +104,7 @@
 
 .route-indent {
   padding-left: 1.2em;
-  color: #9ca3af;
+  color: var(--color-text-muted);
   font-style: italic;
 }
 
@@ -116,8 +116,8 @@
 }
 
 .mode-badge {
-  background-color: #dee2e6;
-  color: #374151;
+  background-color: var(--color-badge-bg);
+  color: var(--color-text);
   border-radius: 12px;
   padding: 4px 10px;
   font-size: 13px;
@@ -132,7 +132,7 @@
 }
 
 .mode-badge.active {
-  background-color: #6366f1;
+  background-color: var(--color-primary);
   color: #fff;
 }
 
@@ -141,13 +141,13 @@
   margin-left: 0;
   padding-left: 1rem;
   font-size: 0.9em;
-  color: #374151;
+  color: var(--color-text);
 }
 
 .metric-card {
-  background-color: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
   padding: 0.75rem 1rem;
   min-width: 100px;
   text-align: center;
@@ -158,11 +158,11 @@
 
 .metric-label {
   font-size: 0.85rem;
-  color: #9ca3af;
+  color: var(--color-text-muted);
 }
 
 .metric-value {
   font-size: 1.25rem;
   font-weight: bold;
-  color: #6366f1;
+  color: var(--color-primary);
 }

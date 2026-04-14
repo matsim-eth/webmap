@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useDashboard } from "../../context/DashboardContext";
 import { useData } from "../../context/DataContext";
 import { useResizeOnSidebarChange } from "../../hooks/useResizeOnSidebarChange";
+import PlotLoader from "./PlotLoader";
 
 const TransferDestinations = ({ sidebarCollapsed, isExpanded = false }) => {
   const { selectedCanton, selectedTransitStop } = useDashboard();
@@ -129,7 +130,7 @@ const TransferDestinations = ({ sidebarCollapsed, isExpanded = false }) => {
   }
 
   if (!transferData) {
-    return <div className="plot-loading">Loading...</div>;
+    return <PlotLoader />;
   }
 
   if (!selectedTransitStop) {

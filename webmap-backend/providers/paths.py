@@ -9,11 +9,13 @@ Supports two modes:
 Example layout (per dataset):
     $ROOT/
     ├── synthetic/
-    │   ├── switzerland_persons.parquet
-    │   ├── households.parquet
-    │   ├── trips.parquet
-    │   ├── activities.parquet
+    │   ├── output_persons.parquet
+    │   ├── switzerland_households.parquet
+    │   ├── switzerland_trips.parquet
+    │   ├── switzerland_activities.parquet
     │   ├── output_trips.parquet
+    │   ├── switzerland_network.xml
+    │   ├── link_speeds.parquet
     │   └── spider.duckdb
     ├── microcensus/
     │   ├── persons.parquet
@@ -52,6 +54,14 @@ class DataPaths:
     network_xml: str
     link_speeds: str
 
+    @property
+    def has_synthetic(self) -> bool:
+        return Path(self.synthetic_persons).exists()
+
+    @property
+    def has_microcensus(self) -> bool:
+        return Path(self.microcensus_persons).exists()
+
 
 def get_data_paths() -> DataPaths:
     """Build DataPaths from the per-request override or WEBMAP_ROOT env var.
@@ -69,10 +79,10 @@ def get_data_paths() -> DataPaths:
     m = Path(root) / "microcensus"
     j = Path(root) / "json_preview"
     return DataPaths(
-        synthetic_persons=str(s / "switzerland_persons.parquet"),
-        synthetic_households=str(s / "households.parquet"),
-        synthetic_trips=str(s / "trips.parquet"),
-        synthetic_activities=str(s / "activities.parquet"),
+        synthetic_persons=str(s / "output_persons.parquet"),
+        synthetic_households=str(s / "switzerland_households.parquet"),
+        synthetic_trips=str(s / "switzerland_trips.parquet"),
+        synthetic_activities=str(s / "switzerland_activities.parquet"),
         synthetic_output_trips=str(s / "output_trips.parquet"),
         microcensus_persons=str(m / "persons.parquet"),
         microcensus_households=str(m / "households.parquet"),

@@ -278,7 +278,7 @@ export default function usePtBoardings({
     
     // Load transit stops data for the selected canton
     const stopsPath = `matsim/transit/stops_by_canton/${searchCanton}_stops.geojson`;
-    
+
     loadWithFallback(stopsPath)
       .then((geojson) => {
         // Add stop IDs to features for easier processing
@@ -396,14 +396,14 @@ export default function usePtBoardings({
   useEffect(() => {
     const map = mapRef.current;
     if (!map || isGraphExpanded !== "PtBoardings") return;
-    
+
     const STOPS_LAYER_ID = "pt-boardings-stops-layer";
     const LABELS_LAYER_ID = "pt-boardings-stops-label";
-    
+
     // Update stop highlighting based on selected boarding line
     if (selectedBoardingData?.selectedLineInfo && selectedBoardingData.selectedLine !== 'all') {
       const lineId = selectedBoardingData.selectedLineInfo.line_id;
-      
+
       if (map.getLayer(STOPS_LAYER_ID) && map.getLayer(LABELS_LAYER_ID)) {
         const matchLineExpr = ["in", lineId, ["get", "line_ids"]];
         

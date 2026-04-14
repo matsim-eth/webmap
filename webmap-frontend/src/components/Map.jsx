@@ -11,6 +11,7 @@ import useDestinationZones from './map/useDestinationZones';
 import usePtBoardings from './map/usePtBoardings';
 import useFeatureSelectionFocus from './map/useFeatureSelectionFocus';
 import useVolumeFlowLayers from './map/useVolumeFlowLayers';
+import useDrawTools from './map/useDrawTools';
 import { useApp } from '../context/AppContext';
 import { useResetMapView } from '../hooks/useResetMapView';
 
@@ -50,7 +51,9 @@ export default function Map() {
     destinationData: selectedDestinationData, // Alias
     boardingData: selectedBoardingData, // Alias
     featureSelection,
-    setFeatureSelection
+    setFeatureSelection,
+    drawRef: contextDrawRef,
+    selectedDirection
   } = useApp();
 
   // load util for loading in the data (from link or local upload)
@@ -71,7 +74,7 @@ export default function Map() {
     mapRef,
     mapContainerRef,
     mapReady
-  } = useMapbox(import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoiYW5kd29vIiwiYSI6ImNrMjlnYnNkdTEwMHozaG5wamJvZHJyangifQ.6M4eeri_Ubmo7NedQT7NuQ');
+  } = useMapbox(import.meta.env.VITE_MAPBOX_TOKEN);
 
   // Sync map instance to context ref (derived assignment, not an effect)
   if (contextMapRef && mapReady) {
@@ -89,7 +92,8 @@ export default function Map() {
     graphExpandedRef,
     setIsFeatureTableOpen: setIsFeatureTableOpen,
     isFeatureTableOpen: isFeatureTableOpen,
-    isLeftSidebarOpen: !isLeftSidebarCollapsed
+    isLeftSidebarOpen: !isLeftSidebarCollapsed,
+    drawRef: contextDrawRef
   });
 
   // pan map depending on sidebar state (keeps map in centre regardless of sidebar width)
@@ -123,6 +127,7 @@ export default function Map() {
     labelSize: labelSize,
     setIsLoading,
     setFeatureGeoJSON: setFeatureGeoJSON,
+    drawRef: contextDrawRef,
   });
 
   useTransitLayers({
@@ -145,7 +150,9 @@ export default function Map() {
     setIsLoading,
     suppressNextSearchZoom,
     setFeatureGeoJSON: setFeatureGeoJSON,
-    tableFilterQuery: tableFilterQuery
+    tableFilterQuery: tableFilterQuery,
+    selectedDirection: selectedDirection,
+    drawRef: contextDrawRef
   });
 
   useChoropleth({
@@ -178,6 +185,14 @@ export default function Map() {
   useVolumeFlowLayers({
     mapRef,
     mapReady,
+  });
+
+  // Draw tools (polygon draw/delete)
+  useDrawTools({
+    mapRef,
+    mapReady,
+    isGraphExpanded,
+    contextDrawRef,
   });
 
   // Combined feature selection focus for both network and transit (uses shared network-highlight)

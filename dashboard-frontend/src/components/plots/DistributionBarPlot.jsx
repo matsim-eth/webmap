@@ -1,83 +1,72 @@
 import React, { useMemo } from "react";
 import Plot from "react-plotly.js";
-import { useQuery } from "@tanstack/react-query";
 import { useDashboard } from "../../context/DashboardContext";
 import { useData } from "../../context/DataContext";
+import { useComparisonData } from "../../hooks/useComparisonData";
 import { useResizeOnSidebarChange } from "../../hooks/useResizeOnSidebarChange";
+import { extractSubDataset } from "../../utils/comparisonHelpers";
+import PlotLoader from "./PlotLoader";
 
-const DATASET_COLORS = {
-  Microcensus: "#4A90E2",
-  Synthetic: "#E07A5F",
-};
-
-const buildBackendUrl = (baseUrl, query) => {
-  if (!baseUrl) return null;
-  if (!query) return baseUrl;
-
-  const url = new URL(baseUrl, window.location.origin);
-  Object.entries(query).forEach(([key, value]) => {
-    if (value == null || value === "") return;
-    url.searchParams.set(key, String(value));
-  });
-  return `${url.pathname}${url.search}`;
-};
-
-const DistributionBarPlot = ({ 
-  sidebarCollapsed, 
+const DistributionBarPlot = ({
+  sidebarCollapsed,
   isExpanded = false,
   dataFile,
   canton,
   title,
   xAxisLabel,
-  yAxisLabel = "Percentage [%]", // optional: custom y-axis label
-  dataTransform = null, // optional: function to transform data values (e.g., for distance conversion)
-  filterType = null, // null, "income", "age", "gender", or "distance"
-  customCategories = null, // optional: provide custom categories and their data keys
-  yAxisRange = null, // optional: [min, max] for fixed y-axis range
-  xAxisRange = null, // optional: [min, max] for fixed x-axis range
-  rightLegend = false, // optional: position legend on right side
-  backendUrl = null,
+  yAxisLabel = "Percentage [%]",
+  dataTransform = null,
+  filterType = null,
+  customCategories = null,
+  yAxisRange = null,
+  xAxisRange = null,
+  rightLegend = false,
+  backendUrlTemplate = null,
   backendQuery = null,
   nestedGroupKey = null,
   exportFilename
 }) => {
-  const { selectedCanton, selectedIncome, selectedAge, selectedGender, distanceType } = useDashboard();
-  const { getData, getUrlData } = useData();
+  const { selectedCanton, selectedIncome, selectedAge, selectedGender, distanceType, comparisonSlots } = useDashboard();
+  const { getData } = useData();
   const cantonKey = canton ?? selectedCanton ?? "All";
-  const requestUrl = useMemo(() => buildBackendUrl(backendUrl, backendQuery), [backendQuery, backendUrl]);
 
   useResizeOnSidebarChange(sidebarCollapsed);
 
-  const { data: backendData } = useQuery({
-    queryKey: ['distributionBar', requestUrl, cantonKey, nestedGroupKey],
-    queryFn: () =>
-      getUrlData(requestUrl).then((payload) => {
-        const cantonData = payload?.[cantonKey] ?? {};
-        if (nestedGroupKey) {
-          return {
-            Synthetic: cantonData?.Synthetic?.[nestedGroupKey] ?? {},
-            Microcensus: cantonData?.Microcensus?.[nestedGroupKey] ?? {},
-          };
-        }
-        return cantonData;
-      }),
-    enabled: !!requestUrl,
-  });
+  const { slotDatasets, isLoading } = useComparisonData(backendUrlTemplate, { query: backendQuery });
 
-  const data = useMemo(() => {
-    if (requestUrl) {
-      return backendData ?? null;
+  // Build per-slot extracted data
+  const slotsWithData = useMemo(() => {
+    if (backendUrlTemplate) {
+      if (isLoading || slotDatasets.length === 0) return null;
+      return slotDatasets.map((slot) => {
+        const cantonData = slot.rawPayload?.[cantonKey] ?? {};
+        let sourceData;
+        if (nestedGroupKey) {
+          sourceData = cantonData?.[slot.subDataset]?.[nestedGroupKey] ?? {};
+        } else {
+          sourceData = cantonData?.[slot.subDataset] ?? {};
+        }
+        return { ...slot, sourceData };
+      });
     }
 
+    // File-based fallback: use getData and split by comparison slots
     const jsonData = getData(dataFile);
     if (!jsonData) return null;
-    return jsonData[cantonKey] || null;
-  }, [backendData, cantonKey, dataFile, getData, requestUrl]);
+    const cantonData = jsonData[cantonKey] || null;
+    if (!cantonData) return null;
 
-  if (!data) return <div className="plot-loading">Loading...</div>;
+    return comparisonSlots.filter(Boolean).map((slot) => ({
+      ...slot,
+      sourceData: cantonData[slot.subDataset] ?? {},
+    }));
+  }, [backendUrlTemplate, isLoading, slotDatasets, cantonKey, nestedGroupKey, dataFile, getData, comparisonSlots]);
 
-  // Determine what data to show based on filterType
-  let categories, microData, synData, titleSuffix = "";
+  if (comparisonSlots.length === 0) {
+    return <div className="plot-loading">Select a dataset to show data</div>;
+  }
+
+  if (!slotsWithData) return <PlotLoader />;
 
   const resolveGroupedData = (sourceData, key, fallbackKey = null) => {
     if (!sourceData) return null;
@@ -86,129 +75,108 @@ const DistributionBarPlot = ({
     return sourceData.All || sourceData.all || null;
   };
 
-  if (filterType === null) {
-    // General distribution - no filter
-    if (customCategories) {
-      // Use custom categories for cases like gender (Male/Female mapped to 0/1)
-      microData = data["Microcensus"];
-      synData = data["Synthetic"];
-      categories = customCategories.map(c => c.key);
-    } else {
-      categories = Object.keys(data["Microcensus"]);
-      microData = data["Microcensus"];
-      synData = data["Synthetic"];
+  // For each slot, resolve the filtered data
+  const resolvedSlots = slotsWithData.map((slot) => {
+    let data = slot.sourceData;
+    let titleSuffix = "";
+
+    if (filterType === null) {
+      // No filter — data is already correct
+    } else if (filterType === "income") {
+      data = resolveGroupedData(data, selectedIncome);
+      titleSuffix = selectedIncome === "all" ? " (All)" : ` (Class ${selectedIncome})`;
+    } else if (filterType === "age") {
+      data = resolveGroupedData(data, selectedAge);
+      titleSuffix = selectedAge === "all" ? " (All)" : ` (${selectedAge})`;
+    } else if (filterType === "gender") {
+      const genderKey = selectedGender === "male" ? "0" : selectedGender === "female" ? "1" : null;
+      data = resolveGroupedData(data, genderKey, selectedGender);
+      titleSuffix = selectedGender === "all" ? "" : ` (${selectedGender.charAt(0).toUpperCase() + selectedGender.slice(1)})`;
+    } else if (filterType === "distance") {
+      // For distance-based data, just use the main data without filtering
+      titleSuffix = "";
     }
-  } else if (filterType === "income") {
-    microData = resolveGroupedData(data["Microcensus"], selectedIncome);
-    synData = resolveGroupedData(data["Synthetic"], selectedIncome);
-    titleSuffix = selectedIncome === "all" ? " (All)" : ` (Class ${selectedIncome})`;
-  } else if (filterType === "age") {
-    microData = resolveGroupedData(data["Microcensus"], selectedAge);
-    synData = resolveGroupedData(data["Synthetic"], selectedAge);
-    titleSuffix = selectedAge === "all" ? " (All)" : ` (${selectedAge})`;
-  } else if (filterType === "gender") {
-    const genderKey = selectedGender === "male" ? "0" : selectedGender === "female" ? "1" : null;
-    microData = resolveGroupedData(data["Microcensus"], genderKey, selectedGender);
-    synData = resolveGroupedData(data["Synthetic"], genderKey, selectedGender);
-    titleSuffix = selectedGender === "all" ? "" : ` (${selectedGender.charAt(0).toUpperCase() + selectedGender.slice(1)})`;
-  } else if (filterType === "distance") {
-    // For distance-based data, just use the main data without filtering
-    microData = data["Microcensus"];
-    synData = data["Synthetic"];
-    titleSuffix = "";
+
+    return { ...slot, resolvedData: data, titleSuffix };
+  });
+
+  // Check we have data for at least one slot
+  const validSlots = resolvedSlots.filter((s) => s.resolvedData);
+  if (validSlots.length === 0) return <div className="plot-loading">No data available</div>;
+
+  // Determine categories from the first slot with data
+  let categories;
+  if (customCategories) {
+    categories = customCategories.map((c) => c.key);
+  } else if (filterType === null) {
+    categories = Object.keys(validSlots[0].resolvedData);
+  } else {
+    categories = Object.keys(validSlots[0].resolvedData);
   }
 
-  if (!microData || !synData) return <div className="plot-loading">No data available</div>;
-
-  // Get categories - use customCategories if provided, otherwise get from data
-  if (!categories) {
-    if (customCategories) {
-      categories = customCategories.map(c => c.key);
-    } else {
-      categories = Object.keys(microData);
-    }
+  // Sort distance categories by first slot's average (ascending)
+  if (filterType === "distance") {
+    const firstData = validSlots[0].resolvedData;
+    const distKey = distanceType === "euclidean" ? "euclidean_distance" : "network_distance";
+    categories = [...categories].sort(
+      (a, b) => (firstData[a]?.[distKey] || 0) - (firstData[b]?.[distKey] || 0)
+    );
   }
 
-  // Determine x-axis labels
-  const xLabels = customCategories 
-    ? customCategories.map(c => c.label) 
-    : categories;
+  const xLabels = customCategories ? customCategories.map((c) => c.label) : categories;
 
-  // Transform data function - handles both percentage and custom transformations
   const transformValue = (value) => {
-    if (dataTransform) {
-      return dataTransform(value);
-    }
-    return value * 100; // Default: convert to percentage
+    if (dataTransform) return dataTransform(value);
+    return value * 100;
   };
+
+  const titleSuffix = resolvedSlots[0]?.titleSuffix ?? "";
+
+  // Build traces — one per slot
+  const traces = validSlots.map((slot) => ({
+    type: "bar",
+    x: xLabels,
+    y: categories.map((cat) => {
+      const value = slot.resolvedData[cat] || 0;
+      if (filterType === "distance") {
+        const distKey = distanceType === "euclidean" ? "euclidean_distance" : "network_distance";
+        return transformValue(slot.resolvedData[cat]?.[distKey] || 0);
+      }
+      return transformValue(value);
+    }),
+    name: slot.label,
+    marker: { color: slot.color },
+    text: categories.map((cat) => {
+      const value = slot.resolvedData[cat] || 0;
+      if (filterType === "distance") {
+        const distKey = distanceType === "euclidean" ? "euclidean_distance" : "network_distance";
+        return transformValue(slot.resolvedData[cat]?.[distKey] || 0).toFixed(dataTransform ? 1 : 2);
+      }
+      return transformValue(value).toFixed(dataTransform ? 1 : 2);
+    }),
+    textposition: "auto",
+  }));
 
   return (
     <div className="plot-wrapper">
       <h4 className="plot-title">
-        {filterType === "distance" 
+        {filterType === "distance"
           ? title.replace("Average Distance", `Average ${distanceType === "euclidean" ? "Euclidean" : "Network"} Distance`)
           : title + titleSuffix
         }
       </h4>
       <Plot
-        data={[
-          {
-            type: "bar",
-            x: xLabels,
-            y: categories.map((cat) => {
-              const value = microData[cat] || 0;
-              if (filterType === "distance") {
-                const distKey = distanceType === "euclidean" ? "euclidean_distance" : "network_distance";
-                return transformValue(microData[cat]?.[distKey] || 0);
-              }
-              return transformValue(value);
-            }),
-            name: "Microcensus",
-            marker: { color: DATASET_COLORS.Microcensus },
-            text: categories.map((cat) => {
-              const value = microData[cat] || 0;
-              if (filterType === "distance") {
-                const distKey = distanceType === "euclidean" ? "euclidean_distance" : "network_distance";
-                return transformValue(microData[cat]?.[distKey] || 0).toFixed(dataTransform ? 1 : 2);
-              }
-              return transformValue(value).toFixed(dataTransform ? 1 : 2);
-            }),
-            textposition: "auto",
-          },
-          {
-            type: "bar",
-            x: xLabels,
-            y: categories.map((cat) => {
-              const value = synData[cat] || 0;
-              if (filterType === "distance") {
-                const distKey = distanceType === "euclidean" ? "euclidean_distance" : "network_distance";
-                return transformValue(synData[cat]?.[distKey] || 0);
-              }
-              return transformValue(value);
-            }),
-            name: "Synthetic",
-            marker: { color: DATASET_COLORS.Synthetic },
-            text: categories.map((cat) => {
-              const value = synData[cat] || 0;
-              if (filterType === "distance") {
-                const distKey = distanceType === "euclidean" ? "euclidean_distance" : "network_distance";
-                return transformValue(synData[cat]?.[distKey] || 0).toFixed(dataTransform ? 1 : 2);
-              }
-              return transformValue(value).toFixed(dataTransform ? 1 : 2);
-            }),
-            textposition: "auto",
-          },
-        ]}
+        data={traces}
         layout={{
-          xaxis: { 
-            title: xAxisLabel, 
+          xaxis: {
+            title: xAxisLabel,
             type: 'category',
             tickangle: -45,
             tickfont: { size: 9 },
             titlefont: { size: 11 },
             ...(xAxisRange && { range: xAxisRange })
           },
-          yaxis: { 
+          yaxis: {
             title: {
               text: yAxisLabel,
               font: { size: 11 },
@@ -221,7 +189,7 @@ const DistributionBarPlot = ({
           margin: { l: 50, r: 15, t: 5, b: 60 },
           legend: rightLegend
             ? { orientation: 'h', x: 1, xanchor: 'right', y: 1.05, font: { size: 9 } }
-            : (isExpanded 
+            : (isExpanded
               ? { orientation: "v", x: 1.02, y: 1, xanchor: "left", font: { size: 9 } }
               : { orientation: "h", y: 1.05, font: { size: 9 } }),
           paper_bgcolor: "rgba(0,0,0,0)",
@@ -230,15 +198,15 @@ const DistributionBarPlot = ({
         }}
         useResizeHandler={true}
         style={{ width: "100%", height: "100%" }}
-        config={{ 
-          responsive: true, 
+        config={{
+          responsive: true,
           displayModeBar: isExpanded ? 'hover' : false,
-          toImageButtonOptions: { 
+          toImageButtonOptions: {
             filename: exportFilename,
             format: 'png',
             height: 800,
             width: 1200
-          } 
+          }
         }}
       />
     </div>

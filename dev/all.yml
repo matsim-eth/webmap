@@ -41,6 +41,8 @@ services:
 
   # ── Auth Frontend: bind mounts for live editing ────────────────
   authentification_frontend:
+    build:
+      context: ./authentification-frontend
     volumes:
       - ./authentification-frontend/webserver/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./authentification-frontend/webserver/auth_frontend.conf:/etc/nginx/conf.d/default.conf:ro

@@ -1,7 +1,13 @@
 import React, { useState } from "react";
 import "../Table.css";
 
-const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId, onRouteHover }) => {
+const DIRECTION_OPTIONS = [
+  { value: 'total', label: 'Total' },
+  { value: 'outbound', label: 'Outbound' },
+  { value: 'return', label: 'Return' }
+];
+
+const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId, onRouteHover, selectedDirection, setSelectedDirection }) => {
   if (!properties) return null;
   
   const { name, modes_list, lines, boardings, alightings, total } = properties;
@@ -108,6 +114,31 @@ const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId
       ))}
       </ul>
     )}
+    </td>
+    </tr>
+    <tr>
+    <td>Direction</td>
+    <td>
+    <div style={{ display: 'flex' }}>
+      {DIRECTION_OPTIONS.map((opt, i) => (
+        <button
+          key={opt.value}
+          onClick={() => setSelectedDirection(opt.value)}
+          style={{
+            padding: '4px 10px',
+            fontSize: '12px',
+            border: '1px solid #ccc',
+            borderLeft: i === 0 ? '1px solid #ccc' : 'none',
+            borderRadius: i === 0 ? '4px 0 0 4px' : i === DIRECTION_OPTIONS.length - 1 ? '0 4px 4px 0' : '0',
+            backgroundColor: selectedDirection === opt.value ? 'var(--color-primary, #6366f1)' : '#fff',
+            color: selectedDirection === opt.value ? '#fff' : '#333',
+            cursor: 'pointer'
+          }}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
     </td>
     </tr>
     </tbody>

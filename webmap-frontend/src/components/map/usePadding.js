@@ -40,7 +40,7 @@ export default function useCantons({
         'Destination', 'PtBoardings'
       ];
 
-      if (isGraphExpanded === 'Volumes' || isGraphExpanded === 'TransitVolumes' || isGraphExpanded === 'Transit') {
+      if (isGraphExpanded === 'Volumes' || isGraphExpanded === 'TransitVolumes' || isGraphExpanded === 'Transit' || isGraphExpanded === 'VolumeFlow') {
         rightPadding = isFeatureTableOpen ? 950 : 650;
       } else if (mediumGraphs.includes(isGraphExpanded)) {
         rightPadding = 650;

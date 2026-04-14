@@ -1,9 +1,11 @@
 import React, { useMemo } from "react";
 import Plot from "react-plotly.js";
-import { useQuery } from "@tanstack/react-query";
 import { useDashboard } from "../../context/DashboardContext";
 import { useData } from "../../context/DataContext";
+import { useComparisonData } from "../../hooks/useComparisonData";
 import { useResizeOnSidebarChange } from "../../hooks/useResizeOnSidebarChange";
+import { LINE_STYLES } from "../../utils/comparisonHelpers";
+import PlotLoader from "./PlotLoader";
 
 const MODE_COLORS = {
   car: "#636efa",
@@ -26,43 +28,46 @@ const ShareLinePlot = ({
   sidebarCollapsed,
   isExpanded = false,
   type = 'mode',
-  plotType = 'departure', // 'departure' or 'distance'
+  plotType = 'departure',
   title,
   xAxisLabel,
-  backendUrl = null,
+  backendUrlTemplate = null,
   exportFilename
 }) => {
-  const { selectedCanton, distanceType, selectedMode, selectedPurpose } = useDashboard();
-  const { getData, getUrlData } = useData();
+  const { selectedCanton, distanceType, selectedMode, selectedPurpose, comparisonSlots } = useDashboard();
+  const { getData } = useData();
 
-  // Select colors and filter based on type
   const colors = type === 'mode' ? MODE_COLORS : PURPOSE_COLORS;
   const selectedFilter = type === 'mode' ? selectedMode : selectedPurpose;
 
   useResizeOnSidebarChange(sidebarCollapsed);
 
-  // Build the full backend URL based on plotType and distanceType
-  const fullBackendUrl = useMemo(() => {
-    if (!backendUrl) return null;
-    const sep = backendUrl.includes('?') ? '&' : '?';
-    if (plotType === 'departure') {
-      return `${backendUrl}${sep}metric=departure_time`;
-    }
+  // Build URL suffix based on plotType
+  const urlSuffix = useMemo(() => {
+    if (plotType === 'departure') return 'metric=departure_time';
     const metric = distanceType === "euclidean" ? "euclidean_distance" : "network_distance";
-    return `${backendUrl}${sep}metric=${metric}`;
-  }, [backendUrl, plotType, distanceType]);
+    return `metric=${metric}`;
+  }, [plotType, distanceType]);
 
   const cantonKey = selectedCanton || "All";
 
-  // Fetch from backend
-  const { data: backendData } = useQuery({
-    queryKey: ['shareLinePlot', fullBackendUrl, cantonKey],
-    queryFn: () => getUrlData(fullBackendUrl).then((payload) => payload?.[cantonKey] || null),
-    enabled: !!fullBackendUrl,
-  });
+  const { slotDatasets, isLoading } = useComparisonData(backendUrlTemplate, { urlSuffix });
 
-  const plotData = useMemo(() => {
-    if (backendUrl) return backendData ?? null;
+  // Resolve per-slot line data
+  const slotsWithLineData = useMemo(() => {
+    if (backendUrlTemplate) {
+      if (isLoading || slotDatasets.length === 0) return null;
+      return slotDatasets.map((slot) => {
+        const plotData = slot.rawPayload?.[cantonKey] || null;
+        // Line data uses lowercase keys: plotData.microcensus / plotData.synthetic
+        const lineData = plotData?.[slot.subDataset.toLowerCase()] ?? null;
+        const tickVals = plotData?.tick_vals || [];
+        const tickLabels = plotData?.tick_labels || [];
+        return { ...slot, lineData, tickVals, tickLabels };
+      });
+    }
+
+    // File fallback
     let filename;
     if (plotType === 'departure') {
       filename = `lineplot_departure_time_data_${type}.json`;
@@ -71,12 +76,28 @@ const ShareLinePlot = ({
       filename = `lineplot_${selectedVariable}_data_${type}.json`;
     }
     const raw = getData(filename);
-    return raw?.[cantonKey] || null;
-  }, [getData, selectedCanton, type, plotType, distanceType, backendUrl, backendData, cantonKey]);
+    const plotData = raw?.[cantonKey] || null;
+    if (!plotData) return null;
 
-  if (!plotData) return <div className="plot-loading">Loading...</div>;
+    return comparisonSlots.filter(Boolean).map((slot) => ({
+      ...slot,
+      lineData: plotData[slot.subDataset.toLowerCase()] ?? null,
+      tickVals: plotData.tick_vals || [],
+      tickLabels: plotData.tick_labels || [],
+    }));
+  }, [backendUrlTemplate, isLoading, slotDatasets, cantonKey, plotType, type, distanceType, getData, comparisonSlots]);
 
-  const generateTraces = (data, lineStyle) => {
+  if (comparisonSlots.length === 0) {
+    return <div className="plot-loading">Select a dataset to show data</div>;
+  }
+
+  if (!slotsWithLineData) return <PlotLoader />;
+
+  const validSlots = slotsWithLineData.filter((s) => s.lineData);
+  if (validSlots.length === 0) return <PlotLoader />;
+
+  // Generate data traces per slot
+  const generateTraces = (data, lineStyle, slotLabel) => {
     const items = selectedFilter === "all"
       ? [...new Set(data.map((entry) => entry[type]))]
       : [selectedFilter];
@@ -99,17 +120,13 @@ const ShareLinePlot = ({
     }).filter(Boolean);
   };
 
-  const traces = [
-    ...generateTraces(plotData.microcensus, "solid"),
-    ...generateTraces(plotData.synthetic, "dash"),
-  ];
+  const traces = validSlots.flatMap((slot, idx) =>
+    generateTraces(slot.lineData, LINE_STYLES[idx] || "solid", slot.label)
+  );
 
-  // Add dummy traces for color legend (as squares)
-  const items = selectedFilter === "all"
-    ? Object.keys(colors)
-    : [selectedFilter];
-
-  const colorTraces = items.map(item => ({
+  // Dummy traces for color legend (mode/purpose squares)
+  const items = selectedFilter === "all" ? Object.keys(colors) : [selectedFilter];
+  const colorTraces = items.map((item) => ({
     type: "scatter",
     mode: "markers",
     x: [null],
@@ -121,48 +138,33 @@ const ShareLinePlot = ({
     legendrank: 1,
   }));
 
-  // Add dummy traces for line style legend
-  const lineStyleTraces = [
-    {
-      type: "scatter",
-      mode: "lines",
-      x: [null],
-      y: [null],
-      name: "Microcensus",
-      line: { color: "#666", dash: "solid", width: 2 },
-      showlegend: true,
-      legendgroup: "linestyle",
-      legendrank: 2,
-    },
-    {
-      type: "scatter",
-      mode: "lines",
-      x: [null],
-      y: [null],
-      name: "Synthetic",
-      line: { color: "#666", dash: "dash", width: 2 },
-      showlegend: true,
-      legendgroup: "linestyle",
-      legendrank: 2,
-    },
-  ];
+  // Dummy traces for line style legend — one per slot
+  const lineStyleTraces = validSlots.map((slot, idx) => ({
+    type: "scatter",
+    mode: "lines",
+    x: [null],
+    y: [null],
+    name: slot.label,
+    line: { color: "#666", dash: LINE_STYLES[idx] || "solid", width: 2 },
+    showlegend: true,
+    legendgroup: "linestyle",
+    legendrank: 2,
+  }));
 
   const allTraces = [...traces, ...colorTraces, ...lineStyleTraces];
 
-  // Handle tick labels
-  const tickVals = plotData.tick_vals || [];
-  const tickLabels = plotData.tick_labels || [];
+  // Tick labels from first valid slot
+  const tickVals = validSlots[0].tickVals;
+  const tickLabels = validSlots[0].tickLabels;
   const filteredTickVals = plotType === 'departure' ? tickVals.filter((_, i) => i % 2 === 0) : tickVals;
   const filteredTickLabels = plotType === 'departure' ? tickLabels.filter((_, i) => i % 2 === 0) : tickLabels;
 
-  // Determine title with distance type if needed
   let displayTitle = title;
   if (plotType === 'distance') {
     const distanceLabel = distanceType === "euclidean" ? "Euclidean Distance" : "Network Distance";
     displayTitle = `${type.charAt(0).toUpperCase() + type.slice(1)} Share by ${distanceLabel}`;
   }
 
-  // Determine x-axis label
   let displayXLabel = xAxisLabel;
   if (plotType === 'distance') {
     displayXLabel = distanceType === "euclidean" ? "Euclidean Distance" : "Network Distance";

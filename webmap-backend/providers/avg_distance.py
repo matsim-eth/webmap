@@ -2,7 +2,7 @@
 
 from collections import defaultdict
 
-from .base import DataProvider, Param, TRIP_FILTERS
+from .base import DataProvider, Param, TRIP_FILTERS, SUMMARY_ONLY
 from .connection import get_connection
 from .helpers import (
     canton_filter_sql,
@@ -12,6 +12,8 @@ from .helpers import (
     build_canton_lookup,
     mode_filter_sql,
     purpose_filter_sql,
+    is_summary_only,
+    has_person_filters,
 )
 from .paths import get_data_paths
 
@@ -19,6 +21,7 @@ from .paths import get_data_paths
 class AvgDistanceProvider(DataProvider):
     ROUTE = "avg_distance.json"
     PARAMS = TRIP_FILTERS + [
+        SUMMARY_ONLY,
         Param("group_by", "Group results by 'mode' (default) or 'purpose'", enum=["mode", "purpose"]),
         Param("min_sample_size", "Skip groups with fewer samples", param_type="integer"),
     ]
@@ -26,9 +29,10 @@ class AvgDistanceProvider(DataProvider):
     def deliver(self, params: dict) -> dict:
         paths = get_data_paths()
         sources = parse_source_param(params)
-        cf = canton_filter_sql(params.get("canton"), "p.canton_id")
-        gf = gender_filter_sql(params, "p.sex")
-        af = age_filter_sql(params, "p.age")
+        summary = is_summary_only(params) and not params.get("canton") and not has_person_filters(params)
+        cf = "" if summary else canton_filter_sql(params.get("canton"), "p.canton_id")
+        gf = "" if summary else gender_filter_sql(params, "p.sex")
+        af = "" if summary else age_filter_sql(params, "p.age")
         con = get_connection()
 
         group_by = params.get("group_by", "mode").lower()
@@ -56,64 +60,105 @@ class AvgDistanceProvider(DataProvider):
         seen_cantons = set()
 
         if "Microcensus" in sources:
-            rows = con.execute(f"""
-                SELECT p.canton_id, {mc_group_col} AS grp,
-                       SUM(t.crowfly_distance) AS euc_sum,
-                       SUM(t.network_distance) AS net_sum,
-                       COUNT(*) AS cnt
-                FROM read_parquet(?) t
-                INNER JOIN read_parquet(?) p ON t.person_id = p.person_id
-                WHERE p.canton_id IS NOT NULL
-                  AND {mc_group_col} IS NOT NULL
-                  AND t.crowfly_distance IS NOT NULL
-                  AND t.network_distance IS NOT NULL
-                {cf}{mc_gf}{gf}{af}
-                GROUP BY p.canton_id, grp
-            """, [paths.microcensus_trips, paths.microcensus_persons]).fetchall()
-            for cid, grp, euc, net, cnt in rows:
-                seen_cantons.add(int(cid))
-                key = ("Microcensus", int(cid), str(grp))
-                agg[key]["euc_sum"] += float(euc)
-                agg[key]["net_sum"] += float(net)
-                agg[key]["count"] += int(cnt)
+            if summary:
+                rows = con.execute(f"""
+                    SELECT {mc_group_col} AS grp,
+                           SUM(t.crowfly_distance) AS euc_sum,
+                           SUM(t.network_distance) AS net_sum,
+                           COUNT(*) AS cnt
+                    FROM read_parquet(?) t
+                    WHERE {mc_group_col} IS NOT NULL
+                      AND t.crowfly_distance IS NOT NULL
+                      AND t.network_distance IS NOT NULL
+                    {mc_gf}
+                    GROUP BY grp
+                """, [paths.microcensus_trips]).fetchall()
+                for grp, euc, net, cnt in rows:
+                    key = ("Microcensus", "All", str(grp))
+                    agg[key]["euc_sum"] += float(euc)
+                    agg[key]["net_sum"] += float(net)
+                    agg[key]["count"] += int(cnt)
+            else:
+                rows = con.execute(f"""
+                    SELECT p.canton_id, {mc_group_col} AS grp,
+                           SUM(t.crowfly_distance) AS euc_sum,
+                           SUM(t.network_distance) AS net_sum,
+                           COUNT(*) AS cnt
+                    FROM read_parquet(?) t
+                    INNER JOIN read_parquet(?) p ON t.person_id = p.person_id
+                    WHERE p.canton_id IS NOT NULL
+                      AND {mc_group_col} IS NOT NULL
+                      AND t.crowfly_distance IS NOT NULL
+                      AND t.network_distance IS NOT NULL
+                    {cf}{mc_gf}{gf}{af}
+                    GROUP BY p.canton_id, grp
+                """, [paths.microcensus_trips, paths.microcensus_persons]).fetchall()
+                for cid, grp, euc, net, cnt in rows:
+                    seen_cantons.add(int(cid))
+                    key = ("Microcensus", int(cid), str(grp))
+                    agg[key]["euc_sum"] += float(euc)
+                    agg[key]["net_sum"] += float(net)
+                    agg[key]["count"] += int(cnt)
 
         if "Synthetic" in sources:
-            rows = con.execute(f"""
-                SELECT p.canton_id, {syn_group_col} AS grp,
-                       SUM(t.euclidean_distance) AS euc_sum,
-                       SUM(t.traveled_distance) AS net_sum,
-                       COUNT(*) AS cnt
-                FROM read_parquet(?) t
-                INNER JOIN read_parquet(?) p
-                    ON TRY_CAST(t.person AS BIGINT) = p.person_id
-                WHERE TRY_CAST(t.person AS BIGINT) IS NOT NULL
-                  AND p.canton_id IS NOT NULL
-                  AND {syn_group_col} IS NOT NULL
-                  AND t.euclidean_distance IS NOT NULL
-                  AND t.traveled_distance IS NOT NULL
-                {cf}{syn_gf}{gf}{af}
-                GROUP BY p.canton_id, grp
-            """, [paths.synthetic_output_trips, paths.synthetic_persons]).fetchall()
-            for cid, grp, euc, net, cnt in rows:
-                seen_cantons.add(int(cid))
-                key = ("Synthetic", int(cid), str(grp))
-                agg[key]["euc_sum"] += float(euc)
-                agg[key]["net_sum"] += float(net)
-                agg[key]["count"] += int(cnt)
+            if summary:
+                rows = con.execute(f"""
+                    SELECT {syn_group_col} AS grp,
+                           SUM(t.euclidean_distance) AS euc_sum,
+                           SUM(t.traveled_distance) AS net_sum,
+                           COUNT(*) AS cnt
+                    FROM read_parquet(?) t
+                    WHERE TRY_CAST(t.person AS BIGINT) IS NOT NULL
+                      AND {syn_group_col} IS NOT NULL
+                      AND t.euclidean_distance IS NOT NULL
+                      AND t.traveled_distance IS NOT NULL
+                    {syn_gf}
+                    GROUP BY grp
+                """, [paths.synthetic_output_trips]).fetchall()
+                for grp, euc, net, cnt in rows:
+                    key = ("Synthetic", "All", str(grp))
+                    agg[key]["euc_sum"] += float(euc)
+                    agg[key]["net_sum"] += float(net)
+                    agg[key]["count"] += int(cnt)
+            else:
+                rows = con.execute(f"""
+                    SELECT p.canton_id, {syn_group_col} AS grp,
+                           SUM(t.euclidean_distance) AS euc_sum,
+                           SUM(t.traveled_distance) AS net_sum,
+                           COUNT(*) AS cnt
+                    FROM read_parquet(?) t
+                    INNER JOIN read_parquet(?) p
+                        ON TRY_CAST(t.person AS BIGINT) = p.person_id
+                    WHERE TRY_CAST(t.person AS BIGINT) IS NOT NULL
+                      AND p.canton_id IS NOT NULL
+                      AND {syn_group_col} IS NOT NULL
+                      AND t.euclidean_distance IS NOT NULL
+                      AND t.traveled_distance IS NOT NULL
+                    {cf}{syn_gf}{gf}{af}
+                    GROUP BY p.canton_id, grp
+                """, [paths.synthetic_output_trips, paths.synthetic_persons]).fetchall()
+                for cid, grp, euc, net, cnt in rows:
+                    seen_cantons.add(int(cid))
+                    key = ("Synthetic", int(cid), str(grp))
+                    agg[key]["euc_sum"] += float(euc)
+                    agg[key]["net_sum"] += float(net)
+                    agg[key]["count"] += int(cnt)
 
-        # "All" canton aggregate
-        all_canton = defaultdict(lambda: {"euc_sum": 0.0, "net_sum": 0.0, "count": 0})
-        for (source, cid, grp), bucket in agg.items():
-            ak = (source, "All", grp)
-            all_canton[ak]["euc_sum"] += bucket["euc_sum"]
-            all_canton[ak]["net_sum"] += bucket["net_sum"]
-            all_canton[ak]["count"] += bucket["count"]
-        agg.update(all_canton)
+        # "All" canton aggregate (skip in summary mode — already accumulated under "All")
+        if not summary:
+            all_canton = defaultdict(lambda: {"euc_sum": 0.0, "net_sum": 0.0, "count": 0})
+            for (source, cid, grp), bucket in agg.items():
+                ak = (source, "All", grp)
+                all_canton[ak]["euc_sum"] += bucket["euc_sum"]
+                all_canton[ak]["net_sum"] += bucket["net_sum"]
+                all_canton[ak]["count"] += bucket["count"]
+            agg.update(all_canton)
 
         canton_names, canton_ids_by_name = build_canton_lookup(seen_cantons)
 
         result: dict = {}
-        for cname in canton_names + ["All"]:
+        canton_list = ["All"] if summary else canton_names + ["All"]
+        for cname in canton_list:
             cid = canton_ids_by_name.get(cname, "All")
             canton_data: dict = {}
             for source in sources:

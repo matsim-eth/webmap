@@ -3,12 +3,12 @@
   position: absolute;
   bottom: 40px;
   left: calc(var(--left-sidebar-width, 60px) + 15px);
-  background: #ffffff;
-  color: #333;
+  background: var(--color-surface);
+  color: var(--color-text);
   padding: 12px 18px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
   font-family: "Inter", sans-serif;
   width: 160px;
   display: flex;
@@ -24,7 +24,7 @@
   font-weight: 400;
   margin-bottom: 5px;
   text-align: left;
-  color: #374151;
+  color: var(--color-text);
 }
 
 /* Speed Legend */
@@ -73,7 +73,7 @@
 .capacity-line {
   height: 6px;
   border-radius: 3px;
-  background-color: #007bff;
+  background-color: var(--color-primary);
 }
 
 .capacity-line.thin {
@@ -95,7 +95,7 @@
 .network-legend-label {
   font-size: 11px;
   font-weight: 400;
-  color: #6b7280;
+  color: var(--color-text-secondary);
 }
 
 .transit-stop-legend {
@@ -115,5 +115,5 @@
   border-radius: 50%;
   background-color: #ff8800;
   margin-bottom: 2px;
-  border: 1px solid #333; /* Dark gray outline */
+  border: 1px solid var(--color-text);
 }

@@ -1,47 +1,48 @@
 import { defineConfig } from 'vite'
 
-// Dev Proxy: routet alle Requests an die jeweiligen Container.
-// Frontends und Backends laufen intern immer auf den selben Ports.
-// Frontends handlen ihren base path selbst → kein Rewrite nötig.
-// Backends haben root_path → Rewrite (Prefix strippen).
-
 export default defineConfig({
   server: {
     port: 3000,
     host: '0.0.0.0',
+
     proxy: {
-      // ── Backends (Rewrite: Prefix strippen) ─────────────────────
+      // ─────────────── Backends ───────────────
       '/backend/datasets': {
         target: 'http://dataset_backend:5033',
         rewrite: (path) => path.replace(/^\/backend\/datasets/, ''),
         ws: true,
       },
+
       '/backend': {
         target: 'http://webmap_backend:5031',
         rewrite: (path) => path.replace(/^\/backend/, ''),
         ws: true,
       },
+
       '/authentification/backend': {
         target: 'http://authentification_backend:5032',
-        rewrite: (path) => path.replace(/^\/authentification\/backend/, ''),
+        rewrite: (path) =>
+          path.replace(/^\/authentification\/backend/, ''),
         ws: true,
       },
+
+      // ─────────────── Frontends ───────────────
       '/authentification': {
         target: 'http://authentification_frontend:5022',
-        rewrite: (path) => path.replace(/^\/authentification/, ''),
       },
 
-      // ── Frontends (kein Rewrite — handlen base path selbst) ────
       '/dashboard': {
         target: 'http://dashboard_frontend:5023',
         ws: true,
       },
+
       '/webmap': {
-        target: 'http://webmap_frontend:5021',
+        target: 'http://webmap_frontend:5121',
         ws: true,
       },
     },
   },
+
   plugins: [
     {
       name: 'root-redirect',

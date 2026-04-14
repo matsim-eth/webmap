@@ -1,4 +1,4 @@
-import React, {useState, useCallback, useRef} from "react";
+import React, {useState, useCallback, useRef, useMemo} from "react";
 import TransitStopAttributesTable from "./TransitStopAttributesTable";
 import TransitStopHistogram from "./TransitStopHistogram";
 import FeatureTable from "../table/FeatureTable";
@@ -7,6 +7,8 @@ import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
 import { useQuery } from "@tanstack/react-query";
+import { filterRoutesByDirection } from "../../utils/directionUtils";
+import usePointPolygon from "../../hooks/usePointPolygon";
 
 
 const TransitModule = ({
@@ -29,11 +31,40 @@ const TransitModule = ({
     featureTableRef,
     setTableFilterQuery,
     setSelectedTransitStop,
-    onFocusTransitFeature
+    onFocusTransitFeature,
+    selectedDirection,
+    setSelectedDirection,
+    drawRef,
+    mapRef,
+    isGraphExpanded
 }) => {
 
     const [filteredStopVolumes, setFilteredStopVolumes] = useState(null); // total filtered volumes per stop
+    const [polygonFilteredVolumes, setPolygonFilteredVolumes] = useState(null);
     const loadWithFallback = useLoadWithFallback();
+
+    // Polygon selection: aggregate stops within drawn polygons
+    const handlePolygonChange = useCallback(() => {
+        setSelectedTransitStop?.(null);
+        setHighlightedLineId?.(null);
+        setHighlightedRouteIds?.([]);
+        setPolygonFilteredVolumes(null);
+    }, [setSelectedTransitStop, setHighlightedLineId, setHighlightedRouteIds]);
+
+    const { polygonSelection, polygonFeatures } = usePointPolygon({
+        mapRef,
+        drawRef,
+        featureGeoJSON,
+        isGraphExpanded,
+        selectedTransitModes,
+        onPolygonChange: handlePolygonChange,
+    });
+
+    // Filtered GeoJSON for table — only polygon-selected features when polygon is active
+    const tableGeoJSON = useMemo(() => {
+        if (!polygonFeatures.length || !isFeatureTableOpen) return featureGeoJSON;
+        return { type: 'FeatureCollection', features: polygonFeatures };
+    }, [polygonFeatures, featureGeoJSON, isFeatureTableOpen]);
 
     // Clear selection when table opens, restore when it closes (was useEffect)
     const prevTableOpenRef = useRef(isFeatureTableOpen);
@@ -154,6 +185,20 @@ const TransitModule = ({
         }
     }
 
+    // Re-filter highlighted route IDs when direction changes while a line is selected
+    const prevDirectionRef = useRef(selectedDirection);
+    if (prevDirectionRef.current !== selectedDirection) {
+        prevDirectionRef.current = selectedDirection;
+        const activeLines = polygonSelection?.lines ?? selectedTransitStop?.lines;
+        if (highlightedLineId && activeLines) {
+            const allLines = Array.isArray(activeLines) ? activeLines : [];
+            const routeIds = allLines
+                .filter(l => String(l?.line_id) === String(highlightedLineId))
+                .map(l => l.route_id);
+            setHighlightedRouteIds(filterRoutesByDirection(routeIds, selectedDirection));
+        }
+    }
+
     // Push to Map the selected transit stop mode filter
     const handleTransitModeChange = (event) => {
         const selectedOptions = Array.from(event.target.selectedOptions).map((option) => option.value);
@@ -171,7 +216,7 @@ const TransitModule = ({
             <FeatureTable
                 ref={featureTableRef}
                 tableId="transit-stops-feature-table"
-                geojson={featureGeoJSON}
+                geojson={tableGeoJSON}
                 selectedGraph="Transit"
                 selectedModes={selectedTransitModes}
                 onRowClick={handleTableRowSelect}
@@ -239,7 +284,7 @@ const TransitModule = ({
         )}
 
         {/* Histogram and attributes - only show when not in table view */}
-        {selectedTransitStop && !isFeatureTableOpen && (
+        {selectedTransitStop && !isFeatureTableOpen && !polygonSelection && (
             <>
             <TransitStopAttributesTable
             properties={{
@@ -259,9 +304,11 @@ const TransitModule = ({
                   }
                 }
                 setHighlightedLineId(lineId);
-                setHighlightedRouteIds(routeIds);
+                setHighlightedRouteIds(filterRoutesByDirection(routeIds, selectedDirection));
             }}
             onRouteHover={setHoveredRouteId}
+            selectedDirection={selectedDirection}
+            setSelectedDirection={setSelectedDirection}
             />
 
             <TransitStopHistogram
@@ -270,6 +317,46 @@ const TransitModule = ({
             lineId={highlightedLineId}
             onVolumeUpdate={setFilteredStopVolumes}
             timeRange={timeRange}
+            selectedDirection={selectedDirection}
+            stopLines={selectedTransitStop.lines}
+            />
+            </>
+        )}
+
+        {/* Polygon aggregate view */}
+        {polygonSelection && !isFeatureTableOpen && (
+            <>
+            <TransitStopAttributesTable
+            properties={{
+                ...polygonSelection,
+                ...(polygonFilteredVolumes ?? {})
+            }}
+            highlightedLineId={highlightedLineId}
+            onLineClick={(lineId, routeIds) => {
+                if (lineId) {
+                  const allLines = Array.isArray(polygonSelection?.lines) ? polygonSelection.lines : [];
+                  const match = allLines.find(l => String(l?.line_id) === String(lineId));
+                  const mode = match?.mode && String(match.mode);
+                  if (mode && Array.isArray(selectedTransitModes) && !selectedTransitModes.includes('all') && !selectedTransitModes.includes(mode)) {
+                    setSelectedTransitModes(['all']);
+                  }
+                }
+                setHighlightedLineId(lineId);
+                setHighlightedRouteIds(filterRoutesByDirection(routeIds, selectedDirection));
+            }}
+            onRouteHover={setHoveredRouteId}
+            selectedDirection={selectedDirection}
+            setSelectedDirection={setSelectedDirection}
+            />
+
+            <TransitStopHistogram
+            stopIds={polygonSelection.stop_ids}
+            canton={canton}
+            lineId={highlightedLineId}
+            onVolumeUpdate={setPolygonFilteredVolumes}
+            timeRange={timeRange}
+            selectedDirection={selectedDirection}
+            stopLines={polygonSelection.lines}
             />
             </>
         )}

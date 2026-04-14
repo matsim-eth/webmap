@@ -3,6 +3,20 @@
 from .constants import CANTON_MAP, canton_name
 
 
+def is_summary_only(params: dict) -> bool:
+    """Check if the client requested summary-only (All canton aggregate)."""
+    return params.get("summary_only", "").lower() in ("true", "1", "yes")
+
+
+def has_person_filters(params: dict) -> bool:
+    """Check if any person-level filters are active (gender, age)."""
+    return bool(
+        params.get("gender")
+        or params.get("age_min")
+        or params.get("age_max")
+    )
+
+
 _NAME_TO_ID = {v: k for k, v in CANTON_MAP.items()}
 
 
@@ -56,13 +70,23 @@ def build_canton_lookup(seen_cantons: set) -> tuple[list[str], dict[str, int | s
     return canton_names, canton_ids_by_name
 
 
-def parse_source_param(params: dict) -> list[str]:
+def parse_source_param(params: dict, paths=None) -> list[str]:
+    from .paths import get_data_paths
+    if paths is None:
+        paths = get_data_paths()
+
     source = params.get("source", "").strip().lower()
     if source == "synthetic":
-        return ["Synthetic"]
+        return ["Synthetic"] if paths.has_synthetic else []
     elif source == "microcensus":
-        return ["Microcensus"]
-    return ["Synthetic", "Microcensus"]
+        return ["Microcensus"] if paths.has_microcensus else []
+
+    available = []
+    if paths.has_synthetic:
+        available.append("Synthetic")
+    if paths.has_microcensus:
+        available.append("Microcensus")
+    return available
 
 
 def mode_filter_sql(params: dict, column: str = "mode") -> str:

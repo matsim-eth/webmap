@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import './PlotGrid.css';
 import CantonMap from './plots/CantonMap';
 import HistogramPlot from './plots/HistogramPlot';
@@ -14,8 +14,7 @@ import PlotExpanded from './PlotExpanded';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExpand } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from '../context/DashboardContext';
-import { useData } from '../context/DataContext';
-import { DATASET_ID } from '../config';
+
 
 const TAB_LABELS = {
   'home': 'Home',
@@ -37,8 +36,6 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
     selectedIncome,
     selectedAge,
   } = useDashboard();
-  const { prefetchUrls } = useData();
-
   const isTwoPlotLayout = activeTab === 'demographics' || activeTab === 'car-ownership';
 
   const modePlots = [
@@ -49,7 +46,7 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
       props: {
         type: 'mode',
         plotType: 'distance',
-        backendUrl: `/backend/data/${DATASET_ID}/histogram_distance.json?group_by=mode`,
+        backendUrlTemplate: '/backend/data/{datasetId}/histogram_distance.json?group_by=mode',
         exportFilename: 'distance-histogram-mode'
       }
     },
@@ -62,7 +59,7 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
         plotType: 'departure',
         title: 'Mode Share by Departure Time',
         xAxisLabel: 'Departure Time',
-        backendUrl: `/backend/data/${DATASET_ID}/lineplot.json?group_by=mode`,
+        backendUrlTemplate: '/backend/data/{datasetId}/lineplot.json?group_by=mode',
         exportFilename: 'departure-time-mode'
       }
     },
@@ -72,7 +69,7 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
       title: 'Mode Distribution by Distance Travelled',
       props: {
         type: 'mode',
-        backendUrl: `/backend/data/${DATASET_ID}/stacked_bar_distance.json?group_by=mode`,
+        backendUrlTemplate: '/backend/data/{datasetId}/stacked_bar_distance.json?group_by=mode',
       }
     },
     {
@@ -85,7 +82,7 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
         xAxisLabel: 'Mode',
         yAxisLabel: 'Distance [km]',
         filterType: 'distance',
-        backendUrl: `/backend/data/${DATASET_ID}/avg_distance.json?group_by=mode`,
+        backendUrlTemplate: '/backend/data/{datasetId}/avg_distance.json?group_by=mode',
         dataTransform: (value) => value / 1000,
         exportFilename: 'average-distance-mode'
       }
@@ -99,7 +96,7 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
         plotType: 'distance',
         title: 'Mode Share by Distance',
         xAxisLabel: 'Distance',
-        backendUrl: `/backend/data/${DATASET_ID}/lineplot.json?group_by=mode`,
+        backendUrlTemplate: '/backend/data/{datasetId}/lineplot.json?group_by=mode',
         exportFilename: 'mode-share-by-distance'
       }
     },
@@ -113,7 +110,7 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
       props: {
         type: 'purpose',
         plotType: 'distance',
-        backendUrl: `/backend/data/${DATASET_ID}/histogram_distance.json?group_by=purpose`,
+        backendUrlTemplate: '/backend/data/{datasetId}/histogram_distance.json?group_by=purpose',
         exportFilename: 'distance-histogram-purpose'
       }
     },
@@ -126,7 +123,7 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
         plotType: 'departure',
         title: 'Purpose Share by Departure Time',
         xAxisLabel: 'Departure Time',
-        backendUrl: `/backend/data/${DATASET_ID}/lineplot.json?group_by=purpose`,
+        backendUrlTemplate: '/backend/data/{datasetId}/lineplot.json?group_by=purpose',
         exportFilename: 'departure-time-purpose'
       }
     },
@@ -136,7 +133,7 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
       title: 'Purpose Distribution by Distance Travelled',
       props: {
         type: 'purpose',
-        backendUrl: `/backend/data/${DATASET_ID}/stacked_bar_distance.json?group_by=purpose`,
+        backendUrlTemplate: '/backend/data/{datasetId}/stacked_bar_distance.json?group_by=purpose',
       }
     },
     {
@@ -149,7 +146,7 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
         xAxisLabel: 'Purpose',
         yAxisLabel: 'Distance [km]',
         filterType: 'distance',
-        backendUrl: `/backend/data/${DATASET_ID}/avg_distance.json?group_by=purpose`,
+        backendUrlTemplate: '/backend/data/{datasetId}/avg_distance.json?group_by=purpose',
         dataTransform: (value) => value / 1000,
         exportFilename: 'average-distance-purpose'
       }
@@ -163,7 +160,7 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
         plotType: 'distance',
         title: 'Purpose Share by Distance',
         xAxisLabel: 'Distance',
-        backendUrl: `/backend/data/${DATASET_ID}/lineplot.json?group_by=purpose`,
+        backendUrlTemplate: '/backend/data/{datasetId}/lineplot.json?group_by=purpose',
         exportFilename: 'purpose-share-by-distance'
       }
     },
@@ -179,7 +176,7 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
         title: 'Number of Activities Per Day',
         xAxisLabel: 'Number of Activities',
         filterType: null,
-        backendUrl: `/backend/data/${DATASET_ID}/num_activities.json`,
+        backendUrlTemplate: '/backend/data/{datasetId}/num_activities.json',
         rightLegend: true,
         xAxisRange: [-0.5, 9.5],
         exportFilename: 'number-of-activities'
@@ -194,7 +191,7 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
         title: 'Frequent Activity Sequences',
         xAxisLabel: 'Activity Sequence',
         filterType: null,
-        backendUrl: `/backend/data/${DATASET_ID}/frequent_sequences.json`,
+        backendUrlTemplate: '/backend/data/{datasetId}/frequent_sequences.json',
         rightLegend: true,
         exportFilename: 'frequent-sequences'
       }
@@ -208,7 +205,7 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
         title: 'Number of Out of Home Activities',
         xAxisLabel: 'Number of Activities',
         filterType: null,
-        backendUrl: `/backend/data/${DATASET_ID}/out_of_home.json`,
+        backendUrlTemplate: '/backend/data/{datasetId}/out_of_home.json',
         rightLegend: true,
         exportFilename: 'out-of-home-activities'
       }
@@ -222,7 +219,7 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
         title: 'Activity Duration Distribution',
         xAxisLabel: 'Duration (hours)',
         dataFile: 'activity_durations.json',
-        backendUrl: `/backend/data/${DATASET_ID}/activity_durations.json`,
+        backendUrlTemplate: '/backend/data/{datasetId}/activity_durations.json',
         exportFilename: 'activity-duration-distribution'
       }
     },
@@ -235,7 +232,7 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
         title: 'Departure Times by Activity',
         xAxisLabel: 'Time of Day',
         dataFile: 'departure_times.json',
-        backendUrl: `/backend/data/${DATASET_ID}/departure_times.json`,
+        backendUrlTemplate: '/backend/data/{datasetId}/departure_times.json',
         exportFilename: 'departure-times-by-activity'
       }
     },
@@ -261,7 +258,7 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
         title: 'PT Subscription Distribution',
         xAxisLabel: 'Subscription Type',
         filterType: null,
-        backendUrl: `/backend/data/${DATASET_ID}/pt_sub.json`,
+        backendUrlTemplate: '/backend/data/{datasetId}/pt_sub.json',
         backendQuery: ptSubQuery,
         rightLegend: true,
         exportFilename: 'pt-subscription-distribution'
@@ -276,7 +273,7 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
         title: 'PT Subscription by Gender',
         xAxisLabel: 'Subscription Type',
         filterType: 'gender',
-        backendUrl: `/backend/data/${DATASET_ID}/pt_sub.json?breakdown=gender`,
+        backendUrlTemplate: '/backend/data/{datasetId}/pt_sub.json?breakdown=gender',
         rightLegend: true,
         exportFilename: 'pt-subscription-by-gender'
       }
@@ -290,7 +287,7 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
         title: 'PT Subscription by Income',
         xAxisLabel: 'Subscription Type',
         filterType: 'income',
-        backendUrl: `/backend/data/${DATASET_ID}/pt_sub.json?breakdown=income`,
+        backendUrlTemplate: '/backend/data/{datasetId}/pt_sub.json?breakdown=income',
         rightLegend: true,
         exportFilename: 'pt-subscription-by-income'
       }
@@ -304,7 +301,7 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
         title: 'PT Subscription by Age',
         xAxisLabel: 'Subscription Type',
         filterType: 'age',
-        backendUrl: `/backend/data/${DATASET_ID}/pt_sub.json?breakdown=age`,
+        backendUrlTemplate: '/backend/data/{datasetId}/pt_sub.json?breakdown=age',
         rightLegend: true,
         exportFilename: 'pt-subscription-by-age'
       }
@@ -317,17 +314,17 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
   ];
 
   const carAvailabilityPlots = [
-    { 
-      id: 'car-ownership-distribution', 
-      component: DistributionBarPlot, 
-      title: 'Car Availability Distribution', 
+    {
+      id: 'car-ownership-distribution',
+      component: DistributionBarPlot,
+      title: 'Car Availability Distribution',
       gridArea: 'top',
       props: {
         dataFile: 'car_availability.json',
         title: 'Car Availability Distribution',
         xAxisLabel: 'Number of Cars',
         filterType: null,
-        backendUrl: `/backend/data/${DATASET_ID}/car_availability.json`,
+        backendUrlTemplate: '/backend/data/{datasetId}/car_availability.json',
         rightLegend: true,
         customCategories: [
           { label: 'Always', key: '0' },
@@ -348,7 +345,7 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
         title: 'Car Ownership by Income',
         xAxisLabel: 'Number of Cars',
         filterType: 'income',
-        backendUrl: `/backend/data/${DATASET_ID}/num_cars.json?breakdown=income`,
+        backendUrlTemplate: '/backend/data/{datasetId}/num_cars.json?breakdown=income',
         rightLegend: true,
         customCategories: [
           { label: '0', key: '0' },
@@ -362,10 +359,10 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
   ];
 
   const demographicsPlots = [
-    { 
-      id: 'age-distribution', 
-      component: DistributionBarPlot, 
-      title: 'Age Group Distribution', 
+    {
+      id: 'age-distribution',
+      component: DistributionBarPlot,
+      title: 'Age Group Distribution',
       gridArea: 'top',
       props: {
         dataFile: 'age.json',
@@ -373,14 +370,14 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
         title: 'Age Group Distribution',
         xAxisLabel: 'Age Group',
         filterType: null,
-        backendUrl: `/backend/data/${DATASET_ID}/age.json`,
+        backendUrlTemplate: '/backend/data/{datasetId}/age.json',
         exportFilename: 'age-distribution'
       }
     },
-    { 
-      id: 'gender-distribution', 
-      component: DistributionBarPlot, 
-      title: 'Gender Distribution', 
+    {
+      id: 'gender-distribution',
+      component: DistributionBarPlot,
+      title: 'Gender Distribution',
       gridArea: 'bottom',
       props: {
         dataFile: 'gender.json',
@@ -388,7 +385,7 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
         title: 'Gender Distribution',
         xAxisLabel: 'Gender',
         filterType: null,
-        backendUrl: `/backend/data/${DATASET_ID}/gender.json`,
+        backendUrlTemplate: '/backend/data/{datasetId}/gender.json',
         customCategories: [
           { label: 'Male', key: '0' },
           { label: 'Female', key: '1' }
@@ -429,16 +426,6 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
     plots = transitStopsPlots;
   }
 
-  // Prefetch all backend URLs for the active tab in parallel
-  useMemo(() => {
-    if (!plots) return;
-    const urls = plots
-      .map((p) => p.props?.backendUrl)
-      .filter(Boolean);
-    if (urls.length > 0) prefetchUrls(urls);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, prefetchUrls]);
-
   // placeholders for other tabs
   if (!plots) {
     return (
@@ -458,17 +445,17 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
     <>
       <div className={gridClass}>
         {/* Canton Map*/}
-        <div 
-          key="persistent-canton-map" 
+        <div
+          key="persistent-canton-map"
           className={isTwoPlotLayout ? "plot-card persistent-map-two-plots" : "plot-card persistent-map"}
           style={isTwoPlotLayout ? { gridArea: 'map' } : {}}
         >
           <CantonMap sidebarCollapsed={sidebarCollapsed} activeTab={activeTab} />
-          <button 
+          <button
             className="plot-expand-btn"
-            onClick={() => setExpandedPlot({ 
-              id: 'canton-map', 
-              component: CantonMap, 
+            onClick={() => setExpandedPlot({
+              id: 'canton-map',
+              component: CantonMap,
               title: 'Canton Map',
               props: { activeTab }
             })}
@@ -493,7 +480,7 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
           return (
             <div key={plot.id} className="plot-card" style={plot.gridArea ? { gridArea: plot.gridArea } : {}}>
               <PlotComponent sidebarCollapsed={sidebarCollapsed} {...(plot.props || {})} />
-              <button 
+              <button
                 className="plot-expand-btn"
                 onClick={() => setExpandedPlot(plot)}
                 title="Expand plot"

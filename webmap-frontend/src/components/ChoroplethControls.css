@@ -1,112 +1,112 @@
 .choropleth-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 12px;
-    background: #f9fafb;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+}
 
-  .choropleth-controls label {
-    font-weight: 500;
-    font-size: 14px;
-    color: #374151;
-  }
+.choropleth-controls label {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--color-text);
+}
 
-  .choropleth-controls select {
-    padding: 8px;
-    font-size: 14px;
-    border-radius: 6px;
-    border: 1px solid #e5e7eb;
-    background: white;
-    transition: all 0.3s ease-in-out;
-  }
+.choropleth-controls select {
+  padding: 8px;
+  font-size: 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: white;
+  transition: all 0.3s ease-in-out;
+}
 
-  .choropleth-controls select:hover {
-    border-color: #9ca3af;
-    cursor: pointer;
-  }
+.choropleth-controls select:hover {
+  border-color: var(--color-text-muted);
+  cursor: pointer;
+}
 
-  .choropleth-controls select:focus {
-    border-color: #6366f1;
-    outline: none;
-  }
+.choropleth-controls select:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
 
-  .group-by-section {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
+.group-by-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-  .group-by-toggle {
-    display: flex;
-    gap: 0;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    overflow: hidden;
-  }
+.group-by-toggle {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
 
-  .group-by-option {
-    flex: 1;
-    padding: 6px 0;
-    font-size: 0.82em;
-    font-weight: 500;
-    border: none;
-    background: #f3f4f6;
-    color: #6b7280;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-  }
+.group-by-option {
+  flex: 1;
+  padding: 6px 0;
+  font-size: 0.82em;
+  font-weight: 500;
+  border: none;
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
 
-  .group-by-option:not(:last-child) {
-    border-right: 1px solid #d1d5db;
-  }
+.group-by-option:not(:last-child) {
+  border-right: 1px solid var(--color-border-light);
+}
 
-  .group-by-option:hover {
-    background: #e5e7eb;
-  }
+.group-by-option:hover {
+  background: var(--color-border);
+}
 
-  .group-by-option.active {
-    background: #2563eb;
-    color: #fff;
-    font-weight: 500;
-  }
+.group-by-option.active {
+  background: var(--color-primary-blue);
+  color: #fff;
+  font-weight: 500;
+}
 
-  .dataset-selector {
-    display: flex;
-    gap: 0;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    overflow: hidden;
-    margin-top: 1rem;
-  }
+.dataset-selector {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin-top: 1rem;
+}
 
-  .dataset-option {
-    flex: 1;
-    padding: 6px 0;
-    font-size: 0.82em;
-    font-weight: 500;
-    border: none;
-    background: #f3f4f6;
-    color: #6b7280;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-  }
+.dataset-option {
+  flex: 1;
+  padding: 6px 0;
+  font-size: 0.82em;
+  font-weight: 500;
+  border: none;
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
 
-  .dataset-option:not(:last-child) {
-    border-right: 1px solid #d1d5db;
-  }
+.dataset-option:not(:last-child) {
+  border-right: 1px solid var(--color-border-light);
+}
 
-  .dataset-option:hover {
-    background: #e5e7eb;
-  }
+.dataset-option:hover {
+  background: var(--color-border);
+}
 
-  .dataset-option.active {
-    background: #2563eb;
-    color: #fff;
-    font-weight: 500;
-  }
+.dataset-option.active {
+  background: var(--color-primary-blue);
+  color: #fff;
+  font-weight: 500;
+}
 
 
 .legend {
@@ -125,7 +125,7 @@
 .legend-label {
   font-size: 12px;
   font-weight: bold;
-  color: #374151;
+  color: var(--color-text);
 }
 
 /* Gradient Bar */

@@ -6,7 +6,7 @@ export default defineConfig({
   base: '/webmap/',
   plugins: [react()],
   server: {
-    port: 5021,
+    port: 5121,
     host: '0.0.0.0'
   }
 })

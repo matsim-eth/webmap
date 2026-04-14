@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useDashboard } from "../../context/DashboardContext";
 import { useData } from "../../context/DataContext";
 import cantonAlias from "../../utils/canton_alias.json";
+import PlotLoader from "./PlotLoader";
 
 const TransitStopSummary = () => {
   const { selectedCanton, selectedTransitStop, selectedTransitLine } = useDashboard();
@@ -126,7 +127,7 @@ const TransitStopSummary = () => {
   if (!totals) {
     return (
       <div className="plot-wrapper" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div className="plot-loading">Loading…</div>
+        <PlotLoader />
       </div>
     );
   }

@@ -25,9 +25,11 @@ export default function useTransitLayers({
   setSelectedTransitLink,
   showLineSymbology,
   setFeatureGeoJSON,
-  tableFilterQuery
+  tableFilterQuery,
+  selectedDirection,
+  drawRef
 }) {
-  
+
   // Add transit stops and interactions
   useTransitStops({
     mapRef,
@@ -42,7 +44,9 @@ export default function useTransitLayers({
     highlightedLineId,
     suppressNextSearchZoom,
     setFeatureGeoJSON,
-    timeRange
+    timeRange,
+    selectedDirection,
+    drawRef
   });
   
   // Add transit lines and interactions
@@ -74,7 +78,8 @@ export default function useTransitLayers({
     setSelectedTransitLink,
     highlightedLineId,
     setFeatureGeoJSON,
-    tableFilterQuery
+    tableFilterQuery,
+    drawRef
   });
   
   useTransitSymbologyLayer({
@@ -92,10 +97,18 @@ export default function useTransitLayers({
     const map = mapRef.current;
     if (searchCanton && map) {
       
+      // Clear drawn polygons on canton change for any draw-enabled module
+      if (['Transit', 'TransitVolumes', 'Volumes'].includes(isGraphExpanded)) {
+        if (drawRef?.current?.getAll?.()?.features?.length > 0) {
+          drawRef.current.deleteAll();
+          map.fire('draw.delete', { features: [] });
+        }
+      }
+
       if (isGraphExpanded === "Transit") {
         if (map.getLayer("transit-highlight-layer")) map.removeLayer("transit-highlight-layer");
         if (map.getSource("transit-highlight")) map.removeSource("transit-highlight");
-        
+
         setSelectedTransitStop(null);
       } else if (isGraphExpanded !== "TransitVolumes") {
         // for volumes: if switching away, clear state too

@@ -4,7 +4,7 @@ import "./RightSidebar.css";
 import { useFileContext } from "../../FileContext";
 import { useApp } from "../../context/AppContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTableList, faFileCsv, faXmark, faChevronLeft, faRotateLeft } from "@fortawesome/free-solid-svg-icons";
+import { faTableList, faFileCsv, faXmark, faChevronLeft, faRotateLeft, faDrawPolygon } from "@fortawesome/free-solid-svg-icons";
 
 // ======================= IMPORT MODULES / GRAPHS =======================
 
@@ -58,7 +58,9 @@ const RightSidebar = () => {
     setAggCol: setSelectedAggCol, // Alias
     labelSize, setLabelSize,
     setVolumeFlowSegment,
-    mapRef
+    mapRef,
+    drawRef,
+    selectedDirection, setSelectedDirection
   } = useApp();
 
   // Alias for functions that were passed as props with different names
@@ -214,6 +216,48 @@ const RightSidebar = () => {
                 <span>{isFeatureTableOpen ? "Close Table" : "Open Table"}</span>
               </button>
 
+              {/* Export Table — when table is open */}
+              {isFeatureTableOpen && (
+                <button
+                  className="panel-toolbar-btn"
+                  onClick={() => {
+                    const ref = isGraphExpanded === "TransitVolumes"
+                      ? transitFeatureTableRef
+                      : featureTableRef;
+                    const exported = ref.current?.exportCsv?.();
+                    if (!exported) {
+                      console.warn("Export skipped: no table data available.");
+                    }
+                  }}
+                >
+                  <FontAwesomeIcon icon={faFileCsv} />
+                  <span>Export Table</span>
+                </button>
+              )}
+
+              {/* Polygon draw buttons — Transit, Network, Volumes, TransitVolumes */}
+              {["Transit", "Volumes", "TransitVolumes"].includes(isGraphExpanded) && (
+                <>
+                  <button
+                    className="panel-toolbar-btn"
+                    onClick={() => drawRef.current?.changeMode("draw_polygon")}
+                  >
+                    <FontAwesomeIcon icon={faDrawPolygon} />
+                    <span>New Polygon</span>
+                  </button>
+                  <button
+                    className="panel-toolbar-btn"
+                    onClick={() => {
+                      drawRef.current?.deleteAll();
+                      mapRef.current?.fire('draw.delete', { features: [] });
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faRotateLeft} />
+                    <span>Clear All</span>
+                  </button>
+                </>
+              )}
+
               {/* Reset Link button — only when table is closed, only for VolumeFlow */}
               {!isFeatureTableOpen && isGraphExpanded === "VolumeFlow" && (
                 <button
@@ -237,24 +281,6 @@ const RightSidebar = () => {
                 >
                   <FontAwesomeIcon icon={faRotateLeft} />
                   <span>Reset Link</span>
-                </button>
-              )}
-
-              {isFeatureTableOpen && (
-                <button
-                  className="panel-toolbar-btn"
-                  onClick={() => {
-                    const ref = isGraphExpanded === "TransitVolumes"
-                      ? transitFeatureTableRef
-                      : featureTableRef;
-                    const exported = ref.current?.exportCsv?.();
-                    if (!exported) {
-                      console.warn("Export skipped: no table data available.");
-                    }
-                  }}
-                >
-                  <FontAwesomeIcon icon={faFileCsv} />
-                  <span>Export Table</span>
                 </button>
               )}
             </div>
@@ -357,6 +383,9 @@ const RightSidebar = () => {
                 featureTableRef={featureTableRef}
                 setTableFilterQuery={setTableFilterQuery}
                 selectedNetworkModes={selectedNetworkModes}
+                drawRef={drawRef}
+                mapRef={mapRef}
+                isGraphExpanded={isGraphExpanded}
               />
             )}
 
@@ -382,6 +411,11 @@ const RightSidebar = () => {
                 featureTableRef={featureTableRef}
                 setTableFilterQuery={setTableFilterQuery}
                 onFocusTransitFeature={onFocusTransitFeature}
+                selectedDirection={selectedDirection}
+                setSelectedDirection={setSelectedDirection}
+                drawRef={drawRef}
+                mapRef={mapRef}
+                isGraphExpanded={isGraphExpanded}
               />
             )}
 
@@ -408,6 +442,9 @@ const RightSidebar = () => {
                 setTableFilterQuery={setTableFilterQuery}
                 setSelectedTransitLink={setSelectedTransitLink}
                 onFocusTransitFeature={onFocusTransitFeature}
+                drawRef={drawRef}
+                mapRef={mapRef}
+                isGraphExpanded={isGraphExpanded}
               />
             )}
           </div>

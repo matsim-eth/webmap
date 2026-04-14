@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useMemo } from "react";
+import Plot from "react-plotly.js";
 import TransitLinkAttributesTable from "./TransitLinkAttributesTable";
 import TransitLinkHistogram from "./TransitLinkHistogram";
 import FeatureTable from "../table/FeatureTable";
@@ -6,6 +7,7 @@ import Slider from "rc-slider";
 import { marks, formatTimeLabel } from "../../utils/timeSliderUtils";
 import "rc-slider/assets/index.css";
 import { useTableRowBuilder } from "../../hooks/useTableRowBuilder";
+import useLinePolygon from "../../hooks/useLinePolygon";
 
 // get coords and id of selected row
 const buildSelectionPayload = (row) => {
@@ -36,7 +38,10 @@ const TransitVolumesModule = ({
   transitFeatureTableRef,
   setTableFilterQuery,
   selectedGraph,
-  onFocusTransitFeature
+  onFocusTransitFeature,
+  drawRef,
+  mapRef,
+  isGraphExpanded
 }) => {
 
   // Reset highlighted line when canton changes (was useEffect)
@@ -60,7 +65,114 @@ const TransitVolumesModule = ({
     }
   }
 
+  // Polygon selection
+  const handlePolygonChange = useCallback(() => {
+    setSelectedTransitLink?.(null);
+    setHighlightedLineId?.(null);
+  }, [setSelectedTransitLink, setHighlightedLineId]);
+
+  const polygonFeatures = useLinePolygon({
+    mapRef,
+    drawRef,
+    featureGeoJSON,
+    isGraphExpanded,
+    activeModule: 'TransitVolumes',
+    sourceId: 'transit-volumes-source',
+    layerIds: ['transit-volumes-layer'],
+    labelLayerIds: ['transit-volumes-label-left', 'transit-volumes-label-right'],
+    onPolygonChange: handlePolygonChange,
+  });
+
+  // Polygon aggregate: merge lines, modes, volumes from all selected features
+  const polygonAggregate = useMemo(() => {
+    if (!polygonFeatures.length) return null;
+
+    const modesSet = new Set();
+    const mergedLines = {};
+    let totalVolume = 0;
+    let filteredVolume = 0;
+
+    const startTick = timeRange?.[0] ?? 0;
+    const endTick = timeRange?.[1] ?? 96;
+
+    for (const f of polygonFeatures) {
+      const props = f.properties || {};
+
+      // Modes
+      const modes = Array.isArray(props.modes) ? props.modes
+        : (typeof props.modes === 'string' ? props.modes.split(',').filter(Boolean) : []);
+      modes.forEach(m => modesSet.add(m));
+
+      // Volumes
+      totalVolume += Number(props.total_volume) || 0;
+      filteredVolume += Number(props.filtered_volume) || 0;
+
+      // Lines
+      const lines = props.lines || {};
+      for (const [lineId, line] of Object.entries(lines)) {
+        if (!mergedLines[lineId]) {
+          mergedLines[lineId] = {
+            timeBins: {},
+            line_name: line.line_name ?? null,
+            mode: line.mode ?? null,
+            total: 0,
+          };
+        }
+        if (!mergedLines[lineId].line_name && line.line_name) mergedLines[lineId].line_name = line.line_name;
+        if (!mergedLines[lineId].mode && line.mode) mergedLines[lineId].mode = line.mode;
+        mergedLines[lineId].total += Number(line.total) || 0;
+
+        const srcBins = line.timeBins || {};
+        const dstBins = mergedLines[lineId].timeBins;
+        for (const k in srcBins) dstBins[k] = (dstBins[k] ?? 0) + (Number(srcBins[k]) || 0);
+      }
+    }
+
+    // Build aggregated properties for TransitLinkAttributesTable compatibility
+    const aggregateProps = {
+      link_ids: [],
+      per_id_keys: '',
+      modes: [...modesSet],
+      lines: mergedLines,
+      total_volume: totalVolume,
+      filtered_volume: filteredVolume,
+    };
+
+    return {
+      segmentCount: polygonFeatures.length,
+      propertiesList: [aggregateProps],
+      mergedLines,
+      modesSet,
+      totalVolume,
+      filteredVolume,
+      startTick,
+      endTick,
+    };
+  }, [polygonFeatures, timeRange]);
+
+  // Polygon aggregate histogram data — sum all lines' timeBins into 96 bins
+  const polygonHistogramData = useMemo(() => {
+    if (!polygonAggregate) return null;
+
+    const values = new Array(96).fill(0);
+    const lines = polygonAggregate.mergedLines;
+    const lineIds = highlightedLineId ? [highlightedLineId] : Object.keys(lines);
+
+    for (const id of lineIds) {
+      const bins = lines[id]?.timeBins || {};
+      for (let h = 0; h < 96; h++) {
+        const hour = String(Math.floor(h / 4)).padStart(2, '0');
+        const minute = String((h % 4) * 15).padStart(2, '0');
+        values[h] += Number(bins[`${hour}:${minute}`]) || 0;
+      }
+    }
+
+    return values;
+  }, [polygonAggregate, highlightedLineId]);
+
   // ========= FEATURE TABLE LOGIC =========
+  const polygonFeaturesSet = useMemo(() => new Set(polygonFeatures), [polygonFeatures]);
+
   const { showTable, tableRows, rowsReady } = useTableRowBuilder({
     isFeatureTableOpen,
     canton,
@@ -69,6 +181,11 @@ const TransitVolumesModule = ({
     setTableFilterQuery,
     useCache: false,
   });
+
+  const activeTableRows = useMemo(() => {
+    if (!polygonFeatures.length || !isFeatureTableOpen) return tableRows;
+    return tableRows.filter(row => polygonFeaturesSet.has(row.feature));
+  }, [tableRows, polygonFeaturesSet, polygonFeatures.length, isFeatureTableOpen]);
 
   const handleTableRowSelect = useCallback(
     (row) => {
@@ -106,13 +223,17 @@ const TransitVolumesModule = ({
     }
   };
 
+  const handlePolygonLineClick = useCallback((lineId) => {
+    setHighlightedLineId(highlightedLineId === lineId ? null : lineId);
+  }, [highlightedLineId, setHighlightedLineId]);
+
   return (
     <div className="plot-container">
     {isFeatureTableOpen ? (
       <FeatureTable
       ref={transitFeatureTableRef}
       tableId="transit-volumes-feature-table"
-      rows={tableRows}
+      rows={activeTableRows}
       geojson={rowsReady ? null : featureGeoJSON}
       selectedModes={selectedTransitModes}
       onRowClick={handleTableRowSelect}
@@ -179,8 +300,91 @@ const TransitVolumesModule = ({
 
     </div>
 
-    {/* Link Attributes Table and Histograms */}
-    {Array.isArray(selectedTransitLink) && selectedTransitLink.length > 0 && (
+    {/* Polygon aggregate view */}
+    {polygonAggregate && !selectedTransitLink && (
+      <>
+      <div className="canton-mode-share">
+        <h4>Polygon Selection ({polygonAggregate.segmentCount} segments)</h4>
+        <table>
+          <tbody>
+            <tr>
+              <td>Modes</td>
+              <td>{[...polygonAggregate.modesSet].join(', ')}</td>
+            </tr>
+            <tr>
+              <td>Lines</td>
+              <td>{Object.keys(polygonAggregate.mergedLines).length}</td>
+            </tr>
+            <tr>
+              <td>Volumes</td>
+              <td>
+                <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
+                  <div className="metric-card">
+                    <div className="metric-label">Filtered</div>
+                    <div className="metric-value">{Math.round(polygonAggregate.filteredVolume)}</div>
+                  </div>
+                  <div className="metric-card">
+                    <div className="metric-label">Total</div>
+                    <div className="metric-value">{Math.round(polygonAggregate.totalVolume)}</div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>Lines</td>
+              <td>
+                <div className="badge-container">
+                  {Object.entries(polygonAggregate.mergedLines).map(([lineId, line]) => (
+                    <span
+                      key={lineId}
+                      className={`mode-badge ${highlightedLineId === lineId ? "active" : ""}`}
+                      onClick={() => handlePolygonLineClick(lineId)}
+                    >
+                      {line.line_name || lineId} ({line.mode})
+                    </span>
+                  ))}
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* Aggregate histogram from polygon features */}
+      {polygonHistogramData && (() => {
+        const startTick = timeRange?.[0] ?? 0;
+        const endTick = timeRange?.[1] ?? 96;
+        const all15MinLabels = Array.from({ length: 96 }, (_, h) => {
+          const hour = String(Math.floor(h / 4)).padStart(2, '0');
+          const minute = String((h % 4) * 15).padStart(2, '0');
+          return `${hour}:${minute}`;
+        });
+        const labels = all15MinLabels.slice(startTick, endTick);
+        const values = polygonHistogramData.slice(startTick, endTick);
+        const tickvals = labels.filter((_, i) => i % 4 === 0);
+
+        return (
+          <div className="plot-container">
+            <h4>Aggregate Transit Volume ({polygonAggregate.segmentCount} segments)</h4>
+            <Plot
+              data={[{ x: labels, y: values, type: "bar", marker: { color: "#17becf" } }]}
+              layout={{
+                font: { family: "Inter, sans-serif" },
+                margin: { t: 30, r: 10, l: 40, b: 100 },
+                xaxis: { title: { text: "Time", standoff: 20 }, tickangle: -45, tickvals, automargin: true },
+                yaxis: { title: "Passengers per 15 min" },
+                height: 300, width: 525,
+                paper_bgcolor: "rgba(255,255,255,0)", plot_bgcolor: "rgba(255,255,255,0)",
+              }}
+            />
+          </div>
+        );
+      })()}
+      </>
+    )}
+
+    {/* Link Attributes Table and Histograms — single selection */}
+    {Array.isArray(selectedTransitLink) && selectedTransitLink.length > 0 && !polygonAggregate && (
       <>
       <TransitLinkAttributesTable
       propertiesList={selectedTransitLink}

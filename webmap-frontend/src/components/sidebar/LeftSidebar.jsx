@@ -1,21 +1,32 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import './LeftSidebar.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faCircleNodes, faRotateLeft, faFolder, faXmark,
-  faChevronLeft, faChevronRight,
-  faRoad, faPersonWalkingLuggage, faLocationDot, faBus, faTicket,
+  faChevronLeft, faChevronRight, faChevronDown, faChevronUp,
+  faRoad, faPersonWalkingLuggage, faLocationDot, faBus,
   faArrowsSplitUpAndLeft, faChartSimple, faMap, faRoute,
   faRightFromBracket,
-  faUserShield
+  faUserShield,
 } from '@fortawesome/free-solid-svg-icons';
 import { useFileContext } from '../../FileContext';
 import { useApp } from '../../context/AppContext';
 import { redirectToLogin, checkIsAdmin } from '../../utils/auth';
 import { useQuery } from '@tanstack/react-query';
+import DatasetSelector from '../DatasetSelector';
+
+const SectionTitle = ({ label, isOpen, onToggle }) => (
+  <button className="left-sidebar-section-title" onClick={onToggle}>
+    <span>{label}</span>
+    <FontAwesomeIcon icon={isOpen ? faChevronUp : faChevronDown} className="left-sidebar-section-chevron" />
+  </button>
+);
 
 const LeftSidebar = () => {
   const fileInputRef = useRef(null);
+
+  const [modulesOpen, setModulesOpen] = useState(true);
+  const [dataOpen, setDataOpen] = useState(true);
 
   const {
     isGraphExpanded, setIsGraphExpanded,
@@ -134,16 +145,16 @@ const LeftSidebar = () => {
             <button
               className="left-sidebar-item logout-item"
               onClick={handleLogout}
-              title={isCollapsed ? 'Sign out' : ''}
+              title={isCollapsed ? 'Sign Out' : ''}
             >
               <span className="left-sidebar-icon"><FontAwesomeIcon icon={faRightFromBracket} /></span>
-              {!isCollapsed && <span className="left-sidebar-label">Sign out</span>}
+              {!isCollapsed && <span className="left-sidebar-label">Sign Out</span>}
             </button>
 
             {isAdmin && (
               <button
                 className="left-sidebar-item admin-item"
-                onClick={() => window.open('/authentification/admin/', '_blank')}
+                onClick={() => window.open('/authentification/admin/?from=webmap', 'admin-tab')}
                 title={isCollapsed ? 'Admin Panel' : ''}
               >
                 <span className="left-sidebar-icon"><FontAwesomeIcon icon={faUserShield} /></span>
@@ -164,7 +175,8 @@ const LeftSidebar = () => {
 
         {/* MODULES Section */}
         <div className="left-sidebar-section">
-          {!isCollapsed && <span className="left-sidebar-section-title">MODULES</span>}
+          {!isCollapsed && <SectionTitle label="MODULES" isOpen={modulesOpen} onToggle={() => setModulesOpen(v => !v)} />}
+          {(modulesOpen || isCollapsed) && (
           <nav className="left-sidebar-nav">
             {menuItems.map((item) => (
               <button
@@ -178,11 +190,15 @@ const LeftSidebar = () => {
               </button>
             ))}
           </nav>
+          )}
         </div>
 
-        {/* UPLOAD Section */}
+        {/* DATA Section (dataset + upload) */}
         <div className="left-sidebar-section">
-          {!isCollapsed && <span className="left-sidebar-section-title">UPLOAD</span>}
+          {!isCollapsed && <SectionTitle label="DATA" isOpen={dataOpen} onToggle={() => setDataOpen(v => !v)} />}
+          {(dataOpen || isCollapsed) && (
+          <>
+          <DatasetSelector isCollapsed={isCollapsed} />
           <nav className="left-sidebar-nav">
             <button
               className={`left-sidebar-item ${hasUploadedFiles ? 'uploaded' : ''}`}
@@ -214,15 +230,23 @@ const LeftSidebar = () => {
               </button>
             </div>
           )}
+          </>
+          )}
         </div>
 
         {/* DASHBOARD Section */}
         <div className="left-sidebar-section">
-          {!isCollapsed && <span className="left-sidebar-section-title">DASHBOARD</span>}
           <nav className="left-sidebar-nav">
             <button
-              className="left-sidebar-item"
-              onClick={() => window.open('/dashboard/', 'dashboard-tab')}
+              className="left-sidebar-item crosslink-item"
+              onClick={() => {
+                const w = window.open('', 'dashboard-tab');
+                if (!w || !w.location.href || w.location.href === 'about:blank') {
+                  window.open('/dashboard/', 'dashboard-tab');
+                } else {
+                  w.focus();
+                }
+              }}
               title={isCollapsed ? 'Open Dashboard' : ''}
             >
               <span className="left-sidebar-icon"><FontAwesomeIcon icon={faChartSimple} /></span>

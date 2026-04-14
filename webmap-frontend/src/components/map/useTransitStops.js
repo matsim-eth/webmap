@@ -13,7 +13,9 @@ export default function useTransitStops({
   highlightedLineId,
   suppressNextSearchZoom,
   setFeatureGeoJSON,
-  timeRange
+  timeRange,
+  selectedDirection,
+  drawRef
 }) {
   
   useEffect(() => {
@@ -122,9 +124,24 @@ export default function useTransitStops({
           // lines is already an array of objects in the GeoJSON
           const lines = f.properties.lines || [];
           // Extract unique line_ids
-          const lineIds = Array.isArray(lines) 
+          const lineIds = Array.isArray(lines)
             ? [...new Set(lines.map(l => l.line_id).filter(Boolean))]
             : [];
+
+          // Direction-filtered line_ids: only include line_ids served by
+          // routes matching the selected direction (H=outbound, R=return)
+          const dir = selectedDirection || 'total';
+          let directionLineIds;
+          if (dir !== 'total') {
+            const suffix = dir === 'outbound' ? '.H' : '.R';
+            directionLineIds = [...new Set(
+              lines
+                .filter(l => l.route_id && l.route_id.endsWith(suffix))
+                .map(l => l.line_id)
+            )];
+          } else {
+            directionLineIds = lineIds;
+          }
           
           // Create searchable text for "All columns" search (lowercase, pipe-delimited)
           const stopName = f.properties.name || "";
@@ -148,6 +165,7 @@ export default function useTransitStops({
               boardings: totalBoardings,
               alightings: totalAlightings,
               line_ids: lineIds,
+              direction_line_ids: directionLineIds,
               searchable_text: searchableText
             }
           };
@@ -269,7 +287,24 @@ export default function useTransitStops({
     map.on("click", "transit-stops-hitbox", (e) => {
       const features = e.features;
       if (!features || features.length === 0) return;
-      
+
+      // Skip stop selection when actively drawing, editing vertices,
+      // or clicking on a drawn polygon (includes double-click to finish)
+      if (drawRef?.current) {
+        const mode = drawRef.current.getMode();
+        if (mode === 'draw_polygon' || mode === 'direct_select') return;
+        const clickedLayers = map.queryRenderedFeatures(e.point).map(fl => fl.layer.id);
+        if (clickedLayers.some(id => id.startsWith('gl-draw'))) return;
+      }
+
+      // Clear any drawn polygons first — delete fires draw.delete which
+      // resets polygon fading and clears polygonSelection, then the stop
+      // selection below overwrites the cleared selectedTransitStop.
+      if (drawRef?.current?.getAll?.()?.features?.length > 0) {
+        drawRef.current.deleteAll();
+        map.fire('draw.delete', { features: [] });
+      }
+
       const f = features[0];
       const combinedLines = JSON.parse(f.properties.lines);
       const combinedModes = JSON.parse(f.properties.modes_list);
@@ -385,9 +420,13 @@ export default function useTransitStops({
       }
     });
     
-    map.setPaintProperty("transit-stops-layer", "circle-opacity", 1);
-    map.setPaintProperty("transit-stops-layer", "circle-stroke-opacity", 1.0);
-    map.setPaintProperty("transit-stops-label", "text-opacity", 1.0);
+    // Skip opacity reset if polygon fading is active (hook will re-apply)
+    const hasPolygons = drawRef?.current?.getAll?.()?.features?.length > 0;
+    if (!hasPolygons) {
+      map.setPaintProperty("transit-stops-layer", "circle-opacity", 1);
+      map.setPaintProperty("transit-stops-layer", "circle-stroke-opacity", 1.0);
+      map.setPaintProperty("transit-stops-label", "text-opacity", 1.0);
+    }
 
     // If this canton load was triggered by an inter-cantonal stop click and a line is selected,
     // apply CASE-based opacity so only stops on that line are fully opaque.
@@ -399,7 +438,8 @@ export default function useTransitStops({
       );
       if (hasLineHere) {
         const applyMask = () => {
-          const matchLineExpr = ["in", highlightedLineId, ["get", "line_ids"]];
+          const lineIdsProp = (selectedDirection && selectedDirection !== 'total') ? "direction_line_ids" : "line_ids";
+          const matchLineExpr = ["in", highlightedLineId, ["get", lineIdsProp]];
           if (map.getLayer("transit-stops-layer")) {
             map.setPaintProperty("transit-stops-layer", "circle-opacity", ["case", matchLineExpr, 1, 0.2]);
             map.setPaintProperty("transit-stops-layer", "circle-stroke-opacity", ["case", matchLineExpr, 1.0, 0.2]);
@@ -418,7 +458,7 @@ export default function useTransitStops({
   .catch(err => {
     console.error("Error loading transit data:", err);
   });
-}, [isGraphExpanded, searchCanton, showStopVolumeSymbology, selectedTransitModes, timeRange]);
+}, [isGraphExpanded, searchCanton, showStopVolumeSymbology, selectedTransitModes, timeRange, selectedDirection]);
 
 
 useEffect(() => {
@@ -430,9 +470,10 @@ useEffect(() => {
   
   function updateStopMask() {
     if (!map.getLayer(STOP_LAYER_ID) || !map.getLayer(LABEL_LAYER_ID)) return;
-    
+
     if (highlightedLineId) {
-      const matchLineExpr = ["in", highlightedLineId, ["get", "line_ids"]];
+      const lineIdsProp = (selectedDirection && selectedDirection !== 'total') ? "direction_line_ids" : "line_ids";
+      const matchLineExpr = ["in", highlightedLineId, ["get", lineIdsProp]];
       
       map.setPaintProperty(STOP_LAYER_ID, "circle-opacity", [
         "case",
@@ -455,9 +496,18 @@ useEffect(() => {
         0.2,
       ]);
     } else {
-      map.setPaintProperty(STOP_LAYER_ID, "circle-opacity", 1);
-      map.setPaintProperty(STOP_LAYER_ID, "circle-stroke-opacity", 1.0);
-      map.setPaintProperty(LABEL_LAYER_ID, "text-opacity", 1.0);
+      // Re-apply polygon fading if polygons are drawn, otherwise reset to full opacity
+      const hasPolygons = drawRef?.current?.getAll?.()?.features?.length > 0;
+      if (hasPolygons) {
+        const polyFade = ['case', ['boolean', ['feature-state', 'inPolygon'], false], 1, 0.2];
+        map.setPaintProperty(STOP_LAYER_ID, 'circle-opacity', polyFade);
+        map.setPaintProperty(STOP_LAYER_ID, 'circle-stroke-opacity', polyFade);
+        map.setPaintProperty(LABEL_LAYER_ID, 'text-opacity', polyFade);
+      } else {
+        map.setPaintProperty(STOP_LAYER_ID, "circle-opacity", 1);
+        map.setPaintProperty(STOP_LAYER_ID, "circle-stroke-opacity", 1.0);
+        map.setPaintProperty(LABEL_LAYER_ID, "text-opacity", 1.0);
+      }
     }
   }
   
@@ -467,5 +517,5 @@ useEffect(() => {
   return () => {
     map.off("idle", updateStopMask);
   };
-}, [mapRef, isGraphExpanded, highlightedLineId]);
+}, [mapRef, isGraphExpanded, highlightedLineId, selectedDirection]);
 }

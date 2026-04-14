@@ -23,7 +23,7 @@ age_min   (int): Minimum age (inclusive).
 age_max   (int): Maximum age (exclusive).
 """
 
-from .base import DataProvider, Param, TRIP_FILTERS
+from .base import DataProvider, Param, TRIP_FILTERS, SUMMARY_ONLY
 from .connection import get_connection
 from .helpers import (
     canton_filter_sql,
@@ -32,6 +32,8 @@ from .helpers import (
     parse_source_param,
     mode_filter_sql,
     purpose_filter_sql,
+    is_summary_only,
+    has_person_filters,
 )
 from .lineplot_base import build_lineplot
 from .paths import get_data_paths
@@ -106,6 +108,7 @@ _PERSON_TABLES = {
 class LineplotProvider(DataProvider):
     ROUTE = "lineplot.json"
     PARAMS = TRIP_FILTERS + [
+        SUMMARY_ONLY,
         Param("metric", "Value to plot", enum=["departure_time", "euclidean_distance", "network_distance"]),
         Param("group_by", "Group results by 'mode' (default) or 'purpose'", enum=["mode", "purpose"]),
         Param("num_bins", "Number of bins (default 32)", param_type="integer"),
@@ -115,9 +118,10 @@ class LineplotProvider(DataProvider):
     def deliver(self, params: dict) -> dict:
         paths = get_data_paths()
         sources = parse_source_param(params)
-        cf = canton_filter_sql(params.get("canton"), "p.canton_id")
-        gf = gender_filter_sql(params, "p.sex")
-        af = age_filter_sql(params, "p.age")
+        summary = is_summary_only(params) and not params.get("canton") and not has_person_filters(params)
+        cf = "" if summary else canton_filter_sql(params.get("canton"), "p.canton_id")
+        gf = "" if summary else gender_filter_sql(params, "p.sex")
+        af = "" if summary else age_filter_sql(params, "p.age")
 
         metric = params.get("metric", "departure_time").lower()
         group_by = params.get("group_by", "mode").lower()
@@ -159,22 +163,31 @@ class LineplotProvider(DataProvider):
             else:
                 extra = purpose_filter_sql(params, group_col)
 
-            # Handle TRY_CAST join for synthetic
             join_null = ""
             if "TRY_CAST" in mc["join_expr"]:
                 join_null = "AND TRY_CAST(t.person AS BIGINT) IS NOT NULL\n"
 
-            raw = con.execute(f"""
-                SELECT p.canton_id, {group_col},
-                       {mc['value_expr']} AS val
-                FROM read_parquet(?) t
-                INNER JOIN read_parquet(?) p ON {mc['join_expr']}
-                WHERE p.canton_id IS NOT NULL
-                  AND {group_col} IS NOT NULL
-                  AND {mc['value_null_check']} IS NOT NULL
-                  {join_null}
-                {cf}{extra}{gf}{af}
-            """, [trip_path, person_path]).fetchall()
+            if summary:
+                raw = con.execute(f"""
+                    SELECT 0 AS canton_id, {group_col},
+                           {mc['value_expr']} AS val
+                    FROM read_parquet(?) t
+                    WHERE {group_col} IS NOT NULL
+                      AND {mc['value_null_check']} IS NOT NULL
+                    {join_null}{extra}
+                """, [trip_path]).fetchall()
+            else:
+                raw = con.execute(f"""
+                    SELECT p.canton_id, {group_col},
+                           {mc['value_expr']} AS val
+                    FROM read_parquet(?) t
+                    INNER JOIN read_parquet(?) p ON {mc['join_expr']}
+                    WHERE p.canton_id IS NOT NULL
+                      AND {group_col} IS NOT NULL
+                      AND {mc['value_null_check']} IS NOT NULL
+                      {join_null}
+                    {cf}{extra}{gf}{af}
+                """, [trip_path, person_path]).fetchall()
             mc_rows = [(cid, grp, float(v)) for cid, grp, v in raw]
 
         if "Synthetic" in sources:
@@ -192,17 +205,27 @@ class LineplotProvider(DataProvider):
             if "TRY_CAST" in syn["join_expr"]:
                 join_null = "AND TRY_CAST(t.person AS BIGINT) IS NOT NULL\n"
 
-            raw = con.execute(f"""
-                SELECT p.canton_id, {group_col},
-                       {syn['value_expr']} AS val
-                FROM read_parquet(?) t
-                INNER JOIN read_parquet(?) p ON {syn['join_expr']}
-                WHERE p.canton_id IS NOT NULL
-                  AND {group_col} IS NOT NULL
-                  AND {syn['value_null_check']} IS NOT NULL
-                  {join_null}
-                {cf}{extra}{gf}{af}
-            """, [trip_path, person_path]).fetchall()
+            if summary:
+                raw = con.execute(f"""
+                    SELECT 0 AS canton_id, {group_col},
+                           {syn['value_expr']} AS val
+                    FROM read_parquet(?) t
+                    WHERE {group_col} IS NOT NULL
+                      AND {syn['value_null_check']} IS NOT NULL
+                    {join_null}{extra}
+                """, [trip_path]).fetchall()
+            else:
+                raw = con.execute(f"""
+                    SELECT p.canton_id, {group_col},
+                           {syn['value_expr']} AS val
+                    FROM read_parquet(?) t
+                    INNER JOIN read_parquet(?) p ON {syn['join_expr']}
+                    WHERE p.canton_id IS NOT NULL
+                      AND {group_col} IS NOT NULL
+                      AND {syn['value_null_check']} IS NOT NULL
+                      {join_null}
+                    {cf}{extra}{gf}{af}
+                """, [trip_path, person_path]).fetchall()
             syn_rows = [(cid, grp, float(v)) for cid, grp, v in raw]
 
         return build_lineplot(
@@ -212,4 +235,5 @@ class LineplotProvider(DataProvider):
             num_bins=num_bins,
             max_value=max_value,
             tick_fn=config["tick_fn"],
+            summary_only=summary,
         )

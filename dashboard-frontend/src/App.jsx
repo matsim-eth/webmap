@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar'
 import PlotGrid from './components/PlotGrid'
 import ControlsBar from './components/ControlsBar'
 import { DashboardProvider, useDashboard } from './context/DashboardContext'
+import { useAutoInitSlots } from './hooks/useAutoInitSlots'
 import { FileProvider } from './context/FileContext'
 import { DataProvider } from './context/DataContext'
 import html2canvas from 'html2canvas'
@@ -17,6 +18,9 @@ function AppContent() {
   const mainContentRef = useRef(null)
   const { fileMap } = useFileContext()
   const { setSelectedTransitStop, setSelectedTransitLine } = useDashboard()
+
+  // Auto-populate comparison slots with first dataset on initial load
+  useAutoInitSlots()
 
   // Refresh plots when files are uploaded/removed (so they use new data)
   // Derived state: dataRefreshKey changes whenever fileMap.size changes

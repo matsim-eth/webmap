@@ -53,7 +53,10 @@ class DepartureTimesProvider(DataProvider):
         def run_query(trip_path, person_path, source, purpose_col):
             rows = con.execute(f"""
                 SELECT p.canton_id, t.{purpose_col} AS purpose,
-                       (CAST(t.departure_time AS INTEGER) / 60 - {start_min}) / {step} * {step} + {start_min} AS slot,
+                       CAST(
+                           FLOOR((CAST(t.departure_time AS DOUBLE) / 60 - {start_min}) / {step}) * {step} + {start_min}
+                           AS INTEGER
+                       ) AS slot,
                        COUNT(*) AS cnt
                 FROM read_parquet(?) t
                 INNER JOIN read_parquet(?) p ON t.person_id = p.person_id
@@ -71,7 +74,7 @@ class DepartureTimesProvider(DataProvider):
                 counts[(source, int(cid), str(purpose), int(slot))] += cnt
 
         if "Synthetic" in sources:
-            run_query(paths.synthetic_trips, paths.synthetic_persons, "Synthetic", "preceding_purpose")
+            run_query(paths.synthetic_trips, paths.synthetic_persons, "Synthetic", "following_purpose")
         if "Microcensus" in sources:
             run_query(paths.microcensus_trips, paths.microcensus_persons, "Microcensus", "purpose")
 

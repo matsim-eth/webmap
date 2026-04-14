@@ -9,7 +9,8 @@ const SegmentVolumeHistogram = ({
   setVisualizeLinkId,
   canton,
   timeRange = [0, 96],        // [startTick, endTick]
-  onVolumeUpdate
+  onVolumeUpdate,
+  aggregate = false            // when true, sum all links into one chart
 }) => {
   const loadWithFallback = useLoadWithFallback();
 
@@ -80,24 +81,58 @@ if (onVolumeUpdate && volumeTotals) {
 
 if (!volumeData) return <p>Loading volume data…</p>;
 
+// Aggregate mode: sum all links into a single chart
+if (aggregate) {
+  const combined = new Array(24).fill(0);
+  let hasData = false;
+  for (const id of linkIds) {
+    const hourly = volumeData[id.toString()];
+    if (!hourly || !Array.isArray(hourly) || hourly.length !== 24) continue;
+    hasData = true;
+    for (let h = 0; h < 24; h++) combined[h] += hourly[h] ?? 0;
+  }
+  if (!hasData) return null;
+
+  const labels = fullHourLabels.slice(startHour, endHour);
+  const values = combined.slice(startHour, endHour);
+  const tickvals = labels.filter((_, i) => i % 2 === 0);
+
+  return (
+    <div className="plot-container">
+      <h4>Aggregate Volume ({linkIds.length} links)</h4>
+      <Plot
+        data={[{ x: labels, y: values, type: "bar", marker: { color: "#17becf" } }]}
+        layout={{
+          font: { family: "Inter, sans-serif" },
+          margin: { t: 30, r: 10, l: 40, b: 100 },
+          xaxis: { title: { text: "Hour", standoff: 20 }, tickangle: -45, tickvals, automargin: true },
+          yaxis: { title: "Avg Vehicles/hour" },
+          height: 300, width: 525,
+          paper_bgcolor: "rgba(255,255,255,0)", plot_bgcolor: "rgba(255,255,255,0)",
+        }}
+      />
+    </div>
+  );
+}
+
 return (
   <div className="plot-container">
   {linkIds.map((id) => {
     const hourly = volumeData[id.toString()];
     if (!hourly) return null;
-    
+
     // Validate array format
     if (!Array.isArray(hourly) || hourly.length !== 24) {
       console.warn(`Invalid hourly data for link ${id}: expected array of 24 values`);
       return null;
     }
-    
+
     // hourly is now already an array of 24 numeric values [hour0, hour1, ..., hour23]
     // slice by slider (converted to hours)
     const labels   = fullHourLabels.slice(startHour, endHour);
     const values   = hourly.slice(startHour, endHour);
     const tickvals = labels.filter((_, i) => i % 2 === 0); // every 2 hrs
-    
+
     return (
       <div key={id}>
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -113,7 +148,7 @@ return (
       Visualize
       </button>
       </div>
-      
+
       <Plot
       data={[
         {

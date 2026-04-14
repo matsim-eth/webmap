@@ -3,6 +3,7 @@ import Plot from "react-plotly.js";
 import { useDashboard } from "../../context/DashboardContext";
 import { useData } from "../../context/DataContext";
 import { useResizeOnSidebarChange } from "../../hooks/useResizeOnSidebarChange";
+import PlotLoader from "./PlotLoader";
 
 const TransferMatrix = ({ sidebarCollapsed, isExpanded = false }) => {
   const { selectedCanton, selectedTransitStop } = useDashboard();
@@ -84,18 +85,44 @@ const TransferMatrix = ({ sidebarCollapsed, isExpanded = false }) => {
     const matrix = [];
     const lineNames = [];
 
-    // Resolve human-readable line names from boarding data
+    // Build lookup from stop's lines data (same source as the "Filter by Line" dropdown)
+    const stopLinesMap = {};
+    if (selectedTransitStop?.lines) {
+      try {
+        const linesArray = typeof selectedTransitStop.lines === 'string'
+          ? JSON.parse(selectedTransitStop.lines)
+          : selectedTransitStop.lines;
+        if (Array.isArray(linesArray)) {
+          linesArray.forEach((line) => {
+            if (line.line_id && !stopLinesMap[line.line_id]) {
+              const name = line.line_name || line.lineName || line.name;
+              if (name) stopLinesMap[line.line_id] = { name, mode: line.mode };
+            }
+          });
+        }
+      } catch { /* ignore parse errors */ }
+    }
+
+    // Resolve line name: stop lines → boarding data → strip suffix fallback → raw ID
+    const resolveName = (lineId) => {
+      const stopLine = stopLinesMap[lineId];
+      if (stopLine) {
+        return stopLine.mode ? `${stopLine.name} (${stopLine.mode})` : stopLine.name;
+      }
+      const entry = Object.values(boardingData).find((e) => e.line_id === lineId);
+      if (entry) return `${entry.line_name} (${entry.vehicle})`;
+      return lineId;
+    };
+
     const nameCount = {};
     lineArray.forEach((lineId) => {
-      const entry = Object.values(boardingData).find((e) => e.line_id === lineId);
-      let name = entry ? `${entry.line_name} (${entry.vehicle})` : lineId;
+      const name = resolveName(lineId);
       nameCount[name] = (nameCount[name] || 0) + 1;
     });
 
     const nameUsed = {};
     lineArray.forEach((lineId) => {
-      const entry = Object.values(boardingData).find((e) => e.line_id === lineId);
-      let name = entry ? `${entry.line_name} (${entry.vehicle})` : lineId;
+      let name = resolveName(lineId);
       if (nameCount[name] > 1) {
         nameUsed[name] = (nameUsed[name] || 0) + 1;
         name = `${name} #${nameUsed[name]}`;
@@ -125,7 +152,7 @@ const TransferMatrix = ({ sidebarCollapsed, isExpanded = false }) => {
   }
 
   if (!transferData || !boardingData) {
-    return <div className="plot-loading">Loading...</div>;
+    return <PlotLoader />;
   }
 
   if (!selectedTransitStop) {

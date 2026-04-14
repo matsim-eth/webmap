@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import SegmentAttributesTable from "./SegmentAttributesTable";
 import SegmentVolumeHistogram from "./SegmentVolumeHistogram";
 import FeatureTable from "../table/FeatureTable";
@@ -6,6 +6,7 @@ import { marks, formatTimeLabel } from "../../utils/timeSliderUtils";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import { useTableRowBuilder } from "../../hooks/useTableRowBuilder";
+import useLinePolygon from "../../hooks/useLinePolygon";
 
 // get coords and id of selected row
 const buildSelectionPayload = (row) => {
@@ -34,10 +35,58 @@ const VolumesModule = ({
   onFocusNetworkFeature,
   featureTableRef,
   setTableFilterQuery,
-  selectedNetworkModes
+  selectedNetworkModes,
+  drawRef,
+  mapRef,
+  isGraphExpanded
 }) => {
 
   const [filteredVolume, setFilteredVolume] = useState(null);
+
+  // Polygon selection
+  const handlePolygonChange = useCallback(() => {
+    setSelectedNetworkFeature?.(null);
+  }, [setSelectedNetworkFeature]);
+
+  const polygonFeatures = useLinePolygon({
+    mapRef,
+    drawRef,
+    featureGeoJSON,
+    isGraphExpanded,
+    activeModule: 'Volumes',
+    sourceId: 'network-source',
+    layerIds: ['network-layer'],
+    labelLayerIds: ['network-label-left', 'network-label-right'],
+    showMajorRoadsOnly,
+    onPolygonChange: handlePolygonChange,
+  });
+
+  // Polygon aggregate
+  const polygonAggregate = useMemo(() => {
+    if (!polygonFeatures.length) return null;
+
+    const allModes = new Set();
+    let totalVolume = 0;
+    const allLinkIds = [];
+
+    for (const f of polygonFeatures) {
+      const props = f.properties || {};
+      const modes = (props.modes || '').split(',').filter(Boolean);
+      modes.forEach(m => allModes.add(m));
+      totalVolume += Number(props.daily_avg_volume) || 0;
+      const keys = (props.per_id_keys || '').split('|').filter(Boolean);
+      allLinkIds.push(...keys);
+    }
+
+    return {
+      segmentCount: polygonFeatures.length,
+      totalVolume,
+      modes: [...allModes],
+      allLinkIds,
+    };
+  }, [polygonFeatures]);
+
+  const polygonFeaturesSet = useMemo(() => new Set(polygonFeatures), [polygonFeatures]);
 
   const { showTable, tableRows, rowsReady } = useTableRowBuilder({
     isFeatureTableOpen,
@@ -47,6 +96,11 @@ const VolumesModule = ({
     setTableFilterQuery,
     useCache: false,
   });
+
+  const activeTableRows = useMemo(() => {
+    if (!polygonFeatures.length || !isFeatureTableOpen) return tableRows;
+    return tableRows.filter(row => polygonFeaturesSet.has(row.feature));
+  }, [tableRows, polygonFeaturesSet, polygonFeatures.length, isFeatureTableOpen]);
 
   const handleTableRowSelect = useCallback(
     (row) => {
@@ -73,7 +127,6 @@ const VolumesModule = ({
     [handleTableRowSelect]
   );
 
-
   return (
 
     <div className="plot-container">
@@ -81,7 +134,7 @@ const VolumesModule = ({
       <FeatureTable
       ref={featureTableRef}
       tableId="volumes-feature-table"
-      rows={tableRows}
+      rows={activeTableRows}
       geojson={rowsReady ? null : featureGeoJSON}
       selectedModes={selectedNetworkModes}
       onRowClick={handleTableRowSelect}
@@ -140,7 +193,42 @@ const VolumesModule = ({
     </label>
     </div>
 
-    {selectedNetworkFeature && (
+    {/* Polygon aggregate view */}
+    {polygonAggregate && !selectedNetworkFeature && (
+      <>
+      <div className="canton-mode-share">
+        <h4>Polygon Selection</h4>
+        <table>
+          <tbody>
+            <tr><td><strong>Selected Segments</strong></td><td>{polygonAggregate.segmentCount}</td></tr>
+            <tr>
+              <td><strong>Total Volume</strong></td>
+              <td>{Math.round(polygonAggregate.totalVolume)} vehicles/day</td>
+            </tr>
+            <tr>
+              <td><strong>Modes</strong></td>
+              <td>
+                <div className="mode-badges">
+                  {polygonAggregate.modes.map(m => (
+                    <span className="mode-badge" key={m}>{m}</span>
+                  ))}
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <SegmentVolumeHistogram
+        linkId={polygonAggregate.allLinkIds}
+        canton={canton}
+        timeRange={timeRange}
+        aggregate
+      />
+      </>
+    )}
+
+    {selectedNetworkFeature && !polygonAggregate && (
       <SegmentAttributesTable
       propertiesList={selectedNetworkFeature}
       selectedGraph={selectedGraph}
@@ -148,7 +236,7 @@ const VolumesModule = ({
       />
     )}
 
-    {selectedNetworkFeature ? (
+    {selectedNetworkFeature && !polygonAggregate ? (
       <SegmentVolumeHistogram
       linkId={(() => {
         // Extract link IDs from pipe-separated per_id_keys
@@ -166,11 +254,11 @@ const VolumesModule = ({
       timeRange={timeRange}
       onVolumeUpdate={setFilteredVolume}
       />
-    ) : (
+    ) : !polygonAggregate ? (
       <p style={{ padding: "1rem", fontStyle: "italic", color: "#9ca3af" }}>
       Click a canton and/or segment to see hourly volumes.
       </p>
-    )}
+    ) : null}
     </>
     )}
     </div>

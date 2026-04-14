@@ -3,7 +3,7 @@ import Plot from "react-plotly.js";
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
 import { useQuery } from "@tanstack/react-query";
 
-const TransitStopHistogram = ({ stopIds, canton, lineId, onVolumeUpdate, timeRange }) => {
+const TransitStopHistogram = ({ stopIds, canton, lineId, onVolumeUpdate, timeRange, selectedDirection, stopLines }) => {
   const loadWithFallback = useLoadWithFallback();
 
   // Stable key for stopIds
@@ -11,7 +11,7 @@ const TransitStopHistogram = ({ stopIds, canton, lineId, onVolumeUpdate, timeRan
 
   // Fetch and process passenger data
   const { data: hourlyCounts } = useQuery({
-    queryKey: ['transit-stop-histogram', canton, stopIdsKey, lineId],
+    queryKey: ['transit-stop-histogram', canton, stopIdsKey, lineId, selectedDirection],
     queryFn: () => {
       return loadWithFallback(`matsim/transit/per_canton_counts/${canton}_counts.json`)
         .then(data => {
@@ -26,6 +26,17 @@ const TransitStopHistogram = ({ stopIds, canton, lineId, onVolumeUpdate, timeRan
 
           let stopData = data.filter(d => cleanedIds.includes(String(d.stop_id)));
           if (lineId) stopData = stopData.filter(d => d.line_id === lineId);
+
+          // Filter by direction: only include line_ids that serve the selected direction
+          if (selectedDirection && selectedDirection !== 'total' && Array.isArray(stopLines)) {
+            const suffix = selectedDirection === 'outbound' ? '.H' : '.R';
+            const dirLineIds = new Set(
+              stopLines
+                .filter(l => l.route_id && l.route_id.endsWith(suffix))
+                .map(l => l.line_id)
+            );
+            stopData = stopData.filter(d => dirLineIds.has(d.line_id));
+          }
 
           const allTimeBins = [];
           for (const row of stopData) {

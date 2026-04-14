@@ -35,9 +35,9 @@
 }
 
 .plot-card {
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: var(--color-surface);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-sm);
   padding: 12px;
   display: flex;
   flex-direction: column;
@@ -52,9 +52,9 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  color: #6b7280;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -62,12 +62,12 @@
   font-size: 14px;
   transition: all 0.2s ease;
   z-index: 10;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
 }
 
 .plot-expand-btn:hover {
-  background-color: #f3f4f6;
-  color: #374151;
+  background-color: var(--color-bg);
+  color: var(--color-text);
   transform: scale(1.05);
 }
 
@@ -81,7 +81,7 @@
 .plot-title {
   font-size: 13px;
   font-weight: 600;
-  color: #374151;
+  color: var(--color-text);
   margin: 0 0 4px 0;
   padding: 0;
   line-height: 1.2;
@@ -92,8 +92,54 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #9ca3af;
+  color: var(--color-text-muted);
   font-size: 14px;
+}
+
+.plot-loader-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.plot-loader-text {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.plot-loader {
+  position: relative;
+  width: 48px;
+  height: 48px;
+}
+
+.plot-loader-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  border-top-color: var(--color-primary);
+  animation: plot-spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+.plot-loader-ring:nth-child(2) {
+  inset: 6px;
+  border-top-color: var(--color-primary-dark);
+  animation-delay: -0.15s;
+}
+
+.plot-loader-ring:nth-child(3) {
+  inset: 12px;
+  border-top-color: var(--color-text-muted);
+  animation-delay: -0.3s;
+}
+
+@keyframes plot-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .canton-map-container {
@@ -105,7 +151,7 @@
 
 .canton-map {
   flex: 1;
-  border-radius: 8px;
+  border-radius: var(--radius);
   min-height: 200px;
 }
 
@@ -114,10 +160,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f9fafb;
-  border: 2px dashed #e5e7eb;
-  border-radius: 8px;
-  color: #9ca3af;
+  background-color: var(--color-bg-subtle);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
   font-size: 16px;
   font-weight: 500;
 }
@@ -135,7 +181,7 @@
     grid-template-columns: 1fr;
     grid-template-rows: auto;
   }
-  
+
   .plot-card {
     min-height: 350px;
   }

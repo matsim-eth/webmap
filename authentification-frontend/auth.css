@@ -3,6 +3,7 @@
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Repeated properties */
 :root {
   --color-primary: #6366f1;
   --color-primary-dark: #4f46e5;
@@ -26,6 +27,11 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   min-height: 100vh;
   margin: 0;
+  background-color: var(--color-bg);
+  background-image:
+    linear-gradient(rgba(99, 102, 241, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -34,19 +40,55 @@ body {
 /* ── Layout ── */
 
 .auth-layout {
-  min-height: 100vh;
-  background:
-    radial-gradient(800px 600px at 30% 20%, rgba(99, 102, 241, 0.04), transparent 60%),
-    radial-gradient(600px 500px at 70% 80%, rgba(99, 102, 241, 0.03), transparent 55%),
-    var(--color-bg);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: transparent;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* ── Swiss map background (Mapbox) ── */
+
+.auth-bg-map {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  opacity: 0;
+  animation: bgIn 1s ease 0.3s forwards;
+}
+
+/* Transparent canvas & hide Mapbox UI */
+.auth-bg-map canvas { background: transparent !important; }
+.auth-bg-map .mapboxgl-control-container { display: none !important; }
+
+
+@keyframes bgIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 .main-content {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   min-height: 100vh;
-  padding: 24px;
+  position: relative;
+  z-index: 1;
+  padding: 24px 24px 24px 6vw;
+}
+
+/* ── Center panel ── */
+
+.auth-center {
+  position: relative;
+  z-index: 1;
 }
 
 /* ── Auth container ── */
@@ -63,6 +105,8 @@ body {
 .auth-card-wrapper {
   display: flex;
   align-items: stretch;
+  position: relative;
+  pointer-events: auto;
 }
 
 /* ── Vertical app tabs (left edge of card) ── */
@@ -83,7 +127,9 @@ body {
   padding: 12px 16px;
   border: 1px solid var(--color-border);
   border-right: none;
-  background: var(--color-bg);
+  background: rgba(243, 244, 246, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: var(--card-radius) 0 0 var(--card-radius);
   font-family: inherit;
   font-size: 13px;
@@ -117,9 +163,10 @@ body {
 /* ── Auth card ── */
 
 .auth-card {
-  flex: 1;
-  min-width: 0;
-  background: var(--color-surface);
+  width: 380px;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--color-border);
   border-radius: 0 var(--card-radius) var(--card-radius) 0;
   padding: 32px;
@@ -153,8 +200,8 @@ body {
 }
 
 #destLabel, #destLabelLoggedIn {
-  font-weight: 500;
-  color: var(--color-primary-dark);
+  font-weight: 600;
+  color: inherit;
 }
 
 /* ── Auth tabs (Login / Register segmented control) ── */
@@ -396,6 +443,7 @@ body {
 @media (max-width: 600px) {
   .auth-card-wrapper {
     flex-direction: column;
+    left: 0; /* remove centering offset on mobile */
   }
 
   .app-tabs {

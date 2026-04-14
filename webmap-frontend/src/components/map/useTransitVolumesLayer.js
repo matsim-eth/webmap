@@ -11,7 +11,8 @@ export default function useTransitVolumesLayer({
   setSelectedTransitLink,
   highlightedLineId,
   setFeatureGeoJSON,
-  tableFilterQuery
+  tableFilterQuery,
+  drawRef
 }) {
   const originalGeoJSON = useRef(null);
 
@@ -396,6 +397,19 @@ export default function useTransitVolumesLayer({
     const handleTransitVolumeClick = (e) => {
       if (!e.features?.length) return;
 
+      // Skip selection when actively drawing or clicking on draw features
+      if (drawRef?.current) {
+        const mode = drawRef.current.getMode();
+        if (mode === 'draw_polygon' || mode === 'direct_select') return;
+        const clickedLayers = mapRef.current.queryRenderedFeatures(e.point).map(fl => fl.layer.id);
+        if (clickedLayers.some(id => id.startsWith('gl-draw'))) return;
+        // Clear drawn polygons on single-click selection
+        if (drawRef.current.getAll?.()?.features?.length > 0) {
+          drawRef.current.deleteAll();
+          mapRef.current.fire('draw.delete', { features: [] });
+        }
+      }
+
       // Identify by our stable key
       const clickedKeys = new Set(
         e.features.map((f) => f?.properties?.link_key_join).filter(Boolean)
@@ -487,7 +501,10 @@ export default function useTransitVolumesLayer({
 
         originalGeoJSON.current = { geo: networkGeo, volumes: volumeJSON };
 
-        const updatedFeatures = computeFilteredFeatures(networkGeo, volumeJSON, timeRange, highlightedLineId);
+        // Always pass null for filterLineId on init — highlightedLineId is reset
+        // on canton change by TransitVolumesModule, but this async closure captures
+        // the stale value. Effects #2/#3 will apply the correct filter once layers exist.
+        const updatedFeatures = computeFilteredFeatures(networkGeo, volumeJSON, timeRange, null);
 
         // Export the GeoJSON for the feature table
         if (setFeatureGeoJSON) {
@@ -499,6 +516,7 @@ export default function useTransitVolumesLayer({
 
         map.addSource("transit-volumes-source", {
           type: "geojson",
+          generateId: true,
           data: {
             type: "FeatureCollection",
             features: updatedFeatures,

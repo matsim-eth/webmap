@@ -1,10 +1,10 @@
 import React, { useMemo } from "react";
 import Plot from "react-plotly.js";
-import { useQuery } from "@tanstack/react-query";
 import { useDashboard } from "../../context/DashboardContext";
 import { useData } from "../../context/DataContext";
+import { useComparisonData } from "../../hooks/useComparisonData";
 import { useResizeOnSidebarChange } from "../../hooks/useResizeOnSidebarChange";
-
+import PlotLoader from "./PlotLoader";
 
 const MODE_COLORS = {
   car: "#636efa",
@@ -25,13 +25,11 @@ const PURPOSE_COLORS = {
 
 const DISTANCE_CATEGORIES = ["0-1000", "1000-5000", "5000-25000", "25000+"];
 const DISTANCE_LABELS = ["0-1 km", "1-5 km", "5-25 km", "25+ km"];
-const DATASETS = ["Microcensus", "Synthetic"];
 
-const ByDistanceStacked = ({ sidebarCollapsed, isExpanded = false, type = 'mode', backendUrl = null }) => {
-  const { selectedCanton, distanceType, selectedMode, selectedPurpose } = useDashboard();
-  const { getData, getUrlData } = useData();
+const ByDistanceStacked = ({ sidebarCollapsed, isExpanded = false, type = 'mode', backendUrlTemplate = null }) => {
+  const { selectedCanton, distanceType, selectedMode, selectedPurpose, comparisonSlots } = useDashboard();
+  const { getData } = useData();
 
-  // Select colors and filter based on type
   const colors = type === 'mode' ? MODE_COLORS : PURPOSE_COLORS;
   const selectedFilter = type === 'mode' ? selectedMode : selectedPurpose;
   const filterKey = type === 'mode' ? 'mode' : 'purpose';
@@ -39,65 +37,77 @@ const ByDistanceStacked = ({ sidebarCollapsed, isExpanded = false, type = 'mode'
 
   useResizeOnSidebarChange(sidebarCollapsed);
 
-  // Build the full backend URL with distance_type
-  const fullBackendUrl = useMemo(() => {
-    if (!backendUrl) return null;
-    const sep = backendUrl.includes('?') ? '&' : '?';
-    return `${backendUrl}${sep}distance_type=${distanceType}`;
-  }, [backendUrl, distanceType]);
-
+  const urlSuffix = `distance_type=${distanceType}`;
   const cantonKey = selectedCanton || "All";
 
-  // Fetch from backend
-  const { data: backendData } = useQuery({
-    queryKey: ['byDistanceStacked', fullBackendUrl, cantonKey],
-    queryFn: () => getUrlData(fullBackendUrl).then((payload) => payload?.[cantonKey] || null),
-    enabled: !!fullBackendUrl,
-  });
+  const { slotDatasets, isLoading } = useComparisonData(backendUrlTemplate, { urlSuffix });
 
-  const data = useMemo(() => {
-    if (backendUrl) return backendData ?? null;
+  // Resolve per-slot flat data arrays
+  const slotsWithData = useMemo(() => {
+    if (backendUrlTemplate) {
+      if (isLoading || slotDatasets.length === 0) return null;
+      return slotDatasets.map((slot) => {
+        const data = slot.rawPayload?.[cantonKey] || null;
+        return { ...slot, data };
+      });
+    }
+
+    // File fallback
     const filename = distanceType === "euclidean"
       ? `stacked_bar_euclidean_distance_${type}.json`
       : `stacked_bar_network_distance_${type}.json`;
     const raw = getData(filename);
-    return raw?.[cantonKey] || null;
-  }, [getData, selectedCanton, distanceType, type, backendUrl, backendData, cantonKey]);
+    const cantonData = raw?.[cantonKey] || null;
+    if (!cantonData) return null;
 
-  if (!data) return <div className="plot-loading">Loading...</div>;
+    return comparisonSlots.filter(Boolean).map((slot) => ({
+      ...slot,
+      data: cantonData,
+    }));
+  }, [backendUrlTemplate, isLoading, slotDatasets, cantonKey, distanceType, type, getData, comparisonSlots]);
 
-  const items = [...new Set(data.map((d) => d[filterKey]))];
-  const filteredItems = selectedFilter === "all" ? items : items.filter(i => i === selectedFilter);
+  if (comparisonSlots.length === 0) {
+    return <div className="plot-loading">Select a dataset to show data</div>;
+  }
+
+  if (!slotsWithData) return <PlotLoader />;
+
+  const validSlots = slotsWithData.filter((s) => s.data);
+  if (validSlots.length === 0) return <PlotLoader />;
+
+  // Get items from first slot's data
+  const allItems = [...new Set(validSlots[0].data.map((d) => d[filterKey]))];
+  const filteredItems = selectedFilter === "all" ? allItems : allItems.filter((i) => i === selectedFilter);
 
   // Generate traces for subplots (4 columns for distance categories)
   const generateTraces = () => {
     let traces = [];
 
     DISTANCE_CATEGORIES.forEach((category, i) => {
-      DATASETS.forEach((dataset) => {
-        const datasetData = data.filter(
+      validSlots.forEach((slot, slotIdx) => {
+        const slotData = slot.data.filter(
           (entry) =>
             entry.distance_category === category &&
-            entry.dataset === dataset &&
+            entry.dataset === slot.subDataset &&
             filteredItems.includes(entry[filterKey])
         );
 
-        datasetData.forEach((entry) => {
+        slotData.forEach((entry) => {
           const key = entry[filterKey];
 
           traces.push({
             type: "bar",
-            x: [dataset],
+            x: [slot.label],
             y: [entry.percentage],
             name: key,
             text: isExpanded && entry.percentage >= 5 ? [`${entry.percentage.toFixed(1)}%`] : [""],
             textposition: "inside",
             insidetextanchor: "middle",
-            hovertemplate: `${key}<br>${dataset}: ${entry.percentage.toFixed(1)}%<extra></extra>`,
+            hovertemplate: `${key}<br>${slot.label}: ${entry.percentage.toFixed(1)}%<extra></extra>`,
             marker: { color: colors[key] || "#999" },
             opacity: 0.85,
             legendgroup: key,
-            showlegend: dataset === "Microcensus" && i === 0,
+            showlegend: slotIdx === 0 && i === 0,
             xaxis: i === 0 ? "x" : `x${i + 1}`,
             yaxis: i === 0 ? "y" : `y${i + 1}`,
             textfont: { size: 9, color: "#fff" },

@@ -22,7 +22,7 @@ age_min       (int): Minimum age (inclusive).
 age_max       (int): Maximum age (exclusive).
 """
 
-from .base import DataProvider, Param, TRIP_FILTERS
+from .base import DataProvider, Param, TRIP_FILTERS, SUMMARY_ONLY
 from .connection import get_connection
 from .helpers import (
     canton_filter_sql,
@@ -32,6 +32,8 @@ from .helpers import (
     purpose_filter_sql,
     gender_filter_sql,
     age_filter_sql,
+    is_summary_only,
+    has_person_filters,
 )
 from .paths import get_data_paths
 
@@ -46,45 +48,73 @@ _GROUP_COLS = {
 }
 
 
-def _load_distance_data(con, paths, sources, distance_type, group_col, canton_filter="", extra_filter=""):
+def _load_distance_data(con, paths, sources, distance_type, group_col,
+                        canton_filter="", extra_filter="", summary_only=False):
     micro_dist_col, synth_dist_col = _DIST_COLS[distance_type]
     micro_group_col, synth_group_col = _GROUP_COLS[group_col]
 
     result: dict[int | str, list[tuple[str, float, str]]] = {}
 
-    def _append(canton_id: int, group_value: str, distance: float, source: str):
-        for key in (canton_id, "All"):
-            result.setdefault(key, []).append((group_value, distance, source))
-            # "All" group aggregate across all modes/purposes
-            result.setdefault(key, []).append(("All", distance, source))
+    if summary_only:
+        def _append(group_value: str, distance: float, source: str):
+            result.setdefault("All", []).append((group_value, distance, source))
+            result.setdefault("All", []).append(("All", distance, source))
+    else:
+        def _append(group_value: str, distance: float, source: str, canton_id: int = 0):
+            for key in (canton_id, "All"):
+                result.setdefault(key, []).append((group_value, distance, source))
+                result.setdefault(key, []).append(("All", distance, source))
 
     if "Microcensus" in sources:
-        rows = con.execute(f"""
-            SELECT p.canton_id, {micro_group_col} AS grp, {micro_dist_col} AS dist
-            FROM read_parquet(?) t
-            INNER JOIN read_parquet(?) p ON t.person_id = p.person_id
-            WHERE p.canton_id IS NOT NULL
-              AND {micro_group_col} IS NOT NULL
-              AND {micro_dist_col} IS NOT NULL
-            {canton_filter}{extra_filter}
-        """, [paths.microcensus_trips, paths.microcensus_persons]).fetchall()
-        for cid, grp, dist in rows:
-            _append(int(cid), str(grp), float(dist), "Microcensus")
+        if summary_only:
+            rows = con.execute(f"""
+                SELECT {micro_group_col} AS grp, {micro_dist_col} AS dist
+                FROM read_parquet(?) t
+                WHERE {micro_group_col} IS NOT NULL
+                  AND {micro_dist_col} IS NOT NULL
+                {extra_filter}
+            """, [paths.microcensus_trips]).fetchall()
+            for grp, dist in rows:
+                _append(str(grp), float(dist), "Microcensus")
+        else:
+            rows = con.execute(f"""
+                SELECT p.canton_id, {micro_group_col} AS grp, {micro_dist_col} AS dist
+                FROM read_parquet(?) t
+                INNER JOIN read_parquet(?) p ON t.person_id = p.person_id
+                WHERE p.canton_id IS NOT NULL
+                  AND {micro_group_col} IS NOT NULL
+                  AND {micro_dist_col} IS NOT NULL
+                {canton_filter}{extra_filter}
+            """, [paths.microcensus_trips, paths.microcensus_persons]).fetchall()
+            for cid, grp, dist in rows:
+                _append(str(grp), float(dist), "Microcensus", int(cid))
 
     if "Synthetic" in sources:
-        rows = con.execute(f"""
-            SELECT p.canton_id, {synth_group_col} AS grp, {synth_dist_col} AS dist
-            FROM read_parquet(?) t
-            INNER JOIN read_parquet(?) p
-                ON TRY_CAST(t.person AS BIGINT) = p.person_id
-            WHERE TRY_CAST(t.person AS BIGINT) IS NOT NULL
-              AND p.canton_id IS NOT NULL
-              AND {synth_group_col} IS NOT NULL
-              AND {synth_dist_col} IS NOT NULL
-            {canton_filter}{extra_filter}
-        """, [paths.synthetic_output_trips, paths.synthetic_persons]).fetchall()
-        for cid, grp, dist in rows:
-            _append(int(cid), str(grp), float(dist), "Synthetic")
+        if summary_only:
+            rows = con.execute(f"""
+                SELECT {synth_group_col} AS grp, {synth_dist_col} AS dist
+                FROM read_parquet(?) t
+                WHERE TRY_CAST(t.person AS BIGINT) IS NOT NULL
+                  AND {synth_group_col} IS NOT NULL
+                  AND {synth_dist_col} IS NOT NULL
+                {extra_filter}
+            """, [paths.synthetic_output_trips]).fetchall()
+            for grp, dist in rows:
+                _append(str(grp), float(dist), "Synthetic")
+        else:
+            rows = con.execute(f"""
+                SELECT p.canton_id, {synth_group_col} AS grp, {synth_dist_col} AS dist
+                FROM read_parquet(?) t
+                INNER JOIN read_parquet(?) p
+                    ON TRY_CAST(t.person AS BIGINT) = p.person_id
+                WHERE TRY_CAST(t.person AS BIGINT) IS NOT NULL
+                  AND p.canton_id IS NOT NULL
+                  AND {synth_group_col} IS NOT NULL
+                  AND {synth_dist_col} IS NOT NULL
+                {canton_filter}{extra_filter}
+            """, [paths.synthetic_output_trips, paths.synthetic_persons]).fetchall()
+            for cid, grp, dist in rows:
+                _append(str(grp), float(dist), "Synthetic", int(cid))
 
     return result
 
@@ -120,6 +150,7 @@ def _quantile(sorted_vals: list[float], q: float) -> float:
 class HistogramDistanceProvider(DataProvider):
     ROUTE = "histogram_distance.json"
     PARAMS = TRIP_FILTERS + [
+        SUMMARY_ONLY,
         Param("distance_type", "Distance metric", enum=["euclidean", "network"]),
         Param("group_by", "Group results by 'mode' (default) or 'purpose'", enum=["mode", "purpose"]),
         Param("num_bins", "Number of IQR-range bins (default 25)", param_type="integer"),
@@ -130,7 +161,8 @@ class HistogramDistanceProvider(DataProvider):
     def deliver(self, params: dict) -> dict:
         paths = get_data_paths()
         sources = parse_source_param(params)
-        cf = canton_filter_sql(params.get("canton"), "p.canton_id")
+        summary = is_summary_only(params) and not params.get("canton") and not has_person_filters(params)
+        cf = "" if summary else canton_filter_sql(params.get("canton"), "p.canton_id")
 
         distance_type = params.get("distance_type", "euclidean").lower()
         group_by = params.get("group_by", "mode").lower()
@@ -148,10 +180,11 @@ class HistogramDistanceProvider(DataProvider):
             gf_micro = purpose_filter_sql(params, "t.purpose")
             gf_synth = purpose_filter_sql(params, "t.end_activity_type")
 
-        # Extra person-level filters
-        extra_person = gender_filter_sql(params, "p.sex") + age_filter_sql(params, "p.age")
-        gf_micro += extra_person
-        gf_synth += extra_person
+        # Extra person-level filters (skipped in summary mode — already verified no person filters)
+        if not summary:
+            extra_person = gender_filter_sql(params, "p.sex") + age_filter_sql(params, "p.age")
+            gf_micro += extra_person
+            gf_synth += extra_person
 
         try:
             num_bins = int(params.get("num_bins", 25))
@@ -178,6 +211,7 @@ class HistogramDistanceProvider(DataProvider):
                 con, paths, ["Microcensus"],
                 distance_type, group_by,
                 canton_filter=cf, extra_filter=gf_micro,
+                summary_only=summary,
             )
             for key, rows in micro_data.items():
                 raw.setdefault(key, []).extend(rows)
@@ -187,6 +221,7 @@ class HistogramDistanceProvider(DataProvider):
                 con, paths, ["Synthetic"],
                 distance_type, group_by,
                 canton_filter=cf, extra_filter=gf_synth,
+                summary_only=summary,
             )
             for key, rows in synth_data.items():
                 raw.setdefault(key, []).extend(rows)

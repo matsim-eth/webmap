@@ -10,7 +10,8 @@ export default function useCantons({
   suppressNextSearchZoom,
   graphExpandedRef,
   setIsFeatureTableOpen,
-  isLeftSidebarOpen
+  isLeftSidebarOpen,
+  drawRef
 }) {
 
   // 1) load cantons + add layers
@@ -77,6 +78,14 @@ export default function useCantons({
 
 
     const handleMapClick = (e) => {
+      // Skip canton selection when interacting with draw features
+      // (drawing, selecting, adjusting vertices, or clicking on drawn polygons)
+      if (drawRef?.current) {
+        const drawMode = drawRef.current.getMode();
+        if (drawMode !== 'simple_select' || drawRef.current.getSelected().features.length > 0) return;
+        const clickedLayers = map.queryRenderedFeatures(e.point).map(f => f.layer.id);
+        if (clickedLayers.some(id => id.startsWith('gl-draw'))) return;
+      }
 
       const clickedFeatures = map.queryRenderedFeatures(e.point);
       const clickedLayerIds = [...new Set(clickedFeatures.map(f => f.layer.id))];
