@@ -116,7 +116,7 @@ const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId
     )}
     </td>
     </tr>
-    <tr>
+    {/* <tr>
     <td>Direction</td>
     <td>
     <div style={{ display: 'flex' }}>
@@ -140,7 +140,7 @@ const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId
       ))}
     </div>
     </td>
-    </tr>
+    </tr> */}
     </tbody>
     </table>
     </div>

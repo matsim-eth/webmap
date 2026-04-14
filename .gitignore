@@ -31,6 +31,7 @@ Thumbs.db
 .claude/
 
 # Editor settings
+DTSM Validation.code-workspace
 .vscode/
 !.vscode/extensions.json
 .idea/
@@ -49,10 +50,3 @@ __pycache__/
 /data/
 *.duckdb
 *.parquet
-
-# Legacy layout (pre-packages restructure) — untracked leftovers on local disk
-/auth/
-/backend/
-/dashboard/
-/dataset/
-/webmap/

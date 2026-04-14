@@ -29,10 +29,11 @@ export default defineConfig({
       // ─────────────── Frontends ───────────────
       '/authentification': {
         target: 'http://authentification_frontend:5022',
+        rewrite: (path) => path.replace(/^\/authentification/, ''),
       },
 
       '/dashboard': {
-        target: 'http://dashboard_frontend:5023',
+        target: 'http://dashboard_frontend:5122',
         ws: true,
       },
 
