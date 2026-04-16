@@ -11,6 +11,7 @@ import useDestinationZones from './map/useDestinationZones';
 import usePtBoardings from './map/usePtBoardings';
 import useFeatureSelectionFocus from './map/useFeatureSelectionFocus';
 import useVolumeFlowLayers from './map/useVolumeFlowLayers';
+import useNodeFlowLayers from './map/useNodeFlowLayers';
 import useDrawTools from './map/useDrawTools';
 import { useApp } from '../context/AppContext';
 import { useResetMapView } from '../hooks/useResetMapView';
@@ -183,6 +184,12 @@ export default function Map() {
 
   // Volume Flow Analysis layers
   useVolumeFlowLayers({
+    mapRef,
+    mapReady,
+  });
+
+  // Node Flows (turning-movement matrix) layers
+  useNodeFlowLayers({
     mapRef,
     mapReady,
   });

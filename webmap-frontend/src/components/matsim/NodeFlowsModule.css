@@ -1,0 +1,192 @@
+/* Node Flows Module */
+
+.nf-no-selection {
+  text-align: center;
+  padding: 30px 20px;
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+}
+
+.nf-no-selection .nf-hint {
+  font-size: 0.85em;
+  color: var(--color-text-muted);
+  margin-top: 8px;
+}
+
+/* Summary info table */
+.nf-summary {
+  margin-bottom: 16px;
+}
+
+.nf-summary h4 {
+  margin: 0 0 8px 0;
+  font-size: 0.9em;
+  color: var(--color-text);
+}
+
+.nf-info-table {
+  width: 100%;
+  font-size: 0.82em;
+  border-collapse: collapse;
+}
+
+.nf-info-table td {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.nf-info-table td:first-child {
+  width: 45%;
+  color: var(--color-text-secondary);
+}
+
+/* Matrix section */
+.nf-matrix-section {
+  margin-bottom: 16px;
+}
+
+.nf-matrix-section h4 {
+  margin: 0 0 4px 0;
+  font-size: 0.9em;
+  color: var(--color-text);
+}
+
+.nf-matrix-hint {
+  font-size: 0.75em;
+  color: var(--color-text-muted);
+  margin: 0 0 8px 0;
+}
+
+.nf-matrix-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.nf-matrix {
+  border-collapse: collapse;
+  font-size: 0.78em;
+  width: 100%;
+  min-width: max-content;
+}
+
+.nf-matrix th,
+.nf-matrix td {
+  padding: 4px 6px;
+  text-align: center;
+  border: 1px solid var(--color-border-light);
+  white-space: nowrap;
+}
+
+.nf-matrix-corner {
+  background: var(--color-bg);
+  font-size: 0.8em;
+  color: var(--color-text-muted);
+  min-width: 60px;
+}
+
+.nf-matrix-col-header {
+  background: var(--color-bg);
+  min-width: 40px;
+}
+
+.nf-matrix-row-header {
+  background: var(--color-bg);
+  text-align: left;
+}
+
+.nf-matrix-cell {
+  cursor: pointer;
+  transition: outline 0.1s ease;
+  min-width: 36px;
+  font-variant-numeric: tabular-nums;
+}
+
+.nf-matrix-cell.hovered {
+  outline: 2px solid var(--color-primary-blue, #6366f1);
+  outline-offset: -2px;
+  z-index: 1;
+  position: relative;
+}
+
+.nf-matrix-total {
+  font-weight: 600;
+  background: var(--color-bg-subtle);
+}
+
+.nf-matrix-total-header {
+  background: var(--color-bg-subtle);
+  font-weight: 600;
+}
+
+.nf-matrix-totals-row td {
+  font-weight: 600;
+  background: var(--color-bg-subtle);
+}
+
+.nf-matrix-grand-total {
+  font-weight: 700;
+  background: var(--color-bg) !important;
+}
+
+/* Link badge (colored per-link from palette) */
+.nf-link-badge {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 0.8em;
+  font-weight: 600;
+  min-width: 20px;
+  text-align: center;
+  background: var(--color-bg-subtle);
+  color: var(--color-text);
+}
+
+/* Link details columns */
+.nf-links-section {
+  margin-top: 12px;
+}
+
+.nf-links-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.nf-links-col h5 {
+  margin: 0 0 6px 0;
+  font-size: 0.82em;
+}
+
+.nf-entering-title {
+  color: var(--color-text);
+}
+
+.nf-exiting-title {
+  color: var(--color-text);
+}
+
+.nf-link-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+  font-size: 0.78em;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.nf-link-id {
+  flex: 1;
+  color: var(--color-text-secondary);
+  font-family: monospace;
+  font-size: 0.9em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nf-link-flow {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  min-width: 30px;
+  text-align: right;
+}

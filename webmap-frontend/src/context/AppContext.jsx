@@ -77,6 +77,11 @@ export const AppProvider = ({ children }) => {
   // Volume Flow selected link: null = aggregated (all), string = specific link ID
   const [volumeFlowSelectedLink, setVolumeFlowSelectedLink] = useState(null);
 
+  // Node Flows (turning-movement matrix)
+  const [nodeFlowsData, setNodeFlowsData] = useState(null);
+  // Hovered matrix cell { from, to } — shared between sidebar and map for highlight/ant effect
+  const [hoveredMatrixCell, setHoveredMatrixCell] = useState(null);
+
   // Pass selected mode/dataset from sidebar to map
   const updateMapChoropleth = (mode, dataset) => {
     setSelectedMode(mode);
@@ -92,7 +97,7 @@ export const AppProvider = ({ children }) => {
   const previousModule = useRef(null);
 
   const getModuleGroup = (module) => {
-    if (module === 'Network' || module === 'Volumes' || module === 'VolumeFlow') return 'network';
+    if (module === 'Network' || module === 'Volumes' || module === 'VolumeFlow' || module === 'NodeFlows') return 'network';
     if (module === 'TransitVolumes') return 'transitVolumes';
     if (module === 'Transit') return 'transit';
     return null;
@@ -128,6 +133,8 @@ export const AppProvider = ({ children }) => {
     setShowStopVolumeSymbology(false); // Reset stop volume symbology toggle
     setIsFeatureTableOpen(false); // Close feature table if open
     setSelectedDirection('total'); // Reset direction filter
+    setNodeFlowsData(null); // Reset node flows
+    setHoveredMatrixCell(null); // Reset hovered cell
   };
 
   const value = {
@@ -169,7 +176,9 @@ export const AppProvider = ({ children }) => {
     volumeFlowDirection, setVolumeFlowDirection,
     volumeFlowSelectedLink, setVolumeFlowSelectedLink,
     drawRef,
-    selectedDirection, setSelectedDirection
+    selectedDirection, setSelectedDirection,
+    nodeFlowsData, setNodeFlowsData,
+    hoveredMatrixCell, setHoveredMatrixCell,
   };
 
   return (

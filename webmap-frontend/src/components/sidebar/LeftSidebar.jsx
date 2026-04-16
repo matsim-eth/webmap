@@ -8,6 +8,7 @@ import {
   faArrowsSplitUpAndLeft, faChartSimple, faMap, faRoute,
   faRightFromBracket,
   faUserShield,
+  faArrowsTurnToDots,
 } from '@fortawesome/free-solid-svg-icons';
 import { useFileContext } from '../../FileContext';
 import { useApp } from '../../context/AppContext';
@@ -66,6 +67,7 @@ const LeftSidebar = () => {
     { id: 'Destination', label: 'Destination Zones', icon: faLocationDot },
     { id: 'PtBoardings', label: 'PT Boardings', icon: faPersonWalkingLuggage },
     { id: 'VolumeFlow', label: 'Volume Flow', icon: faArrowsSplitUpAndLeft },
+    { id: 'NodeFlows', label: 'Node Flows', icon: faArrowsTurnToDots },
   ];
 
   const handleModuleSelect = (moduleId) => {

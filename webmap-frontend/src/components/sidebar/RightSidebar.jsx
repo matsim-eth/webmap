@@ -27,6 +27,9 @@ import TransitVolumesModule from "../transit/TransitVolumesModule";
 // Volume Flow Analysis
 import VolumeFlowModule from "../matsim/VolumeFlowModule";
 
+// Node Flows (turning-movement matrix)
+import NodeFlowsModule from "../matsim/NodeFlowsModule";
+
 // Use uploaded data
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
 
@@ -58,6 +61,7 @@ const RightSidebar = () => {
     setAggCol: setSelectedAggCol, // Alias
     labelSize, setLabelSize,
     setVolumeFlowSegment,
+    nodeFlowsData, setNodeFlowsData,
     mapRef,
     drawRef,
     selectedDirection, setSelectedDirection
@@ -166,6 +170,7 @@ const RightSidebar = () => {
     Destination: "Destination Zones",
     PtBoardings: "PT Boardings",
     VolumeFlow: "Volume Flow",
+    NodeFlows: "Node Flows",
   };
 
   // Does this module have a feature table?
@@ -258,6 +263,28 @@ const RightSidebar = () => {
                 </>
               )}
 
+              {/* Reset Node button — only for NodeFlows */}
+              {!isFeatureTableOpen && isGraphExpanded === "NodeFlows" && nodeFlowsData && (
+                <button
+                  className="panel-toolbar-btn"
+                  onClick={() => {
+                    setNodeFlowsData(null);
+                    const map = mapRef?.current;
+                    if (map) {
+                      ['node-flows-entering','node-flows-exiting','node-flows-entering-labels','node-flows-exiting-labels','node-flows-node-circle'].forEach(id => {
+                        if (map.getLayer(id)) map.removeLayer(id);
+                      });
+                      if (map.getSource('node-flows-source')) map.removeSource('node-flows-source');
+                      if (map.getSource('node-flows-node')) map.removeSource('node-flows-node');
+                      if (map.getLayer('network-layer')) map.setPaintProperty('network-layer', 'line-opacity', 0.4);
+                    }
+                  }}
+                >
+                  <FontAwesomeIcon icon={faRotateLeft} />
+                  <span>Reset Node</span>
+                </button>
+              )}
+
               {/* Reset Link button — only when table is closed, only for VolumeFlow */}
               {!isFeatureTableOpen && isGraphExpanded === "VolumeFlow" && (
                 <button
@@ -342,6 +369,11 @@ const RightSidebar = () => {
                 featureTableRef={featureTableRef}
                 setTableFilterQuery={setTableFilterQuery}
               />
+            )}
+
+            {/* Node Flows Module */}
+            {isGraphExpanded === "NodeFlows" && (
+              <NodeFlowsModule />
             )}
 
             {/* Network Module */}

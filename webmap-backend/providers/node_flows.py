@@ -49,6 +49,8 @@ class _NetworkHandler(xml.sax.handler.ContentHandler):
     def __init__(self) -> None:
         super().__init__()
         self.nodes: dict[str, _NodeTopology] = {}
+        # Reverse lookup: link_id → (from_node, to_node)
+        self.link_to_nodes: dict[str, tuple[str, str]] = {}
 
     def startElement(self, name: str, attrs: xml.sax.xmlreader.AttributesImpl) -> None:
         if name != "link":
@@ -64,6 +66,8 @@ class _NetworkHandler(xml.sax.handler.ContentHandler):
         if "car" not in modes:
             return
 
+        self.link_to_nodes[link_id] = (from_node, to_node)
+
         # Link exits from_node and enters to_node
         if from_node not in self.nodes:
             self.nodes[from_node] = _NodeTopology()
@@ -74,11 +78,18 @@ class _NetworkHandler(xml.sax.handler.ContentHandler):
         self.nodes[to_node].entering.append(link_id)
 
 
-_network_cache: dict[str, dict[str, _NodeTopology]] = {}
+@dataclass
+class _NetworkData:
+    """Parsed network: node topology + link-to-node reverse lookup."""
+    nodes: dict[str, _NodeTopology] = field(default_factory=dict)
+    link_to_nodes: dict[str, tuple[str, str]] = field(default_factory=dict)
+
+
+_network_cache: dict[str, _NetworkData] = {}
 _network_lock = threading.Lock()
 
 
-def _get_network(network_xml: str) -> dict[str, _NodeTopology]:
+def _get_network(network_xml: str) -> _NetworkData:
     """Parse and cache the network topology from output_network.xml."""
     with _network_lock:
         if network_xml not in _network_cache:
@@ -86,14 +97,19 @@ def _get_network(network_xml: str) -> dict[str, _NodeTopology]:
             parser = xml.sax.make_parser()
             parser.setContentHandler(handler)
             parser.parse(network_xml)
-            _network_cache[network_xml] = handler.nodes
+            _network_cache[network_xml] = _NetworkData(
+                nodes=handler.nodes,
+                link_to_nodes=handler.link_to_nodes,
+            )
         return _network_cache[network_xml]
 
 
 # ─── Provider ─────────────────────────────────────────────────────
 
 _NODE_FLOWS_PARAMS = [
-    Param("node_id", "MATSim node ID", required=True),
+    Param("node_id", "MATSim node ID (required unless link_id given)"),
+    Param("link_id", "MATSim link ID — derives the to-node automatically"),
+    Param("end", "Which end of the link to use: 'to' (default) or 'from'", enum=["to", "from"]),
     Param("sex", "Gender filter (0=male, 1=female)", enum=["0", "1"]),
     Param("age_min", "Minimum age (inclusive)", param_type="integer"),
     Param("age_max", "Maximum age (exclusive)", param_type="integer"),
@@ -122,17 +138,27 @@ class NodeFlowsProvider(_SpiderBase):
 
     def deliver(self, params: dict) -> dict:
         node_id = (params.get("node_id") or "").strip()
-        if not node_id:
-            return {"error": "node_id parameter is required"}
+        link_id = (params.get("link_id") or "").strip()
+        end = (params.get("end") or "to").strip().lower()
+
+        if not node_id and not link_id:
+            return {"error": "node_id or link_id parameter is required"}
 
         # Look up node topology from network XML
         paths = get_data_paths()
         try:
-            network = _get_network(paths.network_xml)
+            net = _get_network(paths.network_xml)
         except Exception as e:
             return {"error": f"Failed to load network: {e}"}
 
-        topo = network.get(node_id)
+        # Derive node_id from link_id if needed
+        if not node_id and link_id:
+            endpoints = net.link_to_nodes.get(link_id)
+            if not endpoints:
+                return {"error": f"Link {link_id} not found in network"}
+            node_id = endpoints[1] if end == "to" else endpoints[0]
+
+        topo = net.nodes.get(node_id)
         if topo is None:
             return {"error": f"Node {node_id} not found in network"}
 

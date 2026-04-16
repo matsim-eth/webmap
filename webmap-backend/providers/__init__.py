@@ -41,6 +41,7 @@ from .stop_transfer_data import StopTransferDataProvider
 # --- Spider analysis ---
 from .spider_analysis import SpiderInflowProvider, SpiderOutflowProvider, SpiderOverlayProvider
 from .node_flows import NodeFlowsProvider
+from .nodes_geojson import NodesGeoJSONProvider
 from .zone_flows import ZoneFlowsProvider
 
 # --- Link speeds ---
@@ -85,6 +86,8 @@ ALL_PROVIDERS = [
     SpiderOverlayProvider(),
     # Node flows (turning-movement matrix)
     NodeFlowsProvider(),
+    # Nodes GeoJSON (per-canton point features)
+    NodesGeoJSONProvider(),
     # Zone flows (OD canton flows)
     ZoneFlowsProvider(),
     # Link speeds
