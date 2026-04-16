@@ -107,7 +107,6 @@ const LeftSidebar = () => {
     setDataURL('https://matsim-eth.github.io/webmap/data/');
 
     setIsSidebarOpen(false);
-    setIsCollapsed(true);
   };
 
   const handleUploadClick = () => {

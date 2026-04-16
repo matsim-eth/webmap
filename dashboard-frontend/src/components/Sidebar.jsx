@@ -1,7 +1,7 @@
     import React, { useRef, useState } from 'react';
     import './Sidebar.css';
     import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-    import { faHouse, faIdCard, faCar, faTrain, faRoad, faBriefcase, faClipboardList, faLocationDot, faImage, faFilePdf, faChevronLeft, faChevronRight, faChevronDown, faChevronUp, faFolder, faXmark, faSpinner, faCheck, faMap, faRightFromBracket, faUserShield } from '@fortawesome/free-solid-svg-icons';
+    import { faHouse, faIdCard, faCar, faTrain, faRoad, faBriefcase, faClipboardList, faLocationDot, faImage, faFilePdf, faChevronLeft, faChevronRight, faChevronDown, faChevronUp, faFolder, faXmark, faSpinner, faCheck, faMap, faRightFromBracket, faUserShield, faGaugeHigh } from '@fortawesome/free-solid-svg-icons';
     import { useFileContext } from '../context/FileContext';
     import { redirectToLogin, checkIsAdmin } from '../utils/auth';
     import { useQuery } from '@tanstack/react-query';
@@ -44,6 +44,7 @@
         { id: 'pt-subscription', label: 'PT Subscription', icon: faTrain },
         { id: 'car-ownership', label: 'Car Ownership', icon: faCar },
         { id: 'demographics', label: 'Demographics', icon: faIdCard },
+        { id: 'speed', label: 'Speed', icon: faGaugeHigh },
         { id: 'transit-stops', label: 'Transit Stops', icon: faLocationDot },
     ];
 

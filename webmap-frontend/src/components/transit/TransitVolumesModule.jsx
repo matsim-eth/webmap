@@ -81,6 +81,7 @@ const TransitVolumesModule = ({
     layerIds: ['transit-volumes-layer'],
     labelLayerIds: ['transit-volumes-label-left', 'transit-volumes-label-right'],
     onPolygonChange: handlePolygonChange,
+    fadeOpacity: 0.05,
   });
 
   // Polygon aggregate: merge lines, modes, volumes from all selected features

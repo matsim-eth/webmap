@@ -6,6 +6,7 @@ import { useComparisonData } from "../../hooks/useComparisonData";
 import { useResizeOnSidebarChange } from "../../hooks/useResizeOnSidebarChange";
 import { extractHistogramData } from "../../utils/comparisonHelpers";
 import PlotLoader from "./PlotLoader";
+import PlotLoadingOverlay from "./PlotLoadingOverlay";
 
 const HistogramPlot = ({
   sidebarCollapsed,
@@ -35,13 +36,14 @@ const HistogramPlot = ({
     : null;
 
   // Always call both hooks (React rules) — only one will be enabled at a time
-  const { slotDatasets: distSlots, isLoading: distLoading } = useComparisonData(
+  const { slotDatasets: distSlots, isLoading: distLoading, isFetching: distFetching } = useComparisonData(
     plotType === 'distance' ? backendUrlTemplate : null,
     { urlSuffix: distSuffix }
   );
-  const { slotDatasets: singleSlots, isLoading: singleLoading } = useComparisonData(
+  const { slotDatasets: singleSlots, isLoading: singleLoading, isFetching: singleFetching } = useComparisonData(
     plotType !== 'distance' ? backendUrlTemplate : null
   );
+  const isFetching = distFetching || singleFetching;
 
   // === Distance plot data (always computed, just returns null when not distance) ===
   const slotsWithHisto = useMemo(() => {
@@ -169,6 +171,7 @@ const HistogramPlot = ({
 
     return (
       <div className="plot-wrapper">
+        {isFetching && <PlotLoadingOverlay />}
         <h4 className="plot-title">{distanceLabel} Distance ({currentOption})</h4>
         <Plot
           key={`distance-${currentOption}-${distanceType}`}
@@ -267,6 +270,7 @@ const HistogramPlot = ({
 
   return (
     <div className="plot-wrapper">
+      {isFetching && <PlotLoadingOverlay />}
       <h4 className="plot-title">{title} ({currentActivity})</h4>
       <Plot
         data={traces}

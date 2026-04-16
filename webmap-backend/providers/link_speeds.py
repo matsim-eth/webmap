@@ -26,6 +26,16 @@ from .paths import get_data_paths
 
 _NAME_TO_ID = {v.lower(): k for k, v in CANTON_MAP.items()}
 
+_CON: duckdb.DuckDBPyConnection | None = None
+
+
+def _get_con() -> duckdb.DuckDBPyConnection:
+    """Module-level in-memory connection — keeps parquet metadata cached across requests."""
+    global _CON
+    if _CON is None:
+        _CON = duckdb.connect(":memory:")
+    return _CON
+
 
 def _resolve_cantons(raw: str) -> list[int]:
     """Parse comma-separated canton names/IDs into a list of canton IDs."""
@@ -122,7 +132,7 @@ class LinkSpeedsProvider(DataProvider):
         where, bind = _build_filters(params)
 
         try:
-            con = duckdb.connect(":memory:")
+            con = _get_con()
             rows = con.execute(f"""
                 SELECT
                     link_id,
@@ -137,7 +147,6 @@ class LinkSpeedsProvider(DataProvider):
                 GROUP BY link_id
                 ORDER BY volume DESC
             """, bind).fetchall()
-            con.close()
         except Exception as e:
             return {"error": str(e)}
 
@@ -177,89 +186,97 @@ class SpeedDashboardProvider(DataProvider):
         where, bind = _build_filters(params)
 
         try:
-            con = duckdb.connect(":memory:")
-
-            # 1. By road type
-            road_type_rows = con.execute(f"""
+            con = _get_con()
+            # Single scan: GROUPING SETS returns all four aggregations at once.
+            # Row-level: sum weighted numerators + volume; derive kmh/congestion in Python.
+            # link_count is computed only for the road_type and total grouping sets
+            # (COUNT DISTINCT is expensive and not needed for time-based rows).
+            rows = con.execute(f"""
                 SELECT
-                    road_type,
-                    COUNT(DISTINCT link_id)::INTEGER AS link_count,
-                    ROUND(SUM(avg_speed * volume) / SUM(volume) * 3.6, 2)
-                        AS avg_speed_kmh,
-                    ROUND(SUM(freespeed * volume) / SUM(volume) * 3.6, 2)
-                        AS freespeed_kmh,
-                    ROUND(SUM(avg_speed * volume) / SUM(volume)
-                          / (SUM(freespeed * volume) / SUM(volume)), 4)
-                        AS congestion_index,
-                    SUM(volume)::INTEGER AS total_volume
-                FROM read_parquet('{parquet}')
-                WHERE {where}
-                GROUP BY road_type
-                ORDER BY total_volume DESC
-            """, bind).fetchall()
-
-            # 2. By time bin
-            time_rows = con.execute(f"""
-                SELECT
+                    GROUPING(time_bin)   AS g_time,
+                    GROUPING(road_type)  AS g_rt,
                     time_bin,
-                    ROUND(SUM(avg_speed * volume) / SUM(volume) * 3.6, 2)
-                        AS avg_speed_kmh,
-                    ROUND(SUM(avg_speed * volume) / SUM(volume)
-                          / (SUM(freespeed * volume) / SUM(volume)), 4)
-                        AS congestion_index,
-                    SUM(volume)::INTEGER AS total_volume
+                    road_type,
+                    SUM(avg_speed * volume) AS speed_num,
+                    SUM(freespeed * volume) AS free_num,
+                    SUM(volume)             AS vol,
+                    CASE WHEN GROUPING(time_bin) = 1
+                         THEN COUNT(DISTINCT link_id) END AS link_count
                 FROM read_parquet('{parquet}')
                 WHERE {where}
-                GROUP BY time_bin
-                ORDER BY time_bin
+                GROUP BY GROUPING SETS (
+                    (time_bin, road_type),
+                    (road_type),
+                    (time_bin),
+                    ()
+                )
             """, bind).fetchall()
-
-            # 3. Network summary
-            summary = con.execute(f"""
-                SELECT
-                    COUNT(DISTINCT link_id)::INTEGER AS total_links,
-                    ROUND(SUM(avg_speed * volume) / SUM(volume) * 3.6, 2)
-                        AS avg_speed_kmh,
-                    ROUND(SUM(freespeed * volume) / SUM(volume) * 3.6, 2)
-                        AS freespeed_kmh,
-                    ROUND(SUM(avg_speed * volume) / SUM(volume)
-                          / (SUM(freespeed * volume) / SUM(volume)), 4)
-                        AS congestion_index,
-                    SUM(volume)::INTEGER AS total_volume
-                FROM read_parquet('{parquet}')
-                WHERE {where}
-            """, bind).fetchone()
-
-            con.close()
         except Exception as e:
             return {"error": str(e)}
 
+        def kmh(num, vol):
+            if not vol:
+                return None
+            return round(num / vol * 3.6, 2)
+
+        def cong(speed_num, free_num):
+            if not speed_num or not free_num:
+                return None
+            return round(speed_num / free_num, 4)
+
+        by_road_type = []
+        by_time = []
+        by_time_road_type = []
+        summary = None
+
+        for g_time, g_rt, time_bin, road_type, speed_num, free_num, vol, link_count in rows:
+            vol_int = int(vol) if vol is not None else 0
+            if g_time == 0 and g_rt == 0:
+                by_time_road_type.append({
+                    "time_bin": time_bin,
+                    "road_type": road_type,
+                    "avg_speed_kmh": kmh(speed_num, vol),
+                    "congestion_index": cong(speed_num, free_num),
+                    "total_volume": vol_int,
+                })
+            elif g_time == 1 and g_rt == 0:
+                by_road_type.append({
+                    "road_type": road_type,
+                    "link_count": int(link_count) if link_count is not None else 0,
+                    "avg_speed_kmh": kmh(speed_num, vol),
+                    "freespeed_kmh": kmh(free_num, vol),
+                    "congestion_index": cong(speed_num, free_num),
+                    "total_volume": vol_int,
+                })
+            elif g_time == 0 and g_rt == 1:
+                by_time.append({
+                    "time_bin": time_bin,
+                    "avg_speed_kmh": kmh(speed_num, vol),
+                    "congestion_index": cong(speed_num, free_num),
+                    "total_volume": vol_int,
+                })
+            else:
+                summary = {
+                    "total_links": int(link_count) if link_count is not None else 0,
+                    "avg_speed_kmh": kmh(speed_num, vol),
+                    "freespeed_kmh": kmh(free_num, vol),
+                    "congestion_index": cong(speed_num, free_num),
+                    "total_volume": vol_int,
+                }
+
+        by_road_type.sort(key=lambda r: r["total_volume"], reverse=True)
+        by_time.sort(key=lambda r: r["time_bin"] or 0)
+        by_time_road_type.sort(key=lambda r: (r["time_bin"] or 0, r["road_type"] or ""))
+
         return {
-            "network_summary": {
-                "total_links": summary[0],
-                "avg_speed_kmh": summary[1],
-                "freespeed_kmh": summary[2],
-                "congestion_index": summary[3],
-                "total_volume": summary[4],
+            "network_summary": summary or {
+                "total_links": 0,
+                "avg_speed_kmh": None,
+                "freespeed_kmh": None,
+                "congestion_index": None,
+                "total_volume": 0,
             },
-            "by_road_type": [
-                {
-                    "road_type": r[0],
-                    "link_count": r[1],
-                    "avg_speed_kmh": r[2],
-                    "freespeed_kmh": r[3],
-                    "congestion_index": r[4],
-                    "total_volume": r[5],
-                }
-                for r in road_type_rows
-            ],
-            "by_time": [
-                {
-                    "time_bin": r[0],
-                    "avg_speed_kmh": r[1],
-                    "congestion_index": r[2],
-                    "total_volume": r[3],
-                }
-                for r in time_rows
-            ],
+            "by_road_type": by_road_type,
+            "by_time": by_time,
+            "by_time_road_type": by_time_road_type,
         }

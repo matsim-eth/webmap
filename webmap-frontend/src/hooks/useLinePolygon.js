@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { booleanIntersects } from '@turf/turf';
 
-function applyFading(map, layerIds, labelLayerIds) {
-  const fade = ['case', ['boolean', ['feature-state', 'inPolygon'], false], 1, 0.2];
+function applyFading(map, layerIds, labelLayerIds, fadeOpacity) {
+  const fade = ['case', ['boolean', ['feature-state', 'inPolygon'], false], 1, fadeOpacity];
   for (const id of layerIds) {
     if (map.getLayer(id)) map.setPaintProperty(id, 'line-opacity', fade);
   }
@@ -41,6 +41,7 @@ export default function useLinePolygon({
   labelLayerIds = [],
   showMajorRoadsOnly = false,
   onPolygonChange,
+  fadeOpacity = 0.2,
 }) {
   const [polygonFeatures, setPolygonFeatures] = useState([]);
 
@@ -100,7 +101,7 @@ export default function useLinePolygon({
           }
         });
 
-        applyFading(map, layerIds, labelLayerIds);
+        applyFading(map, layerIds, labelLayerIds, fadeOpacity);
       }
     };
 

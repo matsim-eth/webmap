@@ -78,8 +78,15 @@ const DatasetSelector = ({ isCollapsed }) => {
   }, [comparisonSlots, setSlot, removeSlot]);
 
   const toggleCollapse = useCallback((dsId) => {
-    setManualCollapsed((prev) => ({ ...prev, [dsId]: !prev[dsId] }));
-  }, []);
+    setManualCollapsed((prev) => {
+      // Determine current expanded state using the same logic as isExpanded
+      const currentlyExpanded = dsId in prev
+        ? !prev[dsId]
+        : assignedDatasetIds.has(dsId);
+      // Store the inverse so isExpanded (!value) gives the toggled state
+      return { ...prev, [dsId]: currentlyExpanded };
+    });
+  }, [assignedDatasetIds]);
 
   // A dataset is expanded if: it has an assigned sub-dataset (default open)
   // OR user manually toggled it. manualCollapsed tracks explicit user toggles.

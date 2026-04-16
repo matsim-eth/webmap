@@ -11,6 +11,10 @@ function appendParam(url, key, value) {
 /**
  * Two-phase backend data loading hook.
  *
+ * Returns { payload, isFetching } — isFetching is true while a request is in
+ * flight (including when the URL changes and a new request starts, even if
+ * stale data is cached for a different key).
+ *
  * Phase 1 (immediate): Fetches only what the current view needs:
  *   - Canton "All" + no person filters → summary_only (skip persons JOIN)
  *   - Specific canton → canton=X (targeted query, smaller response)
@@ -22,30 +26,29 @@ export function useBackendData(url, enabled = true) {
 
   const isAllCanton = !selectedCanton || selectedCanton === "All";
 
-  // Build the fast initial URL based on current state
   const fastUrl = !url ? null
     : isAllCanton
       ? appendParam(url, "summary_only", "true")
       : appendParam(url, "canton", selectedCanton);
 
-  // Phase 1: Targeted data for the current view
-  const { data: fastPayload } = useQuery({
+  const fastQuery = useQuery({
     queryKey: ["backend-fast", fastUrl],
     queryFn: () => getUrlData(fastUrl),
     enabled: enabled && !!fastUrl,
     staleTime: 5 * 60 * 1000,
   });
 
-  // Phase 2: Full data — fires after initial render for background cache warming
-  const { data: fullPayload } = useQuery({
+  const fullQuery = useQuery({
     queryKey: ["backend-full", url],
     queryFn: () => getUrlData(url),
-    enabled: enabled && !!url && !!fastPayload,
+    enabled: enabled && !!url && !!fastQuery.data,
     staleTime: 5 * 60 * 1000,
   });
 
-  // Prefer fast data (avoids re-render when full arrives with identical visible data).
-  // Full data is the fallback — used when fast hasn't loaded yet (e.g. canton switch
-  // where full is already cached but new fast query is still in flight).
-  return fastPayload ?? fullPayload ?? null;
+  const payload = fastQuery.data ?? fullQuery.data ?? null;
+  // Only show overlay while the fast (visible-data) query is in flight.
+  // Phase 2 (full prefetch) runs silently in the background.
+  const isFetching = fastQuery.isFetching;
+
+  return { payload, isFetching };
 }

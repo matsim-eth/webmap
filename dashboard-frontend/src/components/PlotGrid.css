@@ -168,6 +168,124 @@
   font-weight: 500;
 }
 
+/* Loading overlay for in-flight refetches (keeps old plot visible) */
+.plot-loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  border-radius: var(--card-radius);
+  pointer-events: none;
+}
+
+/* Speed summary card */
+.speed-summary-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.speed-summary-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 6px;
+}
+
+.speed-summary-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.speed-summary-slot-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text);
+  border-left: 3px solid var(--color-primary);
+  padding-left: 6px;
+}
+
+.speed-summary-slot-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.speed-summary-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 8px;
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  max-width: 99%;
+  align-self: center;
+  width: 100%;
+}
+
+.speed-summary-row-highlight {
+  background: rgba(99, 102, 241, 0.08);
+  outline: 1px solid var(--color-primary);
+}
+
+.speed-summary-row-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text);
+  text-transform: capitalize;
+  letter-spacing: 0.3px;
+}
+
+.speed-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+  gap: 4px;
+}
+
+.speed-summary-row .speed-stat {
+  background: var(--color-surface);
+  padding: 4px 6px;
+}
+
+.speed-stat {
+  background: var(--color-bg);
+  border-radius: var(--radius);
+  padding: 6px 8px;
+  text-align: center;
+}
+
+.speed-stat-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.speed-stat-unit {
+  font-size: 9px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  margin-left: 2px;
+}
+
+.speed-stat-label {
+  font-size: 9px;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 1400px) {
   .plot-grid {

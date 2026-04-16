@@ -5,6 +5,7 @@ import { useData } from "../../context/DataContext";
 import { useComparisonData } from "../../hooks/useComparisonData";
 import { useResizeOnSidebarChange } from "../../hooks/useResizeOnSidebarChange";
 import PlotLoader from "./PlotLoader";
+import PlotLoadingOverlay from "./PlotLoadingOverlay";
 
 const MODE_COLORS = {
   car: "#636efa",
@@ -40,7 +41,7 @@ const ByDistanceStacked = ({ sidebarCollapsed, isExpanded = false, type = 'mode'
   const urlSuffix = `distance_type=${distanceType}`;
   const cantonKey = selectedCanton || "All";
 
-  const { slotDatasets, isLoading } = useComparisonData(backendUrlTemplate, { urlSuffix });
+  const { slotDatasets, isLoading, isFetching } = useComparisonData(backendUrlTemplate, { urlSuffix });
 
   // Resolve per-slot flat data arrays
   const slotsWithData = useMemo(() => {
@@ -121,6 +122,7 @@ const ByDistanceStacked = ({ sidebarCollapsed, isExpanded = false, type = 'mode'
 
   return (
     <div className="plot-wrapper">
+      {isFetching && <PlotLoadingOverlay />}
       <h4 className="plot-title">{titlePrefix} Distribution by Distance Travelled</h4>
       <Plot
         data={generateTraces()}

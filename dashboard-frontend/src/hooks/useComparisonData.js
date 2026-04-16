@@ -60,11 +60,14 @@ export function useComparisonData(urlTemplate, { query = null, enabled = true, u
   const needSecondFetch = ds1 != null && ds1 !== ds0;
 
   // Always call both hooks (React rules) — disable with enabled flag
-  const payload0 = useBackendData(baseUrl0, enabled && !!baseUrl0 && !!slot0);
-  const payload1 = useBackendData(
+  const result0 = useBackendData(baseUrl0, enabled && !!baseUrl0 && !!slot0);
+  const result1 = useBackendData(
     needSecondFetch ? baseUrl1 : null,
     enabled && !!baseUrl1 && !!slot1 && needSecondFetch
   );
+  const payload0 = result0.payload;
+  const payload1 = result1.payload;
+  const isFetching = result0.isFetching || result1.isFetching;
 
   // Build slot data array
   const slotDatasets = useMemo(() => {
@@ -94,5 +97,5 @@ export function useComparisonData(urlTemplate, { query = null, enabled = true, u
 
   const isLoading = (slot0 && !payload0) || (slot1 && !(needSecondFetch ? payload1 : payload0));
 
-  return { slotDatasets, isLoading, cantonKey };
+  return { slotDatasets, isLoading, isFetching, cantonKey };
 }

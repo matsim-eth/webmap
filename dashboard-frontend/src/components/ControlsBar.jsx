@@ -49,6 +49,17 @@ const INCOMES = [
   { id: "8", label: "8" },
 ];
 
+const ROAD_TYPES = [
+  { id: "all", label: "All Roads" },
+  { id: "motorway", label: "Motorway" },
+  { id: "trunk", label: "Trunk" },
+  { id: "primary", label: "Primary" },
+  { id: "secondary", label: "Secondary" },
+  { id: "tertiary", label: "Tertiary" },
+  { id: "residential", label: "Residential" },
+  { id: "unclassified", label: "Unclassified" },
+];
+
 const AGES = [
   { id: "all", label: "All" },
   { id: "[6, 15)", label: "6-14" },
@@ -68,6 +79,7 @@ const ControlsBar = ({ activeTab }) => {
     selectedGender, setSelectedGender,
     selectedIncome, setSelectedIncome,
     selectedAge, setSelectedAge,
+    selectedRoadType, setSelectedRoadType,
   } = useDashboard();
 
   // Determine which filters to show based on active tab
@@ -77,6 +89,7 @@ const ControlsBar = ({ activeTab }) => {
   const showCarOwnershipFilters = activeTab === 'car-ownership';
   const showDistanceType = activeTab === 'mode' || activeTab === 'purpose';
   const showTransitSearch = activeTab === 'transit-stops';
+  const showRoadTypeFilter = activeTab === 'speed';
 
   return (
     <div className="controls-bar">
@@ -206,6 +219,24 @@ const ControlsBar = ({ activeTab }) => {
             </div>
           </div>
         </>
+      )}
+
+      {/* Road Type Filter - only show on Speed tab */}
+      {showRoadTypeFilter && (
+        <div className="control-group">
+          <label className="control-label">Road Type</label>
+          <div className="toggle-group mode-toggle">
+            {ROAD_TYPES.map((rt) => (
+              <button
+                key={rt.id}
+                className={`toggle-btn ${selectedRoadType === rt.id ? 'active' : ''}`}
+                onClick={() => setSelectedRoadType(rt.id)}
+              >
+                {rt.label}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* Car Ownership Filters - only show income on Car Ownership tab */}

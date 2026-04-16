@@ -10,6 +10,10 @@ import PassengersByStop from './plots/PassengersByStop';
 import TransitStopSummary from './plots/TransitStopSummary';
 import TransferMatrix from './plots/TransferMatrix';
 import TransferDestinations from './plots/TransferDestinations';
+import SpeedSummary from './plots/SpeedSummary';
+import SpeedByRoadType from './plots/SpeedByRoadType';
+import SpeedByTime from './plots/SpeedByTime';
+import SpeedByTimePerRoadType from './plots/SpeedByTimePerRoadType';
 import PlotExpanded from './PlotExpanded';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExpand } from '@fortawesome/free-solid-svg-icons';
@@ -26,6 +30,7 @@ const TAB_LABELS = {
   'pt-subscription': 'PT Subscription',
   'car-ownership': 'Car Ownership',
   'transit-stops': 'Transit Stops',
+  'speed': 'Speed',
 };
 
 const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
@@ -396,6 +401,54 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
     },
   ];
 
+  // All speed plots share a single unfiltered backend fetch — road_type filter
+  // is applied client-side so switching filters is instant (no re-fetch).
+  const SPEED_URL = '/backend/data/{datasetId}/speed_dashboard.json';
+  const speedPlots = [
+    {
+      id: 'speed-summary',
+      component: SpeedSummary,
+      title: 'Network Summary',
+      props: { backendUrlTemplate: SPEED_URL },
+    },
+    {
+      id: 'speed-by-road-type',
+      component: SpeedByRoadType,
+      title: 'Speed by Road Type',
+      props: { backendUrlTemplate: SPEED_URL },
+    },
+    {
+      id: 'speed-by-time-per-road-type',
+      component: SpeedByTimePerRoadType,
+      title: 'Speed by Time — per Road Type',
+      props: { backendUrlTemplate: SPEED_URL },
+    },
+    {
+      id: 'speed-by-time',
+      component: SpeedByTime,
+      title: 'Average Speed by Time of Day',
+      props: {
+        metric: 'avg_speed_kmh',
+        title: 'Average Speed by Time of Day',
+        yAxisLabel: 'Speed [km/h]',
+        backendUrlTemplate: SPEED_URL,
+        exportFilename: 'speed-by-time',
+      },
+    },
+    {
+      id: 'congestion-by-time',
+      component: SpeedByTime,
+      title: 'Congestion by Time of Day',
+      props: {
+        metric: 'congestion_index',
+        title: 'Congestion Index by Time of Day',
+        yAxisLabel: 'Congestion [% of freespeed]',
+        backendUrlTemplate: SPEED_URL,
+        exportFilename: 'congestion-by-time',
+      },
+    },
+  ];
+
   const transitStopsPlots = [
     { id: 'boardings-by-stop', component: PassengersByStop, title: 'Boardings by Stop', props: { metric: 'boardings' } },
     { id: 'alightings-by-stop', component: PassengersByStop, title: 'Alightings by Stop', props: { metric: 'alightings' } },
@@ -424,6 +477,8 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
     gridClass = 'plot-grid plot-grid-two-plots'; // 2 plot layout
   } else if (activeTab === 'transit-stops') {
     plots = transitStopsPlots;
+  } else if (activeTab === 'speed') {
+    plots = speedPlots;
   }
 
   // placeholders for other tabs

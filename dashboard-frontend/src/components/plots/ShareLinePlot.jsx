@@ -6,6 +6,7 @@ import { useComparisonData } from "../../hooks/useComparisonData";
 import { useResizeOnSidebarChange } from "../../hooks/useResizeOnSidebarChange";
 import { LINE_STYLES } from "../../utils/comparisonHelpers";
 import PlotLoader from "./PlotLoader";
+import PlotLoadingOverlay from "./PlotLoadingOverlay";
 
 const MODE_COLORS = {
   car: "#636efa",
@@ -51,7 +52,7 @@ const ShareLinePlot = ({
 
   const cantonKey = selectedCanton || "All";
 
-  const { slotDatasets, isLoading } = useComparisonData(backendUrlTemplate, { urlSuffix });
+  const { slotDatasets, isLoading, isFetching } = useComparisonData(backendUrlTemplate, { urlSuffix });
 
   // Resolve per-slot line data
   const slotsWithLineData = useMemo(() => {
@@ -174,6 +175,7 @@ const ShareLinePlot = ({
 
   return (
     <div className="plot-wrapper">
+      {isFetching && <PlotLoadingOverlay />}
       <h4 className="plot-title">{displayTitle}</h4>
       <Plot
         data={allTraces}

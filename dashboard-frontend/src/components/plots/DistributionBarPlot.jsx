@@ -6,6 +6,7 @@ import { useComparisonData } from "../../hooks/useComparisonData";
 import { useResizeOnSidebarChange } from "../../hooks/useResizeOnSidebarChange";
 import { extractSubDataset } from "../../utils/comparisonHelpers";
 import PlotLoader from "./PlotLoader";
+import PlotLoadingOverlay from "./PlotLoadingOverlay";
 
 const DistributionBarPlot = ({
   sidebarCollapsed,
@@ -32,7 +33,7 @@ const DistributionBarPlot = ({
 
   useResizeOnSidebarChange(sidebarCollapsed);
 
-  const { slotDatasets, isLoading } = useComparisonData(backendUrlTemplate, { query: backendQuery });
+  const { slotDatasets, isLoading, isFetching } = useComparisonData(backendUrlTemplate, { query: backendQuery });
 
   // Build per-slot extracted data
   const slotsWithData = useMemo(() => {
@@ -159,6 +160,7 @@ const DistributionBarPlot = ({
 
   return (
     <div className="plot-wrapper">
+      {isFetching && <PlotLoadingOverlay />}
       <h4 className="plot-title">
         {filterType === "distance"
           ? title.replace("Average Distance", `Average ${distanceType === "euclidean" ? "Euclidean" : "Network"} Distance`)
