@@ -30,6 +30,9 @@ import VolumeFlowModule from "../matsim/VolumeFlowModule";
 // Node Flows (turning-movement matrix)
 import NodeFlowsModule from "../matsim/NodeFlowsModule";
 
+// Link Speeds
+import LinkSpeedsModule from "../matsim/LinkSpeedsModule";
+
 // Use uploaded data
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
 
@@ -171,6 +174,7 @@ const RightSidebar = () => {
     PtBoardings: "PT Boardings",
     VolumeFlow: "Volume Flow",
     NodeFlows: "Node Flows",
+    LinkSpeeds: "Link Speeds",
   };
 
   // Does this module have a feature table?
@@ -374,6 +378,11 @@ const RightSidebar = () => {
             {/* Node Flows Module */}
             {isGraphExpanded === "NodeFlows" && (
               <NodeFlowsModule />
+            )}
+
+            {/* Link Speeds Module */}
+            {isGraphExpanded === "LinkSpeeds" && (
+              <LinkSpeedsModule />
             )}
 
             {/* Network Module */}

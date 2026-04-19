@@ -9,6 +9,7 @@ import {
   faRightFromBracket,
   faUserShield,
   faArrowsTurnToDots,
+  faGaugeHigh,
 } from '@fortawesome/free-solid-svg-icons';
 import { useFileContext } from '../../FileContext';
 import { useApp } from '../../context/AppContext';
@@ -68,6 +69,7 @@ const LeftSidebar = () => {
     { id: 'PtBoardings', label: 'PT Boardings', icon: faPersonWalkingLuggage },
     { id: 'VolumeFlow', label: 'Volume Flow', icon: faArrowsSplitUpAndLeft },
     { id: 'NodeFlows', label: 'Node Flows', icon: faArrowsTurnToDots },
+    { id: 'LinkSpeeds', label: 'Link Speeds', icon: faGaugeHigh },
   ];
 
   const handleModuleSelect = (moduleId) => {

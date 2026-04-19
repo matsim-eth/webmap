@@ -376,6 +376,11 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
                 lastClickRef.current = { keys: selKeys, feature: sel.feature };
                 setVolumeFlowSelectedLink(null);
             }
+        } else {
+            // featureSelection cleared (e.g. AppContext group change on module exit)
+            // — forget remembered click so re-entry doesn't restore stale spider
+            lastClickRef.current = null;
+            setVolumeFlowSelectedLink(null);
         }
 
         // If there's a stored click (direction change or returning to VolumeFlow), re-fetch

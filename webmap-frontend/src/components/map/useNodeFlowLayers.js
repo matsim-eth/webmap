@@ -36,7 +36,38 @@ const DASH_SEQ = [
 ];
 const DASH_SEQ_REV = [...DASH_SEQ].reverse();
 
-export default function useNodeFlowLayers({ mapRef, mapReady }) {
+// Module-level cache for nodes GeoJSON so a background prefetch can populate it
+// before the user ever enters NodeFlows. Keyed by `${datasetId}:${canton}`.
+// Value is a Promise<geojson|null> so concurrent requests dedupe.
+const nodesGeoJSONCache = new Map();
+
+function fetchNodesGeoJSON(datasetId, canton) {
+    const key = `${datasetId}:${canton}`;
+    if (nodesGeoJSONCache.has(key)) return nodesGeoJSONCache.get(key);
+    const url = `/backend/data/${datasetId}/nodes_geojson.json?canton=${encodeURIComponent(canton)}`;
+    const p = (async () => {
+        try {
+            let res = await fetch(url);
+            if (res.status === 401) {
+                const ok = await handle401();
+                if (!ok) return null;
+                res = await fetch(url);
+            }
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const geojson = await res.json();
+            if (geojson.error) { console.warn('Nodes load error:', geojson.error); return null; }
+            return geojson;
+        } catch (err) {
+            console.warn('Failed to fetch nodes GeoJSON:', err);
+            nodesGeoJSONCache.delete(key);
+            return null;
+        }
+    })();
+    nodesGeoJSONCache.set(key, p);
+    return p;
+}
+
+export default function useNodeFlowLayers({ mapRef, mapReady, setIsLoading }) {
     const {
         isGraphExpanded,
         clickedCanton,
@@ -475,17 +506,10 @@ export default function useNodeFlowLayers({ mapRef, mapReady }) {
     const loadNodes = useCallback(async (map, canton) => {
         removeNodes(map);
         console.log('[NodeFlows] Loading nodes for canton:', canton);
+        const geojson = await fetchNodesGeoJSON(datasetId, canton);
+        if (!geojson) return;
+        console.log('[NodeFlows] Loaded', geojson.features?.length, 'nodes');
         try {
-            let res = await fetch(`/backend/data/${datasetId}/nodes_geojson.json?canton=${encodeURIComponent(canton)}`);
-            if (res.status === 401) {
-                const refreshed = await handle401();
-                if (!refreshed) return;
-                res = await fetch(`/backend/data/${datasetId}/nodes_geojson.json?canton=${encodeURIComponent(canton)}`);
-            }
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const geojson = await res.json();
-            if (geojson.error) { console.warn('Nodes load error:', geojson.error); return; }
-            console.log('[NodeFlows] Loaded', geojson.features?.length, 'nodes');
 
             map.addSource(NODES_SOURCE, { type: 'geojson', data: geojson });
 
@@ -517,6 +541,13 @@ export default function useNodeFlowLayers({ mapRef, mapReady }) {
         } catch (err) { console.warn('Failed to load nodes GeoJSON:', err); }
     }, [datasetId]);
 
+    // Background prefetch: warm the nodes GeoJSON cache as soon as a canton is
+    // selected, regardless of active module, so entering NodeFlows is instant.
+    useEffect(() => {
+        if (!datasetId || !clickedCanton) return;
+        fetchNodesGeoJSON(datasetId, clickedCanton);
+    }, [datasetId, clickedCanton]);
+
     // -- main effect --
     useEffect(() => {
         if (!mapReady || !mapRef.current) return;
@@ -531,6 +562,7 @@ export default function useNodeFlowLayers({ mapRef, mapReady }) {
 
         if (isGraphExpanded !== 'NodeFlows') {
             cleanAll(map);
+            lastNodeRef.current = null;
             setNodeFlowsData(null);
             setHoveredMatrixCell(null);
             return;
@@ -572,7 +604,13 @@ export default function useNodeFlowLayers({ mapRef, mapReady }) {
                 console.log('[NodeFlows] Clicked node:', nodeId, coords);
                 lastNodeRef.current = { nodeId, coords };
 
-                const data = await fetchNodeFlows(nodeId);
+                setIsLoading?.(true);
+                let data;
+                try {
+                    data = await fetchNodeFlows(nodeId);
+                } finally {
+                    setIsLoading?.(false);
+                }
                 console.log('[NodeFlows] Received data:', data);
                 if (!cancelled && data) {
                     renderOverlay(map, data, coords);

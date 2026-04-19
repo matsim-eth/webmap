@@ -45,11 +45,12 @@ export default function useTransitStops({
     // if swapped off Transit module, remove layers
     if (isGraphExpanded !== "Transit" || !searchCanton) {
       removeTransitLayers();
-      // Only clear featureGeoJSON if switching to a module that doesn't use it
-      // Network and Volumes modules manage their own featureGeoJSON
-      if (setFeatureGeoJSON && isGraphExpanded !== "Network" && isGraphExpanded !== "Volumes" && isGraphExpanded !== "VolumeFlow" && isGraphExpanded !== "TransitVolumes") {
-        setFeatureGeoJSON(null);
-      }
+      // Don't null featureGeoJSON here — whoever owns the current value
+      // (network modules set it in useNetworkLayers, transit volumes sets it
+      // in useTransitVolumesLayer) is responsible for replacing it on entry.
+      // Nulling indiscriminately was breaking network-ref readers (VolumeFlow /
+      // NodeFlows / LinkSpeeds) after any detour through Choropleth, PtBoardings,
+      // or Destination modules.
       return;
     }
     

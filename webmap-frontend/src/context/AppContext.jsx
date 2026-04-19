@@ -82,6 +82,12 @@ export const AppProvider = ({ children }) => {
   // Hovered matrix cell { from, to } — shared between sidebar and map for highlight/ant effect
   const [hoveredMatrixCell, setHoveredMatrixCell] = useState(null);
 
+  // Link Speeds module
+  const [linkSpeedsMetric, setLinkSpeedsMetric] = useState('congestion_index'); // 'congestion_index' | 'avg_speed' | 'freespeed'
+  const [linkSpeedsSelected, setLinkSpeedsSelected] = useState(null); // clicked link details
+  const [linkSpeedsSummary, setLinkSpeedsSummary] = useState(null); // aggregated summary for canton
+  const [linkSpeedsRoadTypes, setLinkSpeedsRoadTypes] = useState(['all']); // road type filter
+
   // Pass selected mode/dataset from sidebar to map
   const updateMapChoropleth = (mode, dataset) => {
     setSelectedMode(mode);
@@ -97,7 +103,7 @@ export const AppProvider = ({ children }) => {
   const previousModule = useRef(null);
 
   const getModuleGroup = (module) => {
-    if (module === 'Network' || module === 'Volumes' || module === 'VolumeFlow' || module === 'NodeFlows') return 'network';
+    if (module === 'Network' || module === 'Volumes' || module === 'VolumeFlow' || module === 'NodeFlows' || module === 'LinkSpeeds') return 'network';
     if (module === 'TransitVolumes') return 'transitVolumes';
     if (module === 'Transit') return 'transit';
     return null;
@@ -179,6 +185,10 @@ export const AppProvider = ({ children }) => {
     selectedDirection, setSelectedDirection,
     nodeFlowsData, setNodeFlowsData,
     hoveredMatrixCell, setHoveredMatrixCell,
+    linkSpeedsMetric, setLinkSpeedsMetric,
+    linkSpeedsSelected, setLinkSpeedsSelected,
+    linkSpeedsSummary, setLinkSpeedsSummary,
+    linkSpeedsRoadTypes, setLinkSpeedsRoadTypes,
   };
 
   return (

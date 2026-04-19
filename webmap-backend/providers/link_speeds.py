@@ -136,6 +136,7 @@ class LinkSpeedsProvider(DataProvider):
             rows = con.execute(f"""
                 SELECT
                     link_id,
+                    ANY_VALUE(road_type)              AS road_type,
                     ROUND(SUM(avg_speed * volume) / SUM(volume) * 3.6, 2)
                         AS avg_speed_kmh,
                     ROUND(AVG(freespeed) * 3.6, 2)  AS freespeed_kmh,
@@ -153,10 +154,11 @@ class LinkSpeedsProvider(DataProvider):
         links = {}
         for r in rows:
             links[r[0]] = {
-                "avg_speed": r[1],
-                "freespeed": r[2],
-                "congestion_index": r[3],
-                "volume": r[4],
+                "road_type": r[1],
+                "avg_speed": r[2],
+                "freespeed": r[3],
+                "congestion_index": r[4],
+                "volume": r[5],
             }
 
         return {

@@ -12,6 +12,7 @@ import usePtBoardings from './map/usePtBoardings';
 import useFeatureSelectionFocus from './map/useFeatureSelectionFocus';
 import useVolumeFlowLayers from './map/useVolumeFlowLayers';
 import useNodeFlowLayers from './map/useNodeFlowLayers';
+import useLinkSpeedsLayers from './map/useLinkSpeedsLayers';
 import useDrawTools from './map/useDrawTools';
 import { useApp } from '../context/AppContext';
 import { useResetMapView } from '../hooks/useResetMapView';
@@ -65,6 +66,7 @@ export default function Map() {
 
   // for setting loading spinner while loading transit geojson
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingNodes, setIsLoadingNodes] = useState(false);
 
   // for keeping track of the current sidebar module
   const graphExpandedRef = useRef(isGraphExpanded);
@@ -192,6 +194,13 @@ export default function Map() {
   useNodeFlowLayers({
     mapRef,
     mapReady,
+    setIsLoading: setIsLoadingNodes,
+  });
+
+  // Link Speeds overlay
+  useLinkSpeedsLayers({
+    mapRef,
+    mapReady,
   });
 
   // Draw tools (polygon draw/delete)
@@ -229,6 +238,12 @@ export default function Map() {
         <div className="map-loading-overlay">
           <div className="spinner" />
           <div className="loading-text">Loading network...</div>
+        </div>
+      )}
+      {isLoadingNodes && !isLoading && (
+        <div className="map-loading-overlay">
+          <div className="spinner" />
+          <div className="loading-text">Loading node data...</div>
         </div>
       )}
       <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />

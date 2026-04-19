@@ -255,6 +255,9 @@ export default function useFeatureSelectionFocus({
           id: HIGHLIGHT_LAYER,
           type: 'line',
           source: HIGHLIGHT_SOURCE,
+          layout: {
+            visibility: isGraphExpanded === 'NodeFlows' ? 'none' : 'visible',
+          },
           paint: {
             'line-width': ['interpolate', ['linear'], ['get', 'capacity'], 300, 6, 4000, 15],
             'line-color': '#00a2ff',
@@ -298,7 +301,8 @@ export default function useFeatureSelectionFocus({
     if (!mapReady || !map) return;
     
     const getModuleGroup = (module) => {
-      if (module === 'Network' || module === 'Volumes' || module === 'VolumeFlow') return 'network';
+      if (module === 'Network' || module === 'Volumes' || module === 'VolumeFlow' ||
+          module === 'NodeFlows' || module === 'LinkSpeeds') return 'network';
       if (module === 'TransitVolumes') return 'transitVolumes';
       if (module === 'Transit') return 'transit';
       return null;
@@ -334,6 +338,15 @@ export default function useFeatureSelectionFocus({
     }
     
     previousModule.current = isGraphExpanded;
+
+    // NodeFlows has its own node-based highlight; hide the link highlight there.
+    if (map.getLayer(HIGHLIGHT_LAYER)) {
+      map.setLayoutProperty(
+        HIGHLIGHT_LAYER,
+        'visibility',
+        isGraphExpanded === 'NodeFlows' ? 'none' : 'visible'
+      );
+    }
   }, [mapRef, mapReady, isGraphExpanded]);
   
   useEffect(() => {

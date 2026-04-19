@@ -3,14 +3,28 @@ import "./NetworkLegend.css";
 import { useApp } from "../context/AppContext";
 
 const Legend = () => {
-  const { isGraphExpanded: selectedGraph, showStopVolumeSymbology } = useApp();
+  const { isGraphExpanded: selectedGraph, showStopVolumeSymbology, linkSpeedsMetric } = useApp();
 
   const isVolumes = selectedGraph === "Volumes";
   const isNetwork = selectedGraph === "Network";
   const isTransit = selectedGraph === "Transit";
   const isVolumeFlow = selectedGraph === "VolumeFlow";
+  const isLinkSpeeds = selectedGraph === "LinkSpeeds";
 
-  if (!isVolumes && !isNetwork && !isVolumeFlow && !(isTransit && showStopVolumeSymbology)) return null;
+  if (!isVolumes && !isNetwork && !isVolumeFlow && !isLinkSpeeds && !(isTransit && showStopVolumeSymbology)) return null;
+
+  // Link Speeds gradient + scale depends on selected metric
+  const speedGradient = "linear-gradient(to right, #d7191c, #fdae61, #ffffbf, #a6d96a, #1a9641)";
+  const linkSpeedsTitles = {
+    avg_speed: "Average Speed [km/h]",
+    freespeed: "Freespeed [km/h]",
+    congestion_index: "Congestion Index (avg / freespeed)",
+  };
+  const linkSpeedsLabels = {
+    avg_speed: ["0", "20", "50", "80", "120"],
+    freespeed: ["0", "20", "50", "80", "120"],
+    congestion_index: ["0", "0.5", "0.75", "0.9", "1.0"],
+  };
 
   return (
     <div className="network-legend-container">
@@ -89,6 +103,24 @@ const Legend = () => {
           </div>
         </div>
       )}
+      {/* Link Speeds Legend */}
+      {isLinkSpeeds && (
+        <div className="network-legend-section">
+          <div className="network-legend-title">
+            {linkSpeedsTitles[linkSpeedsMetric] || linkSpeedsTitles.avg_speed}
+          </div>
+          <div className="network-legend-bar">
+            {(linkSpeedsLabels[linkSpeedsMetric] || linkSpeedsLabels.avg_speed).map((l, i) => (
+              <span key={i} className="network-legend-label">{l}</span>
+            ))}
+          </div>
+          <div
+            className="network-legend-gradient"
+            style={{ background: speedGradient }}
+          />
+        </div>
+      )}
+
       {/* Volume Flow Legend */}
       {isVolumeFlow && (
         <div className="network-legend-section">
