@@ -284,7 +284,7 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
             console.error('Failed to fetch spider data:', err);
             return null;
         }
-    }, []);
+    }, [datasetId]);
 
     // --- Render from cache for a given selection (null = aggregated, key = specific) ---
     const renderForSelection = useCallback((map, cache, selectedLink) => {

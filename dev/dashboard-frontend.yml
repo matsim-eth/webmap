@@ -1,5 +1,6 @@
 services:
   dashboard_frontend:
+    image: dashboard-frontend:dev
     build:
       context: ./dashboard-frontend
       target: dev
@@ -9,6 +10,7 @@ services:
     environment:
       CHOKIDAR_USEPOLLING: "true"
       CHOKIDAR_INTERVAL: "100"
+      VITE_MAPBOX_TOKEN: "${VITE_MAPBOX_TOKEN}"
 
 volumes:
   dashboard_node_modules:

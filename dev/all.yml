@@ -30,6 +30,7 @@ services:
 
   # ── Auth Backend: dev target + hot reload ──────────────────────
   authentification_backend:
+    image: authentification-backend:dev
     build:
       context: ./authentification-backend
       target: dev
@@ -54,6 +55,7 @@ services:
 
   # ── Dataset Backend: dev target + hot reload ───────────────────
   dataset_backend:
+    image: dataset-backend:dev
     build:
       context: ./dataset-backend
       target: dev
@@ -65,6 +67,7 @@ services:
 
   # ── Webmap Backend: dev target + hot reload ────────────────────
   webmap_backend:
+    image: webmap-backend:dev
     build:
       context: ./webmap-backend
       target: dev
@@ -76,6 +79,7 @@ services:
 
   # ── Webmap Frontend: Vite dev server + HMR ─────────────────────
   webmap_frontend:
+    image: webmap-frontend:dev
     build:
       context: ./webmap-frontend
       target: dev
@@ -85,9 +89,11 @@ services:
     environment:
       CHOKIDAR_USEPOLLING: "true"
       CHOKIDAR_INTERVAL: "100"
+      VITE_MAPBOX_TOKEN: "${VITE_MAPBOX_TOKEN}"
 
   # ── Dashboard Frontend: Vite dev server + HMR ──────────────────
   dashboard_frontend:
+    image: dashboard-frontend:dev
     build:
       context: ./dashboard-frontend
       target: dev
@@ -97,6 +103,7 @@ services:
     environment:
       CHOKIDAR_USEPOLLING: "true"
       CHOKIDAR_INTERVAL: "100"
+      VITE_MAPBOX_TOKEN: "${VITE_MAPBOX_TOKEN}"
 
 volumes:
   webmap_node_modules:

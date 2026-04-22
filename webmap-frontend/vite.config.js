@@ -7,6 +7,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5121,
-    host: '0.0.0.0'
-  }
+    host: '0.0.0.0',
+    hmr: {
+      clientPort: 80,
+      path: '/webmap/',
+    },
+  },
 })

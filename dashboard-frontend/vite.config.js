@@ -5,4 +5,12 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: '/dashboard/',
+  server: {
+    port: 5122,
+    host: '0.0.0.0',
+    hmr: {
+      clientPort: 80,
+      path: '/dashboard/',
+    },
+  },
 })

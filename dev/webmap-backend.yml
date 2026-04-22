@@ -1,5 +1,6 @@
 services:
   webmap_backend:
+    image: webmap-backend:dev
     build:
       context: ./webmap-backend
       target: dev

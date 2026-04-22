@@ -1,5 +1,6 @@
 services:
   authentification_backend:
+    image: authentification-backend:dev
     build:
       context: ./authentification-backend
       target: dev

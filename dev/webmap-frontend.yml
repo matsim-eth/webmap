@@ -1,5 +1,6 @@
 services:
   webmap_frontend:
+    image: webmap-frontend:dev
     build:
       context: ./webmap-frontend
       target: dev
@@ -9,6 +10,7 @@ services:
     environment:
       CHOKIDAR_USEPOLLING: "true"
       CHOKIDAR_INTERVAL: "100"
+      VITE_MAPBOX_TOKEN: "${VITE_MAPBOX_TOKEN}"
 
 volumes:
   webmap_node_modules:

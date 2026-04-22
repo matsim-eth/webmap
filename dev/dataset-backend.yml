@@ -1,5 +1,6 @@
 services:
   dataset_backend:
+    image: dataset-backend:dev
     build:
       context: ./dataset-backend
       target: dev
