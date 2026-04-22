@@ -2,6 +2,17 @@
 
 🔗 [matsim-eth.github.io/webmap](https://matsim-eth.github.io/webmap/)
 
+## Build Status
+
+| Service | Build | Image |
+|---------|-------|-------|
+| webmap-frontend     | [![webmap-frontend](https://github.com/matsim-eth/webmap/actions/workflows/build-webmap-frontend.yml/badge.svg)](https://github.com/matsim-eth/webmap/actions/workflows/build-webmap-frontend.yml)         | [ghcr](https://github.com/matsim-eth/webmap/pkgs/container/webmap%2Fwebmap-frontend)         |
+| webmap-backend      | [![webmap-backend](https://github.com/matsim-eth/webmap/actions/workflows/build-webmap-backend.yml/badge.svg)](https://github.com/matsim-eth/webmap/actions/workflows/build-webmap-backend.yml)            | [ghcr](https://github.com/matsim-eth/webmap/pkgs/container/webmap%2Fwebmap-backend)           |
+| dashboard-frontend  | [![dashboard-frontend](https://github.com/matsim-eth/webmap/actions/workflows/build-dashboard-frontend.yml/badge.svg)](https://github.com/matsim-eth/webmap/actions/workflows/build-dashboard-frontend.yml) | [ghcr](https://github.com/matsim-eth/webmap/pkgs/container/webmap%2Fdashboard-frontend)       |
+| auth-frontend       | [![auth-frontend](https://github.com/matsim-eth/webmap/actions/workflows/build-auth-frontend.yml/badge.svg)](https://github.com/matsim-eth/webmap/actions/workflows/build-auth-frontend.yml)               | [ghcr](https://github.com/matsim-eth/webmap/pkgs/container/webmap%2Fauthentification-frontend) |
+| auth-backend        | [![auth-backend](https://github.com/matsim-eth/webmap/actions/workflows/build-auth-backend.yml/badge.svg)](https://github.com/matsim-eth/webmap/actions/workflows/build-auth-backend.yml)                  | [ghcr](https://github.com/matsim-eth/webmap/pkgs/container/webmap%2Fauthentification-backend)  |
+| dataset-backend     | [![dataset-backend](https://github.com/matsim-eth/webmap/actions/workflows/build-dataset-backend.yml/badge.svg)](https://github.com/matsim-eth/webmap/actions/workflows/build-dataset-backend.yml)         | [ghcr](https://github.com/matsim-eth/webmap/pkgs/container/webmap%2Fdataset-backend)          |
+
 ## Generating Matsim Data for the Webapp
 
 ### Overview
