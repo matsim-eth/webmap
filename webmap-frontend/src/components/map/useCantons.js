@@ -115,7 +115,7 @@ export default function useCantons({
         const leftPadding = isLeftSidebarOpenRef.current ? 185 : 50;
 
         if (graphExpandedRef.current) {
-          const mediumGraphs = ['Volumes', 'Transit', 'TransitVolumes', 'Destination', 'PtBoardings', 'VolumeFlow', 'NodeFlows'];
+          const mediumGraphs = ['Volumes', 'Transit', 'TransitVolumes', 'Destination', 'PtBoardings', 'VolumeFlow', 'NodeFlows', 'LinkSpeeds'];
           if (mediumGraphs.includes(graphExpandedRef.current)) {
             rightPadding = 650;
           } else {

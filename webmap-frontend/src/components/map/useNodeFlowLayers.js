@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useApp } from '../../context/AppContext';
+import { useDebounced } from '../../hooks/useDebounced';
 import { handle401 } from '../../utils/auth';
 
 // Layer/source IDs
@@ -41,6 +42,32 @@ const DASH_SEQ_REV = [...DASH_SEQ].reverse();
 // Value is a Promise<geojson|null> so concurrent requests dedupe.
 const nodesGeoJSONCache = new Map();
 
+// Per-dataset warmup of backend network-XML topology cache. Keyed by datasetId.
+const networkWarmupCache = new Map();
+
+function warmNetworkTopology(datasetId) {
+    if (networkWarmupCache.has(datasetId)) return networkWarmupCache.get(datasetId);
+    const url = `/backend/data/${datasetId}/node_flows.json?warmup=1`;
+    const p = (async () => {
+        try {
+            let res = await fetch(url);
+            if (res.status === 401) {
+                const ok = await handle401();
+                if (!ok) return null;
+                res = await fetch(url);
+            }
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        } catch (err) {
+            console.warn('Network topology warmup failed:', err);
+            networkWarmupCache.delete(datasetId);
+            return null;
+        }
+    })();
+    networkWarmupCache.set(datasetId, p);
+    return p;
+}
+
 function fetchNodesGeoJSON(datasetId, canton) {
     const key = `${datasetId}:${canton}`;
     if (nodesGeoJSONCache.has(key)) return nodesGeoJSONCache.get(key);
@@ -76,7 +103,10 @@ export default function useNodeFlowLayers({ mapRef, mapReady, setIsLoading }) {
         datasetId,
         hoveredMatrixCell,
         setHoveredMatrixCell,
+        timeRange,
     } = useApp();
+
+    const debouncedTimeRange = useDebounced(timeRange, 400);
 
     const featureGeoJSONRef = useRef(featureGeoJSON);
     featureGeoJSONRef.current = featureGeoJSON;
@@ -488,19 +518,22 @@ export default function useNodeFlowLayers({ mapRef, mapReady, setIsLoading }) {
 
     // -- fetch node flows from backend --
     const fetchNodeFlows = useCallback(async (nodeId) => {
+        const minuteStart = (debouncedTimeRange?.[0] ?? 0) * 15;
+        const minuteEnd = (debouncedTimeRange?.[1] ?? 96) * 15;
+        const url = `/backend/data/${datasetId}/node_flows.json?node_id=${nodeId}&minute_start=${minuteStart}&minute_end=${minuteEnd}`;
         try {
-            let res = await fetch(`/backend/data/${datasetId}/node_flows.json?node_id=${nodeId}`);
+            let res = await fetch(url);
             if (res.status === 401) {
                 const refreshed = await handle401();
                 if (!refreshed) return null;
-                res = await fetch(`/backend/data/${datasetId}/node_flows.json?node_id=${nodeId}`);
+                res = await fetch(url);
             }
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
             if (data.error) { console.warn('Node flows error:', data.error); return null; }
             return data;
         } catch (err) { console.error('Failed to fetch node flows:', err); return null; }
-    }, [datasetId]);
+    }, [datasetId, debouncedTimeRange]);
 
     // -- load nodes GeoJSON for a canton --
     const loadNodes = useCallback(async (map, canton) => {
@@ -515,9 +548,9 @@ export default function useNodeFlowLayers({ mapRef, mapReady, setIsLoading }) {
 
             map.addLayer({
                 id: NODES_LAYER, type: 'circle', source: NODES_SOURCE,
-                minzoom: 13,
+                minzoom: 11,
                 paint: {
-                    'circle-radius': ['interpolate', ['linear'], ['zoom'], 13, 2, 16, 5, 18, 7],
+                    'circle-radius': ['interpolate', ['linear'], ['zoom'], 11, 1, 13, 2, 16, 5, 18, 7],
                     'circle-color': '#7c4dff',
                     'circle-opacity': 0.6,
                     'circle-stroke-color': '#fff',
@@ -527,9 +560,9 @@ export default function useNodeFlowLayers({ mapRef, mapReady, setIsLoading }) {
 
             map.addLayer({
                 id: NODES_HOVER_LAYER, type: 'circle', source: NODES_SOURCE,
-                minzoom: 13,
+                minzoom: 11,
                 paint: {
-                    'circle-radius': ['interpolate', ['linear'], ['zoom'], 13, 4, 16, 7, 18, 10],
+                    'circle-radius': ['interpolate', ['linear'], ['zoom'], 11, 2, 13, 4, 16, 7, 18, 10],
                     'circle-color': '#7c4dff',
                     'circle-opacity': 0.9,
                     'circle-stroke-color': '#fff',
@@ -546,6 +579,7 @@ export default function useNodeFlowLayers({ mapRef, mapReady, setIsLoading }) {
     useEffect(() => {
         if (!datasetId || !clickedCanton) return;
         fetchNodesGeoJSON(datasetId, clickedCanton);
+        warmNetworkTopology(datasetId);
     }, [datasetId, clickedCanton]);
 
     // -- main effect --

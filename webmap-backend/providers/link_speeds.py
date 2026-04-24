@@ -26,15 +26,13 @@ from .paths import get_data_paths
 
 _NAME_TO_ID = {v.lower(): k for k, v in CANTON_MAP.items()}
 
-_CON: duckdb.DuckDBPyConnection | None = None
-
-
 def _get_con() -> duckdb.DuckDBPyConnection:
-    """Module-level in-memory connection — keeps parquet metadata cached across requests."""
-    global _CON
-    if _CON is None:
-        _CON = duckdb.connect(":memory:")
-    return _CON
+    """Fresh in-memory connection per request. A shared module-level connection
+    would serialize concurrent scans under FastAPI's threadpool, causing proxy-
+    side "socket hang up" on overlapping requests (e.g. time slider drag).
+    DuckDB caches parquet metadata at the OS/file level, so the cost of opening
+    a new connection is minimal."""
+    return duckdb.connect(":memory:")
 
 
 def _resolve_cantons(raw: str) -> list[int]:

@@ -339,6 +339,10 @@ export default function useNetworkLayers({
       if (!e.features.length) return;
       // VolumeFlow/NodeFlows have their own click handler on this layer
       if (graphExpandedRef.current === 'VolumeFlow' || graphExpandedRef.current === 'NodeFlows') return;
+      // LinkSpeeds: at zoom >= 15 only the split layer's click handler applies.
+      // Merged (per_id_keys) selection would be wrong when the split visual is
+      // on-screen, so suppress this base handler entirely past the threshold.
+      if (graphExpandedRef.current === 'LinkSpeeds' && map.getZoom() >= 15) return;
 
       // Skip selection when actively drawing or clicking on draw features
       if (drawRef?.current) {
@@ -518,9 +522,17 @@ export default function useNetworkLayers({
     
     if (!map || !canton) return;
     
-    const hide = () => ['network-layer','click-network-layer','network-highlight',
-      'network-label-left','network-label-right']
-      .forEach(id => { if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'none'); });
+    // Fully remove network layers + source. Used when switching to a module
+    // (e.g. TransitVolumes) that renders its own styling off the same network
+    // geometry — leaving hidden network layers around causes z-order issues
+    // because other hooks insert their layers below `canton-highlight`.
+    const removeAll = () => {
+      ['network-layer','click-network-layer','network-highlight',
+        'network-label-left','network-label-right']
+        .forEach(id => { if (map.getLayer(id)) map.removeLayer(id); });
+      ['network-source','network-highlight','ant-path']
+        .forEach(id => { if (map.getSource(id)) map.removeSource(id); });
+    };
       
       const show = () => ['network-layer','click-network-layer','network-highlight',
         'network-label-left','network-label-right']
@@ -555,7 +567,12 @@ export default function useNetworkLayers({
             }
           }
         } else {
-          hide();
+          removeAll();
+          originalNetworkGeoJSON.current = null;
+          setLinkVolumeData(null);
+          setFeatureGeoJSON?.(null);
+          setSelectedNetworkFeature(null);
+          return;
         }
         
         if (!map.getLayer('network-layer')) return;

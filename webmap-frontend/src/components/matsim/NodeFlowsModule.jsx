@@ -1,5 +1,8 @@
 import React, { useMemo } from 'react';
+import Slider from 'rc-slider';
+import 'rc-slider/assets/index.css';
 import { useApp } from '../../context/AppContext';
+import { marks, formatTimeLabel } from '../../utils/timeSliderUtils';
 import './NodeFlowsModule.css';
 
 // Lighten a hex color for badge backgrounds (mix with white at given ratio)
@@ -31,7 +34,31 @@ const cellTextColor = (value, max) => {
 };
 
 const NodeFlowsModule = () => {
-    const { nodeFlowsData, clickedCanton, hoveredMatrixCell, setHoveredMatrixCell } = useApp();
+    const {
+        nodeFlowsData, clickedCanton, hoveredMatrixCell, setHoveredMatrixCell,
+        timeRange, setTimeRange,
+    } = useApp();
+
+    const timeSlider = (
+        <div className="right-sidebar-control-row" style={{ marginBottom: 28 }}>
+            <div style={{ flex: 1 }}>
+                <label className="right-sidebar-label" style={{ marginLeft: '7%' }}>
+                    Time: {formatTimeLabel(timeRange[0])} - {formatTimeLabel(timeRange[1])}
+                </label>
+                <Slider
+                    range
+                    min={0}
+                    max={96}
+                    step={1}
+                    marks={marks}
+                    value={timeRange}
+                    onChange={(val) => setTimeRange(val)}
+                    allowCross={false}
+                    style={{ marginLeft: '10%', width: '80%' }}
+                />
+            </div>
+        </div>
+    );
 
     // Compute max flow for color scaling
     const maxFlow = useMemo(() => {
@@ -52,6 +79,7 @@ const NodeFlowsModule = () => {
     if (!clickedCanton) {
         return (
             <div className="plot-container">
+                {timeSlider}
                 <div className="nf-no-selection">
                     <p>No canton selected</p>
                     <p className="nf-hint">Select a canton to load the network</p>
@@ -63,6 +91,7 @@ const NodeFlowsModule = () => {
     if (!nodeFlowsData) {
         return (
             <div className="plot-container">
+                {timeSlider}
                 <div className="nf-no-selection">
                     <p>No node selected</p>
                 </div>
@@ -74,6 +103,7 @@ const NodeFlowsModule = () => {
 
     return (
         <div className="plot-container">
+            {timeSlider}
             {/* Summary */}
             <div className="nf-summary">
                 <h4>Intersection Info</h4>

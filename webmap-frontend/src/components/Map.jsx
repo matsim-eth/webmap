@@ -67,6 +67,7 @@ export default function Map() {
   // for setting loading spinner while loading transit geojson
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingNodes, setIsLoadingNodes] = useState(false);
+  const [isLoadingSpeeds, setIsLoadingSpeeds] = useState(false);
 
   // for keeping track of the current sidebar module
   const graphExpandedRef = useRef(isGraphExpanded);
@@ -201,6 +202,7 @@ export default function Map() {
   useLinkSpeedsLayers({
     mapRef,
     mapReady,
+    setIsLoading: setIsLoadingSpeeds,
   });
 
   // Draw tools (polygon draw/delete)
@@ -234,13 +236,15 @@ export default function Map() {
 
   return (
     <>
-      {isLoading && (
+      {(isLoading || isLoadingSpeeds) && (
         <div className="map-loading-overlay">
           <div className="spinner" />
-          <div className="loading-text">Loading network...</div>
+          <div className="loading-text">
+            {isLoading ? 'Loading network...' : 'Loading link speeds...'}
+          </div>
         </div>
       )}
-      {isLoadingNodes && !isLoading && (
+      {isLoadingNodes && !isLoading && !isLoadingSpeeds && (
         <div className="map-loading-overlay">
           <div className="spinner" />
           <div className="loading-text">Loading node data...</div>

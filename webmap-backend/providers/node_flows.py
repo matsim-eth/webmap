@@ -140,8 +140,9 @@ class NodeFlowsProvider(_SpiderBase):
         node_id = (params.get("node_id") or "").strip()
         link_id = (params.get("link_id") or "").strip()
         end = (params.get("end") or "to").strip().lower()
+        warmup = str(params.get("warmup") or "").lower() in ("1", "true")
 
-        if not node_id and not link_id:
+        if not warmup and not node_id and not link_id:
             return {"error": "node_id or link_id parameter is required"}
 
         # Look up node topology from network XML
@@ -150,6 +151,9 @@ class NodeFlowsProvider(_SpiderBase):
             net = _get_network(paths.network_xml)
         except Exception as e:
             return {"error": f"Failed to load network: {e}"}
+
+        if warmup:
+            return {"warmed": True, "nodes": len(net.nodes), "links": len(net.link_to_nodes)}
 
         # Derive node_id from link_id if needed
         if not node_id and link_id:

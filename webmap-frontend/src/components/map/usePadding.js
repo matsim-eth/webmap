@@ -40,7 +40,8 @@ export default function useCantons({
         'Destination', 'PtBoardings'
       ];
 
-      if (isGraphExpanded === 'Volumes' || isGraphExpanded === 'TransitVolumes' || isGraphExpanded === 'Transit' || isGraphExpanded === 'VolumeFlow' || isGraphExpanded === 'NodeFlows') {
+      if (isGraphExpanded === 'Volumes' || isGraphExpanded === 'TransitVolumes' || isGraphExpanded === 'Transit' 
+        || isGraphExpanded === 'VolumeFlow' || isGraphExpanded === 'NodeFlows' || isGraphExpanded === 'LinkSpeeds') {
         rightPadding = isFeatureTableOpen ? 950 : 650;
       } else if (mediumGraphs.includes(isGraphExpanded)) {
         rightPadding = 650;
@@ -84,7 +85,7 @@ export default function useCantons({
 
     if (isSidebarOpen && graphExpandedRef.current) {
       const mediumGraphs = [
-        'Volumes', 'Transit', 'TransitVolumes', 'Destination', 'PtBoardings', 'VolumeFlow', 'NodeFlows'
+        'Volumes', 'Transit', 'TransitVolumes', 'Destination', 'PtBoardings', 'VolumeFlow', 'NodeFlows', 'LinkSpeeds'
       ];
 
       if (mediumGraphs.includes(graphExpandedRef.current)) {
