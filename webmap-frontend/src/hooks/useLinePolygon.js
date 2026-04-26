@@ -84,7 +84,6 @@ export default function useLinePolygon({
       });
 
       setPolygonFeatures(filtered);
-      onPolygonChange?.();
 
       // Remove existing single-feature highlight
       if (map.getLayer('network-highlight')) map.removeLayer('network-highlight');
@@ -105,15 +104,24 @@ export default function useLinePolygon({
       }
     };
 
-    map.on('draw.create', computeSelection);
-    map.on('draw.update', computeSelection);
-    map.on('draw.delete', computeSelection);
+    // onPolygonChange should only fire on actual user draw edits, NOT on
+    // every effect re-run (e.g. when featureGeoJSON updates due to time/line
+    // filter changes). Otherwise it loops back and clears whatever selection
+    // the caller is trying to make.
+    const handleDrawEvent = () => {
+      onPolygonChange?.();
+      computeSelection();
+    };
+
+    map.on('draw.create', handleDrawEvent);
+    map.on('draw.update', handleDrawEvent);
+    map.on('draw.delete', handleDrawEvent);
     computeSelection();
 
     return () => {
-      map.off('draw.create', computeSelection);
-      map.off('draw.update', computeSelection);
-      map.off('draw.delete', computeSelection);
+      map.off('draw.create', handleDrawEvent);
+      map.off('draw.update', handleDrawEvent);
+      map.off('draw.delete', handleDrawEvent);
     };
   }, [mapRef, drawRef, featureGeoJSON, isGraphExpanded, showMajorRoadsOnly]);
 

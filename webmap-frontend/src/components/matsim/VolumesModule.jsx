@@ -7,6 +7,8 @@ import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import { useTableRowBuilder } from "../../hooks/useTableRowBuilder";
 import useLinePolygon from "../../hooks/useLinePolygon";
+import useDrawPolygons from "../../hooks/useDrawPolygons";
+import { computeBoundaryFlow } from "../../utils/boundaryFlow";
 
 // get coords and id of selected row
 const buildSelectionPayload = (row) => {
@@ -61,6 +63,13 @@ const VolumesModule = ({
     onPolygonChange: handlePolygonChange,
   });
 
+  const drawnPolygons = useDrawPolygons({
+    mapRef,
+    drawRef,
+    isGraphExpanded,
+    activeModule: 'Volumes',
+  });
+
   // Polygon aggregate
   const polygonAggregate = useMemo(() => {
     if (!polygonFeatures.length) return null;
@@ -85,6 +94,13 @@ const VolumesModule = ({
       allLinkIds,
     };
   }, [polygonFeatures]);
+
+  // right_sum / left_sum on each feature are mutated time-filtered by
+  // useNetworkLayers, so we depend on timeRange to recompute on slider change.
+  const boundaryAggregate = useMemo(
+    () => computeBoundaryFlow({ polygonFeatures, drawnPolygons }),
+    [polygonFeatures, drawnPolygons, timeRange]
+  );
 
   const polygonFeaturesSet = useMemo(() => new Set(polygonFeatures), [polygonFeatures]);
 
@@ -218,6 +234,35 @@ const VolumesModule = ({
           </tbody>
         </table>
       </div>
+
+      {boundaryAggregate && (
+        <div className="canton-mode-share" style={{ marginBottom: 24 }}>
+          <h4>Polygon Inflow/Outflow</h4>
+          <table>
+            <tbody>
+              <tr>
+                <td><strong>Crossing Segments</strong></td>
+                <td>{boundaryAggregate.crossingCount}</td>
+              </tr>
+              <tr>
+                <td><strong>Inflow</strong></td>
+                <td>{Math.round(boundaryAggregate.inflow).toLocaleString()} vehicles</td>
+              </tr>
+              <tr>
+                <td><strong>Outflow</strong></td>
+                <td>{Math.round(boundaryAggregate.outflow).toLocaleString()} vehicles</td>
+              </tr>
+              <tr>
+                <td><strong>Net Flow</strong></td>
+                <td>
+                  {boundaryAggregate.net >= 0 ? '+' : ''}
+                  {Math.round(boundaryAggregate.net).toLocaleString()} vehicles
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <SegmentVolumeHistogram
         linkId={polygonAggregate.allLinkIds}

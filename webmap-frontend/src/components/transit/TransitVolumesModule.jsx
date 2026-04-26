@@ -8,6 +8,8 @@ import { marks, formatTimeLabel } from "../../utils/timeSliderUtils";
 import "rc-slider/assets/index.css";
 import { useTableRowBuilder } from "../../hooks/useTableRowBuilder";
 import useLinePolygon from "../../hooks/useLinePolygon";
+import useDrawPolygons from "../../hooks/useDrawPolygons";
+import { computeBoundaryFlow } from "../../utils/boundaryFlow";
 
 // get coords and id of selected row
 const buildSelectionPayload = (row) => {
@@ -83,6 +85,38 @@ const TransitVolumesModule = ({
     onPolygonChange: handlePolygonChange,
     fadeOpacity: 0.05,
   });
+
+  const drawnPolygons = useDrawPolygons({
+    mapRef,
+    drawRef,
+    isGraphExpanded,
+    activeModule: 'TransitVolumes',
+  });
+
+  // Boundary aggregate: same longitude-based directionality as road volumes.
+  // right_sum / left_sum on transit features are computed by
+  // useTransitVolumesLayer for the active time window AND highlighted line,
+  // so time + line filters are honored automatically.
+  // Mode filter is applied at the segment level (skip segments where no
+  // selected mode is present); per-mode directional split isn't available
+  // in the current data shape.
+  const modesActive = selectedTransitModes && !selectedTransitModes.includes('all') && selectedTransitModes.length > 0;
+  const transitBoundaryFilter = useCallback((f) => {
+    if (!modesActive) return true;
+    const raw = f?.properties?.modes;
+    const featureModes = Array.isArray(raw) ? raw
+      : (typeof raw === 'string' ? raw.split(',').filter(Boolean) : []);
+    return featureModes.some(m => selectedTransitModes.includes(m));
+  }, [modesActive, selectedTransitModes]);
+
+  const boundaryAggregate = useMemo(
+    () => computeBoundaryFlow({
+      polygonFeatures,
+      drawnPolygons,
+      featureFilter: transitBoundaryFilter,
+    }),
+    [polygonFeatures, drawnPolygons, timeRange, highlightedLineId, transitBoundaryFilter]
+  );
 
   // Polygon aggregate: merge lines, modes, volumes from all selected features
   const polygonAggregate = useMemo(() => {
@@ -350,6 +384,35 @@ const TransitVolumesModule = ({
           </tbody>
         </table>
       </div>
+
+      {boundaryAggregate && (
+        <div className="canton-mode-share" style={{ marginBottom: 24 }}>
+          <h4>Polygon Inflow/Outflow</h4>
+          <table>
+            <tbody>
+              <tr>
+                <td><strong>Crossing Segments</strong></td>
+                <td>{boundaryAggregate.crossingCount}</td>
+              </tr>
+              <tr>
+                <td><strong>Inflow</strong></td>
+                <td>{Math.round(boundaryAggregate.inflow).toLocaleString()} passengers</td>
+              </tr>
+              <tr>
+                <td><strong>Outflow</strong></td>
+                <td>{Math.round(boundaryAggregate.outflow).toLocaleString()} passengers</td>
+              </tr>
+              <tr>
+                <td><strong>Net Flow</strong></td>
+                <td>
+                  {boundaryAggregate.net >= 0 ? '+' : ''}
+                  {Math.round(boundaryAggregate.net).toLocaleString()} passengers
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Aggregate histogram from polygon features */}
       {polygonHistogramData && (() => {
