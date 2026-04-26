@@ -10,6 +10,7 @@ import {
   faUserShield,
   faArrowsTurnToDots,
   faGaugeHigh,
+  faRightLeft,
 } from '@fortawesome/free-solid-svg-icons';
 import { useFileContext } from '../../FileContext';
 import { useApp } from '../../context/AppContext';
@@ -70,6 +71,7 @@ const LeftSidebar = () => {
     { id: 'VolumeFlow', label: 'Volume Flow', icon: faArrowsSplitUpAndLeft },
     { id: 'NodeFlows', label: 'Node Flows', icon: faArrowsTurnToDots },
     { id: 'LinkSpeeds', label: 'Link Speeds', icon: faGaugeHigh },
+    { id: 'ZoneFlows', label: 'Zone Flows', icon: faRightLeft },
   ];
 
   const handleModuleSelect = (moduleId) => {

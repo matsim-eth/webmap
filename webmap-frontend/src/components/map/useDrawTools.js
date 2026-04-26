@@ -11,7 +11,7 @@ export default function useDrawTools({ mapRef, mapReady, isGraphExpanded, contex
     const map = mapRef.current;
     if (!map || !mapReady) return;
 
-    const drawModules = ['Transit', 'Volumes', 'TransitVolumes'];
+    const drawModules = ['Transit', 'Volumes', 'TransitVolumes', 'LinkSpeeds'];
     if (drawModules.includes(isGraphExpanded)) {
       if (!drawRef.current) {
         const draw = new MapboxDraw({

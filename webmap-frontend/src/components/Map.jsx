@@ -13,8 +13,10 @@ import useFeatureSelectionFocus from './map/useFeatureSelectionFocus';
 import useVolumeFlowLayers from './map/useVolumeFlowLayers';
 import useNodeFlowLayers from './map/useNodeFlowLayers';
 import useLinkSpeedsLayers from './map/useLinkSpeedsLayers';
+import useZoneFlowLayers from './map/useZoneFlowLayers';
 import useDrawTools from './map/useDrawTools';
 import { useApp } from '../context/AppContext';
+import { useFileContext } from '../FileContext';
 import { useResetMapView } from '../hooks/useResetMapView';
 
 export default function Map() {
@@ -60,6 +62,7 @@ export default function Map() {
 
   // load util for loading in the data (from link or local upload)
   const loadWithFallback = useLoadWithFallback(dataURL);
+  const { fileMap } = useFileContext();
 
   // for disabling next zoom to canton (ie when click on out-of-canton transit stop)
   const suppressNextSearchZoom = useRef(false);
@@ -68,6 +71,7 @@ export default function Map() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingNodes, setIsLoadingNodes] = useState(false);
   const [isLoadingSpeeds, setIsLoadingSpeeds] = useState(false);
+  const [isLoadingZoneFlows, setIsLoadingZoneFlows] = useState(false);
 
   // for keeping track of the current sidebar module
   const graphExpandedRef = useRef(isGraphExpanded);
@@ -205,6 +209,15 @@ export default function Map() {
     setIsLoading: setIsLoadingSpeeds,
   });
 
+  // Zone Flows overlay (inter-canton trip routes)
+  useZoneFlowLayers({
+    mapRef,
+    mapReady,
+    loadWithFallback,
+    fileMapSize: fileMap.size,
+    setIsLoading: setIsLoadingZoneFlows,
+  });
+
   // Draw tools (polygon draw/delete)
   useDrawTools({
     mapRef,
@@ -248,6 +261,12 @@ export default function Map() {
         <div className="map-loading-overlay">
           <div className="spinner" />
           <div className="loading-text">Loading node data...</div>
+        </div>
+      )}
+      {isLoadingZoneFlows && !isLoading && !isLoadingSpeeds && !isLoadingNodes && (
+        <div className="map-loading-overlay">
+          <div className="spinner" />
+          <div className="loading-text">Loading zone flows...</div>
         </div>
       )}
       <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />

@@ -33,6 +33,9 @@ import NodeFlowsModule from "../matsim/NodeFlowsModule";
 // Link Speeds
 import LinkSpeedsModule from "../matsim/LinkSpeedsModule";
 
+// Zone Flows
+import ZoneFlowsModule from "../matsim/ZoneFlowsModule";
+
 // Use uploaded data
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
 
@@ -175,10 +178,11 @@ const RightSidebar = () => {
     VolumeFlow: "Volume Flow",
     NodeFlows: "Node Flows",
     LinkSpeeds: "Link Speeds",
+    ZoneFlows: "Zone Flows",
   };
 
   // Does this module have a feature table?
-  const hasTable = ["Network", "Volumes", "Transit", "TransitVolumes", "VolumeFlow"].includes(isGraphExpanded);
+  const hasTable = ["Network", "Volumes", "Transit", "TransitVolumes", "VolumeFlow", "LinkSpeeds"].includes(isGraphExpanded);
 
   // Determine width class
   let sidebarClass = "hidden";
@@ -245,7 +249,7 @@ const RightSidebar = () => {
               )}
 
               {/* Polygon draw buttons — Transit, Network, Volumes, TransitVolumes */}
-              {["Transit", "Volumes", "TransitVolumes"].includes(isGraphExpanded) && (
+              {["Transit", "Volumes", "TransitVolumes", "LinkSpeeds"].includes(isGraphExpanded) && (
                 <>
                   <button
                     className="panel-toolbar-btn"
@@ -382,7 +386,16 @@ const RightSidebar = () => {
 
             {/* Link Speeds Module */}
             {isGraphExpanded === "LinkSpeeds" && (
-              <LinkSpeedsModule />
+              <LinkSpeedsModule
+                isFeatureTableOpen={isFeatureTableOpen}
+                featureTableRef={featureTableRef}
+                setTableFilterQuery={setTableFilterQuery}
+              />
+            )}
+
+            {/* Zone Flows Module */}
+            {isGraphExpanded === "ZoneFlows" && (
+              <ZoneFlowsModule />
             )}
 
             {/* Network Module */}

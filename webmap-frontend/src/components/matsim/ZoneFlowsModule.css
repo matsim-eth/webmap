@@ -1,0 +1,58 @@
+.zf-canton-pickers {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.zf-canton-row {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.zf-canton-row label {
+    font-size: 0.78em;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.zf-canton-row select {
+    padding: 5px 8px;
+    font-size: 0.85em;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border-light);
+    background: var(--color-bg-subtle);
+    cursor: pointer;
+}
+
+.zf-canton-row select:hover {
+    border-color: var(--color-text-muted);
+}
+
+.zf-swap-btn {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+    color: var(--color-text);
+    cursor: pointer;
+    font-size: 1.1em;
+    line-height: 1;
+    transition: background var(--transition-fast);
+    margin-bottom: 1px;
+}
+
+.zf-swap-btn:hover:not(:disabled) {
+    background: var(--color-border);
+}
+
+.zf-swap-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}

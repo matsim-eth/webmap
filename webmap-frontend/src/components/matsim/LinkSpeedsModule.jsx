@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import { useApp } from '../../context/AppContext';
 import { marks, formatTimeLabel } from '../../utils/timeSliderUtils';
+import FeatureTable from '../table/FeatureTable';
+import useLinePolygon from '../../hooks/useLinePolygon';
+import useLinkSpeedsMapFilter from '../map/useLinkSpeedsMapFilter';
+import '../Table.css';
 import './VolumeFlowModule.css';
 
 const METRIC_OPTIONS = [
@@ -13,7 +17,138 @@ const METRIC_OPTIONS = [
 
 const ROAD_TYPES = ['motorway', 'trunk', 'primary', 'secondary', 'tertiary', 'residential'];
 
-const LinkSpeedsModule = () => {
+const NUMERIC_COLS = new Set(['avgSpeed', 'freespeed', 'congestionIndex', 'dailyVolume']);
+
+// Mirror the per-column render functions used in FeatureTable.jsx so JS-side
+// substring matching agrees byte-for-byte with what DataTables shows in cells
+// (otherwise "1,234" search hits the table but not the map, etc.).
+const formatCell = (key, v) => {
+    if (v == null) return key === 'modes' ? '-' : '';
+    if (key === 'avgSpeed' || key === 'freespeed') return Number(v).toFixed(1);
+    if (key === 'congestionIndex') return Number(v).toFixed(3);
+    if (key === 'dailyVolume') return Number(v || 0).toLocaleString();
+    if (key === 'modes') return String(v).replace(/,/g, ', ');
+    return String(v);
+};
+
+// Mirrors DataTables' search semantics so the map filter shows exactly the
+// same rows the table is showing: substring on the rendered cell value
+// (or the pipe-joined searchString for "All columns"). Numeric columns
+// support >, <, >=, <= comparison operators as a special case.
+const rowMatchesQuery = (row, query) => {
+    if (!query || !query.value) return true;
+    const { column, value } = query;
+    const raw = String(value).trim();
+    if (!raw) return true;
+
+    if (column && NUMERIC_COLS.has(column)) {
+        const cmp = raw.match(/^(>=?|<=?)\s*([0-9.,]+)$/);
+        if (cmp) {
+            const op = cmp[1];
+            const n = parseFloat(cmp[2].replace(/,/g, ''));
+            const v = Number(row[column]);
+            if (!Number.isFinite(v) || !Number.isFinite(n)) return false;
+            if (op === '>') return v > n;
+            if (op === '<') return v < n;
+            if (op === '>=') return v >= n;
+            if (op === '<=') return v <= n;
+        }
+    }
+
+    const hasSemi = raw.includes(';');
+    const values = raw.split(hasSemi ? ';' : ',').map(v => v.trim()).filter(Boolean);
+    if (!values.length) return true;
+
+    // DataTables search ignores commas/spaces in formatted numbers ("1,234" vs
+    // "1234"); strip both sides so behavior agrees.
+    const norm = (s) => String(s).toLowerCase().replace(/[,\s]/g, '');
+
+    const matchOne = (val) => {
+        const needle = norm(val);
+        const haystack = column
+            ? norm(formatCell(column, row[column]))
+            : norm(row.searchString || '');
+        return haystack.includes(needle);
+    };
+
+    return hasSemi ? values.every(matchOne) : values.some(matchOne);
+};
+
+// Row → map payload used by useFeatureSelectionFocus (mirrors Network/Volumes).
+const buildSelectionPayload = (row) => {
+    if (!row) return null;
+    return { id: row.rowKey, feature: row.feature, coords: row.coords };
+};
+
+const roundTo = (value, decimals = 0) => {
+    if (!Number.isFinite(value)) return null;
+    const factor = Math.pow(10, decimals);
+    return Math.round(value * factor) / factor;
+};
+
+// Build one row per underlying MATSim link (mirrors Network/Volumes table
+// pattern, where each direction in per_id_keys becomes its own row).
+const buildLinkSpeedsRows = (geojson, linksMap) => {
+    if (!geojson?.features || !linksMap) return [];
+    const rows = [];
+    geojson.features.forEach((feature, featureIndex) => {
+        const props = feature?.properties || {};
+        const keys = (props.per_id_keys || '').split('|').filter(Boolean);
+        const arrows = (props.per_id_arrows || '').split('|').filter(Boolean);
+        if (!keys.length) return;
+
+        const g = feature?.geometry;
+        const coords = g?.type === 'LineString' ? g.coordinates
+            : g?.type === 'MultiLineString' ? g.coordinates.flat()
+            : null;
+        const modes = props.modes || '';
+
+        keys.forEach((k, i) => {
+            const d = linksMap[k];
+            if (!d || !d.volume || d.avg_speed == null || !d.freespeed) return;
+            const arrow = arrows[i] || '';
+            const avgSpeed = roundTo(d.avg_speed, 2);
+            const freespeed = roundTo(d.freespeed, 2);
+            const congestionIndex = d.freespeed
+                ? roundTo(d.avg_speed / d.freespeed, 4)
+                : null;
+            const dailyVolume = Math.round(d.volume);
+
+            rows.push({
+                rowKey: `linkspeeds-${featureIndex}-${k}`,
+                tableId: featureIndex,
+                linkId: k,
+                arrow,
+                avgSpeed,
+                freespeed,
+                congestionIndex,
+                dailyVolume,
+                modes,
+                // Use rendered values so DataTables' hidden-column "All columns"
+                // search and rowMatchesQuery's JS substring agree.
+                searchString: [
+                    k,
+                    arrow,
+                    formatCell('avgSpeed', avgSpeed),
+                    formatCell('freespeed', freespeed),
+                    formatCell('congestionIndex', congestionIndex),
+                    formatCell('dailyVolume', dailyVolume),
+                    formatCell('modes', modes),
+                ].join('|').toLowerCase(),
+                coords,
+                feature,
+                featureProps: props,
+            });
+        });
+    });
+    return rows;
+};
+
+const LinkSpeedsModule = ({
+    isFeatureTableOpen,
+    featureTableRef,
+    setTableFilterQuery,
+}) => {
     const {
         clickedCanton,
         timeRange, setTimeRange,
@@ -21,6 +156,14 @@ const LinkSpeedsModule = () => {
         linkSpeedsSelected,
         linkSpeedsSummary,
         linkSpeedsRoadTypes, setLinkSpeedsRoadTypes,
+        linkSpeedsLinksMap,
+        featureGeoJSON,
+        mapRef,
+        drawRef,
+        isGraphExpanded,
+        setFeatureSelection,
+        setSelectedNetworkFeature,
+        tableFilterQuery,
     } = useApp();
 
     const handleRoadTypeChange = (event) => {
@@ -32,8 +175,169 @@ const LinkSpeedsModule = () => {
         }
     };
 
+    const handlePolygonChange = useCallback(() => {
+        setSelectedNetworkFeature?.(null);
+    }, [setSelectedNetworkFeature]);
+
+    // Note: fading via feature-state isn't wired for link-speeds sources (they
+    // hold derived agg/split features, not canton features indexed by position).
+    // Polygon selection still drives the table filter + aggregate card below.
+    const polygonFeatures = useLinePolygon({
+        mapRef,
+        drawRef,
+        featureGeoJSON,
+        isGraphExpanded,
+        activeModule: 'LinkSpeeds',
+        sourceId: 'link-speeds-source',
+        layerIds: [],
+        labelLayerIds: [],
+        onPolygonChange: handlePolygonChange,
+    });
+
+    const polygonFeaturesSet = useMemo(() => new Set(polygonFeatures), [polygonFeatures]);
+
+    // Build rows from featureGeoJSON + linksMap (same aggregation as the map layer).
+    const tableRows = useMemo(
+        () => buildLinkSpeedsRows(featureGeoJSON, linkSpeedsLinksMap),
+        [featureGeoJSON, linkSpeedsLinksMap]
+    );
+
+    // Polygon-restricted rows (the user-visible table starts from these).
+    const polygonRows = useMemo(() => {
+        if (!polygonFeatures.length) return tableRows;
+        return tableRows.filter(row => polygonFeaturesSet.has(row.feature));
+    }, [tableRows, polygonFeatures.length, polygonFeaturesSet]);
+
+    // Intersect polygon-rows with the table search query → produce two sets:
+    //   visibleSegmentKeys — segment `per_id_keys` strings (full agg key per
+    //                        segment) used to filter the agg layer at low zoom.
+    //   visibleSplitIds    — per-direction `ls_link_ids` strings (one per
+    //                        surviving direction) used for the split layer +
+    //                        labels at high zoom. Built by partitioning each
+    //                        segment's surviving rows by arrow → joined.
+    // null on either = clear that layer's filter; empty set = hide everything.
+    const { visibleSegmentKeys, visibleSplitIds } = useMemo(() => {
+        const polyActive = polygonFeatures.length > 0;
+        const queryActive = !!(tableFilterQuery && tableFilterQuery.value);
+        if (!polyActive && !queryActive) {
+            return { visibleSegmentKeys: null, visibleSplitIds: null };
+        }
+        const segmentSet = new Set();
+        // bucket per segment: { '→': [linkIds], '←': [linkIds] }
+        const perSegment = new Map();
+        for (const row of polygonRows) {
+            if (queryActive && !rowMatchesQuery(row, tableFilterQuery)) continue;
+            const segKey = row.featureProps?.per_id_keys;
+            if (!segKey) continue;
+            segmentSet.add(segKey);
+            let buckets = perSegment.get(segKey);
+            if (!buckets) {
+                buckets = { '→': [], '←': [] };
+                perSegment.set(segKey, buckets);
+            }
+            const arr = buckets[row.arrow];
+            if (arr) arr.push(row.linkId);
+        }
+        // Build the per-direction joined ids the same way useLinkSpeedsLayers
+        // does: `[...right.ids, ...left.ids].join('|')` for the agg, or
+        // `p.ids.join('|')` for each direction.
+        const splitSet = new Set();
+        for (const buckets of perSegment.values()) {
+            if (buckets['→'].length) splitSet.add(buckets['→'].join('|'));
+            if (buckets['←'].length) splitSet.add(buckets['←'].join('|'));
+        }
+        return { visibleSegmentKeys: segmentSet, visibleSplitIds: splitSet };
+    }, [polygonRows, polygonFeatures.length, tableFilterQuery]);
+
+    useLinkSpeedsMapFilter({
+        mapRef,
+        isGraphExpanded,
+        visibleSegmentKeys,
+        visibleSplitIds,
+        isFeatureTableOpen,
+        clickedCanton,
+        setTableFilterQuery,
+    });
+
+    // Rows passed to the FeatureTable — DataTables handles its own internal
+    // search across these, but we still hand it the polygon-pre-filtered set.
+    const activeTableRows = polygonRows;
+
+    // Polygon aggregate summary (volume-weighted, like buildAll).
+    const polygonAggregate = useMemo(() => {
+        if (!polygonFeatures.length || !linkSpeedsLinksMap) return null;
+        const allModes = new Set();
+        let vsum = 0, fsum = 0, volsum = 0;
+        let linkCount = 0;
+        const allLinkIds = [];
+        for (const f of polygonFeatures) {
+            const props = f.properties || {};
+            (props.modes || '').split(',').filter(Boolean).forEach(m => allModes.add(m));
+            const keys = (props.per_id_keys || '').split('|').filter(Boolean);
+            for (const k of keys) {
+                const d = linkSpeedsLinksMap[k];
+                if (d && d.volume && d.avg_speed != null && d.freespeed) {
+                    vsum += d.avg_speed * d.volume;
+                    fsum += d.freespeed * d.volume;
+                    volsum += d.volume;
+                    linkCount += 1;
+                    allLinkIds.push(k);
+                }
+            }
+        }
+        if (!volsum) return null;
+        const avg = vsum / volsum;
+        const free = fsum / volsum;
+        return {
+            segmentCount: polygonFeatures.length,
+            linkCount,
+            avgSpeed: Number(avg.toFixed(2)),
+            avgFreespeed: Number(free.toFixed(2)),
+            congestionIndex: free ? Number((avg / free).toFixed(4)) : null,
+            totalVolume: Math.round(volsum),
+            modes: [...allModes],
+            allLinkIds,
+        };
+    }, [polygonFeatures, linkSpeedsLinksMap]);
+
+    // Mirrors Network/Volumes: setSelectedNetworkFeature feeds the sidebar
+    // attribute panel; setFeatureSelection (= onFocusNetworkFeature) drives
+    // the shared network-highlight layer + zoom via useFeatureSelectionFocus.
+    const handleRowClick = useCallback((row) => {
+        if (!row) return;
+        const featureProps = row.featureProps || row.feature?.properties;
+        if (featureProps) {
+            setSelectedNetworkFeature?.([featureProps]);
+        }
+        const payload = buildSelectionPayload(row);
+        if (payload) {
+            setFeatureSelection?.(payload);
+        }
+    }, [setFeatureSelection, setSelectedNetworkFeature]);
+
+    const handleSelectCoords = useCallback((coords, row) => {
+        if (!row) return;
+        handleRowClick({ ...row, coords: coords || row.coords });
+    }, [handleRowClick]);
+
     return (
         <div className="plot-container">
+        {isFeatureTableOpen ? (
+            <FeatureTable
+                ref={featureTableRef}
+                selectedGraph="LinkSpeeds"
+                tableId="link-speeds-feature-table"
+                rows={activeTableRows}
+                onRowClick={handleRowClick}
+                onSelectCoords={handleSelectCoords}
+                height="55vh"
+                useScroller
+                loading={!linkSpeedsLinksMap}
+                initialOrder={[[3, 'asc']]}
+                setTableFilterQuery={setTableFilterQuery}
+            />
+        ) : (
+            <>
             {/* Metric toggle */}
             <div className="flow-direction-toggle">
                 {METRIC_OPTIONS.map(opt => (
@@ -93,38 +397,23 @@ const LinkSpeedsModule = () => {
                 </div>
             )}
 
-            {/* Canton-wide summary */}
-            {clickedCanton && linkSpeedsSummary && (
+            {/* Polygon aggregate — wins over canton summary / single-link panel */}
+            {polygonAggregate ? (
                 <div className="canton-mode-share">
-                    <h4>Network Summary</h4>
+                    <h4>Polygon Selection</h4>
                     <table>
                         <tbody>
-                            <tr><td><strong>Links with traffic</strong></td><td>{linkSpeedsSummary.totalLinks.toLocaleString()}</td></tr>
-                            <tr><td><strong>Avg Speed</strong></td><td>{linkSpeedsSummary.avgSpeed != null ? `${linkSpeedsSummary.avgSpeed.toFixed(1)} km/h` : '—'}</td></tr>
-                            <tr><td><strong>Avg Freespeed</strong></td><td>{linkSpeedsSummary.avgFreespeed != null ? `${linkSpeedsSummary.avgFreespeed.toFixed(1)} km/h` : '—'}</td></tr>
-                            <tr><td><strong>Congestion Index</strong></td><td>{linkSpeedsSummary.congestionIndex ?? '—'}</td></tr>
-                            <tr><td><strong>Total Volume</strong></td><td>{linkSpeedsSummary.totalVolume.toLocaleString()}</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            )}
-
-            {/* Selected-link detail */}
-            {linkSpeedsSelected && (
-                <div className="canton-mode-share">
-                    <h4>Selected Link</h4>
-                    <table>
-                        <tbody>
-                            <tr><td><strong>Link IDs</strong></td><td style={{ wordBreak: 'break-all' }}>{linkSpeedsSelected.linkId}</td></tr>
-                            <tr><td><strong>Avg Speed</strong></td><td>{linkSpeedsSelected.avgSpeed.toFixed(1)} km/h</td></tr>
-                            <tr><td><strong>Freespeed</strong></td><td>{linkSpeedsSelected.freespeed.toFixed(1)} km/h</td></tr>
-                            <tr><td><strong>Congestion Index</strong></td><td>{linkSpeedsSelected.congestionIndex.toFixed(3)}</td></tr>
-                            <tr><td><strong>Daily Volume</strong></td><td>{linkSpeedsSelected.dailyVolume.toLocaleString()} veh/day</td></tr>
+                            <tr><td><strong>Selected Segments</strong></td><td>{polygonAggregate.segmentCount}</td></tr>
+                            <tr><td><strong>Links with traffic</strong></td><td>{polygonAggregate.linkCount.toLocaleString()}</td></tr>
+                            <tr><td><strong>Avg Speed</strong></td><td>{polygonAggregate.avgSpeed.toFixed(1)} km/h</td></tr>
+                            <tr><td><strong>Avg Freespeed</strong></td><td>{polygonAggregate.avgFreespeed.toFixed(1)} km/h</td></tr>
+                            <tr><td><strong>Congestion Index</strong></td><td>{polygonAggregate.congestionIndex ?? '—'}</td></tr>
+                            <tr><td><strong>Total Volume</strong></td><td>{polygonAggregate.totalVolume.toLocaleString()}</td></tr>
                             <tr>
                                 <td><strong>Modes</strong></td>
                                 <td>
                                     <div className="mode-badges">
-                                        {(linkSpeedsSelected.modes || '').split(',').filter(Boolean).map(m => (
+                                        {polygonAggregate.modes.map(m => (
                                             <span className="mode-badge" key={m}>{m}</span>
                                         ))}
                                     </div>
@@ -133,13 +422,59 @@ const LinkSpeedsModule = () => {
                         </tbody>
                     </table>
                 </div>
-            )}
+            ) : (
+                <>
+                {/* Canton-wide summary */}
+                {clickedCanton && linkSpeedsSummary && (
+                    <div className="canton-mode-share">
+                        <h4>Network Summary</h4>
+                        <table>
+                            <tbody>
+                                <tr><td><strong>Links with traffic</strong></td><td>{linkSpeedsSummary.totalLinks.toLocaleString()}</td></tr>
+                                <tr><td><strong>Avg Speed</strong></td><td>{linkSpeedsSummary.avgSpeed != null ? `${linkSpeedsSummary.avgSpeed.toFixed(1)} km/h` : '—'}</td></tr>
+                                <tr><td><strong>Avg Freespeed</strong></td><td>{linkSpeedsSummary.avgFreespeed != null ? `${linkSpeedsSummary.avgFreespeed.toFixed(1)} km/h` : '—'}</td></tr>
+                                <tr><td><strong>Congestion Index</strong></td><td>{linkSpeedsSummary.congestionIndex ?? '—'}</td></tr>
+                                <tr><td><strong>Total Volume</strong></td><td>{linkSpeedsSummary.totalVolume.toLocaleString()}</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                )}
 
-            {clickedCanton && !linkSpeedsSelected && (
-                <p style={{ padding: '1rem', fontStyle: 'italic', color: '#9ca3af' }}>
-                    Click a link on the map to see its speed details.
-                </p>
+                {/* Selected-link detail */}
+                {linkSpeedsSelected && (
+                    <div className="canton-mode-share">
+                        <h4>Selected Link</h4>
+                        <table>
+                            <tbody>
+                                <tr><td><strong>Link IDs</strong></td><td style={{ wordBreak: 'break-all' }}>{linkSpeedsSelected.linkId}</td></tr>
+                                <tr><td><strong>Avg Speed</strong></td><td>{linkSpeedsSelected.avgSpeed.toFixed(1)} km/h</td></tr>
+                                <tr><td><strong>Freespeed</strong></td><td>{linkSpeedsSelected.freespeed.toFixed(1)} km/h</td></tr>
+                                <tr><td><strong>Congestion Index</strong></td><td>{linkSpeedsSelected.congestionIndex.toFixed(3)}</td></tr>
+                                <tr><td><strong>Daily Volume</strong></td><td>{linkSpeedsSelected.dailyVolume.toLocaleString()} veh/day</td></tr>
+                                <tr>
+                                    <td><strong>Modes</strong></td>
+                                    <td>
+                                        <div className="mode-badges">
+                                            {(linkSpeedsSelected.modes || '').split(',').filter(Boolean).map(m => (
+                                                <span className="mode-badge" key={m}>{m}</span>
+                                            ))}
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+
+                {clickedCanton && !linkSpeedsSelected && (
+                    <p style={{ padding: '1rem', fontStyle: 'italic', color: '#9ca3af' }}>
+                        Click a link on the map to see its speed details.
+                    </p>
+                )}
+                </>
             )}
+            </>
+        )}
         </div>
     );
 };

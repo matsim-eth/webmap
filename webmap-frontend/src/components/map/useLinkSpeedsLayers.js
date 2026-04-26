@@ -145,6 +145,7 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
         featureSelection,
         setLinkSpeedsSelected,
         setLinkSpeedsSummary,
+        setLinkSpeedsLinksMap,
         setSelectedNetworkFeature,
         setFeatureSelection,
     } = useApp();
@@ -281,10 +282,11 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
         removeOverlay(map);
         setLinkSpeedsSummary(null);
         setLinkSpeedsSelected(null);
+        setLinkSpeedsLinksMap(null);
         filteredLinksRef.current = {};
         setIsLoading?.(false);
     }, [isGraphExpanded, mapReady, mapRef, removeOverlay,
-        setLinkSpeedsSummary, setLinkSpeedsSelected, setIsLoading]);
+        setLinkSpeedsSummary, setLinkSpeedsSelected, setLinkSpeedsLinksMap, setIsLoading]);
 
     // Per-direction click on the split layer (zoom >= SPLIT_ZOOM). Sets
     // featureSelection with only that direction's link ids so downstream
@@ -461,6 +463,7 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
             )
             : linksState.links;
         filteredLinksRef.current = linksMap;
+        setLinkSpeedsLinksMap(linksMap);
 
         let cancelled = false;
         (async () => {

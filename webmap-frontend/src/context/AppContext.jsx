@@ -82,11 +82,19 @@ export const AppProvider = ({ children }) => {
   // Hovered matrix cell { from, to } — shared between sidebar and map for highlight/ant effect
   const [hoveredMatrixCell, setHoveredMatrixCell] = useState(null);
 
+  // Zone Flows module — inter-canton trip routes
+  const [zoneFlowOriginCanton, setZoneFlowOriginCanton] = useState(null);
+  const [zoneFlowDestCanton, setZoneFlowDestCanton] = useState(null);
+  const [zoneFlowDirection, setZoneFlowDirection] = useState('both'); // 'both' | 'origin_to_dest' | 'dest_to_origin'
+  const [zoneFlowData, setZoneFlowData] = useState(null); // { total_trips, links: { id: vol }, ... }
+  const [zoneFlowLoading, setZoneFlowLoading] = useState(false);
+
   // Link Speeds module
   const [linkSpeedsMetric, setLinkSpeedsMetric] = useState('congestion_index'); // 'congestion_index' | 'avg_speed' | 'freespeed'
   const [linkSpeedsSelected, setLinkSpeedsSelected] = useState(null); // clicked link details
   const [linkSpeedsSummary, setLinkSpeedsSummary] = useState(null); // aggregated summary for canton
   const [linkSpeedsRoadTypes, setLinkSpeedsRoadTypes] = useState(['all']); // road type filter
+  const [linkSpeedsLinksMap, setLinkSpeedsLinksMap] = useState(null); // per-link stats keyed by link id, used to build rows/polygon aggregates
 
   // Pass selected mode/dataset from sidebar to map
   const updateMapChoropleth = (mode, dataset) => {
@@ -106,6 +114,7 @@ export const AppProvider = ({ children }) => {
     if (module === 'Network' || module === 'Volumes' || module === 'VolumeFlow' || module === 'NodeFlows' || module === 'LinkSpeeds') return 'network';
     if (module === 'TransitVolumes') return 'transitVolumes';
     if (module === 'Transit') return 'transit';
+    if (module === 'ZoneFlows') return 'zoneFlows';
     return null;
   };
 
@@ -141,6 +150,10 @@ export const AppProvider = ({ children }) => {
     setSelectedDirection('total'); // Reset direction filter
     setNodeFlowsData(null); // Reset node flows
     setHoveredMatrixCell(null); // Reset hovered cell
+    setZoneFlowOriginCanton(null); // Reset zone flow selections
+    setZoneFlowDestCanton(null);
+    setZoneFlowDirection('both');
+    setZoneFlowData(null);
   };
 
   const value = {
@@ -189,6 +202,12 @@ export const AppProvider = ({ children }) => {
     linkSpeedsSelected, setLinkSpeedsSelected,
     linkSpeedsSummary, setLinkSpeedsSummary,
     linkSpeedsRoadTypes, setLinkSpeedsRoadTypes,
+    linkSpeedsLinksMap, setLinkSpeedsLinksMap,
+    zoneFlowOriginCanton, setZoneFlowOriginCanton,
+    zoneFlowDestCanton, setZoneFlowDestCanton,
+    zoneFlowDirection, setZoneFlowDirection,
+    zoneFlowData, setZoneFlowData,
+    zoneFlowLoading, setZoneFlowLoading,
   };
 
   return (

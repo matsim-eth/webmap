@@ -404,6 +404,22 @@ const FeatureTable = forwardRef(
           ];
         }
 
+        // Link Speeds: per-segment speed metrics
+        if (selectedGraph === 'LinkSpeeds') {
+          return [
+            { key: "linkId", title: "Link ID" },
+            { key: "avgSpeed", title: "Avg Speed [km/h]" },
+            { key: "freespeed", title: "Freespeed [km/h]" },
+            { key: "congestionIndex", title: "Congestion Index" },
+            { key: "dailyVolume", title: "Daily Volume" },
+            {
+              key: "modes",
+              title: "Modes",
+              render: (v) => (v ? String(v).replace(/,/g, ", ") : "-"),
+            },
+          ];
+        }
+
         const cols = [
           { key: "directionId", title: "Link ID" },
           { key: "length", title: "Length [m]" },        
@@ -465,6 +481,44 @@ const FeatureTable = forwardRef(
               visible: false, // Hidden column for "All columns" search
               searchable: true
             }
+          ];
+        }
+
+        // Link Speeds: per-segment speed metrics
+        if (selectedGraph === 'LinkSpeeds') {
+          return [
+            { data: "linkId", title: "Link ID" },
+            {
+              data: "avgSpeed",
+              title: "Avg Speed [km/h]",
+              render: (data) => (data == null ? '-' : Number(data).toFixed(1)),
+            },
+            {
+              data: "freespeed",
+              title: "Freespeed [km/h]",
+              render: (data) => (data == null ? '-' : Number(data).toFixed(1)),
+            },
+            {
+              data: "congestionIndex",
+              title: "Congestion Index",
+              render: (data) => (data == null ? '-' : Number(data).toFixed(3)),
+            },
+            {
+              data: "dailyVolume",
+              title: "Daily Volume",
+              render: (data) => Number(data || 0).toLocaleString(),
+            },
+            {
+              data: "modes",
+              title: "Modes",
+              render: (v) => (v ? String(v).replace(/,/g, ", ") : "-"),
+            },
+            {
+              data: "searchString",
+              title: "",
+              visible: false,
+              searchable: true,
+            },
           ];
         }
 
@@ -742,7 +796,8 @@ const FeatureTable = forwardRef(
         // Include both Network/Volumes columns and Transit stops columns
         const isNumericCol = searchCol >= 0 && [
           "capacity", "length", "freeSpeed", "totalVol", "filteredVolume", // Network/Volumes
-          "lineCount", "boardings", "alightings" // Transit stops
+          "lineCount", "boardings", "alightings", // Transit stops
+          "avgSpeed", "freespeed", "congestionIndex", "dailyVolume" // Link Speeds
         ].includes(dtColumns[searchCol]?.data || "");
         
         // Check for comparison operators (>, <, >=, <=) in numeric columns
