@@ -26,7 +26,7 @@ export default function useZoneFlowLayers({ mapRef, mapReady, loadWithFallback, 
     const {
         isGraphExpanded,
         datasetId,
-        zoneFlowOriginCanton,
+        clickedCanton,
         zoneFlowDestCanton,
         zoneFlowDirection,
         zoneFlowData,
@@ -34,6 +34,8 @@ export default function useZoneFlowLayers({ mapRef, mapReady, loadWithFallback, 
         setZoneFlowData,
         setZoneFlowLoading,
     } = useApp();
+
+    const zoneFlowOriginCanton = isGraphExpanded === 'ZoneFlows' ? clickedCanton : null;
 
     // Cache loaded canton networks: { [cantonName]: featureCollection }
     const networkCacheRef = useRef({});
@@ -150,20 +152,15 @@ export default function useZoneFlowLayers({ mapRef, mapReady, loadWithFallback, 
                 id: FLOW_LABEL_LAYER_ID,
                 type: 'symbol',
                 source: NETWORK_SOURCE_ID,
-                minzoom: 10,
+                minzoom: 15,
                 layout: {
                     'symbol-placement': 'line-center',
                     'symbol-spacing': 600,
                     'text-field': ['to-string', ['get', 'zf_flow']],
-                    'text-size': [
-                        'interpolate', ['linear'], ['zoom'],
-                        10, 9,
-                        13, 11,
-                        16, 13,
-                    ],
+                    'text-size': 11,
                     'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
-                    'text-allow-overlap': false,
-                    'text-ignore-placement': false,
+                    'text-allow-overlap': true,
+                    'text-ignore-placement': true,
                     'text-padding': 2,
                 },
                 paint: {

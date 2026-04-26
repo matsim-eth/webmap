@@ -82,8 +82,7 @@ export const AppProvider = ({ children }) => {
   // Hovered matrix cell { from, to } — shared between sidebar and map for highlight/ant effect
   const [hoveredMatrixCell, setHoveredMatrixCell] = useState(null);
 
-  // Zone Flows module — inter-canton trip routes
-  const [zoneFlowOriginCanton, setZoneFlowOriginCanton] = useState(null);
+  // Zone Flows module — inter-canton trip routes (origin = clickedCanton)
   const [zoneFlowDestCanton, setZoneFlowDestCanton] = useState(null);
   const [zoneFlowDirection, setZoneFlowDirection] = useState('both'); // 'both' | 'origin_to_dest' | 'dest_to_origin'
   const [zoneFlowData, setZoneFlowData] = useState(null); // { total_trips, links: { id: vol }, ... }
@@ -150,8 +149,7 @@ export const AppProvider = ({ children }) => {
     setSelectedDirection('total'); // Reset direction filter
     setNodeFlowsData(null); // Reset node flows
     setHoveredMatrixCell(null); // Reset hovered cell
-    setZoneFlowOriginCanton(null); // Reset zone flow selections
-    setZoneFlowDestCanton(null);
+    setZoneFlowDestCanton(null); // Reset zone flow selections
     setZoneFlowDirection('both');
     setZoneFlowData(null);
   };
@@ -203,7 +201,6 @@ export const AppProvider = ({ children }) => {
     linkSpeedsSummary, setLinkSpeedsSummary,
     linkSpeedsRoadTypes, setLinkSpeedsRoadTypes,
     linkSpeedsLinksMap, setLinkSpeedsLinksMap,
-    zoneFlowOriginCanton, setZoneFlowOriginCanton,
     zoneFlowDestCanton, setZoneFlowDestCanton,
     zoneFlowDirection, setZoneFlowDirection,
     zoneFlowData, setZoneFlowData,

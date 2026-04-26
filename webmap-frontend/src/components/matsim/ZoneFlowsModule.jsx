@@ -4,6 +4,7 @@ import 'rc-slider/assets/index.css';
 import { useApp } from '../../context/AppContext';
 import { marks, formatTimeLabel } from '../../utils/timeSliderUtils';
 import bboxCache from '../../utils/bboxCanton.json';
+import cantonAlias from '../../utils/canton_alias.json';
 import './VolumeFlowModule.css';
 import './ZoneFlowsModule.css';
 
@@ -15,7 +16,7 @@ const DIRECTION_OPTIONS = [
 
 const ZoneFlowsModule = () => {
     const {
-        zoneFlowOriginCanton, setZoneFlowOriginCanton,
+        clickedCanton: zoneFlowOriginCanton,
         zoneFlowDestCanton, setZoneFlowDestCanton,
         zoneFlowDirection, setZoneFlowDirection,
         zoneFlowData,
@@ -23,13 +24,15 @@ const ZoneFlowsModule = () => {
         timeRange, setTimeRange,
     } = useApp();
 
-    const cantons = useMemo(() => Object.keys(bboxCache).sort(), []);
+    const cantons = useMemo(
+        () => Object.keys(bboxCache).sort((a, b) =>
+            (cantonAlias[a] || a).localeCompare(cantonAlias[b] || b)
+        ),
+        []
+    );
 
-    const swap = () => {
-        const o = zoneFlowOriginCanton;
-        setZoneFlowOriginCanton(zoneFlowDestCanton);
-        setZoneFlowDestCanton(o);
-    };
+    const originLabel = zoneFlowOriginCanton ? (cantonAlias[zoneFlowOriginCanton] || zoneFlowOriginCanton) : null;
+    const destLabel = zoneFlowDestCanton ? (cantonAlias[zoneFlowDestCanton] || zoneFlowDestCanton) : null;
 
     const sameCanton = zoneFlowOriginCanton && zoneFlowOriginCanton === zoneFlowDestCanton;
     const totalTrips = zoneFlowData?.total_trips ?? null;
@@ -37,32 +40,19 @@ const ZoneFlowsModule = () => {
 
     const directionLabel =
         zoneFlowDirection === 'both' ? 'Both directions'
-            : zoneFlowDirection === 'origin_to_dest' ? `${zoneFlowOriginCanton} → ${zoneFlowDestCanton}`
-                : `${zoneFlowDestCanton} → ${zoneFlowOriginCanton}`;
+            : zoneFlowDirection === 'origin_to_dest' ? `${originLabel} → ${destLabel}`
+                : `${destLabel} → ${originLabel}`;
 
     return (
         <div className="plot-container">
-            {/* Origin / destination canton pickers */}
+            {/* Origin (from map click) + Destination dropdown */}
             <div className="zf-canton-pickers">
                 <div className="zf-canton-row">
                     <label>Origin</label>
-                    <select
-                        value={zoneFlowOriginCanton || ''}
-                        onChange={(e) => setZoneFlowOriginCanton(e.target.value || null)}
-                    >
-                        <option value="">— Select —</option>
-                        {cantons.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
+                    <div className="zf-origin-display">
+                        {originLabel || <span className="zf-origin-empty">Click a canton</span>}
+                    </div>
                 </div>
-                <button
-                    type="button"
-                    className="zf-swap-btn"
-                    onClick={swap}
-                    disabled={!zoneFlowOriginCanton && !zoneFlowDestCanton}
-                    title="Swap origin and destination"
-                >
-                    ⇅
-                </button>
                 <div className="zf-canton-row">
                     <label>Destination</label>
                     <select
@@ -70,7 +60,9 @@ const ZoneFlowsModule = () => {
                         onChange={(e) => setZoneFlowDestCanton(e.target.value || null)}
                     >
                         <option value="">— Select —</option>
-                        {cantons.map(c => <option key={c} value={c}>{c}</option>)}
+                        {cantons.map(c => (
+                            <option key={c} value={c}>{cantonAlias[c] || c}</option>
+                        ))}
                     </select>
                 </div>
             </div>
@@ -109,9 +101,14 @@ const ZoneFlowsModule = () => {
             </div>
 
             {/* Body */}
-            {!zoneFlowOriginCanton || !zoneFlowDestCanton ? (
+            {!zoneFlowOriginCanton ? (
                 <div className="no-selection">
-                    <p>Pick origin and destination cantons</p>
+                    <p>Click a canton to set the origin</p>
+                    <p className="hint">Then pick a destination canton from the dropdown above.</p>
+                </div>
+            ) : !zoneFlowDestCanton ? (
+                <div className="no-selection">
+                    <p>Pick a destination canton</p>
                     <p className="hint">Trip routes between the two cantons will be highlighted on the map.</p>
                 </div>
             ) : sameCanton ? (
@@ -126,11 +123,11 @@ const ZoneFlowsModule = () => {
                         <tbody>
                             <tr>
                                 <td><strong>Origin</strong></td>
-                                <td>{zoneFlowOriginCanton}</td>
+                                <td>{originLabel}</td>
                             </tr>
                             <tr>
                                 <td><strong>Destination</strong></td>
-                                <td>{zoneFlowDestCanton}</td>
+                                <td>{destLabel}</td>
                             </tr>
                             <tr>
                                 <td><strong>Direction</strong></td>
