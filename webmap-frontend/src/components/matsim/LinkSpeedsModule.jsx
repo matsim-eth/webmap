@@ -10,6 +10,7 @@ import { marks, formatTimeLabel } from '../../utils/timeSliderUtils';
 import FeatureTable from '../table/FeatureTable';
 import useLinePolygon from '../../hooks/useLinePolygon';
 import useLinkSpeedsMapFilter from '../map/useLinkSpeedsMapFilter';
+import { buildSelectionPayload, makeRowMatchesQuery } from '../table/_lib/rowSearch';
 import '../Table.css';
 import './VolumeFlowModule.css';
 
@@ -35,54 +36,7 @@ const formatCell = (key, v) => {
     return String(v);
 };
 
-// Mirrors DataTables' search semantics so the map filter shows exactly the
-// same rows the table is showing: substring on the rendered cell value
-// (or the pipe-joined searchString for "All columns"). Numeric columns
-// support >, <, >=, <= comparison operators as a special case.
-const rowMatchesQuery = (row, query) => {
-    if (!query || !query.value) return true;
-    const { column, value } = query;
-    const raw = String(value).trim();
-    if (!raw) return true;
-
-    if (column && NUMERIC_COLS.has(column)) {
-        const cmp = raw.match(/^(>=?|<=?)\s*([0-9.,]+)$/);
-        if (cmp) {
-            const op = cmp[1];
-            const n = parseFloat(cmp[2].replace(/,/g, ''));
-            const v = Number(row[column]);
-            if (!Number.isFinite(v) || !Number.isFinite(n)) return false;
-            if (op === '>') return v > n;
-            if (op === '<') return v < n;
-            if (op === '>=') return v >= n;
-            if (op === '<=') return v <= n;
-        }
-    }
-
-    const hasSemi = raw.includes(';');
-    const values = raw.split(hasSemi ? ';' : ',').map(v => v.trim()).filter(Boolean);
-    if (!values.length) return true;
-
-    // DataTables search ignores commas/spaces in formatted numbers ("1,234" vs
-    // "1234"); strip both sides so behavior agrees.
-    const norm = (s) => String(s).toLowerCase().replace(/[,\s]/g, '');
-
-    const matchOne = (val) => {
-        const needle = norm(val);
-        const haystack = column
-            ? norm(formatCell(column, row[column]))
-            : norm(row.searchString || '');
-        return haystack.includes(needle);
-    };
-
-    return hasSemi ? values.every(matchOne) : values.some(matchOne);
-};
-
-// Row → map payload used by useFeatureSelectionFocus (mirrors Network/Volumes).
-const buildSelectionPayload = (row) => {
-    if (!row) return null;
-    return { id: row.rowKey, feature: row.feature, coords: row.coords };
-};
+const rowMatchesQuery = makeRowMatchesQuery({ numericCols: NUMERIC_COLS, formatCell });
 
 const roundTo = (value, decimals = 0) => {
     if (!Number.isFinite(value)) return null;
@@ -148,16 +102,14 @@ const buildLinkSpeedsRows = (geojson, linksMap) => {
     return rows;
 };
 
-const LinkSpeedsModule = ({
-    isFeatureTableOpen,
-    featureTableRef,
-    setTableFilterQuery,
-}) => {
+const LinkSpeedsModule = ({ featureTableRef }) => {
     const {
         featureGeoJSON,
         linkSpeedsLinksMap,
         linkSpeedsSummary,
         tableFilterQuery,
+        isFeatureTableOpen,
+        setTableFilterQuery,
     } = useData();
     const {
         clickedCanton,

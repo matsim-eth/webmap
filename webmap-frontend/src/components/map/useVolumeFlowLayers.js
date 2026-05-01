@@ -17,6 +17,24 @@ const TARGET_LABEL_ID = 'volume-flow-target-label';
 // Layer from useNetworkLayers that we attach our click handler to
 const NETWORK_CLICK_LAYER = 'click-network-layer';
 
+// Reset the spider overlay (and any ad-hoc network-highlight from a click) to
+// the empty state. Idempotent. Used by the Reset Link sidebar button; the
+// hook's own cleanup is the equivalent `removeSpider`.
+export function resetVolumeFlowOverlay(map) {
+    if (!map) return;
+    safeRemoveLayer(map, [
+        TARGET_LABEL_ID,
+        LABEL_LAYER_ID,
+        TARGET_LAYER_ID,
+        HIGHLIGHT_LAYER_ID,
+        'network-highlight',
+    ]);
+    safeRemoveSource(map, [SPIDER_SOURCE_ID, 'network-highlight']);
+    if (map.getLayer('network-layer')) {
+        map.setPaintProperty('network-layer', 'line-opacity', 0.4);
+    }
+}
+
 export default function useVolumeFlowLayers({ mapRef, mapReady }) {
     const { isGraphExpanded } = useModule();
     const {

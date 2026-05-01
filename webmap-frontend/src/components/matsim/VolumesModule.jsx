@@ -9,39 +9,30 @@ import { useTableRowBuilder } from "../../hooks/useTableRowBuilder";
 import useLinePolygon from "../../hooks/useLinePolygon";
 import useDrawPolygons from "../../hooks/useDrawPolygons";
 import { computeBoundaryFlow } from "../../utils/boundaryFlow";
+import { buildSelectionPayload } from "../table/_lib/rowSearch";
+import { useData } from "../../context/DataContext";
+import { useFilters } from "../../context/FilterContext";
+import { useSelection } from "../../context/SelectionContext";
+import { useModule } from "../../context/ModuleContext";
+import { useMap } from "../../context/MapContext";
 
-// get coords and id of selected row
-const buildSelectionPayload = (row) => {
-  if (!row) return null;
-  const coords= row.coords;
-  const id = row.rowKey; // add other ones if needed
-  const feature = row.feature;
-  return { id, feature, coords };
-};
+const VolumesModule = ({ featureTableRef }) => {
+  const { isFeatureTableOpen, featureGeoJSON, setTableFilterQuery } = useData();
+  const {
+    selectedNetworkModes,
+    showMajorRoadsOnly, setShowMajorRoadsOnly,
+    timeRange, setTimeRange,
+  } = useFilters();
+  const {
+    clickedCanton: canton,
+    selectedNetworkFeature, setSelectedNetworkFeature,
+    visualizeLinkId, setVisualizeLinkId,
+    setFeatureSelection,
+  } = useSelection();
+  const { isGraphExpanded } = useModule();
+  const { mapRef, drawRef, labelSize, setLabelSize } = useMap();
 
-const VolumesModule = ({
-  selectedNetworkFeature,
-  setSelectedNetworkFeature,
-  selectedGraph,
-  visualizeLinkId,
-  setVisualizeLinkId,
-  canton,
-  timeRange,
-  setTimeRange,
-  showMajorRoadsOnly,
-  setShowMajorRoadsOnly,
-  labelSize,
-  setLabelSize,
-  isFeatureTableOpen,
-  featureGeoJSON,
-  onFocusNetworkFeature,
-  featureTableRef,
-  setTableFilterQuery,
-  selectedNetworkModes,
-  drawRef,
-  mapRef,
-  isGraphExpanded
-}) => {
+  const selectedGraph = isGraphExpanded;
 
   const [filteredVolume, setFilteredVolume] = useState(null);
 
@@ -129,10 +120,10 @@ const VolumesModule = ({
       const payload = buildSelectionPayload(row);
       if (payload) {
         // sends to zoom to feature on map
-        onFocusNetworkFeature?.(payload);
+        setFeatureSelection?.(payload);
       }
     },
-    [onFocusNetworkFeature, setSelectedNetworkFeature]
+    [setFeatureSelection, setSelectedNetworkFeature]
   );
 
   const handleSelectCoords = useCallback(

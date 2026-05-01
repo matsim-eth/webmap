@@ -20,6 +20,26 @@ const NODE_HIGHLIGHT = 'node-flows-node-highlight';
 const ANT_LAYER_FROM = 'node-flows-ant-from';
 const ANT_LAYER_TO = 'node-flows-ant-to';
 
+// Reset the turning-movement overlay back to the empty state. Idempotent —
+// safe to call when no overlay is currently rendered (safeRemove* no-ops on
+// missing layers/sources). Used by the Reset Node sidebar button; the hook
+// itself relies on the equivalent `removeOverlay` defined on its instance.
+export function resetNodeFlowsOverlay(map) {
+    if (!map) return;
+    safeRemoveLayer(map, [
+        ANT_LAYER_FROM,
+        ANT_LAYER_TO,
+        ENTERING_LABELS,
+        EXITING_LABELS,
+        ENTERING_LAYER,
+        NODE_HIGHLIGHT,
+    ]);
+    safeRemoveSource(map, OVERLAY_SOURCE);
+    if (map.getLayer('network-layer')) {
+        map.setPaintProperty('network-layer', 'line-opacity', 0.4);
+    }
+}
+
 // 8-color palette for up to 4-way intersection (entering + exiting)
 const LINK_PALETTE = [
     '#e41a1c',

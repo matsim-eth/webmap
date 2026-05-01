@@ -1,31 +1,50 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import SegmentAttributesTable from "./SegmentAttributesTable";
 import FeatureTable from "../table/FeatureTable";
 import { useTableRowBuilder } from "../../hooks/useTableRowBuilder";
+import { buildSelectionPayload } from "../table/_lib/rowSearch";
+import { useData } from "../../context/DataContext";
+import { useFilters } from "../../context/FilterContext";
+import { useSelection } from "../../context/SelectionContext";
+import { useModule } from "../../context/ModuleContext";
+import { useFileContext } from "../../FileContext";
+import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
 
-// get coords and id of selected row
-const buildSelectionPayload = (row) => {
-  if (!row) return null;
-  const coords= row.coords;
-  const id = row.rowKey; // add other ones if needed
-  const feature = row.feature;
-  return { id, feature, coords };
-};
+// Modes excluded from the canton mode-filter dropdown — these are aggregate
+// or non-road modes the user can't usefully filter on at the network level.
+const EXCLUDED_MODES = ["car_passenger", "truck", "rail", "other", "pt", "taxi"];
 
-const NetworkModule = ({
-  canton,
-  selectedGraph,
-  selectedNetworkModes,
-  availableModes,
-  selectedNetworkFeature,
-  setSelectedNetworkFeature,
-  handleModeChange,
-  isFeatureTableOpen,
-  featureGeoJSON,
-  onFocusNetworkFeature,
-  featureTableRef,
-  setTableFilterQuery
-}) => {
+const NetworkModule = ({ featureTableRef }) => {
+  const { dataURL, isFeatureTableOpen, featureGeoJSON, setTableFilterQuery } = useData();
+  const { selectedNetworkModes, setSelectedNetworkModes } = useFilters();
+  const { clickedCanton: canton, selectedNetworkFeature, setSelectedNetworkFeature, setFeatureSelection } = useSelection();
+  const { isGraphExpanded: selectedGraph } = useModule();
+  const { fileMap } = useFileContext();
+  const loadWithFallback = useLoadWithFallback(dataURL);
+
+  // Per-canton mode list — drives the multi-select dropdown.
+  const { data: modesByCanton = {} } = useQuery({
+    queryKey: ['modes-by-canton', dataURL, fileMap.size],
+    queryFn: () => loadWithFallback("modes_by_canton.json"),
+  });
+
+  const availableModes = useMemo(() => {
+    if (canton && modesByCanton[canton]) {
+      return modesByCanton[canton].filter((mode) => !EXCLUDED_MODES.includes(mode));
+    }
+    return [];
+  }, [canton, modesByCanton]);
+
+  const handleModeChange = (event) => {
+    const selectedOptions = Array.from(event.target.selectedOptions).map((o) => o.value);
+    if (selectedOptions.includes("all") || selectedOptions.length === 0) {
+      setSelectedNetworkModes(["all"]);
+    } else {
+      setSelectedNetworkModes(selectedOptions);
+    }
+  };
+
   const { showTable, tableRows, rowsReady } = useTableRowBuilder({
     isFeatureTableOpen,
     canton,
@@ -40,16 +59,14 @@ const NetworkModule = ({
       if (!row) return;
       const featureProps = row.featureProps || row.feature?.properties;
       if (featureProps) {
-        // sends to update attribute table on sidebar
         setSelectedNetworkFeature?.([featureProps]);
       }
       const payload = buildSelectionPayload(row);
       if (payload) {
-        // sends to zoom to feature on map
-        onFocusNetworkFeature?.(payload);
+        setFeatureSelection?.(payload);
       }
     },
-    [onFocusNetworkFeature, setSelectedNetworkFeature]
+    [setFeatureSelection, setSelectedNetworkFeature]
   );
 
   const handleSelectCoords = useCallback(

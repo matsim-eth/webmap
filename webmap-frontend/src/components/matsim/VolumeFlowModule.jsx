@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { useSelection } from '../../context/SelectionContext';
 import { useFilters } from '../../context/FilterContext';
+import { useData } from '../../context/DataContext';
 import FeatureTable from '../table/FeatureTable';
 import '../Table.css';
 import './VolumeFlowModule.css';
@@ -11,11 +12,8 @@ const DIRECTION_OPTIONS = [
     { value: 'outflow', label: 'Outflow' },
 ];
 
-const VolumeFlowModule = ({
-    isFeatureTableOpen,
-    featureTableRef,
-    setTableFilterQuery
-}) => {
+const VolumeFlowModule = ({ featureTableRef }) => {
+    const { isFeatureTableOpen, setTableFilterQuery } = useData();
     const {
         volumeFlowSegment,
         clickedCanton,

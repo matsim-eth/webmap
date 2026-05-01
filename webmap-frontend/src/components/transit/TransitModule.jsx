@@ -9,39 +9,49 @@ import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
 import { useQuery } from "@tanstack/react-query";
 import { filterRoutesByDirection } from "../../utils/directionUtils";
 import usePointPolygon from "../../hooks/usePointPolygon";
+import { useData } from "../../context/DataContext";
+import { useFilters } from "../../context/FilterContext";
+import { useSelection } from "../../context/SelectionContext";
+import { useChoropleth } from "../../context/ChoroplethContext";
+import { useModule } from "../../context/ModuleContext";
+import { useMap } from "../../context/MapContext";
+import { useFileContext } from "../../FileContext";
 
 
-const TransitModule = ({
-    selectedTransitModes,
-    selectedTransitStop,
-    highlightedLineId,
-    setHighlightedLineId,
-    setHighlightedRouteIds,
-    setSelectedTransitModes,
-    setHoveredRouteId,
-    showStopVolumeSymbology,
-    setShowStopVolumeSymbology,
-    canton,
-    availableTransitModes,
-    timeRange,
-    setTimeRange,
-    // Table-related props
-    isFeatureTableOpen,
-    featureGeoJSON,
-    featureTableRef,
-    setTableFilterQuery,
-    setSelectedTransitStop,
-    onFocusTransitFeature,
-    selectedDirection,
-    setSelectedDirection,
-    drawRef,
-    mapRef,
-    isGraphExpanded
-}) => {
+const TransitModule = ({ featureTableRef }) => {
+    const { dataURL, isFeatureTableOpen, featureGeoJSON, setTableFilterQuery } = useData();
+    const {
+        selectedTransitModes, setSelectedTransitModes,
+        showStopVolumeSymbology, setShowStopVolumeSymbology,
+        timeRange, setTimeRange,
+        selectedDirection, setSelectedDirection,
+    } = useFilters();
+    const {
+        clickedCanton: canton,
+        selectedTransitStop, setSelectedTransitStop,
+        setFeatureSelection,
+    } = useSelection();
+    const {
+        highlightedLineId, setHighlightedLineId,
+        setHighlightedRouteIds, setHoveredRouteId,
+    } = useChoropleth();
+    const { isGraphExpanded } = useModule();
+    const { mapRef, drawRef } = useMap();
+    const { fileMap } = useFileContext();
 
     const [filteredStopVolumes, setFilteredStopVolumes] = useState(null); // total filtered volumes per stop
     const [polygonFilteredVolumes, setPolygonFilteredVolumes] = useState(null);
-    const loadWithFallback = useLoadWithFallback();
+    const loadWithFallback = useLoadWithFallback(dataURL);
+
+    // Per-canton transit mode list — drives the multi-select dropdown.
+    const { data: transitModesByCanton = {} } = useQuery({
+        queryKey: ['transit-modes-by-canton', dataURL, fileMap.size],
+        queryFn: () => loadWithFallback("matsim/transit/transit_modes_by_canton.json"),
+    });
+    const availableTransitModes = useMemo(() => {
+        if (canton && transitModesByCanton[canton]) return transitModesByCanton[canton];
+        return [];
+    }, [canton, transitModesByCanton]);
 
     // Polygon selection: aggregate stops within drawn polygons
     const handlePolygonChange = useCallback(() => {
@@ -143,8 +153,8 @@ const TransitModule = ({
                 setHighlightedRouteIds?.([]);
 
                 // Create highlight and zoom on map
-                if (onFocusTransitFeature && row.feature && row.coords) {
-                    onFocusTransitFeature({
+                if (setFeatureSelection && row.feature && row.coords) {
+                    setFeatureSelection({
                         feature: row.feature,
                         coords: row.coords,
                         id: row.rowKey
@@ -152,7 +162,7 @@ const TransitModule = ({
                 }
             }
         },
-        [onFocusTransitFeature, setSelectedTransitStop, setHighlightedLineId, setHighlightedRouteIds]
+        [setFeatureSelection, setSelectedTransitStop, setHighlightedLineId, setHighlightedRouteIds]
     );
 
     const handleSelectCoords = useCallback(

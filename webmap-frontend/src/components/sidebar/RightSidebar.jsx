@@ -1,7 +1,5 @@
-import React, { useState, useMemo, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState, useRef } from "react";
 import "./RightSidebar.css";
-import { useFileContext } from "../../FileContext";
 import { useModule } from "../../context/ModuleContext";
 import { useMap } from "../../context/MapContext";
 import { useData } from "../../context/DataContext";
@@ -41,161 +39,62 @@ import LinkSpeedsModule from "../matsim/LinkSpeedsModule";
 // Zone Flows
 import ZoneFlowsModule from "../matsim/ZoneFlowsModule";
 
-// Use uploaded data
-import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
+// Reset helpers for the spider/turning-movement overlays
+import { resetNodeFlowsOverlay } from "../map/useNodeFlowLayers";
+import { resetVolumeFlowOverlay } from "../map/useVolumeFlowLayers";
+
+// Module labels for the header
+const MODULE_LABELS = {
+  Choropleth: "Choropleth",
+  Network: "MATSim Network",
+  Volumes: "Road Volumes",
+  Transit: "Transit Stops",
+  TransitVolumes: "Transit Volumes",
+  Destination: "Destination Zones",
+  PtBoardings: "PT Boardings",
+  VolumeFlow: "Volume Flow",
+  NodeFlows: "Node Flows",
+  LinkSpeeds: "Link Speeds",
+  ZoneFlows: "Zone Flows",
+};
+
+const TABLE_MODULES = new Set(["Network", "Volumes", "Transit", "TransitVolumes", "VolumeFlow", "LinkSpeeds"]);
+const POLYGON_MODULES = new Set(["Transit", "Volumes", "TransitVolumes", "LinkSpeeds"]);
 
 const RightSidebar = () => {
   const { isGraphExpanded } = useModule();
+  const { isSidebarOpen, setIsSidebarOpen, mapRef, drawRef } = useMap();
   const {
-    isSidebarOpen, setIsSidebarOpen,
-    labelSize, setLabelSize,
-    mapRef,
-    drawRef,
-  } = useMap();
-  const {
-    dataURL,
     isFeatureTableOpen, setIsFeatureTableOpen, setTableFilterQuery,
-    featureGeoJSON,
-    setDestinationData,
-    setBoardingData,
     nodeFlowsData, setNodeFlowsData,
+    setDestinationData, setBoardingData,
   } = useData();
-  const {
-    selectedNetworkModes, setSelectedNetworkModes,
-    selectedTransitModes, setSelectedTransitModes,
-    showMajorRoadsOnly, setShowMajorRoadsOnly,
-    showStopVolumeSymbology, setShowStopVolumeSymbology,
-    setShowLineSymbology, showLineSymbology,
-    timeRange, setTimeRange,
-    selectedDirection, setSelectedDirection,
-  } = useFilters();
-  const {
-    clickedCanton: canton,
-    selectedNetworkFeature, setSelectedNetworkFeature,
-    visualizeLinkId, setVisualizeLinkId,
-    setFeatureSelection,
-    selectedTransitStop, setSelectedTransitStop,
-    selectedTransitLink, setSelectedTransitLink,
-    setVolumeFlowSegment,
-  } = useSelection();
+  const { timeRange, setTimeRange } = useFilters();
+  const { clickedCanton: canton, selectedTransitStop, setVolumeFlowSegment } = useSelection();
   const {
     updateMapChoropleth,
-    highlightedLineId, setHighlightedLineId,
-    setHighlightedRouteIds, setHoveredRouteId,
     aggCol: selectedAggCol,
     setAggCol: setSelectedAggCol,
   } = useChoropleth();
 
-  // Alias for functions that were passed as props with different names
-  const onFocusNetworkFeature = setFeatureSelection;
-  const onFocusTransitFeature = setFeatureSelection;
-
-  // ======================= INITIALIZE VARIABLES =======================
-  // selectedGraph is now isGraphExpanded from AppContext
   const [selectedMode, setSelectedMode] = useState("None"); // Choropleth mode
   const [selectedDataset, setSelectedDataset] = useState("Microcensus"); // Choropleth dataset
-
-  // Add state for destination outflow data
   const [destinationOutflowData, setDestinationOutflowData] = useState(null);
 
-  // Data loading
-  const { fileMap } = useFileContext();
-  const loadWithFallback = useLoadWithFallback(dataURL);
   const featureTableRef = useRef(null);
   const transitFeatureTableRef = useRef(null);
 
-  // ======================= MATSIM NETWORK MODULE =======================
-  const { data: modesByCanton = {} } = useQuery({
-    queryKey: ['modes-by-canton', dataURL, fileMap.size],
-    queryFn: () => loadWithFallback("modes_by_canton.json"),
-  });
-
-  // Derived state: available modes for the selected canton
-  const availableModes = useMemo(() => {
-    if (canton && modesByCanton[canton]) {
-      return modesByCanton[canton].filter((mode) => !["car_passenger", "truck", "rail", "other", "pt", "taxi"].includes(mode));
-    }
-    return [];
-  }, [canton, modesByCanton]);
-
-  const handleModeChange = (event) => {
-    const selectedOptions = Array.from(event.target.selectedOptions).map((option) => option.value);
-    if (selectedOptions.includes("all") || selectedOptions.length === 0) {
-      setSelectedNetworkModes(["all"]);
-    } else {
-      setSelectedNetworkModes(selectedOptions);
-    }
-  };
-
-  // ======================== TRANSIT MODULE =======================
-  const { data: transitModesByCanton = {} } = useQuery({
-    queryKey: ['transit-modes-by-canton', dataURL, fileMap.size],
-    queryFn: () => loadWithFallback("matsim/transit/transit_modes_by_canton.json"),
-  });
-
-  // Derived state: available transit modes for the selected canton
-  const availableTransitModes = useMemo(() => {
-    if (canton && transitModesByCanton[canton]) {
-      return transitModesByCanton[canton];
-    }
-    return [];
-  }, [canton, transitModesByCanton]);
-
-  // ======================== DESTINATION MODULE =======================
   const handleTotalOutflowChange = (outflowData) => {
     setDestinationOutflowData(outflowData);
-    if (setDestinationData) {
-      console.log("Sidebar - calling setDestinationData with:", outflowData);
-      setDestinationData(outflowData);
-    } else {
-      console.log("Sidebar - setDestinationData is not available");
-    }
+    setDestinationData?.(outflowData);
   };
 
-  // Handle boarding data from PtBoardings
   const handleTotalBoardingsChange = (boardingData) => {
-    console.log('Sidebar - boarding data updated:', boardingData);
-
-    // Log detailed information about selected line if available
-    if (boardingData.selectedLineInfo) {
-      console.log('Sidebar - selected line details:', {
-        lineId: boardingData.selectedLineInfo.line_id,
-        lineName: boardingData.selectedLineInfo.line_name,
-        vehicle: boardingData.selectedLineInfo.vehicle,
-        cantons: boardingData.selectedLineInfo.cantons,
-        routeIds: boardingData.selectedLineInfo.route_ids
-      });
-    }
-
-    // Pass to App component via setBoardingData prop
-    if (setBoardingData) {
-      console.log('Sidebar - calling setBoardingData with:', boardingData);
-      setBoardingData(boardingData);
-    } else {
-      console.log('Sidebar - setBoardingData is not available');
-    }
-  };
-
-
-  // ======================= SIDEBAR ITEMS =======================
-
-  // Module labels for the header
-  const moduleLabels = {
-    Choropleth: "Choropleth",
-    Network: "MATSim Network",
-    Volumes: "Road Volumes",
-    Transit: "Transit Stops",
-    TransitVolumes: "Transit Volumes",
-    Destination: "Destination Zones",
-    PtBoardings: "PT Boardings",
-    VolumeFlow: "Volume Flow",
-    NodeFlows: "Node Flows",
-    LinkSpeeds: "Link Speeds",
-    ZoneFlows: "Zone Flows",
+    setBoardingData?.(boardingData);
   };
 
   // Does this module have a feature table?
-  const hasTable = ["Network", "Volumes", "Transit", "TransitVolumes", "VolumeFlow", "LinkSpeeds"].includes(isGraphExpanded);
+  const hasTable = TABLE_MODULES.has(isGraphExpanded);
 
   // Determine width class
   let sidebarClass = "hidden";
@@ -218,7 +117,7 @@ const RightSidebar = () => {
       {/* Header */}
       <div className="right-sidebar-header">
         {isSidebarOpen && (
-          <span className="right-sidebar-title">{moduleLabels[isGraphExpanded]}</span>
+          <span className="right-sidebar-title">{MODULE_LABELS[isGraphExpanded]}</span>
         )}
         <button
           className="right-sidebar-close"
@@ -242,7 +141,6 @@ const RightSidebar = () => {
                 <span>{isFeatureTableOpen ? "Close Table" : "Open Table"}</span>
               </button>
 
-              {/* Export Table — when table is open */}
               {isFeatureTableOpen && (
                 <button
                   className="panel-toolbar-btn"
@@ -261,8 +159,7 @@ const RightSidebar = () => {
                 </button>
               )}
 
-              {/* Polygon draw buttons — Transit, Network, Volumes, TransitVolumes */}
-              {["Transit", "Volumes", "TransitVolumes", "LinkSpeeds"].includes(isGraphExpanded) && (
+              {POLYGON_MODULES.has(isGraphExpanded) && (
                 <>
                   <button
                     className="panel-toolbar-btn"
@@ -284,21 +181,12 @@ const RightSidebar = () => {
                 </>
               )}
 
-              {/* Reset Node button — only for NodeFlows */}
               {!isFeatureTableOpen && isGraphExpanded === "NodeFlows" && nodeFlowsData && (
                 <button
                   className="panel-toolbar-btn"
                   onClick={() => {
                     setNodeFlowsData(null);
-                    const map = mapRef?.current;
-                    if (map) {
-                      ['node-flows-entering','node-flows-exiting','node-flows-entering-labels','node-flows-exiting-labels','node-flows-node-circle'].forEach(id => {
-                        if (map.getLayer(id)) map.removeLayer(id);
-                      });
-                      if (map.getSource('node-flows-source')) map.removeSource('node-flows-source');
-                      if (map.getSource('node-flows-node')) map.removeSource('node-flows-node');
-                      if (map.getLayer('network-layer')) map.setPaintProperty('network-layer', 'line-opacity', 0.4);
-                    }
+                    resetNodeFlowsOverlay(mapRef?.current);
                   }}
                 >
                   <FontAwesomeIcon icon={faRotateLeft} />
@@ -306,25 +194,12 @@ const RightSidebar = () => {
                 </button>
               )}
 
-              {/* Reset Link button — only when table is closed, only for VolumeFlow */}
               {!isFeatureTableOpen && isGraphExpanded === "VolumeFlow" && (
                 <button
                   className="panel-toolbar-btn"
                   onClick={() => {
                     setVolumeFlowSegment(null);
-                    // Remove spider overlay source + layers and highlighted link
-                    const map = mapRef?.current;
-                    if (map) {
-                      ['volume-flow-target-label','volume-flow-labels','volume-flow-target','volume-flow-highlight'].forEach(id => {
-                        if (map.getLayer(id)) map.removeLayer(id);
-                      });
-                      if (map.getSource('volume-flow-spider')) map.removeSource('volume-flow-spider');
-                      // Remove the highlighted network link
-                      if (map.getLayer('network-highlight')) map.removeLayer('network-highlight');
-                      if (map.getSource('network-highlight')) map.removeSource('network-highlight');
-                      // Restore base network opacity
-                      if (map.getLayer('network-layer')) map.setPaintProperty('network-layer', 'line-opacity', 0.4);
-                    }
+                    resetVolumeFlowOverlay(mapRef?.current);
                   }}
                 >
                   <FontAwesomeIcon icon={faRotateLeft} />
@@ -336,7 +211,6 @@ const RightSidebar = () => {
 
           {/* Scrollable content */}
           <div className="right-sidebar-content">
-            {/* Mode Share Choropleth */}
             {isGraphExpanded === "Choropleth" && (
               <div>
                 <ChoroplethControls
@@ -357,7 +231,6 @@ const RightSidebar = () => {
               </div>
             )}
 
-            {/* Destination Module */}
             {isGraphExpanded === "Destination" && (
               <div className="plot-container">
                 <DestinationZones
@@ -369,7 +242,6 @@ const RightSidebar = () => {
               </div>
             )}
 
-            {/* PT Boardings Module */}
             {isGraphExpanded === "PtBoardings" && (
               <div className="plot-container">
                 <PtBoardings
@@ -378,141 +250,40 @@ const RightSidebar = () => {
                   setTimeRange={setTimeRange}
                   onTotalBoardingsChange={handleTotalBoardingsChange}
                   selectedTransitStop={selectedTransitStop}
-                  loadWithFallback={loadWithFallback}
                 />
               </div>
             )}
 
-            {/* Volume Flow Analysis Module */}
             {isGraphExpanded === "VolumeFlow" && (
               <VolumeFlowModule
-                isFeatureTableOpen={isFeatureTableOpen}
                 featureTableRef={featureTableRef}
-                setTableFilterQuery={setTableFilterQuery}
               />
             )}
 
-            {/* Node Flows Module */}
-            {isGraphExpanded === "NodeFlows" && (
-              <NodeFlowsModule />
-            )}
+            {isGraphExpanded === "NodeFlows" && <NodeFlowsModule />}
 
-            {/* Link Speeds Module */}
             {isGraphExpanded === "LinkSpeeds" && (
               <LinkSpeedsModule
-                isFeatureTableOpen={isFeatureTableOpen}
                 featureTableRef={featureTableRef}
-                setTableFilterQuery={setTableFilterQuery}
               />
             )}
 
-            {/* Zone Flows Module */}
-            {isGraphExpanded === "ZoneFlows" && (
-              <ZoneFlowsModule />
-            )}
+            {isGraphExpanded === "ZoneFlows" && <ZoneFlowsModule />}
 
-            {/* Network Module */}
             {isGraphExpanded === "Network" && (
-              <NetworkModule
-                canton={canton}
-                selectedGraph={isGraphExpanded}
-                selectedNetworkModes={selectedNetworkModes}
-                availableModes={availableModes}
-                selectedNetworkFeature={selectedNetworkFeature}
-                setSelectedNetworkFeature={setSelectedNetworkFeature}
-                handleModeChange={handleModeChange}
-                isFeatureTableOpen={isFeatureTableOpen}
-                featureGeoJSON={featureGeoJSON}
-                onFocusNetworkFeature={onFocusNetworkFeature}
-                featureTableRef={featureTableRef}
-                setTableFilterQuery={setTableFilterQuery}
-              />
+              <NetworkModule featureTableRef={featureTableRef} />
             )}
 
-            {/* Road Volume Module */}
             {isGraphExpanded === "Volumes" && (
-              <VolumesModule
-                selectedNetworkFeature={selectedNetworkFeature}
-                setSelectedNetworkFeature={setSelectedNetworkFeature}
-                selectedGraph={isGraphExpanded}
-                visualizeLinkId={visualizeLinkId}
-                setVisualizeLinkId={setVisualizeLinkId}
-                canton={canton}
-                timeRange={timeRange}
-                setTimeRange={setTimeRange}
-                showMajorRoadsOnly={showMajorRoadsOnly}
-                setShowMajorRoadsOnly={setShowMajorRoadsOnly}
-                labelSize={labelSize}
-                setLabelSize={setLabelSize}
-                isFeatureTableOpen={isFeatureTableOpen}
-                featureGeoJSON={featureGeoJSON}
-                onFocusNetworkFeature={onFocusNetworkFeature}
-                featureTableRef={featureTableRef}
-                setTableFilterQuery={setTableFilterQuery}
-                selectedNetworkModes={selectedNetworkModes}
-                drawRef={drawRef}
-                mapRef={mapRef}
-                isGraphExpanded={isGraphExpanded}
-              />
+              <VolumesModule featureTableRef={featureTableRef} />
             )}
 
-            {/* Transit Module */}
             {isGraphExpanded === "Transit" && (
-              <TransitModule
-                selectedTransitModes={selectedTransitModes}
-                setSelectedTransitModes={setSelectedTransitModes}
-                availableTransitModes={availableTransitModes}
-                selectedTransitStop={selectedTransitStop}
-                setSelectedTransitStop={setSelectedTransitStop}
-                highlightedLineId={highlightedLineId}
-                setHighlightedLineId={setHighlightedLineId}
-                setHighlightedRouteIds={setHighlightedRouteIds}
-                setHoveredRouteId={setHoveredRouteId}
-                showStopVolumeSymbology={showStopVolumeSymbology}
-                setShowStopVolumeSymbology={setShowStopVolumeSymbology}
-                canton={canton}
-                timeRange={timeRange}
-                setTimeRange={setTimeRange}
-                isFeatureTableOpen={isFeatureTableOpen}
-                featureGeoJSON={featureGeoJSON}
-                featureTableRef={featureTableRef}
-                setTableFilterQuery={setTableFilterQuery}
-                onFocusTransitFeature={onFocusTransitFeature}
-                selectedDirection={selectedDirection}
-                setSelectedDirection={setSelectedDirection}
-                drawRef={drawRef}
-                mapRef={mapRef}
-                isGraphExpanded={isGraphExpanded}
-              />
+              <TransitModule featureTableRef={featureTableRef} />
             )}
 
-            {/* Transit Volumes Module */}
             {isGraphExpanded === "TransitVolumes" && (
-              <TransitVolumesModule
-                selectedTransitModes={selectedTransitModes}
-                setSelectedTransitModes={setSelectedTransitModes}
-                selectedTransitLink={selectedTransitLink}
-                selectedGraph={isGraphExpanded}
-                canton={canton}
-                timeRange={timeRange}
-                setTimeRange={setTimeRange}
-                availableTransitModes={availableTransitModes}
-                showLineSymbology={showLineSymbology}
-                setShowLineSymbology={setShowLineSymbology}
-                highlightedLineId={highlightedLineId}
-                setHighlightedLineId={setHighlightedLineId}
-                visualizeLinkId={visualizeLinkId}
-                setVisualizeLinkId={setVisualizeLinkId}
-                isFeatureTableOpen={isFeatureTableOpen}
-                featureGeoJSON={featureGeoJSON}
-                transitFeatureTableRef={transitFeatureTableRef}
-                setTableFilterQuery={setTableFilterQuery}
-                setSelectedTransitLink={setSelectedTransitLink}
-                onFocusTransitFeature={onFocusTransitFeature}
-                drawRef={drawRef}
-                mapRef={mapRef}
-                isGraphExpanded={isGraphExpanded}
-              />
+              <TransitVolumesModule transitFeatureTableRef={transitFeatureTableRef} />
             )}
           </div>
         </>

@@ -11,41 +11,47 @@ import useLinePolygon from "../../hooks/useLinePolygon";
 import useDrawPolygons from "../../hooks/useDrawPolygons";
 import { useTransitVolumeHighlightSync } from "../../hooks/useTransitVolumeHighlightSync";
 import { computeBoundaryFlow } from "../../utils/boundaryFlow";
+import { buildSelectionPayload } from "../table/_lib/rowSearch";
+import { useData } from "../../context/DataContext";
+import { useFilters } from "../../context/FilterContext";
+import { useSelection } from "../../context/SelectionContext";
+import { useChoropleth } from "../../context/ChoroplethContext";
+import { useModule } from "../../context/ModuleContext";
+import { useMap } from "../../context/MapContext";
+import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
+import { useFileContext } from "../../FileContext";
+import { useQuery } from "@tanstack/react-query";
 
-// get coords and id of selected row
-const buildSelectionPayload = (row) => {
-  if (!row) return null;
-  const coords = row.coords;
-  const id = row.rowKey;
-  const feature = row.feature;
-  return { id, feature, coords };
-};
+const TransitVolumesModule = ({ transitFeatureTableRef }) => {
+  const { dataURL, isFeatureTableOpen, featureGeoJSON, setTableFilterQuery } = useData();
+  const {
+    selectedTransitModes, setSelectedTransitModes,
+    showLineSymbology, setShowLineSymbology,
+    timeRange, setTimeRange,
+  } = useFilters();
+  const {
+    clickedCanton: canton,
+    selectedTransitLink, setSelectedTransitLink,
+    visualizeLinkId, setVisualizeLinkId,
+    setFeatureSelection,
+  } = useSelection();
+  const { highlightedLineId, setHighlightedLineId } = useChoropleth();
+  const { isGraphExpanded } = useModule();
+  const { mapRef, drawRef } = useMap();
+  const { fileMap } = useFileContext();
+  const loadWithFallback = useLoadWithFallback(dataURL);
 
-const TransitVolumesModule = ({
-  selectedTransitLink, // clicked transit segment(s)
-  setSelectedTransitLink,
-  timeRange,
-  setTimeRange,
-  availableTransitModes,
-  selectedTransitModes,
-  setSelectedTransitModes,
-  canton,
-  showLineSymbology,
-  setShowLineSymbology,
-  setHighlightedLineId,
-  highlightedLineId,
-  visualizeLinkId,
-  setVisualizeLinkId,
-  isFeatureTableOpen,
-  featureGeoJSON,
-  transitFeatureTableRef,
-  setTableFilterQuery,
-  selectedGraph,
-  onFocusTransitFeature,
-  drawRef,
-  mapRef,
-  isGraphExpanded
-}) => {
+  const selectedGraph = isGraphExpanded;
+
+  // Per-canton transit mode list — drives the multi-select dropdown.
+  const { data: transitModesByCanton = {} } = useQuery({
+    queryKey: ['transit-modes-by-canton', dataURL, fileMap.size],
+    queryFn: () => loadWithFallback("matsim/transit/transit_modes_by_canton.json"),
+  });
+  const availableTransitModes = useMemo(() => {
+    if (canton && transitModesByCanton[canton]) return transitModesByCanton[canton];
+    return [];
+  }, [canton, transitModesByCanton]);
 
   // Reset highlightedLineId on canton change AND when the feature table opens.
   // Clearing on table-open lets row clicks happen with no line filter active,
@@ -219,10 +225,10 @@ const TransitVolumesModule = ({
       const payload = buildSelectionPayload(row);
       if (payload) {
         // sends to zoom to feature on map
-        onFocusTransitFeature?.(payload);
+        setFeatureSelection?.(payload);
       }
     },
-    [onFocusTransitFeature, setSelectedTransitLink]
+    [setFeatureSelection, setSelectedTransitLink]
   );
 
   const handleSelectCoords = useCallback(
