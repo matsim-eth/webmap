@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import cantonAlias from "../../utils/canton_alias.json";
+import { safeRemoveLayer, safeRemoveSource } from './_lib/mapbox';
 
 
 /**
@@ -266,13 +267,8 @@ export default function usePtBoardings({
     
     // Remove PT stops layers if not in PtBoardings mode or no canton selected
     if (isGraphExpanded !== "PtBoardings" || !searchCanton) {
-      ["pt-boardings-stops-layer", "pt-boardings-stops-label", "pt-boardings-stops-hitbox"].forEach(id => {
-        if (map.getLayer(id)) map.removeLayer(id);
-      });
-      
-      if (map.getSource("pt-boardings-stops")) {
-        map.removeSource("pt-boardings-stops");
-      }
+      safeRemoveLayer(map, ["pt-boardings-stops-layer", "pt-boardings-stops-label", "pt-boardings-stops-hitbox"]);
+      safeRemoveSource(map, "pt-boardings-stops");
       return;
     }
     

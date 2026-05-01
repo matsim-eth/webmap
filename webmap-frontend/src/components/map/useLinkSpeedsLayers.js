@@ -1,7 +1,12 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { nearestPointOnLine, lineString, point } from '@turf/turf';
-import { useApp } from '../../context/AppContext';
+import { useModule } from '../../context/ModuleContext';
+import { useSelection } from '../../context/SelectionContext';
+import { useData } from '../../context/DataContext';
+import { useFilters } from '../../context/FilterContext';
 import { handle401 } from '../../utils/auth';
+import { safeRemoveLayer, safeRemoveSource, setVisibility } from './_lib/mapbox';
+import { parsePipeList } from './_lib/pipeProps';
 
 const SPEEDS_SOURCE_ID = 'link-speeds-source';
 const SPEEDS_LAYER_ID = 'link-speeds-layer';
@@ -37,8 +42,8 @@ const LABEL_OFFSET_WIDE = 1.6;
 
 // Per-direction aggregation for one feature. Shared by both passes.
 function aggregatePerDir(f, linksMap) {
-    const keys = (f.properties?.per_id_keys || '').split('|').filter(Boolean);
-    const arrows = (f.properties?.per_id_arrows || '').split('|').filter(Boolean);
+    const keys = parsePipeList(f.properties?.per_id_keys);
+    const arrows = parsePipeList(f.properties?.per_id_arrows);
     const perDir = {
         '\u2192': { vsum: 0, fsum: 0, volsum: 0, count: 0, ids: [] },
         '\u2190': { vsum: 0, fsum: 0, volsum: 0, count: 0, ids: [] },
@@ -134,21 +139,21 @@ function summarize(t) {
 }
 
 export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) {
+    const { isGraphExpanded } = useModule();
     const {
-        isGraphExpanded,
         clickedCanton,
-        featureGeoJSON,
-        datasetId,
-        timeRange,
-        linkSpeedsMetric,
-        linkSpeedsRoadTypes,
         featureSelection,
         setLinkSpeedsSelected,
-        setLinkSpeedsSummary,
-        setLinkSpeedsLinksMap,
         setSelectedNetworkFeature,
         setFeatureSelection,
-    } = useApp();
+    } = useSelection();
+    const {
+        featureGeoJSON,
+        datasetId,
+        setLinkSpeedsSummary,
+        setLinkSpeedsLinksMap,
+    } = useData();
+    const { timeRange, linkSpeedsMetric, linkSpeedsRoadTypes } = useFilters();
 
     // Cache fetched links keyed by canton+timeRange+dataset so that road-type
     // and metric changes don't trigger a re-fetch from the backend.
@@ -162,16 +167,11 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
     const [linksState, setLinksState] = useState({ key: null, links: null });
 
     const removeOverlay = useCallback((map) => {
-        [SPEEDS_LABELS_RIGHT, SPEEDS_LABELS_LEFT, SPEEDS_LAYER_ID, SPEEDS_AGG_LAYER_ID].forEach(id => {
-            if (map.getLayer(id)) map.removeLayer(id);
-        });
-        if (map.getSource(SPEEDS_SOURCE_ID)) map.removeSource(SPEEDS_SOURCE_ID);
-        if (map.getSource(SPEEDS_AGG_SOURCE_ID)) map.removeSource(SPEEDS_AGG_SOURCE_ID);
+        safeRemoveLayer(map, [SPEEDS_LABELS_RIGHT, SPEEDS_LABELS_LEFT, SPEEDS_LAYER_ID, SPEEDS_AGG_LAYER_ID]);
+        safeRemoveSource(map, [SPEEDS_SOURCE_ID, SPEEDS_AGG_SOURCE_ID]);
         // Restore base network-layer visibility (we hide it while in LinkSpeeds
         // since the colored speed lines cover the same geometry).
-        if (map.getLayer('network-layer')) {
-            map.setLayoutProperty('network-layer', 'visibility', 'visible');
-        }
+        setVisibility(map, 'network-layer', true);
         // Invalidate the links cache so re-entering the module re-fetches/re-builds
         // features (prevents stale symbology when swapping modules).
         cacheRef.current = { key: null, links: null };
@@ -269,9 +269,7 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
 
         // Hide base network-layer — the colored speed lines cover the same
         // geometry, so rendering the gray base underneath is wasted work.
-        if (map.getLayer('network-layer')) {
-            map.setLayoutProperty('network-layer', 'visibility', 'none');
-        }
+        setVisibility(map, 'network-layer', false);
     }, []);
 
     // Module-exit teardown (separate so fetch/build effects can be narrow).
@@ -335,8 +333,8 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
             if (!e.features?.length) return;
             const clicked = pickByClickSide(e.features, e.lngLat);
 
-            if (map.getLayer('network-highlight')) map.removeLayer('network-highlight');
-            if (map.getSource('network-highlight')) map.removeSource('network-highlight');
+            safeRemoveLayer(map, 'network-highlight');
+            safeRemoveSource(map, 'network-highlight');
             map.addSource('network-highlight', {
                 type: 'geojson',
                 data: { type: 'FeatureCollection', features: [clicked] },
@@ -557,13 +555,7 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
         const props = sel?.feature?.properties;
         // Helper: toggle on-map highlight in lockstep with sidebar data so the
         // selection visually disappears when filtered out by road type.
-        const setHighlightVisible = (visible) => {
-            if (!map) return;
-            const v = visible ? 'visible' : 'none';
-            ['network-highlight'].forEach(id => {
-                if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', v);
-            });
-        };
+        const setHighlightVisible = (visible) => setVisibility(map, 'network-highlight', visible);
         if (!props) {
             setLinkSpeedsSelected(null);
             setHighlightVisible(false);
@@ -571,7 +563,7 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
         }
         // Prefer ls_link_ids (direction-specific) over per_id_keys (full segment)
         // so split-layer clicks produce direction-specific metrics.
-        const keys = (props.ls_link_ids || props.per_id_keys || '').split('|').filter(Boolean);
+        const keys = parsePipeList(props.ls_link_ids || props.per_id_keys);
         const linksMap = filteredLinksRef.current || {};
         let vsum = 0, fsum = 0, volsum = 0;
         const matchedIds = [];

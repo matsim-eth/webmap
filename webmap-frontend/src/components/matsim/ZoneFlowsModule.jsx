@@ -1,7 +1,9 @@
 import React, { useMemo } from 'react';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
-import { useApp } from '../../context/AppContext';
+import { useSelection } from '../../context/SelectionContext';
+import { useFilters } from '../../context/FilterContext';
+import { useData } from '../../context/DataContext';
 import { marks, formatTimeLabel } from '../../utils/timeSliderUtils';
 import bboxCache from '../../utils/bboxCanton.json';
 import cantonAlias from '../../utils/canton_alias.json';
@@ -18,11 +20,12 @@ const ZoneFlowsModule = () => {
     const {
         clickedCanton: zoneFlowOriginCanton,
         zoneFlowDestCanton, setZoneFlowDestCanton,
+    } = useSelection();
+    const {
         zoneFlowDirection, setZoneFlowDirection,
-        zoneFlowData,
-        zoneFlowLoading,
         timeRange, setTimeRange,
-    } = useApp();
+    } = useFilters();
+    const { zoneFlowData, zoneFlowLoading } = useData();
 
     const cantons = useMemo(
         () => Object.keys(bboxCache).sort((a, b) =>

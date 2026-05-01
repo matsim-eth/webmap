@@ -13,7 +13,11 @@ import {
   faRightLeft,
 } from '@fortawesome/free-solid-svg-icons';
 import { useFileContext } from '../../FileContext';
-import { useApp } from '../../context/AppContext';
+import { useModule } from '../../context/ModuleContext';
+import { useMap } from '../../context/MapContext';
+import { useData } from '../../context/DataContext';
+import { useFilters } from '../../context/FilterContext';
+import { useChoropleth } from '../../context/ChoroplethContext';
 import { redirectToLogin, checkIsAdmin } from '../../utils/auth';
 import { useQuery } from '@tanstack/react-query';
 import DatasetSelector from '../DatasetSelector';
@@ -31,21 +35,21 @@ const LeftSidebar = () => {
   const [modulesOpen, setModulesOpen] = useState(true);
   const [dataOpen, setDataOpen] = useState(true);
 
+  const { isGraphExpanded, setIsGraphExpanded } = useModule();
   const {
-    isGraphExpanded, setIsGraphExpanded,
     setIsSidebarOpen,
-    setIsFeatureTableOpen,
-    setHighlightedLineId, setHighlightedRouteIds,
-    setSelectedNetworkModes,
     setResetMapTrigger,
-    setSelectedDataset, setSelectedMode,
-    setSelectedTransitModes,
-    updateMapChoropleth,
     resetMapView,
-    setDataURL,
     isLeftSidebarCollapsed: isCollapsed,
     setIsLeftSidebarCollapsed: setIsCollapsed,
-  } = useApp();
+  } = useMap();
+  const { setIsFeatureTableOpen, setDataURL } = useData();
+  const { setSelectedNetworkModes, setSelectedTransitModes } = useFilters();
+  const {
+    setHighlightedLineId, setHighlightedRouteIds,
+    setSelectedDataset, setSelectedMode,
+    updateMapChoropleth,
+  } = useChoropleth();
 
   const { handleFolderUpload, fileMap, clearFileMap } = useFileContext();
 

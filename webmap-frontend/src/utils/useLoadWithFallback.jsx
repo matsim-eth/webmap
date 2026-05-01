@@ -1,10 +1,10 @@
 import { useFileContext } from "../FileContext";
-import { useApp } from "../context/AppContext";
+import { useData } from "../context/DataContext";
 import { handle401 } from "./auth";
 
 export const useLoadWithFallback = (explicitDataURL) => {
   const { fileMap, readJSONFile, dataURL: contextDataURL } = useFileContext();
-  const { datasetId } = useApp();
+  const { datasetId } = useData();
 
   const BACKEND_DATA_URL = `/backend/data/${datasetId}/`;
   const DEFAULT_DATA_URL = "https://matsim-eth.github.io/webmap/data/";

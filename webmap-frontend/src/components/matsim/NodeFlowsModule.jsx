@@ -1,7 +1,9 @@
 import React, { useMemo } from 'react';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
-import { useApp } from '../../context/AppContext';
+import { useData } from '../../context/DataContext';
+import { useSelection } from '../../context/SelectionContext';
+import { useFilters } from '../../context/FilterContext';
 import { marks, formatTimeLabel } from '../../utils/timeSliderUtils';
 import './NodeFlowsModule.css';
 
@@ -34,10 +36,9 @@ const cellTextColor = (value, max) => {
 };
 
 const NodeFlowsModule = () => {
-    const {
-        nodeFlowsData, clickedCanton, hoveredMatrixCell, setHoveredMatrixCell,
-        timeRange, setTimeRange,
-    } = useApp();
+    const { nodeFlowsData } = useData();
+    const { clickedCanton, hoveredMatrixCell, setHoveredMatrixCell } = useSelection();
+    const { timeRange, setTimeRange } = useFilters();
 
     const timeSlider = (
         <div className="right-sidebar-control-row" style={{ marginBottom: 28 }}>

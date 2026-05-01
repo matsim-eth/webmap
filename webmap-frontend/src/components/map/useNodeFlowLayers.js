@@ -1,7 +1,12 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { useApp } from '../../context/AppContext';
+import { useModule } from '../../context/ModuleContext';
+import { useSelection } from '../../context/SelectionContext';
+import { useData } from '../../context/DataContext';
+import { useFilters } from '../../context/FilterContext';
 import { useDebounced } from '../../hooks/useDebounced';
 import { handle401 } from '../../utils/auth';
+import { safeRemoveLayer, safeRemoveSource, setFilter } from './_lib/mapbox';
+import { parsePipeList } from './_lib/pipeProps';
 
 // Layer/source IDs
 const NODES_SOURCE = 'node-flows-nodes';
@@ -95,16 +100,10 @@ function fetchNodesGeoJSON(datasetId, canton) {
 }
 
 export default function useNodeFlowLayers({ mapRef, mapReady, setIsLoading }) {
-    const {
-        isGraphExpanded,
-        clickedCanton,
-        featureGeoJSON,
-        setNodeFlowsData,
-        datasetId,
-        hoveredMatrixCell,
-        setHoveredMatrixCell,
-        timeRange,
-    } = useApp();
+    const { isGraphExpanded } = useModule();
+    const { clickedCanton, hoveredMatrixCell, setHoveredMatrixCell } = useSelection();
+    const { featureGeoJSON, setNodeFlowsData, datasetId } = useData();
+    const { timeRange } = useFilters();
 
     const debouncedTimeRange = useDebounced(timeRange, 400);
 
@@ -125,25 +124,18 @@ export default function useNodeFlowLayers({ mapRef, mapReady, setIsLoading }) {
             cancelAnimationFrame(antIntervalRef.current);
             antIntervalRef.current = null;
         }
-        [ANT_LAYER_FROM, ANT_LAYER_TO].forEach(id => {
-            if (map.getLayer(id)) map.removeLayer(id);
-        });
+        safeRemoveLayer(map, [ANT_LAYER_FROM, ANT_LAYER_TO]);
     };
 
     const removeOverlay = (map) => {
         removeAnt(map);
-        [ENTERING_LABELS, EXITING_LABELS, ENTERING_LAYER, NODE_HIGHLIGHT].forEach(id => {
-            if (map.getLayer(id)) map.removeLayer(id);
-        });
-        if (map.getLayer('node-flows-exiting')) map.removeLayer('node-flows-exiting');
-        if (map.getSource(OVERLAY_SOURCE)) map.removeSource(OVERLAY_SOURCE);
+        safeRemoveLayer(map, [ENTERING_LABELS, EXITING_LABELS, ENTERING_LAYER, NODE_HIGHLIGHT, 'node-flows-exiting']);
+        safeRemoveSource(map, OVERLAY_SOURCE);
     };
 
     const removeNodes = (map) => {
-        [NODES_HOVER_LAYER, NODES_LAYER].forEach(id => {
-            if (map.getLayer(id)) map.removeLayer(id);
-        });
-        if (map.getSource(NODES_SOURCE)) map.removeSource(NODES_SOURCE);
+        safeRemoveLayer(map, [NODES_HOVER_LAYER, NODES_LAYER]);
+        safeRemoveSource(map, NODES_SOURCE);
     };
 
     const removeHandlers = (map) => {
@@ -173,8 +165,8 @@ export default function useNodeFlowLayers({ mapRef, mapReady, setIsLoading }) {
         if (!features) return new Map();
         const lookup = new Map();
         for (const f of features) {
-            const keys = (f.properties.per_id_keys || '').split('|');
-            const arrows = (f.properties.per_id_arrows || '').split('|');
+            const keys = parsePipeList(f.properties.per_id_keys);
+            const arrows = parsePipeList(f.properties.per_id_arrows);
             for (let i = 0; i < keys.length; i++) {
                 lookup.set(keys[i], { feature: f, arrow: arrows[i] || '→' });
             }
@@ -609,9 +601,7 @@ export default function useNodeFlowLayers({ mapRef, mapReady, setIsLoading }) {
             ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0],
             ['>', ['get', 'daily_avg_volume'], 0],
         ];
-        ['network-layer', 'click-network-layer'].forEach(id => {
-            if (map.getLayer(id)) map.setFilter(id, vfFilter);
-        });
+        setFilter(map, ['network-layer', 'click-network-layer'], vfFilter);
 
         if (!clickedCanton) return;
 

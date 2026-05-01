@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { safeRemoveLayer, safeRemoveSource, setFilter } from './_lib/mapbox';
 
 export default function useTransitStops({
   mapRef,
@@ -24,14 +25,9 @@ export default function useTransitStops({
     
     // remove current transit layers and sources
     const removeTransitLayers = () => {
-      ["transit-stops-layer", "transit-stops-label", "transit-highlight-layer", "transit-stops-hitbox"].forEach(id => {
-        if (map.getLayer(id)) map.removeLayer(id);
-      });
-      
-      ["transit-stops", "transit-highlight"].forEach(id => {
-        if (map.getSource(id)) map.removeSource(id);
-      });
-      
+      safeRemoveLayer(map, ["transit-stops-layer", "transit-stops-label", "transit-highlight-layer", "transit-stops-hitbox"]);
+      safeRemoveSource(map, ["transit-stops", "transit-highlight"]);
+
       // Clear transit-line-display if in Transit mode (used for transit route display)
       if (isGraphExpanded === "Transit" && map.getSource("transit-line-display")) {
         map.getSource("transit-line-display").setData({ type: "FeatureCollection", features: [] });
@@ -360,8 +356,8 @@ export default function useTransitStops({
       }
       
       // Highlight clicked
-      if (map.getLayer("transit-highlight-layer")) map.removeLayer("transit-highlight-layer");
-      if (map.getSource("transit-highlight")) map.removeSource("transit-highlight");
+      safeRemoveLayer(map, "transit-highlight-layer");
+      safeRemoveSource(map, "transit-highlight");
       
       map.addSource("transit-highlight", {
         type: "geojson",
@@ -415,11 +411,7 @@ export default function useTransitStops({
       ])
     ];
     
-    ["transit-stops-layer", "transit-highlight-layer", "transit-stops-label", "transit-stops-hitbox"].forEach((id) => {
-      if (map.getLayer(id)) {
-        map.setFilter(id, modeFilter);
-      }
-    });
+    setFilter(map, ["transit-stops-layer", "transit-highlight-layer", "transit-stops-label", "transit-stops-hitbox"], modeFilter);
     
     // Skip opacity reset if polygon fading is active (hook will re-apply)
     const hasPolygons = drawRef?.current?.getAll?.()?.features?.length > 0;

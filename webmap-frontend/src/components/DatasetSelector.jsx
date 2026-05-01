@@ -2,12 +2,12 @@ import React, { useState, useRef, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDatabase, faCheck, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { useDatasets } from '../hooks/useDatasets';
-import { useApp } from '../context/AppContext';
+import { useData } from '../context/DataContext';
 import useClickOutside from '../hooks/useClickOutside';
 import './DatasetSelector.css';
 
 const DatasetSelector = ({ isCollapsed }) => {
-  const { datasetId, setDatasetId } = useApp();
+  const { datasetId, setDatasetId } = useData();
   const { data: datasets = [], isLoading } = useDatasets();
   const [isOpen, setIsOpen] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);

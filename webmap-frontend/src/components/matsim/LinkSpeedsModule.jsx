@@ -1,7 +1,11 @@
 import React, { useCallback, useMemo } from 'react';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
-import { useApp } from '../../context/AppContext';
+import { useData } from '../../context/DataContext';
+import { useSelection } from '../../context/SelectionContext';
+import { useFilters } from '../../context/FilterContext';
+import { useModule } from '../../context/ModuleContext';
+import { useMap } from '../../context/MapContext';
 import { marks, formatTimeLabel } from '../../utils/timeSliderUtils';
 import FeatureTable from '../table/FeatureTable';
 import useLinePolygon from '../../hooks/useLinePolygon';
@@ -150,21 +154,24 @@ const LinkSpeedsModule = ({
     setTableFilterQuery,
 }) => {
     const {
-        clickedCanton,
-        timeRange, setTimeRange,
-        linkSpeedsMetric, setLinkSpeedsMetric,
-        linkSpeedsSelected,
-        linkSpeedsSummary,
-        linkSpeedsRoadTypes, setLinkSpeedsRoadTypes,
-        linkSpeedsLinksMap,
         featureGeoJSON,
-        mapRef,
-        drawRef,
-        isGraphExpanded,
+        linkSpeedsLinksMap,
+        linkSpeedsSummary,
+        tableFilterQuery,
+    } = useData();
+    const {
+        clickedCanton,
+        linkSpeedsSelected,
         setFeatureSelection,
         setSelectedNetworkFeature,
-        tableFilterQuery,
-    } = useApp();
+    } = useSelection();
+    const {
+        timeRange, setTimeRange,
+        linkSpeedsMetric, setLinkSpeedsMetric,
+        linkSpeedsRoadTypes, setLinkSpeedsRoadTypes,
+    } = useFilters();
+    const { isGraphExpanded } = useModule();
+    const { mapRef, drawRef } = useMap();
 
     const handleRoadTypeChange = (event) => {
         const selected = Array.from(event.target.selectedOptions).map(o => o.value);

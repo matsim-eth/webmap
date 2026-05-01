@@ -1,4 +1,7 @@
 import { useEffect, useRef } from "react";
+import { safeRemoveLayer, safeRemoveSource, setFilter } from './_lib/mapbox';
+import { parsePipeList, pipeMinMax } from './_lib/pipeProps';
+import { clearNetworkHighlightData } from './_lib/featureSelection';
 
 export default function useTransitVolumesLayer({
   mapRef,
@@ -133,8 +136,8 @@ export default function useTransitVolumesLayer({
 
     for (const f of networkGeo.features) {
       // Parse pipe-separated strings
-      const keys = (f?.properties?.per_id_keys || "").split("|").filter(Boolean);
-      const arrows = (f?.properties?.per_id_arrows || "").split("|").filter(Boolean);
+      const keys = parsePipeList(f?.properties?.per_id_keys);
+      const arrows = parsePipeList(f?.properties?.per_id_arrows);
 
       if (keys.length === 0) continue;
 
@@ -236,11 +239,11 @@ export default function useTransitVolumesLayer({
       // Build updated feature (shallow clone props)
       const props = f.properties;
 
-      // Parse pipe-separated values for min/max calculation
-      const capacities = (props.per_id_capacities || "").split("|").map(v => parseFloat(v)).filter(v => !isNaN(v));
-      const lengths = (props.per_id_lengths || "").split("|").map(v => parseFloat(v)).filter(v => !isNaN(v));
-      const freespeeds = (props.per_id_freespeeds || "").split("|").map(v => parseFloat(v)).filter(v => !isNaN(v));
-      const daily_avgs = (props.per_id_daily_avgs || "").split("|").map(v => parseFloat(v)).filter(v => !isNaN(v));
+      // Pipe-delimited min/max for filterable scalar properties
+      const cap = pipeMinMax(props.per_id_capacities);
+      const len = pipeMinMax(props.per_id_lengths);
+      const fre = pipeMinMax(props.per_id_freespeeds);
+      const vol = pipeMinMax(props.per_id_daily_avgs);
 
       features.push({
         ...f,
@@ -259,15 +262,17 @@ export default function useTransitVolumesLayer({
           total_left: totalLeft,
           total_right: totalRight,
 
-          // Add min/max properties for filtering
-          capacity_min: capacities.length > 0 ? Math.min(...capacities) : 0,
-          capacity_max: capacities.length > 0 ? Math.max(...capacities) : 0,
-          length_min: lengths.length > 0 ? Math.min(...lengths) : 0,
-          length_max: lengths.length > 0 ? Math.max(...lengths) : 0,
-          freespeed_min: freespeeds.length > 0 ? Math.min(...freespeeds) : 0,
-          freespeed_max: freespeeds.length > 0 ? Math.max(...freespeeds) : 0,
-          volume_min: daily_avgs.length > 0 ? Math.min(...daily_avgs) : 0,
-          volume_max: daily_avgs.length > 0 ? Math.max(...daily_avgs) : 0,
+          // Add min/max properties for filtering (default to 0 when empty,
+          // matching the previous behavior that fell through to Math.min/max
+          // on an empty array → produced 0).
+          capacity_min: cap.min ?? 0,
+          capacity_max: cap.max ?? 0,
+          length_min: len.min ?? 0,
+          length_max: len.max ?? 0,
+          freespeed_min: fre.min ?? 0,
+          freespeed_max: fre.max ?? 0,
+          volume_min: vol.min ?? 0,
+          volume_max: vol.max ?? 0,
 
           // keep these for filtering & sidebar
           modes: Array.from(modesUnion),
@@ -294,23 +299,18 @@ export default function useTransitVolumesLayer({
         map.off("click", "transit-volumes-hitbox", handleTransitVolumeClick);
       }
 
-      [
+      safeRemoveLayer(map, [
         "transit-volumes-layer",
         "transit-volumes-hitbox",
         "transit-symbology-line",
         "transit-volumes-label-left",
         "transit-volumes-label-right",
         "ant-line",
-      ].forEach((id) => map.getLayer(id) && map.removeLayer(id));
-
-      ["transit-volumes-source", "ant-path"].forEach(
-        (id) => map.getSource(id) && map.removeSource(id)
-      );
+      ]);
+      safeRemoveSource(map, ["transit-volumes-source", "ant-path"]);
 
       // Clear network-highlight instead of removing it (shared with network)
-      if (map.getSource("network-highlight")) {
-        map.getSource("network-highlight").setData({ type: "FeatureCollection", features: [] });
-      }
+      clearNetworkHighlightData(map);
 
       setSelectedTransitLink(null);
       originalGeoJSON.current = null;
@@ -588,12 +588,10 @@ export default function useTransitVolumesLayer({
             "any",
             ...selectedTransitModes.map((mode) => ["in", mode, ["get", "modes"]]),
           ];
-          ["transit-volumes-layer", "transit-volumes-hitbox"].forEach((id) => {
-            if (map.getLayer(id)) map.setFilter(id, filter);
-          });
-          ["transit-volumes-label-left", "transit-volumes-label-right"].forEach((id) => {
-            if (map.getLayer(id)) map.setFilter(id, filter);
-          });
+          setFilter(map, [
+            "transit-volumes-layer", "transit-volumes-hitbox",
+            "transit-volumes-label-left", "transit-volumes-label-right",
+          ], filter);
         }
 
         const handleIdle = () => {
@@ -680,18 +678,14 @@ export default function useTransitVolumesLayer({
         : lineFilter || modeFilter || null;
 
     // Apply to base, hitbox, highlight, and labels
-    const layerIds = [
+    setFilter(map, [
       "transit-volumes-layer",
       "transit-volumes-hitbox",
       "transit-volumes-highlight",
       "transit-volumes-label-left",
       "transit-volumes-label-right",
       "ant-line",
-    ];
-
-    layerIds.forEach((id) => {
-      if (map.getLayer(id)) map.setFilter(id, combinedFilter);
-    });
+    ], combinedFilter);
   }, [selectedTransitModes, highlightedLineId, isGraphExpanded]);
 
   // ----- respond to table filter changes --------------------------------------
@@ -880,18 +874,14 @@ export default function useTransitVolumesLayer({
     const combinedFilter = filters.length > 1 ? ["all", ...filters] : filters[0] || null;
 
     // Apply to all layers
-    const layerIds = [
+    setFilter(map, [
       "transit-volumes-layer",
       "transit-volumes-hitbox",
       "transit-volumes-highlight",
       "transit-volumes-label-left",
       "transit-volumes-label-right",
       "ant-line",
-    ];
-
-    layerIds.forEach((id) => {
-      if (map.getLayer(id)) map.setFilter(id, combinedFilter);
-    });
+    ], combinedFilter);
   }, [selectedTransitModes, highlightedLineId, isGraphExpanded, tableFilterQuery]);
 
 }

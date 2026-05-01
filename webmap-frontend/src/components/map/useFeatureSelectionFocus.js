@@ -1,18 +1,21 @@
 import { useEffect, useRef } from 'react';
+import { buildComparisonFilter, getPropertyName, buildPipeDelimitedComparison } from './_lib/mapboxFilters';
+import { safeRemoveLayer, safeRemoveSource, setOrAddSource, setFilter } from './_lib/mapbox';
+import { clearNetworkHighlightData, clearTransitStopHighlight, NETWORK_HIGHLIGHT_PAINT } from './_lib/featureSelection';
 
 const HIGHLIGHT_SOURCE_ID = 'network-highlight';
 const HIGHLIGHT_LAYER_ID = 'network-highlight';
 
 const computeBounds = (coords) => {
   if (!Array.isArray(coords) || coords.length === 0) return null;
-  
+
   // Check if coords is a single point [lng, lat] or array of points [[lng, lat], ...]
   const isArrayOfPoints = Array.isArray(coords[0]);
   if (!isArrayOfPoints) {
     // Single point: return null (Transit stops shouldn't use this function)
     return null;
   }
-  
+
   let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;
   coords.forEach(([lng, lat]) => {
     if (!Number.isFinite(lng) || !Number.isFinite(lat)) return;
@@ -23,80 +26,6 @@ const computeBounds = (coords) => {
   });
   if (![minLng, minLat, maxLng, maxLat].every(Number.isFinite)) return null;
   return [[minLng, minLat], [maxLng, maxLat]];
-};
-
-// Helper function to build comparison filter expressions for Mapbox
-const buildComparisonFilter = (operator, value, expression) => {
-  switch(operator) {
-    case '>':
-      return [">", expression, value];
-    case '<':
-      return ["<", expression, value];
-    case '>=':
-      return [">=", expression, value];
-    case '<=':
-      return ["<=", expression, value];
-    default:
-      return ["==", expression, value];
-  }
-};
-
-// Helper function to get property name for column
-const getPropertyName = (column) => {
-  const columnMap = {
-    "capacity": "per_id_capacities",
-    "length": "per_id_lengths", 
-    "freeSpeed": "per_id_freespeeds",
-    "totalVol": "per_id_daily_avgs",
-    "directionId": "per_id_keys"
-  };
-  return columnMap[column] || null;
-};
-
-// Helper function to build comparison filter for pipe-delimited properties
-const buildPipeDelimitedComparison = (operator, value, propName) => {
-  // We now have min/max properties computed from pipe-delimited values
-  // Map pipe-delimited properties to their min/max counterparts
-  const minMaxMap = {
-    "per_id_capacities": { min: "capacity_min", max: "capacity_max" },
-    "per_id_lengths": { min: "length_min", max: "length_max" },
-    "per_id_freespeeds": { min: "freespeed_min", max: "freespeed_max" },
-    "per_id_daily_avgs": { min: "volume_min", max: "volume_max" },
-  };
-  
-  const props = minMaxMap[propName];
-  
-  if (!props) {
-    // Fallback for non-numeric properties - do string matching
-    const valueStr = String(value);
-    return [">=", ["index-of", valueStr, ["to-string", ["get", propName]]], 0];
-  }
-  
-  // For comparison operators, check if ANY value in the pipe-delimited list matches
-  // by using min/max properties:
-  // - For >: show if max > value (at least one value is greater)
-  // - For <: show if min < value (at least one value is less)
-  // - For >=: show if max >= value
-  // - For <=: show if min <= value
-  // - For ==: show if min <= value <= max (value exists in range)
-  
-  switch(operator) {
-    case '>':
-      return [">", ["number", ["get", props.max], 0], value];
-    case '<':
-      return ["<", ["number", ["get", props.min], 999999], value];
-    case '>=':
-      return [">=", ["number", ["get", props.max], 0], value];
-    case '<=':
-      return ["<=", ["number", ["get", props.min], 999999], value];
-    case '==':
-      return ["all",
-        ["<=", ["number", ["get", props.min], 999999], value],
-        [">=", ["number", ["get", props.max], 0], value]
-      ];
-    default:
-      return [">=", ["index-of", String(value), ["to-string", ["get", propName]]], 0];
-  }
 };
 
 export default function useFeatureSelectionFocus({
@@ -129,38 +58,17 @@ export default function useFeatureSelectionFocus({
       !Array.isArray(selection.coords) ||
       !selection.coords.length
     ) {
-      // Clear line-based highlight
-      if (map.getSource(HIGHLIGHT_SOURCE)) {
-        map.getSource(HIGHLIGHT_SOURCE).setData({ type: 'FeatureCollection', features: [] });
-      }
-      
-      // Clear transit stops highlight
-      if (map.getLayer("transit-highlight-layer")) {
-        map.removeLayer("transit-highlight-layer");
-      }
-      if (map.getSource("transit-highlight")) {
-        map.removeSource("transit-highlight");
-      }
-      
+      clearNetworkHighlightData(map);
+      clearTransitStopHighlight(map);
       lastSelectionId.current = null;
       return;
     }
-    
+
     // Handle Transit stops separately (points)
     if (isTransitStops) {
-      // Clear line-based highlight
-      if (map.getSource(HIGHLIGHT_SOURCE)) {
-        map.getSource(HIGHLIGHT_SOURCE).setData({ type: 'FeatureCollection', features: [] });
-      }
-      
-      // Remove existing transit highlight
-      if (map.getLayer("transit-highlight-layer")) {
-        map.removeLayer("transit-highlight-layer");
-      }
-      if (map.getSource("transit-highlight")) {
-        map.removeSource("transit-highlight");
-      }
-      
+      clearNetworkHighlightData(map);
+      clearTransitStopHighlight(map);
+
       // Add new transit highlight source and layer
       map.addSource("transit-highlight", {
         type: "geojson",
@@ -228,41 +136,24 @@ export default function useFeatureSelectionFocus({
     }
     
     // Handle network/transit links (lines)
-    // Clear transit stops highlight
-    if (map.getLayer("transit-highlight-layer")) {
-      map.removeLayer("transit-highlight-layer");
-    }
-    if (map.getSource("transit-highlight")) {
-      map.removeSource("transit-highlight");
-    }
-    
+    clearTransitStopHighlight(map);
+
     // Update line highlight source/layer
-    const featureCollection = { type: 'FeatureCollection', features: [selection.feature] };
-    if (map.getSource(HIGHLIGHT_SOURCE)) {
-      map.getSource(HIGHLIGHT_SOURCE).setData(featureCollection);
-    } else {
-      map.addSource(HIGHLIGHT_SOURCE, { type: 'geojson', data: featureCollection });
-    }
-    
+    setOrAddSource(map, HIGHLIGHT_SOURCE, { type: 'FeatureCollection', features: [selection.feature] });
+
     if (!map.getLayer(HIGHLIGHT_LAYER)) {
       // Position before network-layer if it exists, otherwise transit-volumes-layer, otherwise at top
-      let beforeLayer = null;
-      if (map.getLayer('network-layer')) beforeLayer = 'network-layer';
-      else if (map.getLayer('transit-volumes-layer')) beforeLayer = 'transit-volumes-layer';
-      
+      const beforeLayer = map.getLayer('network-layer')
+        ? 'network-layer'
+        : (map.getLayer('transit-volumes-layer') ? 'transit-volumes-layer' : null);
+
       map.addLayer(
         {
           id: HIGHLIGHT_LAYER,
           type: 'line',
           source: HIGHLIGHT_SOURCE,
-          layout: {
-            visibility: isGraphExpanded === 'NodeFlows' ? 'none' : 'visible',
-          },
-          paint: {
-            'line-width': ['interpolate', ['linear'], ['get', 'capacity'], 300, 6, 4000, 15],
-            'line-color': '#00a2ff',
-            'line-opacity': 1,
-          },
+          layout: { visibility: isGraphExpanded === 'NodeFlows' ? 'none' : 'visible' },
+          paint: NETWORK_HIGHLIGHT_PAINT,
         },
         beforeLayer
       );
@@ -313,26 +204,14 @@ export default function useFeatureSelectionFocus({
     
     // Only clear if switching between different module groups
     if (currentGroup !== previousGroup && previousGroup !== null) {
-      if (currentGroup === 'transit') {
-        // Switching TO Transit: clear network highlights
-        if (map.getSource(HIGHLIGHT_SOURCE)) {
-          map.getSource(HIGHLIGHT_SOURCE).setData({ type: 'FeatureCollection', features: [] });
-        }
-      } else if (previousGroup === 'transit') {
+      if (previousGroup === 'transit') {
         // Switching FROM Transit: clear transit highlights
-        if (map.getLayer("transit-highlight-layer")) {
-          map.removeLayer("transit-highlight-layer");
-        }
-        if (map.getSource("transit-highlight")) {
-          map.removeSource("transit-highlight");
-        }
+        clearTransitStopHighlight(map);
       } else {
-        // Switching between network/transitVolumes groups: clear network highlights
-        if (map.getSource(HIGHLIGHT_SOURCE)) {
-          map.getSource(HIGHLIGHT_SOURCE).setData({ type: 'FeatureCollection', features: [] });
-        }
+        // Switching to/between network groups: clear network highlights
+        clearNetworkHighlightData(map);
       }
-      
+
       // Reset selection ID when switching module groups
       lastSelectionId.current = null;
     }
@@ -861,53 +740,36 @@ export default function useFeatureSelectionFocus({
       }
     }
     
-    // --- Apply filters ---
-    layerIds.forEach((id) => {
-      if (!map.getLayer(id)) return;
-      
-      // Build combined filter based on context
-      let combined = null;
-      
-      // Start with base filters (mode + table)
-      if (modeFilter && tableFilter) {
-        combined = ["all", modeFilter, tableFilter];
-      } else if (modeFilter) {
-        combined = modeFilter;
-      } else if (tableFilter) {
-        combined = tableFilter;
-      }
-      
-      // If we're in Volumes mode, enforce additional filters
-      if (isGraphExpanded === 'Volumes') {
-        // Exact match for "car" mode (prevents matching "cable car")
-        const carFilter = [">=", ["index-of", ",car,", ["concat", ",", ["get", "modes"], ","]], 0];
-        const majorRoadsFilter = [">", ["get", "capacity"], 1200];
+    // --- Build combined filter (single derivation, applied to all layers) ---
+    let combined = null;
+    if (modeFilter && tableFilter) {
+      combined = ["all", modeFilter, tableFilter];
+    } else if (modeFilter) {
+      combined = modeFilter;
+    } else if (tableFilter) {
+      combined = tableFilter;
+    }
 
-        // Build Volumes-specific filters
-        let volumesFilters = [carFilter];
-        if (showMajorRoadsOnly) {
-          volumesFilters.push(majorRoadsFilter);
-        }
+    // Volumes mode: enforce car-only (+ optional major roads)
+    if (isGraphExpanded === 'Volumes') {
+      const carFilter = [">=", ["index-of", ",car,", ["concat", ",", ["get", "modes"], ","]], 0];
+      const majorRoadsFilter = [">", ["get", "capacity"], 1200];
+      const volumesFilters = showMajorRoadsOnly ? [carFilter, majorRoadsFilter] : [carFilter];
 
-        // Combine with existing filters
-        if (combined) {
-          combined = ["all", combined, ...volumesFilters];
-        } else {
-          combined = volumesFilters.length > 1 ? ["all", ...volumesFilters] : volumesFilters[0];
-        }
-      }
+      combined = combined
+        ? ["all", combined, ...volumesFilters]
+        : (volumesFilters.length > 1 ? ["all", ...volumesFilters] : volumesFilters[0]);
+    }
 
-      // If we're in VolumeFlow mode, enforce car + volume>0 filter
-      if (isGraphExpanded === 'VolumeFlow') {
-        const carFilter = [">=", ["index-of", ",car,", ["concat", ",", ["get", "modes"], ","]], 0];
-        const volumeFilter = [">", ["get", "daily_avg_volume"], 0];
-        const vfBase = ["all", carFilter, volumeFilter];
+    // VolumeFlow mode: enforce car + volume>0
+    if (isGraphExpanded === 'VolumeFlow') {
+      const carFilter = [">=", ["index-of", ",car,", ["concat", ",", ["get", "modes"], ","]], 0];
+      const volumeFilter = [">", ["get", "daily_avg_volume"], 0];
+      const vfBase = ["all", carFilter, volumeFilter];
+      combined = combined ? ["all", combined, vfBase] : vfBase;
+    }
 
-        combined = combined ? ["all", combined, vfBase] : vfBase;
-      }
-      
-      map.setFilter(id, combined);
-    });
+    setFilter(map, layerIds, combined);
   }, [mapRef, mapReady, query, selectedNetworkModes, isGraphExpanded, showMajorRoadsOnly]);
   
 }

@@ -15,50 +15,63 @@ import useNodeFlowLayers from './map/useNodeFlowLayers';
 import useLinkSpeedsLayers from './map/useLinkSpeedsLayers';
 import useZoneFlowLayers from './map/useZoneFlowLayers';
 import useDrawTools from './map/useDrawTools';
-import { useApp } from '../context/AppContext';
+import { useModule } from '../context/ModuleContext';
+import { useMap } from '../context/MapContext';
+import { useData } from '../context/DataContext';
+import { useFilters } from '../context/FilterContext';
+import { useSelection } from '../context/SelectionContext';
+import { useChoropleth as useChoroplethState } from '../context/ChoroplethContext';
 import { useFileContext } from '../FileContext';
 import { useResetMapView } from '../hooks/useResetMapView';
 
 export default function Map() {
+  const { isGraphExpanded } = useModule();
   const {
-    dataURL,
-    isGraphExpanded,
     mapRef: contextMapRef,
-    setClickedCanton,
-    clickedCanton: searchCanton, // Alias
-    setIsFeatureTableOpen,
-    isFeatureTableOpen,
+    drawRef: contextDrawRef,
     isSidebarOpen,
     isLeftSidebarCollapsed,
-    selectedNetworkModes,
-    showMajorRoadsOnly,
-    timeRange,
-    visualizeLinkId,
-    setSelectedNetworkFeature,
     resetMapTrigger,
     labelSize,
+  } = useMap();
+  const {
+    dataURL,
+    setIsFeatureTableOpen,
+    isFeatureTableOpen,
     setFeatureGeoJSON,
+    tableFilterQuery,
+    destinationData: selectedDestinationData,
+    boardingData: selectedBoardingData,
+  } = useData();
+  const {
+    selectedNetworkModes,
     selectedTransitModes,
+    showMajorRoadsOnly,
     showStopVolumeSymbology,
+    showLineSymbology,
+    timeRange,
+    selectedDirection,
+  } = useFilters();
+  const {
+    setClickedCanton,
+    clickedCanton: searchCanton,
+    visualizeLinkId,
+    setSelectedNetworkFeature,
     setSelectedTransitStop,
+    setSelectedTransitLink,
+    featureSelection,
+    setFeatureSelection,
+  } = useSelection();
+  const {
+    selectedMode,
+    selectedDataset,
+    aggCol,
     setHighlightedLineId,
     highlightedLineId,
     highlightedRouteIds,
     setHighlightedRouteIds,
     hoveredRouteId,
-    setSelectedTransitLink,
-    showLineSymbology,
-    tableFilterQuery,
-    selectedMode,
-    selectedDataset,
-    aggCol,
-    destinationData: selectedDestinationData, // Alias
-    boardingData: selectedBoardingData, // Alias
-    featureSelection,
-    setFeatureSelection,
-    drawRef: contextDrawRef,
-    selectedDirection
-  } = useApp();
+  } = useChoroplethState();
 
   // load util for loading in the data (from link or local upload)
   const loadWithFallback = useLoadWithFallback(dataURL);

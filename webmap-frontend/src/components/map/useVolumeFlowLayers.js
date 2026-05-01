@@ -1,6 +1,11 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { useApp } from '../../context/AppContext';
+import { useModule } from '../../context/ModuleContext';
+import { useSelection } from '../../context/SelectionContext';
+import { useData } from '../../context/DataContext';
+import { useFilters } from '../../context/FilterContext';
 import { handle401 } from '../../utils/auth';
+import { safeRemoveLayer, safeRemoveSource, setFilter } from './_lib/mapbox';
+import { parsePipeList } from './_lib/pipeProps';
 
 // Spider overlay source + layers (separate from the shared network-source)
 const SPIDER_SOURCE_ID = 'volume-flow-spider';
@@ -13,19 +18,18 @@ const TARGET_LABEL_ID = 'volume-flow-target-label';
 const NETWORK_CLICK_LAYER = 'click-network-layer';
 
 export default function useVolumeFlowLayers({ mapRef, mapReady }) {
+    const { isGraphExpanded } = useModule();
     const {
-        isGraphExpanded,
         clickedCanton,
-        featureGeoJSON,
         featureSelection,
         setVolumeFlowSegment,
         setFeatureSelection,
         setSelectedNetworkFeature,
-        volumeFlowDirection,
         volumeFlowSelectedLink,
         setVolumeFlowSelectedLink,
-        datasetId,
-    } = useApp();
+    } = useSelection();
+    const { featureGeoJSON, datasetId } = useData();
+    const { volumeFlowDirection } = useFilters();
 
     const clickHandlerRef = useRef(null);
     const featureGeoJSONRef = useRef(featureGeoJSON);
@@ -46,10 +50,8 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
 
     // --- Cleanup helper: removes spider overlay layers/source only ---
     const removeSpider = (map) => {
-        [TARGET_LABEL_ID, LABEL_LAYER_ID, TARGET_LAYER_ID, HIGHLIGHT_LAYER_ID].forEach(id => {
-            if (map.getLayer(id)) map.removeLayer(id);
-        });
-        if (map.getSource(SPIDER_SOURCE_ID)) map.removeSource(SPIDER_SOURCE_ID);
+        safeRemoveLayer(map, [TARGET_LABEL_ID, LABEL_LAYER_ID, TARGET_LAYER_ID, HIGHLIGHT_LAYER_ID]);
+        safeRemoveSource(map, SPIDER_SOURCE_ID);
     };
 
     const removeClickHandler = (map) => {
@@ -69,7 +71,7 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
         let idx = 0;
 
         for (const f of currentFeatures) {
-            const fKeys = (f.properties.per_id_keys || '').split('|');
+            const fKeys = parsePipeList(f.properties.per_id_keys);
             const isTarget = fKeys.some(k => targetKeys.includes(k));
 
             let maxFlow = 0;
@@ -199,7 +201,7 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
         let rowIdx = 0;
         for (const ef of spiderFeatures) {
             if (ef.properties.isTarget) continue;
-            const fKeys = (ef.properties.per_id_keys || '').split('|');
+            const fKeys = parsePipeList(ef.properties.per_id_keys);
             const g = ef.geometry;
             const coords = g?.type === 'LineString'
                 ? g.coordinates
@@ -359,9 +361,7 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
             ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0],
             ['>', ['get', 'daily_avg_volume'], 0]
         ];
-        ['network-layer', NETWORK_CLICK_LAYER].forEach(id => {
-            if (map.getLayer(id)) map.setFilter(id, vfFilter);
-        });
+        setFilter(map, ['network-layer', NETWORK_CLICK_LAYER], vfFilter);
 
         // Network not loaded yet
         if (!featureGeoJSON?.features || !map.getLayer(NETWORK_CLICK_LAYER)) return;
@@ -370,7 +370,7 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
         // different link in Network/Volumes while VolumeFlow was inactive)
         const sel = featureSelectionRef.current;
         if (sel?.feature?.properties?.per_id_keys) {
-            const selKeys = sel.feature.properties.per_id_keys.split('|').filter(Boolean);
+            const selKeys = parsePipeList(sel.feature.properties.per_id_keys);
             const lastKeys = lastClickRef.current?.keys || [];
             if (selKeys.length && selKeys.join('|') !== lastKeys.join('|')) {
                 lastClickRef.current = { keys: selKeys, feature: sel.feature };
@@ -396,7 +396,7 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
             if (!e.features?.length) return;
 
             const feature = e.features[0];
-            const keys = (feature.properties.per_id_keys || '').split('|').filter(Boolean);
+            const keys = parsePipeList(feature.properties.per_id_keys);
             if (!keys.length) return;
 
             // Store for re-fetch on direction change

@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { useApp } from '../../context/AppContext';
+import { useSelection } from '../../context/SelectionContext';
+import { useFilters } from '../../context/FilterContext';
 import FeatureTable from '../table/FeatureTable';
 import '../Table.css';
 import './VolumeFlowModule.css';
@@ -19,11 +20,10 @@ const VolumeFlowModule = ({
         volumeFlowSegment,
         clickedCanton,
         setFeatureSelection,
-        volumeFlowDirection,
-        setVolumeFlowDirection,
         volumeFlowSelectedLink,
         setVolumeFlowSelectedLink,
-    } = useApp();
+    } = useSelection();
+    const { volumeFlowDirection, setVolumeFlowDirection } = useFilters();
     
     const handleRowClick = useCallback((row) => {
         if (!row) return;

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import Plot from "react-plotly.js";
 import TransitLinkAttributesTable from "./TransitLinkAttributesTable";
 import TransitLinkHistogram from "./TransitLinkHistogram";
@@ -9,6 +9,7 @@ import "rc-slider/assets/index.css";
 import { useTableRowBuilder } from "../../hooks/useTableRowBuilder";
 import useLinePolygon from "../../hooks/useLinePolygon";
 import useDrawPolygons from "../../hooks/useDrawPolygons";
+import { useTransitVolumeHighlightSync } from "../../hooks/useTransitVolumeHighlightSync";
 import { computeBoundaryFlow } from "../../utils/boundaryFlow";
 
 // get coords and id of selected row
@@ -46,26 +47,11 @@ const TransitVolumesModule = ({
   isGraphExpanded
 }) => {
 
-  // Reset highlighted line when canton changes (was useEffect)
-  const prevCantonRef = useRef(canton);
-  if (prevCantonRef.current !== canton) {
-    prevCantonRef.current = canton;
-    setHighlightedLineId(null);
-  }
-
-  // Keep highlightedLineId if new link also has it, else reset (was useEffect)
-  const prevTransitLinkRef = useRef(selectedTransitLink);
-  if (prevTransitLinkRef.current !== selectedTransitLink) {
-    prevTransitLinkRef.current = selectedTransitLink;
-    if (!Array.isArray(selectedTransitLink) || selectedTransitLink.length === 0) {
-      setHighlightedLineId(null);
-    } else {
-      const hasLine = selectedTransitLink.some(link =>
-        link.lines && Object.keys(link.lines).includes(highlightedLineId)
-      );
-      if (!hasLine) setHighlightedLineId(null);
-    }
-  }
+  // Reset highlightedLineId on canton change AND when the feature table opens.
+  // Clearing on table-open lets row clicks happen with no line filter active,
+  // so the resulting setFeatureGeoJSON cascade can't race with DataTables
+  // (which previously crashed with Node.removeChild). See the hook for context.
+  useTransitVolumeHighlightSync({ canton, isFeatureTableOpen, setHighlightedLineId });
 
   // Polygon selection
   const handlePolygonChange = useCallback(() => {

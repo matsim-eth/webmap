@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import useAntPath from './useAntPath';
+import { safeRemoveLayer, safeRemoveSource, setVisibility, setFilter } from './_lib/mapbox';
+import { parsePipeList, decoratePerIdMinMax, decorateLineVolumesFromPerId } from './_lib/pipeProps';
 
 export default function useNetworkLayers({
   mapRef,
@@ -32,11 +34,11 @@ export default function useNetworkLayers({
   // recompute per-id volumes for a feature based on linkVolumeData + timeRange
   const recomputeVolumesForFeature = (f, startHour, endHour) => {
     const props = f.properties || {};
-    
+
     // Parse pipe-separated strings
-    const keys = (props.per_id_keys || "").split("|").filter(Boolean);
-    const arrows = (props.per_id_arrows || "").split("|").filter(Boolean);
-    const daily_avgs = (props.per_id_daily_avgs || "").split("|").filter(Boolean);
+    const keys = parsePipeList(props.per_id_keys);
+    const arrows = parsePipeList(props.per_id_arrows);
+    const daily_avgs = parsePipeList(props.per_id_daily_avgs);
     
     let left = 0, right = 0;
     
@@ -71,28 +73,25 @@ export default function useNetworkLayers({
   // ── Label helpers ───────────────────────────────────────────────────────
   const LABEL_IDS = ['network-label-left', 'network-label-right'];
   const offsetEm = 1;
-  
+
   // west-ish if angle in (90, 180] ∪ (-180, -90]
   const offsetPos = ['any', ['>', ['get', 'angle'], 90], ['<=', ['get', 'angle'], -90]];
-  
-  const setLabelVisibility = (map, visible) => {
-    const v = visible ? 'visible' : 'none';
-    LABEL_IDS.forEach(id => { if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', v); });
-  };
-  
+
+  const setLabelVisibility = (map, visible) => setVisibility(map, LABEL_IDS, visible);
+
   const applyLabelFilter = (map, showMajorRoadsOnly) => {
     const labelFilter = showMajorRoadsOnly ? ['>', ['get', 'capacity'], 1200] : null;
-    LABEL_IDS.forEach(id => { if (map.getLayer(id)) map.setFilter(id, labelFilter); });
+    setFilter(map, LABEL_IDS, labelFilter);
   };
-  
+
   // Ensure labels in Volumes mode are always car-only (optionally major roads only)
   const applyLabelCarAndMajorFilter = (map, showMajorRoadsOnly) => {
     // Exact match for "car" mode (prevents matching "cable car")
     const carFilter = ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0];
     const labelFilter = showMajorRoadsOnly
-    ? ['all', carFilter, ['>', ['get', 'capacity'], 1200]]
-    : carFilter;
-    LABEL_IDS.forEach(id => { if (map.getLayer(id)) map.setFilter(id, labelFilter); });
+      ? ['all', carFilter, ['>', ['get', 'capacity'], 1200]]
+      : carFilter;
+    setFilter(map, LABEL_IDS, labelFilter);
   };
   
   const addLabelLayersIfMissing = (map) => {
@@ -158,15 +157,12 @@ export default function useNetworkLayers({
     const map = mapRef.current;
     if (!map) return;
     
-    const layersToRemove = [
+    safeRemoveLayer(map, [
       'network-layer', 'click-network-layer', 'ant-line', 'network-highlight',
       'network-label-left', 'network-label-right'
-    ];
-    const sourcesToRemove = ['network-source', 'network-highlight', 'ant-path'];
-    
-    layersToRemove.forEach(id => { if (map.getLayer(id)) map.removeLayer(id); });
-    sourcesToRemove.forEach(id => { if (map.getSource(id)) map.removeSource(id); });
-    
+    ]);
+    safeRemoveSource(map, ['network-source', 'network-highlight', 'ant-path']);
+
     setIsLoading(true);
     setSelectedNetworkFeature(null);
     
@@ -189,74 +185,9 @@ export default function useNetworkLayers({
     
     originalNetworkGeoJSON.current = networkGeojson;
 
-    const decorateLineVolumesFromPerId = (features) => {
-      for (const f of features) {
-        if (!f?.properties) f.properties = {};
-        
-        // Ensure angle exists
-        if (f.geometry?.type === 'LineString' && f.geometry.coordinates?.length > 1) {
-          if (typeof f.properties.angle !== 'number') {
-            const coords = f.geometry.coordinates;
-            const [x0, y0] = coords[0];
-            const [x1, y1] = coords[coords.length - 1];
-            const dx = x1 - x0, dy = y1 - y0;
-            f.properties.angle = (dx === 0 && dy === 0) ? null : (Math.atan2(dy, dx) * 180 / Math.PI);
-          }
-        } else {
-          f.properties.angle = null;
-        }
-        
-        // Parse pipe-separated strings
-        const arrows = (f.properties.per_id_arrows || "").split("|").filter(Boolean);
-        const daily_avgs = (f.properties.per_id_daily_avgs || "").split("|").filter(Boolean);
-        
-        // Aggregate left/right totals from per_id entries
-        let left = 0, right = 0;
-        arrows.forEach((arrow, index) => {
-          const v = Number(daily_avgs[index] ?? 0);
-          if (arrow === '←') left += v;
-          else if (arrow === '→') right += v;
-        });
-        
-        // Ensure these three exist on EVERY feature
-        const fallbackTotal = left + right;
-        f.properties.daily_avg_volume = Number.isFinite(Number(f.properties.daily_avg_volume))
-        ? Number(f.properties.daily_avg_volume)
-        : fallbackTotal;
-        f.properties.left_sum = left;
-        f.properties.right_sum = right;
-      }
-    };
-    
     decorateLineVolumesFromPerId(networkGeojson.features);
-    
-    // Add min/max properties for pipe-delimited fields to enable proper filtering
-    networkGeojson.features.forEach(f => {
-      // Helper to parse pipe-delimited numbers and get min/max
-      const getMinMax = (pipeStr) => {
-        const values = (pipeStr || "").split("|").filter(Boolean).map(Number).filter(v => !isNaN(v));
-        if (values.length === 0) return { min: null, max: null };
-        return { min: Math.min(...values), max: Math.max(...values) };
-      };
-      
-      // Process each pipe-delimited property
-      const capacities = getMinMax(f.properties.per_id_capacities);
-      f.properties.capacity_min = capacities.min;
-      f.properties.capacity_max = capacities.max;
-      
-      const lengths = getMinMax(f.properties.per_id_lengths);
-      f.properties.length_min = lengths.min;
-      f.properties.length_max = lengths.max;
-      
-      const speeds = getMinMax(f.properties.per_id_freespeeds);
-      f.properties.freespeed_min = speeds.min;
-      f.properties.freespeed_max = speeds.max;
-      
-      const volumes = getMinMax(f.properties.per_id_daily_avgs);
-      f.properties.volume_min = volumes.min;
-      f.properties.volume_max = volumes.max;
-    });
-    
+    decoratePerIdMinMax(networkGeojson.features);
+
     setFeatureGeoJSON?.(networkGeojson);
     
     map.addSource('network-source', { type: 'geojson', data: networkGeojson, generateId: true });
@@ -357,11 +288,8 @@ export default function useNetworkLayers({
         }
       }
       
-      if (map.getLayer('ant-line')) map.removeLayer('ant-line');
-      ['network-highlight'].forEach(id => {
-        if (map.getLayer(id)) map.removeLayer(id);
-        if (map.getSource(id)) map.removeSource(id);
-      });
+      safeRemoveLayer(map, ['ant-line', 'network-highlight']);
+      safeRemoveSource(map, ['network-highlight']);
       
       const clicked = e.features[0]; // full feature
       const highlightGeoJSON = { type: 'FeatureCollection', features: [clicked] };
@@ -415,13 +343,9 @@ export default function useNetworkLayers({
           ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0],
           ['>', ['get', 'daily_avg_volume'], 0]
         ];
-        ['network-layer', 'click-network-layer'].forEach(id => {
-          if (map.getLayer(id)) map.setFilter(id, vfFilter);
-        });
+        setFilter(map, ['network-layer', 'click-network-layer'], vfFilter);
       } else {
-        ['network-layer', 'click-network-layer', 'network-highlight'].forEach(id => {
-          if (map.getLayer(id)) map.setFilter(id, null);
-        });
+        setFilter(map, ['network-layer', 'click-network-layer', 'network-highlight'], null);
       }
       // In Volumes, labels stay car-only regardless of sidebar mode filter
       if (graphExpandedRef.current === 'Volumes') {
@@ -437,15 +361,13 @@ export default function useNetworkLayers({
         'any',
         ...modes.map(mode => ['>=', ['index-of', `,${mode},`, wrappedModes], 0])
       ];
-      ['network-layer', 'click-network-layer', 'network-highlight'].forEach(id => {
-        if (map.getLayer(id)) map.setFilter(id, filter);
-      });
+      setFilter(map, ['network-layer', 'click-network-layer', 'network-highlight'], filter);
       if ((graphExpandedRef.current === 'Volumes' || graphExpandedRef.current === 'VolumeFlow' || graphExpandedRef.current === 'NodeFlows' || graphExpandedRef.current === 'LinkSpeeds')) {
         // Keep labels car-only in Volumes
         applyLabelCarAndMajorFilter(map, showMajorRoadsOnly);
       } else {
         // Mirror selected modes to labels in Network view
-        LABEL_IDS.forEach(id => { if (map.getLayer(id)) map.setFilter(id, filter); });
+        setFilter(map, LABEL_IDS, filter);
       }
     }
   };
@@ -493,9 +415,7 @@ export default function useNetworkLayers({
       if (source) source.setData(originalNetworkGeoJSON.current);
     }
     
-    ['network-layer', 'click-network-layer', 'network-highlight'].forEach(id => {
-      if (map.getLayer(id)) map.setFilter(id, fullFilter);
-    });
+    setFilter(map, ['network-layer', 'click-network-layer', 'network-highlight'], fullFilter);
 
     // Clear selection if the highlighted feature is filtered out (e.g. non-car link in Volumes)
     if (map.getSource('network-highlight') && map.getLayer('network-highlight')) {
@@ -526,17 +446,15 @@ export default function useNetworkLayers({
     // (e.g. TransitVolumes) that renders its own styling off the same network
     // geometry — leaving hidden network layers around causes z-order issues
     // because other hooks insert their layers below `canton-highlight`.
+    const NETWORK_LAYERS = ['network-layer','click-network-layer','network-highlight',
+      'network-label-left','network-label-right'];
+
     const removeAll = () => {
-      ['network-layer','click-network-layer','network-highlight',
-        'network-label-left','network-label-right']
-        .forEach(id => { if (map.getLayer(id)) map.removeLayer(id); });
-      ['network-source','network-highlight','ant-path']
-        .forEach(id => { if (map.getSource(id)) map.removeSource(id); });
+      safeRemoveLayer(map, NETWORK_LAYERS);
+      safeRemoveSource(map, ['network-source','network-highlight','ant-path']);
     };
-      
-      const show = () => ['network-layer','click-network-layer','network-highlight',
-        'network-label-left','network-label-right']
-        .forEach(id => { if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'visible'); });
+
+      const show = () => setVisibility(map, NETWORK_LAYERS, true);
         
         if (isGraphExpanded === 'Network' || isGraphExpanded === 'Volumes' || isGraphExpanded === 'VolumeFlow' || isGraphExpanded === 'NodeFlows' || isGraphExpanded === 'LinkSpeeds') {
           if (map.getLayer('network-layer')) {
@@ -553,9 +471,7 @@ export default function useNetworkLayers({
               loadNetworkForCanton(canton);
             }
             if (isGraphExpanded === 'Network') {
-              ['network-layer','click-network-layer','network-highlight'].forEach(id => {
-                if (map.getLayer(id)) map.setFilter(id, null);
-              });
+              setFilter(map, ['network-layer','click-network-layer','network-highlight'], null);
               setLabelVisibility(map, false);
             }
           } else {
@@ -589,9 +505,7 @@ export default function useNetworkLayers({
             ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0],
             ['>', ['get', 'daily_avg_volume'], 0]
           ];
-          ['network-layer', 'click-network-layer'].forEach(id => {
-            if (map.getLayer(id)) map.setFilter(id, vfFilter);
-          });
+          setFilter(map, ['network-layer', 'click-network-layer'], vfFilter);
         } else {
           // Network / Volumes: full color ramp
           const colorRamp = isGraphExpanded === 'Volumes'
@@ -662,27 +576,21 @@ export default function useNetworkLayers({
         if (searchCanton && (graphExpandedRef.current === 'Network' || graphExpandedRef.current === 'Volumes' || graphExpandedRef.current === 'VolumeFlow' || graphExpandedRef.current === 'NodeFlows' || graphExpandedRef.current === 'LinkSpeeds')) {
           loadNetworkForCanton(searchCanton);
         } else {
-          ['network-layer','click-network-layer','network-highlight',
-            'network-label-left','network-label-right']
-            .forEach(id => { if (map.getLayer(id)) map.removeLayer(id); });
-            
-            ['network-source','network-highlight','ant-path']
-            .forEach(id => { if (map.getSource(id)) map.removeSource(id); });
+          safeRemoveLayer(map, ['network-layer','click-network-layer','network-highlight',
+            'network-label-left','network-label-right']);
+          safeRemoveSource(map, ['network-source','network-highlight','ant-path']);
           }
         }, [searchCanton]);
-        
+
         useEffect(() => {
           const map = mapRef.current;
           if (!map) return;
-          
-          const layersToRemove = [
+
+          safeRemoveLayer(map, [
             'network-layer','click-network-layer','ant-line','network-highlight',
-            'network-label-left','network-label-right'
-          ];
-          const sourcesToRemove = ['network-source','ant-path','network-highlight'];
-          
-          layersToRemove.forEach(id => { if (map.getLayer(id)) map.removeLayer(id); });
-          sourcesToRemove.forEach(id => { if (map.getSource(id)) map.removeSource(id); });
+            'network-label-left','network-label-right',
+          ]);
+          safeRemoveSource(map, ['network-source','ant-path','network-highlight']);
           
           originalNetworkGeoJSON.current = null;
           setLinkVolumeData(null);

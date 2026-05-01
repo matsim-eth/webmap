@@ -5,7 +5,10 @@ import CantonSearch from "./components/CantonSearch";
 import "./App.css";
 import NetworkLegend from "./components/NetworkLegend";
 import { FileProvider } from "./FileContext";
-import { AppProvider, useApp } from "./context/AppContext";
+import { AppProvider } from "./context/AppContext";
+import { useData } from "./context/DataContext";
+import { useMap } from "./context/MapContext";
+import { useSelection } from "./context/SelectionContext";
 
 window.name = 'webmap-tab';
 
@@ -18,7 +21,9 @@ function App() {
 }
 
 function MainContent() {
-  const { dataURL, mapRef, setClickedCanton } = useApp();
+  const { dataURL } = useData();
+  const { mapRef } = useMap();
+  const { setClickedCanton } = useSelection();
 
   return (
     <FileProvider dataURL={dataURL}>

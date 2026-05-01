@@ -1,7 +1,12 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { useApp } from '../../context/AppContext';
+import { useModule } from '../../context/ModuleContext';
+import { useSelection } from '../../context/SelectionContext';
+import { useData } from '../../context/DataContext';
+import { useFilters } from '../../context/FilterContext';
 import { handle401 } from '../../utils/auth';
 import bboxCache from '../../utils/bboxCanton.json';
+import { safeRemoveLayer, safeRemoveSource } from './_lib/mapbox';
+import { parsePipeList } from './_lib/pipeProps';
 
 const NETWORK_SOURCE_ID = 'zone-flows-network';
 const NETWORK_LAYER_ID = 'zone-flows-network-base';
@@ -23,17 +28,15 @@ const unionBbox = (a, b) => {
 };
 
 export default function useZoneFlowLayers({ mapRef, mapReady, loadWithFallback, fileMapSize, setIsLoading }) {
+    const { isGraphExpanded } = useModule();
+    const { clickedCanton, zoneFlowDestCanton } = useSelection();
     const {
-        isGraphExpanded,
         datasetId,
-        clickedCanton,
-        zoneFlowDestCanton,
-        zoneFlowDirection,
         zoneFlowData,
-        timeRange,
         setZoneFlowData,
         setZoneFlowLoading,
-    } = useApp();
+    } = useData();
+    const { zoneFlowDirection, timeRange } = useFilters();
 
     const zoneFlowOriginCanton = isGraphExpanded === 'ZoneFlows' ? clickedCanton : null;
 
@@ -59,8 +62,8 @@ export default function useZoneFlowLayers({ mapRef, mapReady, loadWithFallback, 
     const sourceKeyRef = useRef(null);
 
     const removeAll = useCallback((map) => {
-        MODULE_LAYERS.forEach(id => { if (map.getLayer(id)) map.removeLayer(id); });
-        MODULE_SOURCES.forEach(id => { if (map.getSource(id)) map.removeSource(id); });
+        safeRemoveLayer(map, MODULE_LAYERS);
+        safeRemoveSource(map, MODULE_SOURCES);
         sourceKeyRef.current = null;
         combinedGeoRef.current = null;
     }, []);
@@ -115,7 +118,7 @@ export default function useZoneFlowLayers({ mapRef, mapReady, loadWithFallback, 
         if (!base || !source) return;
 
         const decorated = base.features.map((f, idx) => {
-            const keys = (f.properties?.per_id_keys || '').split('|').filter(Boolean);
+            const keys = parsePipeList(f.properties?.per_id_keys);
             let maxFlow = 0;
             for (const k of keys) {
                 const v = linksMap?.get(String(k));

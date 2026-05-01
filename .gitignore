@@ -50,3 +50,4 @@ __pycache__/
 /data/
 *.duckdb
 *.parquet
+REFACTOR_NOTES.md

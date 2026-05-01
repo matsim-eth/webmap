@@ -2,7 +2,12 @@ import React, { useState, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import "./RightSidebar.css";
 import { useFileContext } from "../../FileContext";
-import { useApp } from "../../context/AppContext";
+import { useModule } from "../../context/ModuleContext";
+import { useMap } from "../../context/MapContext";
+import { useData } from "../../context/DataContext";
+import { useFilters } from "../../context/FilterContext";
+import { useSelection } from "../../context/SelectionContext";
+import { useChoropleth } from "../../context/ChoroplethContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTableList, faFileCsv, faXmark, faChevronLeft, faRotateLeft, faDrawPolygon } from "@fortawesome/free-solid-svg-icons";
 
@@ -40,38 +45,46 @@ import ZoneFlowsModule from "../matsim/ZoneFlowsModule";
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
 
 const RightSidebar = () => {
+  const { isGraphExpanded } = useModule();
   const {
-    dataURL,
     isSidebarOpen, setIsSidebarOpen,
-    isGraphExpanded,
-    isFeatureTableOpen, setIsFeatureTableOpen, setTableFilterQuery,
-    featureGeoJSON,
-    clickedCanton: canton, // Alias to match existing code
-    updateMapChoropleth,
-    selectedNetworkModes, setSelectedNetworkModes,
-    selectedNetworkFeature, setSelectedNetworkFeature,
-    visualizeLinkId, setVisualizeLinkId,
-    showMajorRoadsOnly, setShowMajorRoadsOnly,
-    setFeatureSelection, // Was onFocusNetworkFeature & onFocusTransitFeature
-    selectedTransitModes, setSelectedTransitModes,
-    selectedTransitStop, setSelectedTransitStop,
-    highlightedLineId, setHighlightedLineId,
-    setHighlightedRouteIds, setHoveredRouteId,
-    showStopVolumeSymbology, setShowStopVolumeSymbology,
-    selectedTransitLink, setSelectedTransitLink,
-    setShowLineSymbology, showLineSymbology,
-    setDestinationData,
-    setBoardingData,
-    timeRange, setTimeRange,
-    aggCol: selectedAggCol, // Alias
-    setAggCol: setSelectedAggCol, // Alias
     labelSize, setLabelSize,
-    setVolumeFlowSegment,
-    nodeFlowsData, setNodeFlowsData,
     mapRef,
     drawRef,
-    selectedDirection, setSelectedDirection
-  } = useApp();
+  } = useMap();
+  const {
+    dataURL,
+    isFeatureTableOpen, setIsFeatureTableOpen, setTableFilterQuery,
+    featureGeoJSON,
+    setDestinationData,
+    setBoardingData,
+    nodeFlowsData, setNodeFlowsData,
+  } = useData();
+  const {
+    selectedNetworkModes, setSelectedNetworkModes,
+    selectedTransitModes, setSelectedTransitModes,
+    showMajorRoadsOnly, setShowMajorRoadsOnly,
+    showStopVolumeSymbology, setShowStopVolumeSymbology,
+    setShowLineSymbology, showLineSymbology,
+    timeRange, setTimeRange,
+    selectedDirection, setSelectedDirection,
+  } = useFilters();
+  const {
+    clickedCanton: canton,
+    selectedNetworkFeature, setSelectedNetworkFeature,
+    visualizeLinkId, setVisualizeLinkId,
+    setFeatureSelection,
+    selectedTransitStop, setSelectedTransitStop,
+    selectedTransitLink, setSelectedTransitLink,
+    setVolumeFlowSegment,
+  } = useSelection();
+  const {
+    updateMapChoropleth,
+    highlightedLineId, setHighlightedLineId,
+    setHighlightedRouteIds, setHoveredRouteId,
+    aggCol: selectedAggCol,
+    setAggCol: setSelectedAggCol,
+  } = useChoropleth();
 
   // Alias for functions that were passed as props with different names
   const onFocusNetworkFeature = setFeatureSelection;

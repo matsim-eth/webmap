@@ -1,4 +1,6 @@
 import { useEffect } from 'react';
+import { safeRemoveLayer, safeRemoveSource } from './_lib/mapbox';
+import { parsePipeList } from './_lib/pipeProps';
 
 export default function useAntPath(mapRef, visualizeLinkId, graphExpandedRef) {
   useEffect(() => {
@@ -19,8 +21,8 @@ export default function useAntPath(mapRef, visualizeLinkId, graphExpandedRef) {
     const findFeatureByLinkId = () => {
       for (const f of data.features || []) {
         // Parse pipe-separated per_id_keys and per_id_directions
-        const keys = (f?.properties?.per_id_keys || "").split("|").filter(Boolean);
-        const directions = (f?.properties?.per_id_directions || "").split("|").filter(Boolean);
+        const keys = parsePipeList(f?.properties?.per_id_keys);
+        const directions = parsePipeList(f?.properties?.per_id_directions);
         
         // Find the index of the matching link ID
         const index = keys.findIndex(k => String(k) === idStr);
@@ -54,8 +56,8 @@ export default function useAntPath(mapRef, visualizeLinkId, graphExpandedRef) {
     if (!Array.isArray(mergedCoords) || mergedCoords.length < 2) return;
 
     // Clean up old
-    if (map.getLayer("ant-line")) map.removeLayer("ant-line");
-    if (map.getSource("ant-path")) map.removeSource("ant-path");
+    safeRemoveLayer(map, "ant-line");
+    safeRemoveSource(map, "ant-path");
 
     map.addSource("ant-path", {
       type: "geojson",
@@ -107,8 +109,8 @@ export default function useAntPath(mapRef, visualizeLinkId, graphExpandedRef) {
     requestAnimationFrame(animate);
 
     return () => {
-      if (map.getLayer("ant-line")) map.removeLayer("ant-line");
-      if (map.getSource("ant-path")) map.removeSource("ant-path");
+      safeRemoveLayer(map, "ant-line");
+      safeRemoveSource(map, "ant-path");
     };
   }, [visualizeLinkId]); // re-run when the selected per-id changes
 }

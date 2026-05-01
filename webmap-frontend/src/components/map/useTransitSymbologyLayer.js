@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { safeRemoveLayer, safeRemoveSource } from './_lib/mapbox';
 
 export default function useTransitSymbologyLayer({
     mapRef,
@@ -35,10 +36,8 @@ export default function useTransitSymbologyLayer({
         const STOP_LABEL_LAYER_ID = "transit-symbology-stops-label";
         
         const removeStopLayers = () => {
-            [STOP_LAYER_ID, STOP_LABEL_LAYER_ID].forEach((id) => {
-                if (map.getLayer(id)) map.removeLayer(id);
-            });
-            if (map.getSource(STOP_SOURCE_ID)) map.removeSource(STOP_SOURCE_ID);
+            safeRemoveLayer(map, [STOP_LAYER_ID, STOP_LABEL_LAYER_ID]);
+            safeRemoveSource(map, STOP_SOURCE_ID);
         };
         
         if (!showLineSymbology) {

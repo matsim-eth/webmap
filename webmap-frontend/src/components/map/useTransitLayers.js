@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { safeRemoveLayer, safeRemoveSource } from './_lib/mapbox';
 
 import useTransitStops from './useTransitStops';
 import useTransitLines from './useTransitLines';
@@ -106,8 +107,8 @@ export default function useTransitLayers({
       }
 
       if (isGraphExpanded === "Transit") {
-        if (map.getLayer("transit-highlight-layer")) map.removeLayer("transit-highlight-layer");
-        if (map.getSource("transit-highlight")) map.removeSource("transit-highlight");
+        safeRemoveLayer(map, "transit-highlight-layer");
+        safeRemoveSource(map, "transit-highlight");
 
         setSelectedTransitStop(null);
       } else if (isGraphExpanded !== "TransitVolumes") {

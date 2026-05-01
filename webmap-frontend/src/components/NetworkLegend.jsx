@@ -1,9 +1,11 @@
 import React from "react";
 import "./NetworkLegend.css";
-import { useApp } from "../context/AppContext";
+import { useModule } from "../context/ModuleContext";
+import { useFilters } from "../context/FilterContext";
 
 const Legend = () => {
-  const { isGraphExpanded: selectedGraph, showStopVolumeSymbology, linkSpeedsMetric } = useApp();
+  const { isGraphExpanded: selectedGraph } = useModule();
+  const { showStopVolumeSymbology, linkSpeedsMetric } = useFilters();
 
   const isVolumes = selectedGraph === "Volumes";
   const isNetwork = selectedGraph === "Network";
