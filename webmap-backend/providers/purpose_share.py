@@ -1,13 +1,12 @@
 from .base import DataProvider, CANTON, SOURCE, GENDER, MODE, PURPOSE
 from .connection import get_connection
-from .constants import canton_name
 from .helpers import (
     canton_filter_sql,
     gender_filter_sql,
     parse_source_param,
-    build_canton_lookup,
     mode_filter_sql,
     purpose_filter_sql,
+    share_rows_by_canton_source,
 )
 from .paths import get_data_paths
 
@@ -36,70 +35,34 @@ class PurposeShareProvider(DataProvider):
         gf = gender_filter_sql(params, "p.sex")
         con = get_connection()
 
-        counts: dict = {}
-        totals: dict = {}
-        seen_cantons: set = set()
+        # Synthetic stores it as `preceding_purpose`; Microcensus as `purpose`.
+        # Filter column has to match the source schema, so the purpose filter
+        # SQL is rebuilt per source.
+        source_specs = [
+            ("Synthetic", paths.synthetic_trips, paths.synthetic_persons, "t.preceding_purpose"),
+            ("Microcensus", paths.microcensus_trips, paths.microcensus_persons, "t.purpose"),
+        ]
 
-        if "Synthetic" in sources:
-            pf = purpose_filter_sql(params, "t.preceding_purpose")
-            rows = con.execute(f"""
-                SELECT p.canton_id, t.preceding_purpose
-                FROM read_parquet(?) t
-                INNER JOIN read_parquet(?) p ON t.person_id = p.person_id
-                WHERE p.canton_id IS NOT NULL AND t.preceding_purpose IS NOT NULL
-                {cf}{pf}{mf}{gf}
-            """, [paths.synthetic_trips, paths.synthetic_persons]).fetchall()
-            for cid, purpose in rows:
-                cid = int(cid)
-                purpose = str(purpose)
-                seen_cantons.add(cid)
-                counts[("Synthetic", cid, purpose)] = counts.get(("Synthetic", cid, purpose), 0) + 1
-                totals[("Synthetic", cid)] = totals.get(("Synthetic", cid), 0) + 1
-                counts[("Synthetic", "All", purpose)] = counts.get(("Synthetic", "All", purpose), 0) + 1
-                totals[("Synthetic", "All")] = totals.get(("Synthetic", "All"), 0) + 1
+        def grouped_rows():
+            for source_label, trips_path, persons_path, purpose_col in source_specs:
+                if source_label not in sources:
+                    continue
+                pf = purpose_filter_sql(params, purpose_col)
+                rows = con.execute(f"""
+                    SELECT p.canton_id, {purpose_col} AS purpose, COUNT(*) AS cnt
+                    FROM read_parquet(?) t
+                    INNER JOIN read_parquet(?) p ON t.person_id = p.person_id
+                    WHERE p.canton_id IS NOT NULL AND {purpose_col} IS NOT NULL
+                    {cf}{pf}{mf}{gf}
+                    GROUP BY p.canton_id, {purpose_col}
+                """, [trips_path, persons_path]).fetchall()
+                for cid, purpose, cnt in rows:
+                    yield (source_label, cid, str(purpose), cnt)
 
-        if "Microcensus" in sources:
-            pf = purpose_filter_sql(params, "t.purpose")
-            rows = con.execute(f"""
-                SELECT p.canton_id, t.purpose
-                FROM read_parquet(?) t
-                INNER JOIN read_parquet(?) p ON t.person_id = p.person_id
-                WHERE p.canton_id IS NOT NULL AND t.purpose IS NOT NULL
-                {cf}{pf}{mf}{gf}
-            """, [paths.microcensus_trips, paths.microcensus_persons]).fetchall()
-            for cid, purpose in rows:
-                cid = int(cid)
-                purpose = str(purpose)
-                seen_cantons.add(cid)
-                counts[("Microcensus", cid, purpose)] = counts.get(("Microcensus", cid, purpose), 0) + 1
-                totals[("Microcensus", cid)] = totals.get(("Microcensus", cid), 0) + 1
-                counts[("Microcensus", "All", purpose)] = counts.get(("Microcensus", "All", purpose), 0) + 1
-                totals[("Microcensus", "All")] = totals.get(("Microcensus", "All"), 0) + 1
-
-        canton_names, canton_ids_by_name = build_canton_lookup(seen_cantons)
-        purposes = sorted({k[2] for k in counts.keys()})
-
-        result: dict = {}
-        max_share_per_purpose: dict = {}
-
-        for source in sources:
-            source_rows = []
-            for cname in canton_names + ["All"]:
-                cid = canton_ids_by_name.get(cname, "All")
-                denom = float(totals.get((source, cid), 0))
-                for purpose in purposes:
-                    num = float(counts.get((source, cid, purpose), 0))
-                    share = round(num / denom, 8) if denom > 0 else 0.0
-                    source_rows.append({
-                        "canton_name": cname,
-                        "purpose": purpose,
-                        "share": share,
-                    })
-                    if cname != "All":
-                        max_share_per_purpose[purpose] = max(
-                            max_share_per_purpose.get(purpose, 0.0), share
-                        )
-            result[source] = source_rows
-
-        result["max_share_per_purpose"] = max_share_per_purpose
-        return result
+        return share_rows_by_canton_source(
+            grouped_rows(),
+            sources=sources,
+            bin_field="purpose",
+            round_digits=8,
+            max_share_field="max_share_per_purpose",
+        )

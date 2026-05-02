@@ -52,8 +52,12 @@ export const makeRowMatchesQuery = ({ numericCols, formatCell }) => (row, query)
     }
   }
 
-  const hasSemi = raw.includes(';');
-  const values = raw.split(hasSemi ? ';' : ',').map(v => v.trim()).filter(Boolean);
+  // Both `;` and `,` are OR delimiters — matches DataTables' multi-term
+  // behavior and what the FeatureTable search-guide tooltip documents
+  // ("separate with ; or , to match any"). A `;`-AND semantics here would
+  // hide every row when the user types e.g. `bus;train;ferry` against a
+  // mode cell that only ever contains one mode.
+  const values = raw.split(/[;,]+/).map(v => v.trim()).filter(Boolean);
   if (!values.length) return true;
 
   const matchOne = (val) => {
@@ -64,5 +68,5 @@ export const makeRowMatchesQuery = ({ numericCols, formatCell }) => (row, query)
     return haystack.includes(needle);
   };
 
-  return hasSemi ? values.every(matchOne) : values.some(matchOne);
+  return values.some(matchOne);
 };

@@ -1,9 +1,12 @@
-from collections import defaultdict
-
 from .base import DataProvider, Param, CANTON, SOURCE, GENDER
 from .constants import DEFAULT_AGE_BINS
 from .connection import get_connection
-from .helpers import canton_filter_sql, gender_filter_sql, parse_source_param, build_canton_lookup
+from .helpers import (
+    canton_filter_sql,
+    gender_filter_sql,
+    parse_source_param,
+    share_by_canton_source,
+)
 from .paths import get_data_paths
 
 
@@ -46,45 +49,23 @@ class AgeProvider(DataProvider):
 
         age_case = _age_bin_sql(bins)
 
-        counts = defaultdict(int)
-        seen_cantons = set()
+        def grouped_rows():
+            for source_label, path in [("Synthetic", paths.synthetic_persons),
+                                        ("Microcensus", paths.microcensus_persons)]:
+                if source_label not in sources:
+                    continue
+                rows = con.execute(f"""
+                    SELECT canton_id, {age_case} AS age_bin, COUNT(*) AS cnt
+                    FROM read_parquet(?)
+                    WHERE canton_id IS NOT NULL AND age IS NOT NULL{cf}{gf}
+                    GROUP BY canton_id, age_bin
+                    HAVING age_bin IS NOT NULL
+                """, [path]).fetchall()
+                for cid, bin_label, cnt in rows:
+                    yield (source_label, cid, bin_label, cnt)
 
-        for source_label, path in [("Synthetic", paths.synthetic_persons),
-                                    ("Microcensus", paths.microcensus_persons)]:
-            if source_label not in sources:
-                continue
-            rows = con.execute(f"""
-                SELECT canton_id, {age_case} AS age_bin, COUNT(*) AS cnt
-                FROM read_parquet(?)
-                WHERE canton_id IS NOT NULL AND age IS NOT NULL{cf}{gf}
-                GROUP BY canton_id, age_bin
-                HAVING age_bin IS NOT NULL
-            """, [path]).fetchall()
-            for cid, bin_label, cnt in rows:
-                seen_cantons.add(int(cid))
-                counts[(source_label, int(cid), str(bin_label))] += cnt
-
-        # "All" canton aggregate
-        all_canton = defaultdict(int)
-        for (source, cid, bl), cnt in counts.items():
-            all_canton[(source, "All", bl)] += cnt
-        counts.update(all_canton)
-
-        # Totals per (source, cid)
-        totals = defaultdict(int)
-        for (source, cid, bl), cnt in counts.items():
-            totals[(source, cid)] += cnt
-
-        canton_names, canton_ids_by_name = build_canton_lookup(seen_cantons)
-
-        out: dict = {}
-        for cname in canton_names + ["All"]:
-            cid = canton_ids_by_name.get(cname, "All")
-            for source in sources:
-                for b in bins_order:
-                    denom = float(totals.get((source, cid), 0))
-                    num = float(counts.get((source, cid, b), 0))
-                    share = (num / denom) if denom > 0 else 0.0
-                    out.setdefault(cname, {}).setdefault(source, {})[b] = share
-
-        return out
+        return share_by_canton_source(
+            grouped_rows(),
+            sources=sources,
+            bin_keys=bins_order,
+        )

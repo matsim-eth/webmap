@@ -103,3 +103,106 @@ def purpose_filter_sql(params: dict, column: str = "purpose") -> str:
         return ""
     vals = ", ".join(f"'{p.strip()}'" for p in purposes.split(","))
     return f" AND {column} IN ({vals})"
+
+
+def aggregate_with_all_rollup(grouped_rows):
+    """Tally per-(source, canton, bin) counts and the implicit "All" canton
+    rollup from a stream of grouped SQL rows.
+
+    Args:
+        grouped_rows: iterable of (source_label, canton_id, bin_key, count)
+            tuples — typically the result of a SQL ``GROUP BY canton_id, <bin>``
+            with a ``COUNT(*)`` aggregate.
+
+    Returns:
+        ``(counts, totals, canton_names, canton_ids_by_name)`` where
+        ``counts[(source, cid, bin_key)]`` and ``totals[(source, cid)]`` carry
+        both real canton ids (int) and the special ``"All"`` rollup. Canton
+        ordering is by canton id (matches ``build_canton_lookup``).
+    """
+    counts: dict = {}
+    totals: dict = {}
+    seen_cantons: set = set()
+    for source, cid, bk, cnt in grouped_rows:
+        cid_int = int(cid)
+        bk_str = str(bk)
+        seen_cantons.add(cid_int)
+        counts[(source, cid_int, bk_str)] = counts.get((source, cid_int, bk_str), 0) + cnt
+        totals[(source, cid_int)]         = totals.get((source, cid_int), 0)         + cnt
+        counts[(source, "All", bk_str)]   = counts.get((source, "All", bk_str), 0)   + cnt
+        totals[(source, "All")]           = totals.get((source, "All"), 0)           + cnt
+    canton_names, canton_ids_by_name = build_canton_lookup(seen_cantons)
+    return counts, totals, canton_names, canton_ids_by_name
+
+
+def share_by_canton_source(
+    grouped_rows,
+    *,
+    sources: list[str],
+    bin_keys: list[str] | None = None,
+    round_digits: int | None = None,
+) -> dict:
+    """Build ``{canton_name: {source: {bin_key: share}}}`` from grouped rows,
+    including the ``"All"`` canton rollup. ``sources`` is iterated in the
+    given order so requested-but-empty sources still appear with all-zero
+    shares (matches the pre-refactor providers byte-for-byte).
+
+    ``bin_keys`` controls bin ordering and which bins must be present in the
+    output even when their count is zero — pass an explicit list when the
+    desired ordering isn't lexicographic (custom age bins, numeric car-class
+    keys, etc.). ``None`` sorts the union of bins seen in the input.
+    """
+    counts, totals, canton_names, canton_ids_by_name = aggregate_with_all_rollup(grouped_rows)
+    if bin_keys is None:
+        bin_keys = sorted({k[2] for k in counts.keys()})
+    out: dict = {}
+    for cname in canton_names + ["All"]:
+        cid = canton_ids_by_name.get(cname, "All")
+        for source in sources:
+            denom = float(totals.get((source, cid), 0))
+            for bk in bin_keys:
+                num = float(counts.get((source, cid, bk), 0))
+                share = (num / denom) if denom > 0 else 0.0
+                if round_digits is not None:
+                    share = round(share, round_digits)
+                out.setdefault(cname, {}).setdefault(source, {})[bk] = share
+    return out
+
+
+def share_rows_by_canton_source(
+    grouped_rows,
+    *,
+    sources: list[str],
+    bin_field: str,
+    bin_keys: list[str] | None = None,
+    round_digits: int | None = None,
+    max_share_field: str | None = None,
+) -> dict:
+    """Build ``{source: [{canton_name, <bin_field>, share}, ...]}`` from grouped
+    rows. The ``"All"`` canton row is included in each source list. When
+    ``max_share_field`` is given, an extra top-level entry holds the per-bin
+    max share *excluding* the ``"All"`` rollup (matches mode/purpose share's
+    ``max_share_per_*`` payload).
+    """
+    counts, totals, canton_names, canton_ids_by_name = aggregate_with_all_rollup(grouped_rows)
+    if bin_keys is None:
+        bin_keys = sorted({k[2] for k in counts.keys()})
+    result: dict = {}
+    max_share: dict = {}
+    for source in sources:
+        source_rows = []
+        for cname in canton_names + ["All"]:
+            cid = canton_ids_by_name.get(cname, "All")
+            denom = float(totals.get((source, cid), 0))
+            for bk in bin_keys:
+                num = float(counts.get((source, cid, bk), 0))
+                share = (num / denom) if denom > 0 else 0.0
+                if round_digits is not None:
+                    share = round(share, round_digits)
+                source_rows.append({"canton_name": cname, bin_field: bk, "share": share})
+                if cname != "All":
+                    max_share[bk] = max(max_share.get(bk, 0.0), share)
+        result[source] = source_rows
+    if max_share_field is not None:
+        result[max_share_field] = max_share
+    return result

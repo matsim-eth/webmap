@@ -1,6 +1,11 @@
 from .base import DataProvider, CANTON, SOURCE, GENDER
 from .connection import get_connection
-from .helpers import canton_filter_sql, gender_filter_sql, parse_source_param, build_canton_lookup
+from .helpers import (
+    canton_filter_sql,
+    gender_filter_sql,
+    parse_source_param,
+    share_by_canton_source,
+)
 from .paths import get_data_paths
 
 
@@ -25,42 +30,28 @@ class CarAvailabilityProvider(DataProvider):
         gf = gender_filter_sql(params, "p.sex")
         con = get_connection()
 
-        counts: dict = {}
-        totals: dict = {}
-        seen_cantons: set = set()
-
-        def tally(source: str, cid: int, val) -> None:
-            seen_cantons.add(cid)
-            key = str(int(val))
-            counts[(source, cid, key)] = counts.get((source, cid, key), 0) + 1
-            totals[(source, cid)]      = totals.get((source, cid), 0) + 1
-            counts[(source, "All", key)] = counts.get((source, "All", key), 0) + 1
-            totals[(source, "All")]      = totals.get((source, "All"), 0) + 1
-
-        for source, path in [("Synthetic", paths.synthetic_persons),
-                             ("Microcensus", paths.microcensus_persons)]:
-            if source not in sources:
+        all_rows: list = []
+        for source_label, path in [("Synthetic", paths.synthetic_persons),
+                                   ("Microcensus", paths.microcensus_persons)]:
+            if source_label not in sources:
                 continue
             rows = con.execute(f"""
-                SELECT p.canton_id, p.car_availability
+                SELECT p.canton_id, p.car_availability, COUNT(*) AS cnt
                 FROM read_parquet(?) p
                 WHERE p.canton_id IS NOT NULL AND p.car_availability IS NOT NULL
                 {cf}{gf}
+                GROUP BY p.canton_id, p.car_availability
             """, [path]).fetchall()
-            for cid, val in rows:
-                tally(source, int(cid), val)
+            for cid, val, cnt in rows:
+                all_rows.append((source_label, cid, str(int(val)), cnt))
 
-        canton_names, canton_ids_by_name = build_canton_lookup(seen_cantons)
-        car_classes = sorted({k for (_, _, k) in counts.keys()}, key=lambda x: int(x))
+        # Numeric-sort the car classes (e.g. "0","1","2") so output ordering
+        # matches the pre-refactor lexicographic-by-int behavior.
+        car_classes = sorted({r[2] for r in all_rows}, key=lambda x: int(x))
 
-        out: dict = {}
-        for cname in canton_names + ["All"]:
-            cid = canton_ids_by_name.get(cname, "All")
-            for source in sources:
-                denom = float(totals.get((source, cid), 0))
-                for cc in car_classes:
-                    num = float(counts.get((source, cid, cc), 0))
-                    share = round(num / denom, 16) if denom > 0 else 0.0
-                    out.setdefault(cname, {}).setdefault(source, {})[cc] = share
-
-        return out
+        return share_by_canton_source(
+            all_rows,
+            sources=sources,
+            bin_keys=car_classes,
+            round_digits=16,
+        )

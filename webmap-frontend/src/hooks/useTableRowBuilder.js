@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { buildRowsFromGeojson } from '../components/table/FeatureTable';
+import { buildRowsFromGeojson } from '../components/table/_lib/buildRows';
 
 /**
  * Hook to manage table row building lifecycle for feature tables.
