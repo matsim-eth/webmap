@@ -134,7 +134,7 @@ return (
     const tickvals = labels.filter((_, i) => i % 2 === 0); // every 2 hrs
 
     return (
-      <div key={id}>
+      <div key={id} style={{ marginTop: "16px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
       <h4 style={{ margin: 0 }}>Hourly Volume for Link {id}</h4>
       <button

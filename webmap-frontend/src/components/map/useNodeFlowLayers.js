@@ -604,6 +604,8 @@ export default function useNodeFlowLayers({ mapRef, mapReady, setIsLoading }) {
             prevCantonRef.current = clickedCanton;
             lastNodeRef.current = null;
             cleanAll(map);
+            setNodeFlowsData(null);
+            setHoveredMatrixCell(null);
         }
 
         if (isGraphExpanded !== 'NodeFlows') {

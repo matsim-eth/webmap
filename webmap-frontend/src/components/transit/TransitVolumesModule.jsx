@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import Plot from "react-plotly.js";
 import TransitLinkAttributesTable from "./TransitLinkAttributesTable";
 import TransitLinkHistogram from "./TransitLinkHistogram";
@@ -254,6 +254,8 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
     setHighlightedLineId(highlightedLineId === lineId ? null : lineId);
   }, [highlightedLineId, setHighlightedLineId]);
 
+  const [isPolygonSelectionCollapsed, setIsPolygonSelectionCollapsed] = useState(false);
+
   return (
     <div className="plot-container">
     {isFeatureTableOpen ? (
@@ -330,8 +332,28 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
     {/* Polygon aggregate view */}
     {polygonAggregate && !selectedTransitLink && (
       <>
-      <div className="canton-mode-share">
+      <div className="canton-mode-share" style={{ position: "relative" }}>
+        <span
+          role="button"
+          tabIndex={0}
+          onClick={() => setIsPolygonSelectionCollapsed(v => !v)}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setIsPolygonSelectionCollapsed(v => !v); }}
+          aria-label={isPolygonSelectionCollapsed ? "Expand" : "Collapse"}
+          style={{
+            position: "absolute",
+            top: 8,
+            right: 16,
+            cursor: "pointer",
+            fontSize: 18,
+            lineHeight: 1,
+            userSelect: "none",
+            color: "var(--color-text-secondary)",
+          }}
+        >
+          {isPolygonSelectionCollapsed ? "+" : "−"}
+        </span>
         <h4>Polygon Selection ({polygonAggregate.segmentCount} segments)</h4>
+        {!isPolygonSelectionCollapsed && (
         <table>
           <tbody>
             <tr>
@@ -347,14 +369,22 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
               <td>
                 <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
                   <div className="metric-card">
-                    <div className="metric-label">Filtered</div>
-                    <div className="metric-value">{Math.round(polygonAggregate.filteredVolume)}</div>
+                    <div className="metric-label">Filtered Link Passes</div>
+                    <div className="metric-value">{Math.round(polygonAggregate.filteredVolume).toLocaleString()}</div>
                   </div>
                   <div className="metric-card">
-                    <div className="metric-label">Total</div>
-                    <div className="metric-value">{Math.round(polygonAggregate.totalVolume)}</div>
+                    <div className="metric-label">Total Link Passes</div>
+                    <div className="metric-value">{Math.round(polygonAggregate.totalVolume).toLocaleString()}</div>
                   </div>
                 </div>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Average Volume per Link</strong></td>
+              <td>
+                {polygonAggregate.segmentCount > 0
+                  ? `${Math.round(polygonAggregate.totalVolume / polygonAggregate.segmentCount).toLocaleString()} passengers/day`
+                  : "-"}
               </td>
             </tr>
             <tr>
@@ -375,6 +405,7 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
             </tr>
           </tbody>
         </table>
+        )}
       </div>
 
       {boundaryAggregate && (

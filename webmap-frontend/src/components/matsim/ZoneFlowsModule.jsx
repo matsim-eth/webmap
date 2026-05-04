@@ -39,7 +39,9 @@ const ZoneFlowsModule = () => {
 
     const sameCanton = zoneFlowOriginCanton && zoneFlowOriginCanton === zoneFlowDestCanton;
     const totalTrips = zoneFlowData?.total_trips ?? null;
-    const linkCount = zoneFlowData?.links ? Object.keys(zoneFlowData.links).length : 0;
+    const linkCount = zoneFlowData?.links_by_canton
+        ? Object.values(zoneFlowData.links_by_canton).reduce((sum, m) => sum + Object.keys(m).length, 0)
+        : 0;
 
     const directionLabel =
         zoneFlowDirection === 'both' ? 'Both directions'

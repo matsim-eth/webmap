@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import "../Table.css";
 
 const fmtNum = (v) => {
@@ -8,8 +8,9 @@ const fmtNum = (v) => {
 const allEqual = (arr) => (arr.length === 0 ? true : arr.every((x) => x === arr[0]));
 
 const SegmentAttributesTable = ({ propertiesList, selectedGraph, filteredVolume }) => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
   if (!propertiesList || propertiesList.length === 0) return null;
-  
+
   const top = propertiesList[0] || {};
   
   // Parse pipe-separated strings into arrays
@@ -80,8 +81,28 @@ const SegmentAttributesTable = ({ propertiesList, selectedGraph, filteredVolume 
   };
   
   return (
-    <div className="canton-mode-share">
+    <div className="canton-mode-share" style={{ position: "relative" }}>
+    <span
+      role="button"
+      tabIndex={0}
+      onClick={() => setIsCollapsed(v => !v)}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setIsCollapsed(v => !v); }}
+      aria-label={isCollapsed ? "Expand" : "Collapse"}
+      style={{
+        position: "absolute",
+        top: 8,
+        right: 16,
+        cursor: "pointer",
+        fontSize: 18,
+        lineHeight: 1,
+        userSelect: "none",
+        color: "var(--color-text-secondary)",
+      }}
+    >
+      {isCollapsed ? "+" : "−"}
+    </span>
     <h4>Segment Info</h4>
+    {!isCollapsed && (
     <table>
     <tbody>
     {/* Per-direction fields first (deduped) */}
@@ -130,6 +151,7 @@ const SegmentAttributesTable = ({ propertiesList, selectedGraph, filteredVolume 
         </tr>
         </tbody>
         </table>
+        )}
         </div>
       );
     };

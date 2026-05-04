@@ -13,7 +13,8 @@ const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId
   const { name, modes_list, lines, boardings, alightings, total } = properties;
   
   const [hoveredRoute, setHoveredRoute] = useState(null);
-  const [showRoutes, setShowRoutes] = useState(false); 
+  const [showRoutes, setShowRoutes] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   
   const groupedLines = lines.reduce((acc, line) => {
     if (!acc[line.line_id]) acc[line.line_id] = [];
@@ -36,8 +37,28 @@ const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId
   };
   
   return (
-    <div className="canton-mode-share">
+    <div className="canton-mode-share" style={{ position: "relative" }}>
+    <span
+      role="button"
+      tabIndex={0}
+      onClick={() => setIsCollapsed(v => !v)}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setIsCollapsed(v => !v); }}
+      aria-label={isCollapsed ? "Expand" : "Collapse"}
+      style={{
+        position: "absolute",
+        top: 8,
+        right: 16,
+        cursor: "pointer",
+        fontSize: 18,
+        lineHeight: 1,
+        userSelect: "none",
+        color: "var(--color-text-secondary)",
+      }}
+    >
+      {isCollapsed ? "+" : "−"}
+    </span>
     <h4>{name}</h4>
+    {!isCollapsed && (
     <table>
     <tbody>
     <tr><td>Mode</td><td>{modes_list?.join(", ")}</td></tr>
@@ -143,6 +164,7 @@ const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId
     </tr> */}
     </tbody>
     </table>
+    )}
     </div>
   );
 };

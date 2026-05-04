@@ -9,11 +9,10 @@ import { safeRemoveLayer, safeRemoveSource } from './_lib/mapbox';
 import { parsePipeList } from './_lib/pipeProps';
 
 const NETWORK_SOURCE_ID = 'zone-flows-network';
-const NETWORK_LAYER_ID = 'zone-flows-network-base';
 const FLOW_LAYER_ID = 'zone-flows-flow';
 const FLOW_LABEL_LAYER_ID = 'zone-flows-flow-labels';
 
-const MODULE_LAYERS = [FLOW_LABEL_LAYER_ID, FLOW_LAYER_ID, NETWORK_LAYER_ID];
+const MODULE_LAYERS = [FLOW_LABEL_LAYER_ID, FLOW_LAYER_ID];
 const MODULE_SOURCES = [NETWORK_SOURCE_ID];
 
 const unionBbox = (a, b) => {
@@ -25,6 +24,26 @@ const unionBbox = (a, b) => {
         Math.max(a[2], b[2]),
         Math.max(a[3], b[3]),
     ];
+};
+
+const cantonKey = (cantons) => cantons.slice().sort().join('::');
+
+// Resolve once Mapbox finishes rendering pending tile/style work — fires
+// after setData uploads have been built into renderable tiles.
+const waitForMapIdle = (map) => new Promise((resolve) => {
+    if (!map) { resolve(); return; }
+    map.once('idle', resolve);
+});
+
+const flattenLinksByCanton = (linksByCanton) => {
+    const m = new Map();
+    if (!linksByCanton) return m;
+    for (const cantonLinks of Object.values(linksByCanton)) {
+        for (const [k, v] of Object.entries(cantonLinks)) {
+            m.set(String(k), Number(v));
+        }
+    }
+    return m;
 };
 
 export default function useZoneFlowLayers({ mapRef, mapReady, loadWithFallback, fileMapSize, setIsLoading }) {
@@ -53,13 +72,15 @@ export default function useZoneFlowLayers({ mapRef, mapReady, loadWithFallback, 
     loadRef.current = loadWithFallback;
     // Combined feature collection currently loaded into the source (clean, undecorated)
     const combinedGeoRef = useRef(null);
-    // Track latest zoneFlowData so renderNetwork can apply it without becoming dep-bound
+    // Track latest zoneFlowData so reconcileSource can apply it without becoming dep-bound
     const zoneFlowDataRef = useRef(zoneFlowData);
     zoneFlowDataRef.current = zoneFlowData;
     // Track latest fetch to ignore stale responses
     const fetchTokenRef = useRef(0);
-    // Loaded canton key for the current source (to avoid recompute when unchanged)
+    // Sorted-canton key for the source's current contents
     const sourceKeyRef = useRef(null);
+    // Token for the most recent reconcileSource call, used to ignore stale async results
+    const reconcileTokenRef = useRef(0);
 
     const removeAll = useCallback((map) => {
         safeRemoveLayer(map, MODULE_LAYERS);
@@ -81,55 +102,40 @@ export default function useZoneFlowLayers({ mapRef, mapReady, loadWithFallback, 
         }
     }, []);
 
-    const buildCombinedNetwork = useCallback(async (origin, dest) => {
-        const [og, dg] = await Promise.all([
-            loadCantonNetwork(origin),
-            origin === dest ? Promise.resolve(null) : loadCantonNetwork(dest),
-        ]);
-
-        const features = [];
-        const seen = new Set();
-        const addAll = (fc) => {
-            if (!fc?.features) return;
-            for (const f of fc.features) {
-                const key = f?.properties?.per_id_keys || '';
-                if (key && seen.has(key)) continue;
-                if (key) seen.add(key);
-                features.push(f);
-            }
-        };
-        addAll(og);
-        addAll(dg);
-        return { type: 'FeatureCollection', features };
-    }, [loadCantonNetwork]);
-
-    const fitToCantons = useCallback((map, origin, dest) => {
-        const ob = bboxCache[origin];
-        const db = bboxCache[dest];
-        const bbox = unionBbox(ob, db);
+    const fitToCantons = useCallback((map, cantons) => {
+        let bbox = null;
+        for (const c of cantons) bbox = unionBbox(bbox, bboxCache[c]);
         if (!bbox) return;
         map.fitBounds(bbox, { padding: { top: 60, bottom: 60, left: 200, right: 700 }, duration: 800, maxZoom: 11 });
     }, []);
 
-    // Decorate combined geo with zf_flow values from a links map and push to the source
+    // Decorate combined geo with zf_flow values and push only the segments
+    // that carry flow to the source. Mapbox tiles only what we send, so
+    // dropping zero-flow features is a real perf win.
     const applyFlowsToSource = useCallback((map, linksMap) => {
         const base = combinedGeoRef.current;
         const source = map.getSource(NETWORK_SOURCE_ID);
         if (!base || !source) return;
 
-        const decorated = base.features.map((f, idx) => {
-            const keys = parsePipeList(f.properties?.per_id_keys);
-            let maxFlow = 0;
-            for (const k of keys) {
-                const v = linksMap?.get(String(k));
-                if (v !== undefined && v > maxFlow) maxFlow = v;
+        const decorated = [];
+        if (linksMap && linksMap.size > 0) {
+            for (let idx = 0; idx < base.features.length; idx++) {
+                const f = base.features[idx];
+                const keys = parsePipeList(f.properties?.per_id_keys);
+                let maxFlow = 0;
+                for (const k of keys) {
+                    const v = linksMap.get(String(k));
+                    if (v !== undefined && v > maxFlow) maxFlow = v;
+                }
+                if (maxFlow > 0) {
+                    decorated.push({
+                        ...f,
+                        id: idx,
+                        properties: { ...f.properties, zf_flow: maxFlow },
+                    });
+                }
             }
-            return {
-                ...f,
-                id: idx,
-                properties: { ...f.properties, zf_flow: maxFlow },
-            };
-        });
+        }
 
         source.setData({ type: 'FeatureCollection', features: decorated });
     }, []);
@@ -140,6 +146,10 @@ export default function useZoneFlowLayers({ mapRef, mapReady, loadWithFallback, 
                 id: FLOW_LAYER_ID,
                 type: 'line',
                 source: NETWORK_SOURCE_ID,
+                layout: {
+                    'line-cap': 'round',
+                    'line-join': 'round',
+                },
                 paint: {
                     'line-color': '#ff8c00',
                     'line-width': ['interpolate', ['linear'], ['get', 'zf_flow'],
@@ -176,48 +186,64 @@ export default function useZoneFlowLayers({ mapRef, mapReady, loadWithFallback, 
         }
     }, []);
 
-    const renderNetwork = useCallback(async (map, origin, dest) => {
-        const key = `${origin}::${dest}`;
-        if (sourceKeyRef.current === key && map.getSource(NETWORK_SOURCE_ID)) return;
+    // Ensure the source contains exactly the requested set of canton networks.
+    // Reuses the existing source via setData when possible; sets up source +
+    // base layer + flow layers on first call.
+    const reconcileSource = useCallback(async (map, cantons, { fit = false } = {}) => {
+        const key = cantonKey(cantons);
+        if (sourceKeyRef.current === key && map.getSource(NETWORK_SOURCE_ID)) {
+            if (fit) fitToCantons(map, cantons);
+            return;
+        }
 
+        const token = ++reconcileTokenRef.current;
         setIsLoading?.(true);
-        const geo = await buildCombinedNetwork(origin, dest);
-        if (!geo || isGraphExpanded !== 'ZoneFlows') {
+        const geos = await Promise.all(cantons.map(loadCantonNetwork));
+        if (token !== reconcileTokenRef.current || isGraphExpanded !== 'ZoneFlows') {
             setIsLoading?.(false);
             return;
         }
 
-        removeAll(map);
+        const features = [];
+        const seen = new Set();
+        for (const fc of geos) {
+            if (!fc?.features) continue;
+            for (const f of fc.features) {
+                const k = f?.properties?.per_id_keys || '';
+                if (k && seen.has(k)) continue;
+                if (k) seen.add(k);
+                features.push(f);
+            }
+        }
+        const geo = { type: 'FeatureCollection', features };
         combinedGeoRef.current = geo;
 
-        map.addSource(NETWORK_SOURCE_ID, { type: 'geojson', data: geo, generateId: true });
-
-        map.addLayer({
-            id: NETWORK_LAYER_ID,
-            type: 'line',
-            source: NETWORK_SOURCE_ID,
-            paint: {
-                'line-color': '#aaa',
-                'line-width': 2,
-                'line-opacity': 0.4,
-            },
-            filter: ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0],
-        });
-
-        ensureFlowLayers(map);
+        const existingSource = map.getSource(NETWORK_SOURCE_ID);
+        if (!existingSource) {
+            map.addSource(NETWORK_SOURCE_ID, {
+                type: 'geojson',
+                data: geo,
+                generateId: true,
+                // Default 0.375 simplifies short segments away at low zoom,
+                // making the highlighted route look broken.
+                tolerance: 0.3,
+            });
+            ensureFlowLayers(map);
+        } else {
+            existingSource.setData(geo);
+        }
         sourceKeyRef.current = key;
 
-        // If flow data already arrived before the network finished loading, apply it now
         const pending = zoneFlowDataRef.current;
-        if (pending?.links) {
-            const linksMap = new Map();
-            for (const [k, v] of Object.entries(pending.links)) linksMap.set(String(k), Number(v));
-            applyFlowsToSource(map, linksMap);
+        if (pending?.links_by_canton) {
+            applyFlowsToSource(map, flattenLinksByCanton(pending.links_by_canton));
         }
+        if (fit) fitToCantons(map, cantons);
 
-        fitToCantons(map, origin, dest);
+        await waitForMapIdle(map);
+        if (token !== reconcileTokenRef.current) return;
         setIsLoading?.(false);
-    }, [buildCombinedNetwork, removeAll, ensureFlowLayers, applyFlowsToSource, fitToCantons, isGraphExpanded, setIsLoading]);
+    }, [loadCantonNetwork, ensureFlowLayers, applyFlowsToSource, fitToCantons, isGraphExpanded, setIsLoading]);
 
     // ── EFFECT 1: build/clean network when module / cantons change ──
     useEffect(() => {
@@ -236,8 +262,13 @@ export default function useZoneFlowLayers({ mapRef, mapReady, loadWithFallback, 
             return;
         }
 
-        renderNetwork(map, zoneFlowOriginCanton, zoneFlowDestCanton);
-    }, [mapReady, mapRef, isGraphExpanded, zoneFlowOriginCanton, zoneFlowDestCanton, fileMapSize, renderNetwork, removeAll, setZoneFlowData]);
+        // Initial preview: load just origin + dest. Intermediate cantons are
+        // added later in EFFECT 3 once the response identifies them.
+        const initial = zoneFlowOriginCanton === zoneFlowDestCanton
+            ? [zoneFlowOriginCanton]
+            : [zoneFlowOriginCanton, zoneFlowDestCanton];
+        reconcileSource(map, initial, { fit: true });
+    }, [mapReady, mapRef, isGraphExpanded, zoneFlowOriginCanton, zoneFlowDestCanton, fileMapSize, reconcileSource, removeAll, setZoneFlowData]);
 
     // ── EFFECT 2: fetch flow data whenever inputs change ──
     useEffect(() => {
@@ -272,7 +303,10 @@ export default function useZoneFlowLayers({ mapRef, mapReady, loadWithFallback, 
                 let res = await fetch(url);
                 if (res.status === 401) {
                     const refreshed = await handle401();
-                    if (!refreshed) return;
+                    if (!refreshed) {
+                        if (token === fetchTokenRef.current) setZoneFlowLoading(false);
+                        return;
+                    }
                     res = await fetch(url);
                 }
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -280,38 +314,58 @@ export default function useZoneFlowLayers({ mapRef, mapReady, loadWithFallback, 
                 if (token !== fetchTokenRef.current) return;
                 if (data?.error) {
                     console.warn('zone_flows error:', data.error);
-                    setZoneFlowData({ ...data, links: {}, total_trips: 0 });
+                    setZoneFlowData({ ...data, links_by_canton: {}, total_trips: 0 });
                 } else {
                     setZoneFlowData(data);
                 }
+                // Loading stays true here — EFFECT 3 clears it once the map idles.
             } catch (err) {
                 if (token !== fetchTokenRef.current) return;
                 console.error('Failed to fetch zone_flows', err);
                 setZoneFlowData(null);
-            } finally {
-                if (token === fetchTokenRef.current) setZoneFlowLoading(false);
+                setZoneFlowLoading(false);
             }
         };
         fetchFlows();
     }, [mapReady, mapRef, isGraphExpanded, zoneFlowOriginCanton, zoneFlowDestCanton, zoneFlowDirection, timeRange, datasetId, setZoneFlowData, setZoneFlowLoading]);
 
-    // ── EFFECT 3: paint overlay whenever flow data or source change ──
+    // ── EFFECT 3: paint overlay whenever flow data changes ──
+    // If the response references cantons not in the source yet (intermediate
+    // cantons along the route), expand the source to include them.
     useEffect(() => {
         if (!mapReady || !mapRef.current) return;
         if (isGraphExpanded !== 'ZoneFlows') return;
         const map = mapRef.current;
         if (!map.getSource(NETWORK_SOURCE_ID)) return;
 
-        // Build links map (empty when no data → wipes the orange overlay)
-        const linksMap = new Map();
-        if (zoneFlowData?.links) {
-            for (const [k, v] of Object.entries(zoneFlowData.links)) {
-                linksMap.set(String(k), Number(v));
-            }
+        const cantonsInResp = zoneFlowData?.links_by_canton
+            ? Object.keys(zoneFlowData.links_by_canton)
+            : [];
+        const needed = [...new Set(
+            [zoneFlowOriginCanton, zoneFlowDestCanton, ...cantonsInResp].filter(Boolean)
+        )];
+
+        let cancelled = false;
+        const finishLoading = async () => {
+            await waitForMapIdle(map);
+            if (cancelled) return;
+            setZoneFlowLoading(false);
+        };
+
+        if (cantonKey(needed) !== sourceKeyRef.current && needed.length > 0) {
+            // Triggers an async load; reconcileSource re-applies pending flows
+            // and idles internally before clearing setIsLoading. We still need
+            // to clear the fetch-driven loading flag once the paint settles.
+            reconcileSource(map, needed, { fit: false });
+            finishLoading();
+            return () => { cancelled = true; };
         }
-        applyFlowsToSource(map, linksMap);
+
+        applyFlowsToSource(map, flattenLinksByCanton(zoneFlowData?.links_by_canton));
         ensureFlowLayers(map);
-    }, [zoneFlowData, mapReady, mapRef, isGraphExpanded, applyFlowsToSource, ensureFlowLayers]);
+        finishLoading();
+        return () => { cancelled = true; };
+    }, [zoneFlowData, mapReady, mapRef, isGraphExpanded, zoneFlowOriginCanton, zoneFlowDestCanton, reconcileSource, applyFlowsToSource, ensureFlowLayers, setZoneFlowLoading]);
 
     return null;
 }

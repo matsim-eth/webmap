@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import "../Table.css";
 
 const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLineId, timeRange }) => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
   if (!propertiesList || !Array.isArray(propertiesList) || propertiesList.length === 0) return null;
   
   const startTick = timeRange?.[0] ?? 0;
@@ -123,8 +124,28 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
   };
   
   return (
-    <div className="canton-mode-share">
+    <div className="canton-mode-share" style={{ position: "relative" }}>
+    <span
+      role="button"
+      tabIndex={0}
+      onClick={() => setIsCollapsed(v => !v)}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setIsCollapsed(v => !v); }}
+      aria-label={isCollapsed ? "Expand" : "Collapse"}
+      style={{
+        position: "absolute",
+        top: 8,
+        right: 16,
+        cursor: "pointer",
+        fontSize: 18,
+        lineHeight: 1,
+        userSelect: "none",
+        color: "var(--color-text-secondary)",
+      }}
+    >
+      {isCollapsed ? "+" : "−"}
+    </span>
     <h4>Transit Segment Info</h4>
+    {!isCollapsed && (
     <table>
     <tbody>
     <tr><td>Link(s)</td><td>{linkIds}</td></tr>
@@ -226,6 +247,7 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
     </tr>
     </tbody>
     </table>
+    )}
     </div>
   );
 };

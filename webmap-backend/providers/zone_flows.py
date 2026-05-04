@@ -19,8 +19,11 @@ minute_end         (int, 0-1440)    : Time window end (minutes from midnight).
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from .base import DataProvider, Param
 from .constants import CANTON_MAP
+from .paths import get_data_paths
 from .spider_analysis import _get_con
 
 # Reverse mapping: canton name → canton ID
@@ -148,7 +151,18 @@ class ZoneFlowsProvider(DataProvider):
         except Exception:
             return {"error": "Could not check table columns"}
 
-        # Query: filter trips by canton pair, join with spider_routes for link volumes
+        # Resolve link → canton mapping from link_speeds.parquet (built with
+        # canton_geojson). Required so the frontend knows which intermediate
+        # cantons' GeoJSONs to load.
+        link_speeds_path = get_data_paths().link_speeds
+        if not Path(link_speeds_path).exists():
+            return {
+                "error": "link_speeds.parquet not found. "
+                "Re-run build_link_speeds with canton_geojson parameter."
+            }
+
+        # Query: filter trips by canton pair, join with spider_routes for link
+        # volumes, then attach canton_id via link_speeds.parquet.
         if not time_clauses:
             query = f"""
                 WITH matching_trips AS (
@@ -169,10 +183,16 @@ class ZoneFlowsProvider(DataProvider):
                 all_links AS (
                     SELECT UNNEST(route_links) AS link_id
                     FROM trip_routes
+                ),
+                link_canton AS (
+                    SELECT DISTINCT link_id, canton_id
+                    FROM read_parquet(?)
+                    WHERE canton_id IS NOT NULL
                 )
-                SELECT link_id, COUNT(*)::INTEGER AS volume
-                FROM all_links
-                GROUP BY link_id
+                SELECT a.link_id, lc.canton_id, COUNT(*)::INTEGER AS volume
+                FROM all_links a
+                LEFT JOIN link_canton lc ON a.link_id = lc.link_id
+                GROUP BY a.link_id, lc.canton_id
                 ORDER BY volume DESC
             """
         else:
@@ -207,14 +227,20 @@ class ZoneFlowsProvider(DataProvider):
                 all_links AS (
                     SELECT UNNEST(route_links) AS link_id
                     FROM trip_routes
+                ),
+                link_canton AS (
+                    SELECT DISTINCT link_id, canton_id
+                    FROM read_parquet(?)
+                    WHERE canton_id IS NOT NULL
                 )
-                SELECT link_id, COUNT(*)::INTEGER AS volume
-                FROM all_links
-                GROUP BY link_id
+                SELECT a.link_id, lc.canton_id, COUNT(*)::INTEGER AS volume
+                FROM all_links a
+                LEFT JOIN link_canton lc ON a.link_id = lc.link_id
+                GROUP BY a.link_id, lc.canton_id
                 ORDER BY volume DESC
             """
 
-        bind = direction_bind + time_bind
+        bind = direction_bind + time_bind + [link_speeds_path]
 
         try:
             rows = con.execute(query, bind).fetchall()
@@ -230,10 +256,20 @@ class ZoneFlowsProvider(DataProvider):
         except Exception as e:
             return {"error": str(e)}
 
+        # Group links by canton name. Links with no canton mapping are dropped
+        # (rare — usually fictional/ferry links outside the spatial-join domain).
+        links_by_canton: dict[str, dict] = {}
+        for link_id, canton_id, volume in rows:
+            if canton_id is None:
+                continue
+            canton_name = CANTON_MAP.get(canton_id, str(canton_id))
+            bucket = links_by_canton.setdefault(canton_name, {})
+            bucket[link_id] = volume
+
         return {
             "origin_canton": CANTON_MAP.get(origin_id, str(origin_id)),
             "destination_canton": CANTON_MAP.get(dest_id, str(dest_id)),
             "direction": direction,
             "total_trips": total_trips,
-            "links": {row[0]: row[1] for row in rows},
+            "links_by_canton": links_by_canton,
         }

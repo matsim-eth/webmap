@@ -210,7 +210,15 @@ const VolumesModule = ({ featureTableRef }) => {
             <tr><td><strong>Selected Segments</strong></td><td>{polygonAggregate.segmentCount}</td></tr>
             <tr>
               <td><strong>Total Volume</strong></td>
-              <td>{Math.round(polygonAggregate.totalVolume)} vehicles/day</td>
+              <td>{Math.round(polygonAggregate.totalVolume).toLocaleString()} Total Link Passes</td>
+            </tr>
+            <tr>
+              <td><strong>Average Volume per Link</strong></td>
+              <td>
+                {polygonAggregate.segmentCount > 0
+                  ? `${Math.round(polygonAggregate.totalVolume / polygonAggregate.segmentCount).toLocaleString()} vehicles/day`
+                  : "-"}
+              </td>
             </tr>
             <tr>
               <td><strong>Modes</strong></td>
