@@ -1,0 +1,77 @@
+import json
+import os
+
+from .base import DataProvider, Param
+from .paths import get_data_paths
+
+
+_cache: dict[str, dict] = {}
+
+
+# FSO canton numbering — matches the `kantonsnum` field set by
+# build_municipalities.py.
+_CANTON_NAME_TO_NUM = {
+    "Zurich": 1, "Bern": 2, "Luzern": 3, "Uri": 4, "Schwyz": 5, "Obwalden": 6,
+    "Nidwalden": 7, "Glarus": 8, "Zug": 9, "Fribourg": 10, "Solothurn": 11,
+    "Basel-Stadt": 12, "Basel-Landschaft": 13, "Schaffhausen": 14,
+    "AppenzellAusserrhoden": 15, "AppenzellInnerrhoden": 16, "StGallen": 17,
+    "Graubunden": 18, "Aargau": 19, "Thurgau": 20, "Ticino": 21, "Vaud": 22,
+    "Valais": 23, "Neuchatel": 24, "Geneve": 25, "Jura": 26,
+}
+
+
+class MunicipalitiesProvider(DataProvider):
+    """Reprojected + simplified Swiss municipalities polygons (WGS84).
+
+    Built once by webmap-backend/scripts/build_municipalities. Used by the
+    Transit Lines dashboard to outline municipalities the selected line
+    crosses.
+
+    Query params:
+        cantons (str): Comma-separated canton names (e.g. "Zurich,Bern"). When
+            present, only features whose `kantonsnum` matches a canton in the
+            list are returned. Cuts the response from ~26 MB to ~1–3 MB per
+            canton, which is the dominant cost on the Transit Lines tab.
+    """
+
+    ROUTE = "municipalities.geojson"
+    PARAMS = [
+        Param("cantons", "Comma-separated canton names to filter by"),
+    ]
+
+    def _load(self) -> dict:
+        paths = get_data_paths()
+        cache_key = paths.json_preview_dir
+        if cache_key in _cache:
+            return _cache[cache_key]
+
+        filepath = os.path.join(paths.json_preview_dir, "municipalities.geojson")
+        with open(filepath, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        _cache[cache_key] = data
+        return data
+
+    def deliver(self, params: dict) -> dict:
+        data = self._load()
+
+        cantons_param = params.get("cantons")
+        if not cantons_param:
+            return data
+
+        wanted_nums = set()
+        for name in cantons_param.split(","):
+            name = name.strip()
+            if not name:
+                continue
+            num = _CANTON_NAME_TO_NUM.get(name)
+            if num is not None:
+                wanted_nums.add(num)
+        if not wanted_nums:
+            return data
+
+        features = data.get("features") or []
+        filtered = [
+            f for f in features
+            if (f.get("properties") or {}).get("kantonsnum") in wanted_nums
+        ]
+        return {"type": "FeatureCollection", "features": filtered}

@@ -7,7 +7,7 @@ import { faExpand } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from '../context/DashboardContext';
 import {
   TAB_LABELS,
-  TWO_PLOT_TABS,
+  TAB_LAYOUT_CLASS,
   getPlotsForTab,
   buildPtSubQuery,
 } from '../config/plots';
@@ -21,10 +21,9 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
     selectedAge,
   } = useDashboard();
 
-  const isTwoPlotLayout = TWO_PLOT_TABS.has(activeTab);
-  const gridClass = isTwoPlotLayout
-    ? 'plot-grid plot-grid-two-plots'
-    : 'plot-grid';
+  const layoutClass = TAB_LAYOUT_CLASS[activeTab];
+  const gridClass = layoutClass ? `plot-grid ${layoutClass}` : 'plot-grid';
+  const isNamedAreaLayout = !!layoutClass;
 
   // Resolve the per-tab plot array. The pt-subscription, car-ownership, and
   // demographics tabs close over filter state, so the config exposes them
@@ -55,8 +54,8 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
         {/* Persistent canton map — always rendered, layout class differs per tab */}
         <div
           key="persistent-canton-map"
-          className={isTwoPlotLayout ? 'plot-card persistent-map-two-plots' : 'plot-card persistent-map'}
-          style={isTwoPlotLayout ? { gridArea: 'map' } : {}}
+          className={isNamedAreaLayout ? 'plot-card persistent-map-two-plots' : 'plot-card persistent-map'}
+          style={isNamedAreaLayout ? { gridArea: 'map' } : {}}
         >
           <CantonMap sidebarCollapsed={sidebarCollapsed} activeTab={activeTab} />
           <button

@@ -3,11 +3,11 @@ import { useLoadWithFallback } from "../utils/useLoadWithFallback";
 import { handle401 } from "../utils/auth";
 
 const DataContext = createContext();
-const DEFAULT_CACHE_LIMIT_MB = Number(import.meta.env.VITE_DATA_CACHE_MB ?? 25);
+const DEFAULT_CACHE_LIMIT_MB = Number(import.meta.env.VITE_DATA_CACHE_MB ?? 60);
 const CACHE_LIMIT_BYTES =
   (Number.isFinite(DEFAULT_CACHE_LIMIT_MB) && DEFAULT_CACHE_LIMIT_MB > 0
     ? DEFAULT_CACHE_LIMIT_MB
-    : 25) * 1024 * 1024;
+    : 60) * 1024 * 1024;
 
 const estimateSize = (obj) => {
   const str = JSON.stringify(obj);

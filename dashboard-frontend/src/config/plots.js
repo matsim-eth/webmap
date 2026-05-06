@@ -20,6 +20,10 @@ import ByDistanceStacked from '../components/plots/ByDistanceStacked';
 import DistributionBarPlot from '../components/plots/DistributionBarPlot';
 import PtSubscriptionInfo from '../components/plots/PtSubscriptionInfo';
 import PassengersByStop from '../components/plots/PassengersByStop';
+import PassengersByMunicipality from '../components/plots/PassengersByMunicipality';
+import LinesAtStop from '../components/plots/LinesAtStop';
+import TransitLineModeFilter from '../components/plots/TransitLineModeFilter';
+import LineHourlyDistribution from '../components/plots/LineHourlyDistribution';
 import TransitStopSummary from '../components/plots/TransitStopSummary';
 import TransferMatrix from '../components/plots/TransferMatrix';
 import TransferDestinations from '../components/plots/TransferDestinations';
@@ -285,6 +289,28 @@ const TRANSIT_STOPS_PLOTS = [
   { id: 'transfer-destinations', component: TransferDestinations, title: 'Transfer Destinations' },
 ];
 
+const TRANSIT_LINES_PLOTS = [
+  // Cell 2 — search/filter sibling: mode toggles drive search + lines list + map.
+  { id: 'transit-line-mode-filter', component: TransitLineModeFilter, title: 'Mode Filter' },
+  // Cell 3 — populated when a stop is clicked on the map.
+  { id: 'lines-at-stop', component: LinesAtStop, title: 'Lines at Stop' },
+  // Cells 4–5 — populated when a line is selected.
+  {
+    id: 'boardings-by-municipality',
+    component: PassengersByMunicipality,
+    title: 'Boardings by Municipality',
+    props: { metric: 'boardings' },
+  },
+  {
+    id: 'alightings-by-municipality',
+    component: PassengersByMunicipality,
+    title: 'Alightings by Municipality',
+    props: { metric: 'alightings' },
+  },
+  // Cell 6 — hourly distribution across all stops on the line.
+  { id: 'line-hourly', component: LineHourlyDistribution, title: 'Hourly Passengers (Line)' },
+];
+
 /**
  * PT subscription tab — distribution plot uses the combined gender/income/age
  * filters as backend query params; the breakdown plots ignore those (they
@@ -451,11 +477,22 @@ export const TAB_PLOTS = {
   'car-ownership': carAvailabilityPlots,
   demographics: demographicsPlots,
   'transit-stops': TRANSIT_STOPS_PLOTS,
+  'transit-lines': TRANSIT_LINES_PLOTS,
   speed: SPEED_PLOTS,
 };
 
 /** Tabs whose CSS layout is `plot-grid plot-grid-two-plots` (named grid areas). */
 export const TWO_PLOT_TABS = new Set(['demographics', 'car-ownership']);
+
+/**
+ * Per-tab grid layout class. Tabs not listed fall back to the default 3×2.
+ * The map slot (CSS class `persistent-map-named-area`) uses `gridArea: 'map'`
+ * for any tab that appears here.
+ */
+export const TAB_LAYOUT_CLASS = {
+  demographics: 'plot-grid-two-plots',
+  'car-ownership': 'plot-grid-two-plots',
+};
 
 /** Header labels for the placeholder rendering on WIP tabs. */
 export const TAB_LABELS = {
@@ -468,6 +505,7 @@ export const TAB_LABELS = {
   'pt-subscription': 'PT Subscription',
   'car-ownership': 'Car Ownership',
   'transit-stops': 'Transit Stops',
+  'transit-lines': 'Transit Lines',
   speed: 'Speed',
 };
 

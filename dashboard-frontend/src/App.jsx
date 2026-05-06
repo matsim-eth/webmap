@@ -17,7 +17,7 @@ function AppContent() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const mainContentRef = useRef(null)
   const { fileMap } = useFileContext()
-  const { setSelectedTransitStop, setSelectedTransitLine } = useDashboard()
+  const { setSelectedTransitStop, setSelectedTransitLine, setSelectedLineMeta, setSelectedMunicipality } = useDashboard()
 
   // Auto-populate comparison slots with first dataset on initial load
   useAutoInitSlots()
@@ -31,6 +31,17 @@ function AppContent() {
     if (tab !== 'transit-stops' && activeTab === 'transit-stops') {
       setSelectedTransitStop(null)
       setSelectedTransitLine(null)
+    }
+    // Clear selected transit line when leaving transit-lines page
+    if (tab !== 'transit-lines' && activeTab === 'transit-lines') {
+      setSelectedLineMeta(null)
+      setSelectedMunicipality(null)
+      setSelectedTransitStop(null)
+    }
+    // Clear stop when arriving at transit-lines from elsewhere — the
+    // tab uses click-on-canton-then-stop as its primary entry point.
+    if (tab === 'transit-lines' && activeTab !== 'transit-lines') {
+      setSelectedTransitStop(null)
     }
     setActiveTab(tab)
   }

@@ -25,7 +25,7 @@ const DEFAULT_SLOTS = [
 
 export const DashboardProvider = ({ children }) => {
   const [comparisonSlots, setComparisonSlots] = useState(DEFAULT_SLOTS);
-  const [selectedCanton, setSelectedCanton] = useState("All");
+  const [selectedCanton, setSelectedCantonInner] = useState("All");
   const [distanceType, setDistanceType] = useState("euclidean"); // "euclidean" or "network"
   const [selectedMode, setSelectedMode] = useState("all"); // "all", "bike", "car", "car_passenger", "pt", "walk"
   const [selectedPurpose, setSelectedPurpose] = useState("all"); // "all", "education", "work", "leisure", "shopping", "business", "escort"
@@ -35,6 +35,30 @@ export const DashboardProvider = ({ children }) => {
   const [selectedRoadType, setSelectedRoadType] = useState("all"); // "all", "[6, 15)", "[15, 18)", "[18, 24)", "[24, 30)", "[30, 45)", "[45, 65)"
   const [selectedTransitStop, setSelectedTransitStop] = useState(null); // { name, stop_id, coords, ... }
   const [selectedTransitLine, setSelectedTransitLine] = useState(null); // null (all) or line_id string
+  const [selectedLineMeta, setSelectedLineMeta] = useState(null); // Transit Lines tab: { line_id, line_name, vehicle, cantons, route_id }
+  const [selectedMunicipality, setSelectedMunicipality] = useState(null); // polygon id (bfs_nummer for muni, custom id for uploaded)
+  const [selectedLineModes, setSelectedLineModes] = useState(['all']); // Transit Lines tab mode filter
+
+  // Transit Lines tab: polygon set used to aggregate boardings/alightings.
+  //
+  //   - Default: { kind: 'municipality' } — uses the precomputed
+  //     stop_municipality.json lookup + municipalities.geojson overlay.
+  //   - Custom: { kind: 'custom', name: <filename>, features: [...],
+  //     nameProperty: <key>, availableProperties: [...] } — user-uploaded
+  //     GeoJSON. Stop→polygon assignment is done client-side via PiP.
+  const [polygonSet, setPolygonSetInner] = useState({
+    kind: 'municipality',
+    name: 'Municipalities (default)',
+  });
+  // Polygon IDs aren't portable across sets — clear the highlighted polygon
+  // whenever the set changes (whether to a custom upload or back to default).
+  const setPolygonSet = useCallback((next) => {
+    setPolygonSetInner(next);
+    setSelectedMunicipality(null);
+  }, []);
+  const resetPolygonSet = useCallback(() => {
+    setPolygonSet({ kind: 'municipality', name: 'Municipalities (default)' });
+  }, [setPolygonSet]);
 
   // Derived datasetId from slot 0 for backward compat (transit stops, file upload, canton map)
   const datasetId = comparisonSlots[0]?.datasetId ?? 1;
@@ -81,6 +105,30 @@ export const DashboardProvider = ({ children }) => {
     });
   }, []);
 
+  // Changing canton invalidates transit-lines selections (stop, line, municipality)
+  // since stops/lines/municipalities are scoped per-canton.
+  const setSelectedCanton = useCallback((next) => {
+    setSelectedCantonInner((prev) => {
+      if (prev === next) return prev;
+      setSelectedTransitStop(null);
+      setSelectedLineMeta(null);
+      setSelectedMunicipality(null);
+      return next;
+    });
+  }, []);
+
+  // Atomic set used by the search bar: switches the canton AND selects a
+  // line in the same batch. Bypasses setSelectedCanton's auto-clear because
+  // the cascading setSelectedLineMeta(null) inside its reducer is queued for
+  // the *next* render and would clobber a separate setSelectedLineMeta(line)
+  // call made alongside it.
+  const setLineWithCanton = useCallback((lineMeta, canton) => {
+    setSelectedCantonInner(canton);
+    setSelectedLineMeta(lineMeta);
+    setSelectedTransitStop(null);
+    setSelectedMunicipality(null);
+  }, []);
+
   const value = {
     comparisonSlots: labeledSlots,
     setComparisonSlots,
@@ -98,6 +146,11 @@ export const DashboardProvider = ({ children }) => {
     selectedRoadType, setSelectedRoadType,
     selectedTransitStop, setSelectedTransitStop,
     selectedTransitLine, setSelectedTransitLine,
+    selectedLineMeta, setSelectedLineMeta,
+    setLineWithCanton,
+    selectedMunicipality, setSelectedMunicipality,
+    selectedLineModes, setSelectedLineModes,
+    polygonSet, setPolygonSet, resetPolygonSet,
   };
 
   return (

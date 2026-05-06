@@ -22,6 +22,125 @@
     "map bottom";
 }
 
+/* Layout for the Transit Lines tab: map + lines panel on top, 2 plots on bottom. */
+.plot-grid-line-tab {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  grid-template-areas:
+    "map   lines"
+    "top   bottom";
+}
+
+/* Mode filter card (Transit Lines tab) — mirrors the webmap's mode-filter
+   block (RightSidebar.css) for visual consistency between the two surfaces. */
+.line-mode-filter-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.line-mode-filter-wrapper .mode-filter-container {
+  flex: 1;
+  min-height: 0;
+}
+
+.mode-filter-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--color-bg-subtle);
+  padding: 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+}
+
+.mode-filter-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  margin-left: 4px;
+}
+
+.mode-filter-select {
+  flex: 1;
+  width: 100%;
+  min-height: 140px;
+  padding: 8px;
+  font-size: 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: white;
+  color: var(--color-text);
+  transition: border-color 0.2s ease;
+}
+
+.mode-filter-select:hover { border-color: var(--color-text-muted); cursor: pointer; }
+.mode-filter-select option { padding: 6px; font-size: 14px; }
+.mode-filter-select::-webkit-scrollbar { width: 6px; }
+.mode-filter-select::-webkit-scrollbar-thumb { background: var(--color-border-light); border-radius: 3px; }
+.mode-filter-select::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
+
+.line-mode-filter-hint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+/* Lines-at-stop badge layout — mirrors the webmap's TransitStopAttributesTable
+   .badge-container + .mode-badge. Container fills the grid cell and scrolls
+   when there are many lines. */
+.lines-at-stop-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.lines-at-stop-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 10px 0;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.lines-at-stop-badges {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 10px;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.badge-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-content: flex-start;
+}
+
+.mode-badge {
+  background-color: var(--color-badge-bg);
+  color: var(--color-text);
+  border-radius: 12px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  display: inline-block;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.mode-badge:hover {
+  background-color: #c0c0c0;
+}
+
+.mode-badge.active {
+  background-color: var(--color-primary);
+  color: #fff;
+}
+
 /* Persistent map styling - hides/shows without remounting */
 .persistent-map {
   /* In 3x2 grid, map takes first position */

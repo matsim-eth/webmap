@@ -37,6 +37,8 @@ from .frequent_sequences import FrequentSequencesProvider
 from .modes_by_canton import ModesByCantonProvider
 from .boarding_data import BoardingDataProvider
 from .stop_transfer_data import StopTransferDataProvider
+from .stop_municipality import StopMunicipalityProvider
+from .municipalities import MunicipalitiesProvider
 
 # --- Spider analysis ---
 from .spider_analysis import SpiderInflowProvider, SpiderOutflowProvider, SpiderOverlayProvider
@@ -78,6 +80,8 @@ ALL_PROVIDERS = [
     ModesByCantonProvider(),
     BoardingDataProvider(),
     StopTransferDataProvider(),
+    StopMunicipalityProvider(),
+    MunicipalitiesProvider(),
     # Geographic (consolidated: ?format=geojson/json)
     TlmKantonsgebietProvider(),
     # Spider analysis

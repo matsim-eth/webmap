@@ -3,6 +3,8 @@ import './ControlsBar.css';
 import { useDashboard } from '../context/DashboardContext';
 import cantonAlias from '../utils/canton_alias.json';
 import TransitStopSearch from './plots/TransitStopSearch';
+import TransitLineSearch from './plots/TransitLineSearch';
+import PolygonUploader from './plots/PolygonUploader';
 
 const CANTONS = [
   "All", "Aargau", "AppenzellAusserrhoden", "AppenzellInnerrhoden", 
@@ -89,6 +91,7 @@ const ControlsBar = ({ activeTab }) => {
   const showCarOwnershipFilters = activeTab === 'car-ownership';
   const showDistanceType = activeTab === 'mode' || activeTab === 'purpose';
   const showTransitSearch = activeTab === 'transit-stops';
+  const showTransitLineSearch = activeTab === 'transit-lines';
   const showRoadTypeFilter = activeTab === 'speed';
 
   return (
@@ -112,6 +115,14 @@ const ControlsBar = ({ activeTab }) => {
       {/* Transit Stop Search - only show on Transit Stops tab */}
       {showTransitSearch && (
         <TransitStopSearch canton={selectedCanton} />
+      )}
+
+      {/* Transit Line Search - only show on Transit Lines tab */}
+      {showTransitLineSearch && (
+        <>
+          <TransitLineSearch />
+          <PolygonUploader />
+        </>
       )}
 
       {/* Distance Type Toggle - only show on Mode/Purpose tabs */}
