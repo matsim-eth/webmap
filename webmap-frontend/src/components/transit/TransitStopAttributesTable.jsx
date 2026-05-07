@@ -96,43 +96,37 @@ const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId
     
     {/* Toggle button to show/hide routes */}
     {activeBadge && (
-      <div
-      onClick={() => setShowRoutes(!showRoutes)}
-      style={{
-        fontWeight: "bold",
-        fontSize: "10pt",
-        marginTop: "0.5rem",
-        cursor: "pointer",
-        userSelect: "none",
-        color: "#333"
-      }}
+      <button
+        type="button"
+        className={`route-toggle ${showRoutes ? "is-open" : ""}`}
+        onClick={() => setShowRoutes(!showRoutes)}
       >
-      {showRoutes ? "Hide Routes" : "Show Routes"}
-      </div>
+        <span className="route-toggle-chevron" aria-hidden="true">▸</span>
+        {showRoutes ? "Hide routes" : "Show routes"}
+        <span className="route-toggle-count">{groupedLines[activeBadge]?.length ?? 0}</span>
+      </button>
     )}
-    
+
     {/* Conditional route list */}
     {showRoutes && activeBadge && Array.isArray(groupedLines[activeBadge]) && (
       <ul className="route-list">
-      {groupedLines[activeBadge].map((route, i) => (
-        <li
-        key={i}
-        onMouseEnter={() => {
-          setHoveredRoute(route.route_id);
-          onRouteHover?.(route.route_id);
-        }}
-        onMouseLeave={() => {
-          setHoveredRoute(null);
-          onRouteHover?.(null);
-        }}
-        style={{
-          fontWeight: hoveredRoute === route.route_id ? "bold" : "normal",
-          cursor: "pointer"
-        }}
-        >
-        {route.route_id}
-        </li>
-      ))}
+        {groupedLines[activeBadge].map((route, i) => (
+          <li
+            key={i}
+            className={`route-row ${hoveredRoute === route.route_id ? "is-hovered" : ""}`}
+            onMouseEnter={() => {
+              setHoveredRoute(route.route_id);
+              onRouteHover?.(route.route_id);
+            }}
+            onMouseLeave={() => {
+              setHoveredRoute(null);
+              onRouteHover?.(null);
+            }}
+          >
+            <span className="route-row-dot" aria-hidden="true" />
+            <span className="route-row-id">{route.route_id}</span>
+          </li>
+        ))}
       </ul>
     )}
     </td>

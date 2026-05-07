@@ -432,8 +432,10 @@ export default function useNetworkLayers({
     }
   }, [showMajorRoadsOnly, isGraphExpanded, originalNetworkGeoJSON]);
   
-  // ANT PATH (unchanged)
-  useAntPath(mapRef, visualizeLinkId, graphExpandedRef);
+  // ANT PATH — pass `isGraphExpanded` so the effect re-runs (and cleans up
+  // the ant-line layer) when the user switches to a module that doesn't own
+  // this overlay (e.g. TransitStops).
+  useAntPath(mapRef, visualizeLinkId, graphExpandedRef, isGraphExpanded);
   
   // Module switching (keep your logic; also update color ramps)
   useEffect(() => {

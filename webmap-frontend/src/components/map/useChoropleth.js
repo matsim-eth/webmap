@@ -49,10 +49,24 @@ export default function useChoropleth({
     const map = mapRef.current;
     if (!map || !map.getLayer("canton-fill")) return;
 
-    // Reset to base style when not active or no mode selected
+    // Coordinated transition durations.
+    // Going to neutral (no mode): fade opacity FIRST, then swap color while
+    // the layer is already mostly transparent — otherwise the user sees the
+    // base #6366f1 indigo flash at full opacity before the fade completes.
+    // Going to a colored state: snap color while still transparent, then
+    // ramp opacity up so the new colors emerge from neutral.
+    const FADE_MS = 200;
     const setBaseStyle = () => {
+      map.setPaintProperty("canton-fill", "fill-opacity-transition", { duration: FADE_MS, delay: 0 });
+      map.setPaintProperty("canton-fill", "fill-color-transition",   { duration: 0,        delay: FADE_MS });
       map.setPaintProperty("canton-fill", "fill-opacity", 0.05);
       map.setPaintProperty("canton-fill", "fill-color", "#6366f1");
+    };
+    const applyColored = (colorExpr) => {
+      map.setPaintProperty("canton-fill", "fill-color-transition",   { duration: 0,        delay: 0 });
+      map.setPaintProperty("canton-fill", "fill-opacity-transition", { duration: FADE_MS,  delay: 0 });
+      map.setPaintProperty("canton-fill", "fill-color", colorExpr);
+      map.setPaintProperty("canton-fill", "fill-opacity", 1.0);
     };
 
     if (selectedMode === "None" || isGraphExpanded !== "Choropleth") {
@@ -103,13 +117,11 @@ export default function useChoropleth({
       return;
     }
 
-    map.setPaintProperty("canton-fill", "fill-color", [
+    applyColored([
       "case",
       ...Object.entries(colorStops).flatMap(([canton, color]) => [["==", ["get", "NAME"], canton], color]),
       "#FFFFFF",
     ]);
-
-    map.setPaintProperty("canton-fill", "fill-opacity", 1.0);
   }, [modeShareData, selectedMode, selectedDataset, maxSharePerMode, aggCol, isGraphExpanded]);
 
   

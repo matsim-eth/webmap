@@ -114,39 +114,47 @@ const filteredAlightings = paddedAlightings.slice(timeRange?.[0] ?? 0, timeRange
 
   return (
     <div className="plot-container">
-     <h4 style={{ marginTop: "1rem" }}>Hourly Boardings{lineId ? " (filtered)" : ""}</h4>
-<Plot
-  data={[
-    { x: filteredLabels, y: filteredBoardings, name: "Boardings", type: "bar", marker: { color: "#1f77b4" } },
-  ]}
-  layout={{
-    font: { family: "Inter, sans-serif" },
-    margin: { t: 30, r: 10, l: 40, b: 10 },
-    xaxis: { title: "Hour", tickangle: -45, automargin: true },
-    yaxis: { title: "Passenger Count", range: [0, maxY] },
-    height: 250,
-    width: 525,
-    paper_bgcolor: "rgba(255,255,255,0)",
-    plot_bgcolor: "rgba(255,255,255,0)",
-  }}
-/>
+      <div className="plot-card">
+        <div className="plot-card-header">
+          <h4 style={{ margin: 0 }}>Hourly Boardings{lineId ? " (filtered)" : ""}</h4>
+        </div>
+        <Plot
+          data={[
+            { x: filteredLabels, y: filteredBoardings, name: "Boardings", type: "bar", marker: { color: "#1f77b4" } },
+          ]}
+          layout={{
+            font: { family: "Inter, sans-serif" },
+            margin: { t: 30, r: 10, l: 40, b: 40 },
+            xaxis: { title: { text: "Hour", standoff: 8 }, tickangle: -45, automargin: true },
+            yaxis: { title: "Passenger Count", range: [0, maxY] },
+            height: 250,
+            width: 525,
+            paper_bgcolor: "rgba(255,255,255,0)",
+            plot_bgcolor: "rgba(255,255,255,0)",
+          }}
+        />
+      </div>
 
-<h4 style={{ marginBottom: 0 }}>Hourly Alightings{lineId ? " (filtered)" : ""}</h4>
-<Plot
-  data={[
-    { x: filteredLabels, y: filteredAlightings, name: "Alightings", type: "bar", marker: { color: "#ff7f0e" } },
-  ]}
-  layout={{
-    font: { family: "Inter, sans-serif" },
-    margin: { t: 30, r: 10, l: 40, b: 10 },
-    xaxis: { title: "Hour", tickangle: -45, automargin: true },
-    yaxis: { title: "Passenger Count", range: [0, maxY] },
-    height: 250,
-    width: 525,
-    paper_bgcolor: "rgba(255,255,255,0)",
-    plot_bgcolor: "rgba(255,255,255,0)",
-  }}
-/>
+      <div className="plot-card">
+        <div className="plot-card-header">
+          <h4 style={{ margin: 0 }}>Hourly Alightings{lineId ? " (filtered)" : ""}</h4>
+        </div>
+        <Plot
+          data={[
+            { x: filteredLabels, y: filteredAlightings, name: "Alightings", type: "bar", marker: { color: "#ff7f0e" } },
+          ]}
+          layout={{
+            font: { family: "Inter, sans-serif" },
+            margin: { t: 30, r: 10, l: 40, b: 40 },
+            xaxis: { title: { text: "Hour", standoff: 8 }, tickangle: -45, automargin: true },
+            yaxis: { title: "Passenger Count", range: [0, maxY] },
+            height: 250,
+            width: 525,
+            paper_bgcolor: "rgba(255,255,255,0)",
+            plot_bgcolor: "rgba(255,255,255,0)",
+          }}
+        />
+      </div>
     </div>
   );
 };

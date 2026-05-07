@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import { useData } from '../../context/DataContext';
@@ -21,6 +21,30 @@ const METRIC_OPTIONS = [
 ];
 
 const ROAD_TYPES = ['motorway', 'trunk', 'primary', 'secondary', 'tertiary', 'residential'];
+
+// +/- toggle in the top-right of a `.canton-mode-share` card. Mirrors the
+// pattern used by SegmentAttributesTable.
+const CollapseToggle = ({ collapsed, onToggle }) => (
+    <span
+        role="button"
+        tabIndex={0}
+        onClick={onToggle}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onToggle(); }}
+        aria-label={collapsed ? 'Expand' : 'Collapse'}
+        style={{
+            position: 'absolute',
+            top: 8,
+            right: 16,
+            cursor: 'pointer',
+            fontSize: 18,
+            lineHeight: 1,
+            userSelect: 'none',
+            color: 'var(--color-text-secondary)',
+        }}
+    >
+        {collapsed ? '+' : '−'}
+    </span>
+);
 
 const NUMERIC_COLS = new Set(['avgSpeed', 'freespeed', 'congestionIndex', 'dailyVolume']);
 
@@ -124,6 +148,10 @@ const LinkSpeedsModule = ({ featureTableRef }) => {
     } = useFilters();
     const { isGraphExpanded } = useModule();
     const { mapRef, drawRef } = useMap();
+
+    const [isSummaryCollapsed, setIsSummaryCollapsed] = useState(false);
+    const [isSelectedCollapsed, setIsSelectedCollapsed] = useState(false);
+    const [isPolygonCollapsed, setIsPolygonCollapsed] = useState(false);
 
     const handleRoadTypeChange = (event) => {
         const selected = Array.from(event.target.selectedOptions).map(o => o.value);
@@ -310,7 +338,8 @@ const LinkSpeedsModule = ({ featureTableRef }) => {
                 ))}
             </div>
 
-            {/* Road type multi-select filter */}
+            {/* Road type filter + time range — combined into one filter card,
+                matching the Filter-by-Mode card from the transit modules. */}
             <div className="mode-filter-container">
                 <label className="mode-filter-label">Filter by Road Type:</label>
                 <select
@@ -326,14 +355,11 @@ const LinkSpeedsModule = ({ featureTableRef }) => {
                         </option>
                     ))}
                 </select>
-            </div>
 
-            {/* Time range slider */}
-            <div className="right-sidebar-control-row">
-                <div style={{ flex: 1 }}>
-                    <label className="right-sidebar-label" style={{ marginLeft: '7%' }}>
-                        Time: {formatTimeLabel(timeRange[0])} - {formatTimeLabel(timeRange[1])}
-                    </label>
+                <label className="mode-filter-label mode-filter-time-label">
+                    Time: {formatTimeLabel(timeRange[0])} – {formatTimeLabel(timeRange[1])}
+                </label>
+                <div className="mode-filter-slider">
                     <Slider
                         range
                         min={0}
@@ -343,7 +369,6 @@ const LinkSpeedsModule = ({ featureTableRef }) => {
                         value={timeRange}
                         onChange={(val) => setTimeRange(val)}
                         allowCross={false}
-                        style={{ marginLeft: '10%', width: '80%' }}
                     />
                 </div>
             </div>
@@ -358,8 +383,10 @@ const LinkSpeedsModule = ({ featureTableRef }) => {
 
             {/* Polygon aggregate — wins over canton summary / single-link panel */}
             {polygonAggregate ? (
-                <div className="canton-mode-share">
+                <div className="canton-mode-share" style={{ position: 'relative' }}>
+                    <CollapseToggle collapsed={isPolygonCollapsed} onToggle={() => setIsPolygonCollapsed(v => !v)} />
                     <h4>Polygon Selection</h4>
+                    {!isPolygonCollapsed && (
                     <table>
                         <tbody>
                             <tr><td><strong>Selected Segments</strong></td><td>{polygonAggregate.segmentCount}</td></tr>
@@ -380,13 +407,16 @@ const LinkSpeedsModule = ({ featureTableRef }) => {
                             </tr>
                         </tbody>
                     </table>
+                    )}
                 </div>
             ) : (
                 <>
                 {/* Canton-wide summary */}
                 {clickedCanton && linkSpeedsSummary && (
-                    <div className="canton-mode-share">
+                    <div className="canton-mode-share" style={{ position: 'relative' }}>
+                        <CollapseToggle collapsed={isSummaryCollapsed} onToggle={() => setIsSummaryCollapsed(v => !v)} />
                         <h4>Network Summary</h4>
+                        {!isSummaryCollapsed && (
                         <table>
                             <tbody>
                                 <tr><td><strong>Links with traffic</strong></td><td>{linkSpeedsSummary.totalLinks.toLocaleString()}</td></tr>
@@ -396,13 +426,16 @@ const LinkSpeedsModule = ({ featureTableRef }) => {
                                 <tr><td><strong>Total Volume</strong></td><td>{linkSpeedsSummary.totalVolume.toLocaleString()}</td></tr>
                             </tbody>
                         </table>
+                        )}
                     </div>
                 )}
 
                 {/* Selected-link detail */}
                 {linkSpeedsSelected && (
-                    <div className="canton-mode-share">
+                    <div className="canton-mode-share" style={{ position: 'relative' }}>
+                        <CollapseToggle collapsed={isSelectedCollapsed} onToggle={() => setIsSelectedCollapsed(v => !v)} />
                         <h4>Selected Link</h4>
+                        {!isSelectedCollapsed && (
                         <table>
                             <tbody>
                                 <tr><td><strong>Link IDs</strong></td><td style={{ wordBreak: 'break-all' }}>{linkSpeedsSelected.linkId}</td></tr>
@@ -422,6 +455,7 @@ const LinkSpeedsModule = ({ featureTableRef }) => {
                                 </tr>
                             </tbody>
                         </table>
+                        )}
                     </div>
                 )}
 

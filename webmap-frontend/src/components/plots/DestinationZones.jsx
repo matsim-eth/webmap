@@ -180,195 +180,123 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
   
   if (!plotData) {
     return (
-      <p style={{ padding: "1rem", fontStyle: "italic", color: "#555" }}>
-      Click a canton to load destination data.
-      </p>
+      <div className="plot-container">
+        <p className="plot-empty">Click a canton to load destination data.</p>
+      </div>
     );
   }
-  
+
   return (
     <div className="plot-container">
-    <div style={{ display: 'flex', alignItems: 'flex-start', minHeight: 40 }}>
-    <div style={{ minWidth: 260, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-    <h3 style={{ margin: 0 }}>
-    {isOriginMode ? "Origin" : "Destination"} Canton: {cantonAlias[canton]}
-    </h3>
-</div>
-</div>
+      <h3>{isOriginMode ? "Origin" : "Destination"} Canton: {cantonAlias[canton]}</h3>
 
-<div
-  style={{
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "0 1rem 1.5rem",
-    gap: "1rem"
-  }}
->
+      <div className="plot-time-row">
+        <label className={`plot-toggle`}>
+          <span className={isOriginMode ? "plot-toggle-active" : ""}>Origin</span>
+          <span className={`plot-toggle-track ${!isOriginMode ? "is-on" : ""}`} onClick={() => setIsOriginMode((p) => !p)}>
+            <input
+              type="checkbox"
+              checked={!isOriginMode}
+              onChange={() => setIsOriginMode((prev) => !prev)}
+            />
+            <span className="plot-toggle-thumb" />
+          </span>
+          <span className={!isOriginMode ? "plot-toggle-active" : ""}>Destination</span>
+        </label>
 
-  {/* OD Toggle */}
-  <div style={{ display: "flex", alignItems: "center", minWidth: 180, marginTop: '15px' }}>
-    <span style={{ marginRight: '8px', fontWeight: isOriginMode ? 'bold' : 'normal' }}>Origin</span>
-    <label
-      className="switch"
-      style={{
-        display: 'inline-block',
-        position: 'relative',
-        width: '40px',
-        height: '20px',
-        margin: '0px 14px 0 8px',
-      }}
-    >
-      <input
-        type="checkbox"
-        checked={!isOriginMode}
-        onChange={() => setIsOriginMode((prev) => !prev)}
-        style={{ opacity: 0, width: 0, height: 0 }}
-      />
-      <span
-        style={{
-          position: 'absolute',
-          cursor: 'pointer',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: isOriginMode ? '#2196f3' : '#4caf50',
-          borderRadius: '20px',
-          transition: '.4s',
-        }}
-      />
-      <span
-        style={{
-          position: 'absolute',
-          left: isOriginMode ? '2px' : '22px',
-          top: '2px',
-          width: '16px',
-          height: '16px',
-          backgroundColor: isOriginMode ? '#fff' : '#e8f5e9',
-          borderRadius: '50%',
-          transition: '.4s',
-        }}
-      />
-    </label>
-    <span style={{ fontWeight: !isOriginMode ? 'bold' : 'normal' }}>Destination</span>
-  </div>
-
-  {/* Time Slider */}
-  <div style={{ flex: 1 }}>
-    <label
-      style={{
-        fontWeight: "bold",
-        fontSize: "10pt",
-        display: "block",
-        marginBottom: "0.25rem",
-        marginLeft: "10%",
-      }}
-    >
-      Time: {formatTimeLabel(timeRange[0])} - {formatTimeLabel(timeRange[1])}
-    </label>
-    <Slider
-      range
-      min={0}
-      max={96}
-      step={1}
-      marks={marks}
-      value={timeRange}
-      onChange={(val) => setTimeRange(val)}
-      allowCross={false}
-      style={{ marginLeft: "10%", width: "80%" }}
-    />
-  </div>
-
-  
-</div>
-
-    
-    <div style={{ display: 'flex', gap: '40px', margin: '20px 10px' }}>
-    <div>
-    <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>Transport Mode</div>
-    {modes.map(mode => (
-      <div key={mode.value} style={{ marginBottom: '4px' }}>
-      <input
-      type="radio"
-      id={`mode-${mode.value}`}
-      name="transport-mode"
-      value={mode.value}
-      checked={selectedMode === mode.value}
-      onChange={(e) => setSelectedMode(e.target.value)}
-      />
-      <label htmlFor={`mode-${mode.value}`} style={{ marginLeft: '8px' }}>
-      {mode.label}
-      </label>
+        <div className="plot-time-slider">
+          <span className="plot-time-label">
+            Time · {formatTimeLabel(timeRange[0])} – {formatTimeLabel(timeRange[1])}
+          </span>
+          <Slider
+            range
+            min={0}
+            max={96}
+            step={1}
+            marks={marks}
+            value={timeRange}
+            onChange={(val) => setTimeRange(val)}
+            allowCross={false}
+          />
+        </div>
       </div>
-    ))}
-    </div>
-    
-    <div>
-    <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>Trip Purpose</div>
-    {purposes.map(purpose => (
-      <div key={purpose.value} style={{ marginBottom: '4px' }}>
-      <input
-      type="radio"
-      id={`purpose-${purpose.value}`}
-      name="trip-purpose"
-      value={purpose.value}
-      checked={selectedPurpose === purpose.value}
-      onChange={(e) => setSelectedPurpose(e.target.value)}
-      />
-      <label htmlFor={`purpose-${purpose.value}`} style={{ marginLeft: '8px' }}>
-      {purpose.label}
-      </label>
+
+      <div className="plot-controls">
+        <div className="plot-controls-group">
+          <span className="plot-controls-label">Transport Mode</span>
+          {modes.map(mode => (
+            <label key={mode.value} htmlFor={`mode-${mode.value}`}>
+              <input
+                type="radio"
+                id={`mode-${mode.value}`}
+                name="transport-mode"
+                value={mode.value}
+                checked={selectedMode === mode.value}
+                onChange={(e) => setSelectedMode(e.target.value)}
+              />
+              {mode.label}
+            </label>
+          ))}
+        </div>
+
+        <div className="plot-controls-group">
+          <span className="plot-controls-label">Trip Purpose</span>
+          {purposes.map(purpose => (
+            <label key={purpose.value} htmlFor={`purpose-${purpose.value}`}>
+              <input
+                type="radio"
+                id={`purpose-${purpose.value}`}
+                name="trip-purpose"
+                value={purpose.value}
+                checked={selectedPurpose === purpose.value}
+                onChange={(e) => setSelectedPurpose(e.target.value)}
+              />
+              {purpose.label}
+            </label>
+          ))}
+        </div>
+
+        <div className="plot-controls-group">
+          <span className="plot-controls-label">
+            {isOriginMode ? "Destination Canton" : "Origin Canton"}
+          </span>
+          <select
+            className="plot-select"
+            value={selectedCanton}
+            onChange={(e) => setSelectedCanton(e.target.value)}
+          >
+            {cantonOptions.map(option => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </div>
       </div>
-    ))}
-    </div>
-    
-    <div>
-    <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
-    {isOriginMode ? 'Destination Canton' : 'Origin Canton'}
-    </div>
-    <select 
-    value={selectedCanton}
-    onChange={(e) => setSelectedCanton(e.target.value)}
-    style={{
-      padding: '4px 8px',
-      borderRadius: '4px',
-      border: '1px solid #ccc',
-      fontSize: '14px',
-      minWidth: '150px'
-    }}
-    >
-    {cantonOptions.map(option => (
-      <option key={option.value} value={option.value}>
-      {option.label}
-      </option>
-    ))}
-    </select>
-    </div>
-    </div>
-    
-    <h4 style={{ marginTop: "1rem" }}>Trip Counts</h4>
-    
-    <Plot
-    data={[
-      {
-        x: data.times,
-        y: data.counts,
-        type: "bar",
-        marker: { color: MODE_COLORS[selectedMode] || MODE_COLORS.all }
-      }
-    ]}
-    layout={{
-      font: { family: "Inter, sans-serif" },
-      margin: { t: 30, r: 10, l: 40, b: 10 },
-      xaxis: { title: "Hour", tickangle: -45, automargin: true },
-      yaxis: { title: "Trip Count" },
-      height: 250,
-      width: 525,
-      paper_bgcolor: "rgba(255,255,255,0)",
-      plot_bgcolor: "rgba(255,255,255,0)",
-    }}
-    />
+
+      <div className="plot-card">
+        <div className="plot-card-header">
+          <h4 style={{ margin: 0 }}>Trip Counts</h4>
+        </div>
+        <Plot
+          data={[
+            {
+              x: data.times,
+              y: data.counts,
+              type: "bar",
+              marker: { color: MODE_COLORS[selectedMode] || MODE_COLORS.all },
+            },
+          ]}
+          layout={{
+            font: { family: "Inter, sans-serif" },
+            margin: { t: 30, r: 10, l: 40, b: 40 },
+            xaxis: { title: { text: "Hour", standoff: 8 }, tickangle: -45, automargin: true },
+            yaxis: { title: "Trip Count" },
+            height: 260,
+            width: 520,
+            paper_bgcolor: "rgba(255,255,255,0)",
+            plot_bgcolor: "rgba(255,255,255,0)",
+          }}
+        />
+      </div>
     </div>
   );
 };

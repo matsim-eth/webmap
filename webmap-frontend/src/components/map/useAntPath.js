@@ -2,14 +2,28 @@ import { useEffect } from 'react';
 import { safeRemoveLayer, safeRemoveSource } from './_lib/mapbox';
 import { parsePipeList } from './_lib/pipeProps';
 
-export default function useAntPath(mapRef, visualizeLinkId, graphExpandedRef) {
+// Modules that own a Visualize button + the ant-path overlay. The ant-line
+// is sourced off either `network-source` (most modules) or
+// `transit-volumes-source` (TransitVolumes); any other active module means
+// the overlay must be removed.
+const ANT_MODULES = new Set(['Volumes', 'Network', 'VolumeFlow', 'LinkSpeeds', 'TransitVolumes']);
+
+export default function useAntPath(mapRef, visualizeLinkId, graphExpandedRef, currentModule) {
   useEffect(() => {
     const map = mapRef.current;
-    if (!visualizeLinkId || !map) return;
+    if (!map) return;
 
-    const currentModule = graphExpandedRef?.current;
+    // Always remove a stale ant-line first — if the user switched modules
+    // without changing visualizeLinkId, the previous layer would otherwise
+    // remain visible in modules that don't own this overlay.
+    safeRemoveLayer(map, "ant-line");
+    safeRemoveSource(map, "ant-path");
+
+    const moduleNow = currentModule ?? graphExpandedRef?.current;
+    if (!visualizeLinkId || !ANT_MODULES.has(moduleNow)) return;
+
     const sourceId =
-      currentModule === "TransitVolumes" ? "transit-volumes-source" : "network-source";
+      moduleNow === "TransitVolumes" ? "transit-volumes-source" : "network-source";
 
     const source = map.getSource(sourceId);
     const data = source && source._data;
@@ -55,9 +69,41 @@ export default function useAntPath(mapRef, visualizeLinkId, graphExpandedRef) {
 
     if (!Array.isArray(mergedCoords) || mergedCoords.length < 2) return;
 
-    // Clean up old
-    safeRemoveLayer(map, "ant-line");
-    safeRemoveSource(map, "ant-path");
+    // Zoom to fit the link's bounding box so the user can see what's being
+    // animated even when the previous viewport was far away.
+    let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;
+    for (const [lng, lat] of mergedCoords) {
+      if (lng < minLng) minLng = lng;
+      if (lat < minLat) minLat = lat;
+      if (lng > maxLng) maxLng = lng;
+      if (lat > maxLat) maxLat = lat;
+    }
+    if (Number.isFinite(minLng) && Number.isFinite(minLat)) {
+      // The right sidebar covers part of the map's visible area, so a
+      // symmetric padding makes the link center under the sidebar rather
+      // than in the actual visible viewport. Read the live widths and
+      // pass them as asymmetric padding so the link lands centered in the
+      // map area the user can actually see.
+      const rightSidebarEl = document.querySelector('.right-sidebar');
+      const leftSidebarEl = document.querySelector('.left-sidebar');
+      const rightWidth = rightSidebarEl ? rightSidebarEl.getBoundingClientRect().width : 0;
+      const leftWidth = leftSidebarEl ? leftSidebarEl.getBoundingClientRect().width : 0;
+      try {
+        map.fitBounds(
+          [[minLng, minLat], [maxLng, maxLat]],
+          {
+            padding: {
+              top: 80,
+              bottom: 80,
+              left: leftWidth + 60,
+              right: rightWidth + 60,
+            },
+            maxZoom: 16,
+            duration: 700,
+          }
+        );
+      } catch {}
+    }
 
     map.addSource("ant-path", {
       type: "geojson",
@@ -65,7 +111,7 @@ export default function useAntPath(mapRef, visualizeLinkId, graphExpandedRef) {
         type: "Feature",
         geometry: { type: "LineString", coordinates: mergedCoords },
         properties:
-          currentModule === "TransitVolumes"
+          moduleNow === "TransitVolumes"
             ? { modes: feature.properties?.modes ?? "" }
             : {},
       },
@@ -112,5 +158,8 @@ export default function useAntPath(mapRef, visualizeLinkId, graphExpandedRef) {
       safeRemoveLayer(map, "ant-line");
       safeRemoveSource(map, "ant-path");
     };
-  }, [visualizeLinkId]); // re-run when the selected per-id changes
+    // re-run when the selected per-id changes OR the active module switches
+    // (so the cleanup above tears down the overlay in non-ant modules).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visualizeLinkId, currentModule]);
 }

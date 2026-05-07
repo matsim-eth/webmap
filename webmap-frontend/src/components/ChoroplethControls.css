@@ -1,137 +1,148 @@
+/* Choropleth Controls — same visual language as the other module cards
+   (mode-filter-container / canton-mode-share). */
+
 .choropleth-controls {
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 12px;
-  background: var(--color-bg-subtle);
+  background: var(--color-surface);
   border-radius: var(--radius);
   border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
 }
 
-.choropleth-controls label {
+.choropleth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.choropleth-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin: 0;
+}
+
+/* Native select — matches .plot-select / .mode-filter-select */
+.choropleth-select {
+  width: 100%;
+  height: 32px;
+  padding: 0 10px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.choropleth-select:hover { border-color: var(--color-border-light); cursor: pointer; }
+.choropleth-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-focus);
+}
+
+/* Segmented button group — same look as .flow-direction-toggle */
+.choropleth-segmented {
+  display: flex;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-light);
+  overflow: hidden;
+}
+
+.choropleth-segmented-btn {
+  flex: 1;
+  padding: 7px 0;
+  font-size: 12.5px;
   font-weight: 500;
-  font-size: 14px;
+  font-family: inherit;
+  border: none;
+  background: var(--color-bg-subtle);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  /* No transition — any animated color/bg swap on click reads as a
+     mid-transition flash. Active state must snap instantly. */
+  transition: none;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Suppress browser-default :active "pressed" feedback that can flash
+   between the click and the React state update. */
+.choropleth-segmented-btn:active {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-secondary);
+}
+.choropleth-segmented-btn.active:active {
+  background: var(--color-primary-blue);
+  color: #fff;
+}
+
+/* Suppress Firefox's inner dotted border + browser focus rings */
+.choropleth-segmented-btn::-moz-focus-inner { border: 0; padding: 0; }
+.choropleth-segmented-btn:focus,
+.choropleth-segmented-btn:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.choropleth-segmented-btn:not(:last-child) {
+  border-right: 1px solid var(--color-border-light);
+}
+
+.choropleth-segmented-btn:hover:not(.active) {
+  background: var(--color-bg);
   color: var(--color-text);
 }
 
-.choropleth-controls select {
-  padding: 8px;
-  font-size: 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  background: white;
-  transition: all 0.3s ease-in-out;
+.choropleth-segmented-btn.active {
+  background: var(--color-primary-blue);
+  color: #fff;
 }
 
-.choropleth-controls select:hover {
-  border-color: var(--color-text-muted);
-  cursor: pointer;
-}
-
-.choropleth-controls select:focus {
-  border-color: var(--color-primary);
-  outline: none;
-}
-
-.group-by-section {
+/* Legend block */
+.choropleth-legend {
   display: flex;
   flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border);
+}
+
+.choropleth-legend-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.choropleth-legend-bar {
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
 
-.group-by-toggle {
-  display: flex;
-  gap: 0;
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-}
-
-.group-by-option {
-  flex: 1;
-  padding: 6px 0;
-  font-size: 0.82em;
-  font-weight: 500;
-  border: none;
-  background: var(--color-bg);
+.choropleth-legend-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
   color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
-}
-
-.group-by-option:not(:last-child) {
-  border-right: 1px solid var(--color-border-light);
-}
-
-.group-by-option:hover {
-  background: var(--color-border);
-}
-
-.group-by-option.active {
-  background: var(--color-primary-blue);
-  color: #fff;
-  font-weight: 500;
-}
-
-.dataset-selector {
-  display: flex;
-  gap: 0;
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  margin-top: 1rem;
-}
-
-.dataset-option {
-  flex: 1;
-  padding: 6px 0;
-  font-size: 0.82em;
-  font-weight: 500;
-  border: none;
-  background: var(--color-bg);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
-}
-
-.dataset-option:not(:last-child) {
-  border-right: 1px solid var(--color-border-light);
-}
-
-.dataset-option:hover {
-  background: var(--color-border);
-}
-
-.dataset-option.active {
-  background: var(--color-primary-blue);
-  color: #fff;
-  font-weight: 500;
-}
-
-
-.legend {
+  min-width: 28px;
   text-align: center;
 }
 
-/* Legend Container */
-.legend-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-}
-
-/* Legend Labels */
-.legend-label {
-  font-size: 12px;
-  font-weight: bold;
-  color: var(--color-text);
-}
-
-/* Gradient Bar */
-.legend-gradient {
-  flex-grow: 1;
+.choropleth-legend-gradient {
+  flex: 1;
   height: 10px;
-  border-radius: 5px;
-  margin: 0 8px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
 }

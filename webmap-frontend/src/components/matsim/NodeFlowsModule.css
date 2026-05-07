@@ -1,4 +1,7 @@
-/* Node Flows Module */
+/* Node Flows Module
+   Cards (Intersection Info / Matrix / Link Flows) reuse the shared
+   .canton-mode-share styles for the bordered card + grey header strip.
+   This file only owns the matrix + link-flow internals. */
 
 .nf-no-selection {
   text-align: center;
@@ -14,179 +17,147 @@
   margin-top: 8px;
 }
 
-/* Summary info table */
-.nf-summary {
-  margin-bottom: 16px;
-}
-
-.nf-summary h4 {
-  margin: 0 0 8px 0;
-  font-size: 0.9em;
-  color: var(--color-text);
-}
-
-.nf-info-table {
-  width: 100%;
-  font-size: 0.82em;
-  border-collapse: collapse;
-}
-
-.nf-info-table td {
-  padding: 4px 8px;
-  border-bottom: 1px solid var(--color-border-light);
-}
-
-.nf-info-table td:first-child {
-  width: 45%;
-  color: var(--color-text-secondary);
-}
-
-/* Matrix section */
-.nf-matrix-section {
-  margin-bottom: 16px;
-}
-
-.nf-matrix-section h4 {
-  margin: 0 0 4px 0;
-  font-size: 0.9em;
-  color: var(--color-text);
-}
+/* --- Matrix card body -------------------------------------------------- */
 
 .nf-matrix-hint {
-  font-size: 0.75em;
+  margin: 10px 14px 8px;
+  font-size: 11px;
+  font-weight: 500;
   color: var(--color-text-muted);
-  margin: 0 0 8px 0;
+  letter-spacing: .02em;
 }
 
 .nf-matrix-scroll {
+  margin: 0 14px 12px;
   overflow-x: auto;
-  max-width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
 }
 
-.nf-matrix {
+.canton-mode-share .nf-matrix{
   border-collapse: collapse;
-  font-size: 0.78em;
+  font-size: 12px;
   width: 100%;
   min-width: max-content;
 }
 
-.nf-matrix th,
-.nf-matrix td {
-  padding: 4px 6px;
+.canton-mode-share .nf-matrix th,
+.canton-mode-share .nf-matrix td {
+  padding: 6px 8px;
   text-align: center;
-  border: 1px solid var(--color-border-light);
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
   white-space: nowrap;
 }
+.canton-mode-share .nf-matrix th:last-child,
+.canton-mode-share .nf-matrix td:last-child { border-right: none; }
+.canton-mode-share .nf-matrix tr:last-child td { border-bottom: none; }
 
 .nf-matrix-corner {
-  background: var(--color-bg);
-  font-size: 0.8em;
-  color: var(--color-text-muted);
-  min-width: 60px;
+  background: var(--color-bg-subtle);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  min-width: 70px;
 }
 
 .nf-matrix-col-header {
-  background: var(--color-bg);
-  min-width: 40px;
+  background: var(--color-bg-subtle);
+  min-width: 44px;
 }
 
 .nf-matrix-row-header {
-  background: var(--color-bg);
+  background: var(--color-bg-subtle);
   text-align: left;
 }
 
 .nf-matrix-cell {
   cursor: pointer;
   transition: outline 0.1s ease;
-  min-width: 36px;
+  min-width: 40px;
   font-variant-numeric: tabular-nums;
 }
 
 .nf-matrix-cell.hovered {
-  outline: 2px solid var(--color-primary-blue, #6366f1);
+  outline: 2px solid var(--color-primary);
   outline-offset: -2px;
   z-index: 1;
   position: relative;
 }
 
-.nf-matrix-total {
-  font-weight: 600;
-  background: var(--color-bg-subtle);
-}
-
+.nf-matrix-total,
 .nf-matrix-total-header {
-  background: var(--color-bg-subtle);
   font-weight: 600;
+  background: var(--color-bg-subtle);
+  font-variant-numeric: tabular-nums;
 }
 
 .nf-matrix-totals-row td {
   font-weight: 600;
   background: var(--color-bg-subtle);
+  border-top: 1px solid var(--color-border);
 }
 
 .nf-matrix-grand-total {
   font-weight: 700;
   background: var(--color-bg) !important;
+  color: var(--color-text-dark);
 }
 
-/* Link badge (colored per-link from palette) */
+/* Per-link colored badge */
 .nf-link-badge {
   display: inline-block;
-  padding: 1px 5px;
-  border-radius: 3px;
-  font-size: 0.8em;
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  font-size: 11px;
   font-weight: 600;
-  min-width: 20px;
+  min-width: 22px;
   text-align: center;
   background: var(--color-bg-subtle);
   color: var(--color-text);
+  font-variant-numeric: tabular-nums;
 }
 
-/* Link details columns */
-.nf-links-section {
-  margin-top: 12px;
-}
+/* --- Link flows card body --------------------------------------------- */
 
 .nf-links-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 16px;
+  padding: 12px 14px 14px;
 }
 
 .nf-links-col h5 {
   margin: 0 0 6px 0;
-  font-size: 0.82em;
-}
-
-.nf-entering-title {
-  color: var(--color-text);
-}
-
-.nf-exiting-title {
-  color: var(--color-text);
+  padding-bottom: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .nf-link-row {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 6px;
-  padding: 3px 0;
-  font-size: 0.78em;
-  border-bottom: 1px solid var(--color-border-light);
+  padding: 5px 2px;
+  font-size: 12.5px;
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color var(--transition-fast);
 }
-
-.nf-link-id {
-  flex: 1;
-  color: var(--color-text-secondary);
-  font-family: monospace;
-  font-size: 0.9em;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.nf-link-row:last-child { border-bottom: none; }
+.nf-link-row:hover {
+  background: var(--color-bg-subtle);
 }
 
 .nf-link-flow {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+  color: var(--color-text-dark);
   min-width: 30px;
   text-align: right;
 }

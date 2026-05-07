@@ -143,8 +143,8 @@ const FeatureTable = forwardRef(
     if (loading) {
       return (
         <div
-          className="w-full"
-          style={{ height, display: "grid", placeItems: "center", opacity: 0.85 }}
+          className="feature-table-state"
+          style={{ height }}
         >
           <span>Preparing table…</span>
         </div>
@@ -154,14 +154,8 @@ const FeatureTable = forwardRef(
     if (hasNoData) {
       return (
         <div
-          className="w-full"
-          style={{
-            height,
-            display: "grid",
-            placeItems: "center",
-            color: "#888",
-            fontStyle: "italic",
-          }}
+          className="feature-table-state feature-table-state--empty"
+          style={{ height }}
         >
           <span>No segment data available</span>
         </div>

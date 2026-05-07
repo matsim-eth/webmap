@@ -79,7 +79,7 @@ if (onVolumeUpdate && volumeTotals) {
   }
 }
 
-if (!volumeData) return <p>Loading volume data…</p>;
+if (!volumeData) return <p className="plot-empty">Loading volume data…</p>;
 
 // Aggregate mode: sum all links into a single chart
 if (aggregate) {
@@ -99,18 +99,22 @@ if (aggregate) {
 
   return (
     <div className="plot-container">
-      <h4>Aggregate Volume ({linkIds.length} links)</h4>
-      <Plot
-        data={[{ x: labels, y: values, type: "bar", marker: { color: "#17becf" } }]}
-        layout={{
-          font: { family: "Inter, sans-serif" },
-          margin: { t: 30, r: 10, l: 40, b: 100 },
-          xaxis: { title: { text: "Hour", standoff: 20 }, tickangle: -45, tickvals, automargin: true },
-          yaxis: { title: "Avg Vehicles/hour" },
-          height: 300, width: 525,
-          paper_bgcolor: "rgba(255,255,255,0)", plot_bgcolor: "rgba(255,255,255,0)",
-        }}
-      />
+      <div className="plot-card">
+        <div className="plot-card-header">
+          <h4 style={{ margin: 0 }}>Aggregate Volume ({linkIds.length} links)</h4>
+        </div>
+        <Plot
+          data={[{ x: labels, y: values, type: "bar", marker: { color: "#17becf" } }]}
+          layout={{
+            font: { family: "Inter, sans-serif" },
+            margin: { t: 30, r: 10, l: 40, b: 40 },
+            xaxis: { title: { text: "Hour", standoff: 8 }, tickangle: -45, tickvals, automargin: true },
+            yaxis: { title: "Avg Vehicles/hour" },
+            height: 300, width: 525,
+            paper_bgcolor: "rgba(255,255,255,0)", plot_bgcolor: "rgba(255,255,255,0)",
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -134,46 +138,46 @@ return (
     const tickvals = labels.filter((_, i) => i % 2 === 0); // every 2 hrs
 
     return (
-      <div key={id} style={{ marginTop: "16px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-      <h4 style={{ margin: 0 }}>Hourly Volume for Link {id}</h4>
-      <button
-      className="graph-button small"
-      onClick={() => {
-        if (id !== visualizeLinkId) {
-          setVisualizeLinkId(id);
-        }
-      }}
-      >
-      Visualize
-      </button>
-      </div>
+      <div key={id} className="plot-card">
+        <div className="plot-card-header">
+          <h4 style={{ margin: 0 }}>Hourly Volume for Link {id}</h4>
+          <button
+            className="graph-button small"
+            onClick={() => {
+              if (id !== visualizeLinkId) {
+                setVisualizeLinkId(id);
+              }
+            }}
+          >
+            Visualize
+          </button>
+        </div>
 
-      <Plot
-      data={[
-        {
-          x: labels,
-          y: values,
-          type: "bar",
-          marker: { color: "#17becf" },
-        },
-      ]}
-      layout={{
-        font: { family: "Inter, sans-serif" },
-        margin: { t: 30, r: 10, l: 40, b: 100 },
-        xaxis: {
-          title: { text: "Hour", standoff: 20 },
-          tickangle: -45,
-          tickvals,
-          automargin: true,
-        },
-        yaxis: { title: "Avg Vehicles/hour" },
-        height: 300,
-        width: 525,
-        paper_bgcolor: "rgba(255,255,255,0)",
-        plot_bgcolor: "rgba(255,255,255,0)",
-      }}
-      />
+        <Plot
+          data={[
+            {
+              x: labels,
+              y: values,
+              type: "bar",
+              marker: { color: "#17becf" },
+            },
+          ]}
+          layout={{
+            font: { family: "Inter, sans-serif" },
+            margin: { t: 30, r: 10, l: 40, b: 40 },
+            xaxis: {
+              title: { text: "Hour", standoff: 8 },
+              tickangle: -45,
+              tickvals,
+              automargin: true,
+            },
+            yaxis: { title: "Avg Vehicles/hour" },
+            height: 300,
+            width: 525,
+            paper_bgcolor: "rgba(255,255,255,0)",
+            plot_bgcolor: "rgba(255,255,255,0)",
+          }}
+        />
       </div>
     );
   })}

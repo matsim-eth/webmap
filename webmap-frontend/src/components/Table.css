@@ -1,51 +1,95 @@
 .canton-mode-share {
-  margin-top: 15px;
-  padding-top: 1px;
-  padding-left: 5px;
-  padding-right: 5px;
-  background: var(--color-bg-subtle);
+  margin-top: 16px;
+  background: var(--color-surface);
   border-radius: var(--radius);
   border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
   transition: opacity 0.3s ease-in-out;
 }
 
+/* When nested inside a plot container the parent's flex `gap` handles spacing,
+   so the standalone top margin would double up and push the card too far down. */
+.plot-container .canton-mode-share {
+  margin-top: 0;
+}
+
 .canton-mode-share h4 {
-  margin-top: 10px;
-  margin-bottom: 10px;
-  text-align: center;
-  font-size: 16px;
-  font-weight: bold;
-  color: var(--color-text);
+  margin: 0;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-dark);
+  background: var(--color-bg-subtle);
+  border-bottom: 1px solid var(--color-border);
+  letter-spacing: .01em;
+}
+
+/* When the body is collapsed (h4 is the last child), drop the divider so
+   the card doesn't end with a hanging horizontal line that reads as a
+   clipped bottom edge. */
+.canton-mode-share h4:last-child {
+  border-bottom: none;
 }
 
 .canton-mode-share table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .canton-mode-share th, .canton-mode-share td {
-  padding: 8px;
+  padding: 9px 14px;
   text-align: left;
   border-bottom: 1px solid var(--color-border);
 }
 
 .canton-mode-share th {
-  background: var(--color-bg);
-  font-weight: bold;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.canton-mode-share td {
+  color: var(--color-text);
+}
+
+.canton-mode-share td:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  color: var(--color-text-dark);
+}
+
+/* Numeric value column header (e.g. "Share (%)" / "Abs. Diff (%)") aligns
+   right so it sits over the right-aligned values below it. */
+.canton-mode-share th:last-child {
+  text-align: right;
 }
 
 .canton-mode-share tr:last-child td {
   border-bottom: none;
+  padding-bottom: 8px;
 }
 
 .canton-mode-share .highlight {
   color: white;
-  font-weight: bold;
+  font-weight: 600;
 }
 
-.canton-mode-share tbody tr:hover {
-  background-color: var(--color-border);
+.canton-mode-share .highlight td {
+  color: white !important;
+}
+
+.canton-mode-share tbody tr {
+  transition: background-color var(--transition-fast);
+}
+
+.canton-mode-share tbody tr:hover:not(.highlight) {
+  background-color: var(--color-bg-subtle);
 }
 
 .mode-badges {
@@ -136,12 +180,100 @@
   color: #fff;
 }
 
-.route-list {
+/* Show routes / hide routes toggle */
+.route-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin-top: 8px;
-  margin-left: 0;
-  padding-left: 1rem;
-  font-size: 0.9em;
+  padding: 4px 10px 4px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+.route-toggle:hover {
+  color: var(--color-text-dark);
+  background: var(--color-bg);
+  border-color: var(--color-border-light);
+}
+.route-toggle.is-open {
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+  border-color: transparent;
+}
+.route-toggle-chevron {
+  display: inline-block;
+  font-size: 10px;
+  line-height: 1;
+  transition: transform var(--transition-fast);
+}
+.route-toggle.is-open .route-toggle-chevron { transform: rotate(90deg); }
+.route-toggle-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 16px;
+  padding: 0 5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+}
+.route-toggle.is-open .route-toggle-count {
+  color: var(--color-primary);
+  background: #fff;
+  border-color: var(--color-primary-light);
+}
+
+/* Route list — each row reads as an interactive item with hover bg */
+.route-list {
+  list-style: none;
+  margin: 8px 0 0 0;
+  padding: 4px 0;
+  font-size: 12.5px;
   color: var(--color-text);
+  border-top: 1px solid var(--color-border);
+}
+.route-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+.route-row:hover,
+.route-row.is-hovered {
+  background-color: var(--color-primary-light);
+  color: var(--color-text-dark);
+}
+.route-row-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+  flex-shrink: 0;
+  transition: background-color var(--transition-fast);
+}
+.route-row:hover .route-row-dot,
+.route-row.is-hovered .route-row-dot {
+  background: var(--color-primary);
+}
+.route-row-id {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .01em;
 }
 
 .metric-card {

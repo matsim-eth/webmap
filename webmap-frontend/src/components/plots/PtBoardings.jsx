@@ -5,6 +5,7 @@ import cantonAlias from "../../utils/canton_alias.json";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
+import { basePlotLayout, basePlotConfig } from "../../utils/plotTheme";
 import { useQuery } from "@tanstack/react-query";
 
 const VEHICLE_COLORS = {
@@ -425,63 +426,32 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
 
   if (!plotData) {
     return (
-      <p style={{ padding: "1rem", fontStyle: "italic", color: "#555" }}>
-        Click a canton to load boarding data.
-      </p>
+      <div className="plot-container">
+        <p className="plot-empty">Click a canton to load boarding data.</p>
+      </div>
     );
   }
 
   return (
     <div className="plot-container">
-      <div style={{ display: 'flex', alignItems: 'flex-start', minHeight: 40 }}>
-        <div style={{ minWidth: 260, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-          <h3 style={{ margin: 0 }}>
-            PT Boardings: {cantonAlias[canton] || canton}
-          </h3>
-          {selectedTransitStop && (
-            <div style={{ margin: '8px 0', fontSize: '14px', color: '#666' }}>
-              <strong>Selected Stop:</strong> {selectedTransitStop.name}
-              <button 
-                onClick={() => setShowStopAnalysis(!showStopAnalysis)}
-                style={{
-                  marginLeft: '10px',
-                  padding: '4px 8px',
-                  fontSize: '12px',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  backgroundColor: showStopAnalysis ? '#007AFF' : '#fff',
-                  color: showStopAnalysis ? '#fff' : '#333',
-                  cursor: 'pointer'
-                }}
-              >
-                {showStopAnalysis ? 'Hide' : 'Show'} Stop Analysis
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "flex-start",
-          padding: "0 1rem 1.5rem",
-          gap: "1rem"
-        }}
-      >
-        {/* Time Slider */}
-        <div style={{ flex: 1 }}>
-          <label
-            style={{
-              fontWeight: "bold",
-              fontSize: "10pt",
-              display: "block",
-              marginBottom: "0.25rem",
-            }}
+      <h3>PT Boardings · {cantonAlias[canton] || canton}</h3>
+      {selectedTransitStop && (
+        <div className="plot-context-pill">
+          <span><strong>Selected stop:</strong> {selectedTransitStop.name}</span>
+          <button
+            className={`plot-action-btn ${showStopAnalysis ? "is-active" : ""}`}
+            onClick={() => setShowStopAnalysis(!showStopAnalysis)}
           >
-            Time: {formatTimeLabel(timeRange[0])} - {formatTimeLabel(timeRange[1])}
-          </label>
+            {showStopAnalysis ? "Hide" : "Show"} stop analysis
+          </button>
+        </div>
+      )}
+
+      <div className="plot-time-row">
+        <div className="plot-time-slider">
+          <span className="plot-time-label">
+            Time · {formatTimeLabel(timeRange[0])} – {formatTimeLabel(timeRange[1])}
+          </span>
           <Slider
             range
             min={0}
@@ -491,16 +461,15 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
             value={timeRange}
             onChange={(val) => setTimeRange(val)}
             allowCross={false}
-            style={{ width: "80%" }}
           />
         </div>
       </div>
-      
-      <div style={{ display: 'flex', gap: '40px', margin: '20px 10px' }}>
-        <div>
-          <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>Vehicle Type</div>
+
+      <div className="plot-controls">
+        <div className="plot-controls-group">
+          <span className="plot-controls-label">Vehicle Type</span>
           {vehicles.map(vehicle => (
-            <div key={vehicle.value} style={{ marginBottom: '4px' }}>
+            <label key={vehicle.value} htmlFor={`vehicle-${vehicle.value}`}>
               <input
                 type="radio"
                 id={`vehicle-${vehicle.value}`}
@@ -509,41 +478,29 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
                 checked={selectedVehicle === vehicle.value}
                 onChange={(e) => setSelectedVehicle(e.target.value)}
               />
-              <label htmlFor={`vehicle-${vehicle.value}`} style={{ marginLeft: '8px' }}>
-                {vehicle.label}
-              </label>
-            </div>
+              {vehicle.label}
+            </label>
           ))}
         </div>
-        
-        <div>
-          <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+
+        <div className="plot-controls-group" style={{ minWidth: 220 }}>
+          <span className="plot-controls-label">
             Transit Line
             {selectedTransitStop && (
-              <span style={{ fontSize: '12px', fontWeight: 'normal', color: '#666', marginLeft: '8px' }}>
-                (★ = serves selected stop)
-              </span>
+              <span className="plot-controls-hint">★ serves selected stop</span>
             )}
-          </div>
-          <select 
+          </span>
+          <select
+            className="plot-select"
             value={selectedLine}
             onChange={(e) => setSelectedLine(e.target.value)}
-            style={{
-              padding: '4px 8px',
-              borderRadius: '4px',
-              border: '1px solid #ccc',
-              fontSize: '14px',
-              minWidth: '200px',
-              maxWidth: '300px'
-            }}
+            style={{ minWidth: 220, maxWidth: 300 }}
           >
             {availableLines.map(option => (
-              <option 
-                key={option.value} 
+              <option
+                key={option.value}
                 value={option.value}
-                style={{
-                  fontWeight: option.isAtSelectedStop ? 'bold' : 'normal'
-                }}
+                style={{ fontWeight: option.isAtSelectedStop ? "bold" : "normal" }}
               >
                 {option.label}
               </option>
@@ -551,114 +508,90 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
           </select>
         </div>
       </div>
-      
+
       {/* Stop Analysis Section */}
       {showStopAnalysis && selectedTransitStop && (
-        <div style={{ margin: '20px 0', padding: '20px', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-            <h4 style={{ margin: 0, color: '#333' }}>
-              Stop Analysis: {selectedTransitStop.name}
-            </h4>
-            <button 
-              onClick={() => {/* Note: We'll need a way to clear selected stop from parent */}}
-              style={{
-                padding: '4px 8px',
-                fontSize: '12px',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                backgroundColor: '#fff',
-                color: '#666',
-                cursor: 'pointer'
-              }}
+        <div className="plot-card">
+          <div className="plot-card-header">
+            <h4 style={{ margin: 0 }}>Stop Analysis · {selectedTransitStop.name}</h4>
+            <button
+              className="plot-action-btn"
+              onClick={() => {/* clear selected stop */}}
               title="Clear selected stop"
             >
               ✕ Clear
             </button>
           </div>
-          
-          {/* Transfer Matrix Heatmap */}
+
           {transferMatrix && transferMatrix.lineNames.length > 1 ? (
-            <div style={{ marginBottom: '20px' }}>
-              <h5 style={{ margin: '0 0 10px 0' }}>Line Transfer Matrix (Real Data)</h5>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                <Plot
-                  data={[{
-                    z: transferMatrix.matrix,
-                    x: transferMatrix.lineNames,
-                    y: transferMatrix.lineNames,
-                    type: 'heatmap',
-                    colorscale: 'Blues',
-                    showscale: true,
-                    hoverongaps: false,
-                    texttemplate: '%{z}',
-                    textfont: { size: 10 }
-                  }]}
-                  layout={{
-                    font: { family: "Inter, sans-serif" },
-                    title: 'Actual Transfers Between Lines',
-                    xaxis: { title: 'To Line', tickangle: -45 },
-                    yaxis: { title: 'From Line' },
-                    height: 300,
-                    width: 600,
-                    margin: { t: 50, r: 50, l: 150, b: 100 },
-                    paper_bgcolor: "rgba(255,255,255,0)",
-                    plot_bgcolor: "rgba(255,255,255,0)",
-                  }}
-                  config={{ displayModeBar: false }}
-                />
-              </div>
+            <div>
+              <h5>Line Transfer Matrix</h5>
+              <Plot
+                data={[{
+                  z: transferMatrix.matrix,
+                  x: transferMatrix.lineNames,
+                  y: transferMatrix.lineNames,
+                  type: "heatmap",
+                  colorscale: "Blues",
+                  showscale: true,
+                  hoverongaps: false,
+                  texttemplate: "%{z}",
+                  textfont: { size: 10, color: "#1f2937" },
+                }]}
+                layout={basePlotLayout({
+                  height: 320,
+                  width: 560,
+                  margin: { t: 20, r: 40, l: 150, b: 110 },
+                  xaxis: { title: "To Line", tickangle: -45 },
+                  yaxis: { title: "From Line" },
+                })}
+                config={{ ...basePlotConfig, displayModeBar: false }}
+              />
             </div>
           ) : (
-            <div style={{ marginBottom: '20px', padding: '10px', backgroundColor: '#f0f0f0', borderRadius: '4px' }}>
-              <h5 style={{ margin: '0 0 5px 0' }}>Line Transfer Matrix</h5>
-              <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
-                {transferData ? 'No transfer data available for this stop.' : 'Loading transfer data...'}
+            <div>
+              <h5>Line Transfer Matrix</h5>
+              <p className="plot-empty">
+                {transferData ? "No transfer data available for this stop." : "Loading transfer data…"}
               </p>
             </div>
           )}
-          
-          {/* Transfer Statistics and Destination Distribution */}
+
           {destinationDistribution && (
             <div>
-              <h5 style={{ margin: '0 0 10px 0' }}>Transfer Statistics</h5>
-              
-              {/* Transfer Summary */}
-              <div style={{ marginBottom: '15px', display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                <div style={{ padding: '8px 12px', backgroundColor: '#e8f4fd', borderRadius: '4px' }}>
-                  <strong>Total Boardings:</strong> {destinationDistribution.transferStats['Total Boardings']}
-                </div>
-                <div style={{ padding: '8px 12px', backgroundColor: '#e8f4fd', borderRadius: '4px' }}>
-                  <strong>Transfers In:</strong> {destinationDistribution.transferStats['Transfers In']}
-                </div>
-                <div style={{ padding: '8px 12px', backgroundColor: '#e8f4fd', borderRadius: '4px' }}>
-                  <strong>Transfers Out:</strong> {destinationDistribution.transferStats['Transfers Out']}
-                </div>
+              <h5>Transfer Statistics</h5>
+              <div className="plot-stats">
+                <span className="plot-stat-chip">
+                  Total boardings <strong>{destinationDistribution.transferStats["Total Boardings"]}</strong>
+                </span>
+                <span className="plot-stat-chip">
+                  Transfers in <strong>{destinationDistribution.transferStats["Transfers In"]}</strong>
+                </span>
+                <span className="plot-stat-chip">
+                  Transfers out <strong>{destinationDistribution.transferStats["Transfers Out"]}</strong>
+                </span>
               </div>
-              
-              {/* Top Destinations */}
+
               {destinationDistribution.topDestinations.length > 0 && (
-                <div>
-                  <h6 style={{ margin: '0 0 8px 0' }}>Top Transfer Destinations:</h6>
+                <div style={{ marginTop: 12 }}>
+                  <h6>Top Transfer Destinations</h6>
                   <Plot
                     data={[{
-                      x: destinationDistribution.topDestinations.map(([stopId, count]) => stopId.slice(0, 15) + '...'),
-                      y: destinationDistribution.topDestinations.map(([stopId, count]) => count),
-                      type: 'bar',
-                      marker: { color: '#ff9500' },
-                      name: 'Transfer Count'
+                      x: destinationDistribution.topDestinations.map(([stopId]) => stopId.slice(0, 15) + "…"),
+                      y: destinationDistribution.topDestinations.map(([, count]) => count),
+                      type: "bar",
+                      marker: { color: "#0d9488" },
+                      name: "Transfer Count",
+                      hovertemplate: "%{x}<br>%{y:,}<extra></extra>",
                     }]}
-                    layout={{
-                      font: { family: "Inter, sans-serif" },
-                      title: `Transfer Destinations from ${selectedTransitStop.name}`,
-                      xaxis: { title: 'Destination Stop', tickangle: -45 },
-                      yaxis: { title: 'Transfer Count' },
-                      height: 250,
-                      width: 600,
-                      margin: { t: 50, r: 10, l: 40, b: 100 },
-                      paper_bgcolor: "rgba(255,255,255,0)",
-                      plot_bgcolor: "rgba(255,255,255,0)",
-                    }}
-                    config={{ displayModeBar: false }}
+                    layout={basePlotLayout({
+                      height: 240,
+                      width: 560,
+                      margin: { t: 16, r: 12, l: 52, b: 100 },
+                      xaxis: { title: "Destination Stop", tickangle: -45 },
+                      yaxis: { title: "Transfer Count" },
+                    })}
+                    config={{ ...basePlotConfig, displayModeBar: false }}
                   />
                 </div>
               )}
@@ -666,43 +599,33 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
           )}
         </div>
       )}
-      
-      <h4 style={{ marginTop: "1rem" }}>Boarding Counts</h4>
-      
-      {!data || data.times.length === 0 ? (
-        <div style={{ 
-          padding: "2rem", 
-          textAlign: "center", 
-          fontStyle: "italic", 
-          color: "#888",
-          border: "1px dashed #ccc",
-          borderRadius: "4px",
-          margin: "1rem 0"
-        }}>
-          No boarding data available for the selected filters.
-        </div>
-      ) : (
-        <Plot
-          data={[
-            {
-              x: data.times,
-              y: data.boardings,
-              type: "bar",
-              marker: { color: VEHICLE_COLORS[selectedVehicle] || VEHICLE_COLORS.all }
-            }
-          ]}
-          layout={{
-            font: { family: "Inter, sans-serif" },
-            margin: { t: 30, r: 10, l: 40, b: 10 },
-            xaxis: { title: "Hour", tickangle: -45, automargin: true },
-            yaxis: { title: "Boarding Count" },
-            height: 250,
-            width: 525,
-            paper_bgcolor: "rgba(255,255,255,0)",
-            plot_bgcolor: "rgba(255,255,255,0)",
-          }}
-        />
-      )}
+
+      <div className="plot-card">
+        <h4>Boarding Counts</h4>
+        {!data || data.times.length === 0 ? (
+          <p className="plot-empty">No boarding data available for the selected filters.</p>
+        ) : (
+          <Plot
+            data={[
+              {
+                x: data.times,
+                y: data.boardings,
+                type: "bar",
+                marker: { color: VEHICLE_COLORS[selectedVehicle] || VEHICLE_COLORS.all },
+                hovertemplate: "%{x}<br>%{y:,} boardings<extra></extra>",
+              },
+            ]}
+            layout={basePlotLayout({
+              height: 260,
+              width: 520,
+              margin: { t: 16, r: 12, l: 52, b: 70 },
+              xaxis: { title: "Hour", tickangle: -45 },
+              yaxis: { title: "Boarding Count" },
+            })}
+            config={basePlotConfig}
+          />
+        )}
+      </div>
     </div>
   );
 };

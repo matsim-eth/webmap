@@ -80,45 +80,47 @@ const TransitLinkHistogram = ({
 
   return (
     <div className="plot-container">
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <h4 style={{ margin: 0 }}>Transit Volume for Link {String(linkId)}</h4>
-        {setVisualizeLinkId && (
-          <button
-            className="graph-button small"
-            onClick={() => {
-              if (linkId !== visualizeLinkId) setVisualizeLinkId(String(linkId));
-            }}
-          >
-            Visualize
-          </button>
-        )}
-      </div>
+      <div className="plot-card">
+        <div className="plot-card-header">
+          <h4 style={{ margin: 0 }}>Transit Volume for Link {String(linkId)}</h4>
+          {setVisualizeLinkId && (
+            <button
+              className="graph-button small"
+              onClick={() => {
+                if (linkId !== visualizeLinkId) setVisualizeLinkId(String(linkId));
+              }}
+            >
+              Visualize
+            </button>
+          )}
+        </div>
 
-      <Plot
-        data={[
-          {
-            x: labels,
-            y: values.slice(startTick, endTick),
-            type: "bar",
-            marker: { color: "#17becf" },
-          },
-        ]}
-        layout={{
-          font: { family: "Inter, sans-serif" },
-          margin: { t: 30, r: 10, l: 40, b: 100 },
-          xaxis: {
-            title: { text: "Time", standoff: 20 },
-            tickangle: -45,
-            tickvals,
-            automargin: true,
-          },
-          yaxis: { title: "Passengers per 15 min" },
-          height: 300,
-          width: 525,
-          paper_bgcolor: "rgba(255,255,255,0)",
-          plot_bgcolor: "rgba(255,255,255,0)",
-        }}
-      />
+        <Plot
+          data={[
+            {
+              x: labels,
+              y: values.slice(startTick, endTick),
+              type: "bar",
+              marker: { color: "#17becf" },
+            },
+          ]}
+          layout={{
+            font: { family: "Inter, sans-serif" },
+            margin: { t: 30, r: 10, l: 40, b: 40 },
+            xaxis: {
+              title: { text: "Time", standoff: 8 },
+              tickangle: -45,
+              tickvals,
+              automargin: true,
+            },
+            yaxis: { title: "Passengers per 15 min" },
+            height: 300,
+            width: 525,
+            paper_bgcolor: "rgba(255,255,255,0)",
+            plot_bgcolor: "rgba(255,255,255,0)",
+          }}
+        />
+      </div>
     </div>
   );
 };

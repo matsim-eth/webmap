@@ -64,6 +64,14 @@ export function useDataTable({
         } catch {}
         el._dt = null;
       }
+      if (el?._dtResizeObserver) {
+        try { el._dtResizeObserver.disconnect(); } catch {}
+        el._dtResizeObserver = null;
+      }
+      if (el?._dtAdjustTimers) {
+        el._dtAdjustTimers.forEach((id) => clearTimeout(id));
+        el._dtAdjustTimers = null;
+      }
     };
 
     if (loading || hasNoData) {
@@ -149,6 +157,37 @@ export function useDataTable({
 
       dtRef.current = instance;
       el._dt = instance;
+
+      // Column-alignment guard.
+      //
+      // The table mounts inside the right sidebar whose width animates
+      // (0.3s ease). DataTables / Scroller measure the scroll-body width
+      // at init; if that happens mid-transition the header columns end up
+      // narrower than the body and don't realign until the user clicks a
+      // sort header (which forces a redraw). Re-measure once layout has
+      // settled, and again on any subsequent resize of the wrapper.
+      const adjust = () => {
+        try {
+          if (!instance.settings || !instance.settings()[0]) return;
+          instance.columns.adjust();
+          if (useScroller && instance.scroller && typeof instance.scroller.measure === 'function') {
+            instance.scroller.measure(false);
+          }
+        } catch {}
+      };
+
+      el._dtAdjustTimers = [
+        setTimeout(adjust, 0),
+        setTimeout(adjust, 50),
+        setTimeout(adjust, 350),  // ~ sidebar transition end
+      ];
+
+      const wrapper = el.closest('.dataTables_wrapper') || el.parentElement;
+      if (wrapper && typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(() => adjust());
+        ro.observe(wrapper);
+        el._dtResizeObserver = ro;
+      }
     };
 
     init();

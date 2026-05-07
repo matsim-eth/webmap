@@ -70,16 +70,16 @@ const ChoroplethControls = ({
   return (
     <div className="choropleth-controls">
       {setAggCol && (
-        <div className="group-by-section">
-          <label>Group By:</label>
-          <div className="group-by-toggle">
+        <div className="choropleth-field">
+          <label className="choropleth-label">Group By</label>
+          <div className="choropleth-segmented">
             {[
               { value: "mode", label: "Mode" },
               { value: "purpose", label: "Purpose" },
             ].map((opt) => (
               <button
                 key={opt.value}
-                className={`group-by-option ${aggCol === opt.value ? "active" : ""}`}
+                className={`choropleth-segmented-btn ${aggCol === opt.value ? "active" : ""}`}
                 onClick={() => {
                   setAggCol(opt.value);
                   setSelectedMode("None");
@@ -92,47 +92,55 @@ const ChoroplethControls = ({
           </div>
         </div>
       )}
-      <label>Select {aggCol === "mode" ? "Mode" : "Purpose"}:</label>
-      <select value={selectedMode} onChange={handleModeChange}>
-        <option value="None">None</option>
-        {Object.keys(LABELS).map((key) => (
-          <option key={key} value={key}>
-            {LABELS[key]}
-          </option>
-        ))}
-      </select>
 
-      <div className="dataset-selector">
-        {["Microcensus", "Synthetic", "Difference"].map((option) => (
-          <button
-            key={option}
-            className={`dataset-option ${selectedDataset === option ? "active" : ""}`}
-            onClick={() => {
-              setSelectedDataset(option);
-              updateMapChoropleth(selectedMode, option);
-            }}
-          >
-            {option}
-          </button>
-        ))}
+      <div className="choropleth-field">
+        <label className="choropleth-label">
+          Select {aggCol === "mode" ? "Mode" : "Purpose"}
+        </label>
+        <select className="choropleth-select" value={selectedMode} onChange={handleModeChange}>
+          <option value="None">None</option>
+          {Object.keys(LABELS).map((key) => (
+            <option key={key} value={key}>
+              {LABELS[key]}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="choropleth-field">
+        <label className="choropleth-label">Dataset</label>
+        <div className="choropleth-segmented">
+          {["Microcensus", "Synthetic", "Difference"].map((option) => (
+            <button
+              key={option}
+              className={`choropleth-segmented-btn ${selectedDataset === option ? "active" : ""}`}
+              onClick={() => {
+                setSelectedDataset(option);
+                updateMapChoropleth(selectedMode, option);
+              }}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Legend */}
       {selectedMode !== "None" && (
-        <div className="legend">
-          <h4>Legend</h4>
-          <div className="legend-container">
-            <span className="legend-label">0%</span>
+        <div className="choropleth-legend">
+          <span className="choropleth-legend-title">Legend</span>
+          <div className="choropleth-legend-bar">
+            <span className="choropleth-legend-label">0%</span>
             <div
-              className="legend-gradient"
+              className="choropleth-legend-gradient"
               style={{
                 background:
                   selectedDataset === "Difference"
                     ? "linear-gradient(to left, red 0%, white 100%)"
                     : `linear-gradient(to left, ${COLORS[selectedMode] || "#888"} 0%, #FFFFFF 100%)`,
               }}
-            ></div>
-            <span className="legend-label">
+            />
+            <span className="choropleth-legend-label">
               {selectedDataset === "Difference"
                 ? "10%"
                 : maxSharePerMode?.[selectedMode]
