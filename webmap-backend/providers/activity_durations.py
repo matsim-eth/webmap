@@ -1,131 +1,124 @@
+"""Activity-duration distribution per polygon and purpose.
+
+Always raw scan against ``activities`` (with R-tree polygon join). The
+v1 schema does not pre-aggregate durations.
+"""
+
+from __future__ import annotations
+
 from collections import defaultdict
 
 from .base import DataProvider, Param, CANTON, SOURCE, PURPOSE
-from .connection import get_connection
-from .helpers import canton_filter_sql, parse_source_param, build_canton_lookup, purpose_filter_sql
-from .paths import get_data_paths
+from .connection import get_source_cursor
+from .helpers import (
+    get_hot_polygon_meta,
+    parse_source_param,
+    purpose_filter_sql,
+)
+from ._pre_agg import label_for, make_label_resolver, polygon_filter_clause, resolve_polygon_ids, _source_label
 
 
 def _slot_label(minutes: int) -> str:
-    h = minutes // 60
-    m = minutes % 60
+    h, m = minutes // 60, minutes % 60
     return f"{h}:{m:02d}:00"
 
 
 class ActivityDurationsProvider(DataProvider):
-    """Activity duration distribution per canton, source, and purpose.
-
-    Query params:
-        canton    (str): Comma-separated canton names.
-        source    (str): "Synthetic", "Microcensus", or omit for both.
-        purpose   (str): Comma-separated purposes to include.
-        step_min  (int): Slot width in minutes. Default: 30.
-        max_hours (int): Maximum duration in hours. Default: 24.
-    """
-
     ROUTE = "activity_durations.json"
-    PARAMS = [CANTON, SOURCE, PURPOSE,
-              Param("step_min", "Slot width in minutes (default 30)", param_type="integer"),
-              Param("max_hours", "Maximum duration in hours (default 24)", param_type="integer")]
+    PARAMS = [
+        CANTON, SOURCE, PURPOSE,
+        Param("polygon_id", "Hot-polygon ID(s), comma-separated"),
+        Param("step_min", "Slot width in minutes (default 30)", param_type="integer"),
+        Param("max_hours", "Maximum duration in hours (default 24)", param_type="integer"),
+    ]
 
     def deliver(self, params: dict) -> dict:
-        paths = get_data_paths()
         sources = parse_source_param(params)
-
-        step = int(params.get("step_min", 30))
-        max_hours = int(params.get("max_hours", 24))
+        if not sources:
+            return {}
+        try:
+            step = int(params.get("step_min", 30))
+            max_hours = int(params.get("max_hours", 24))
+        except ValueError:
+            step, max_hours = 30, 24
         max_min = max_hours * 60
         max_slot = max_min - step
         slots = list(range(0, max_min, step))
 
-        cf = canton_filter_sql(params.get("canton"), "p.canton_id")
-        pf = purpose_filter_sql(params, "purpose")
+        pf = purpose_filter_sql(params, "a.purpose")
 
-        con = get_connection()
+        con0 = get_source_cursor(sources[0])
+        polygon_ids = resolve_polygon_ids(con0, params, default_type="canton")
 
-        # counts[(source, cid, purpose, slot)] = count
-        counts = defaultdict(int)
-        seen_cantons = set()
-        seen_purposes = set()
+        counts: dict = defaultdict(int)
+        purposes_seen: set = set()
+        labels_seen: set = set()
 
-        if "Synthetic" in sources:
-            rows = con.execute(f"""
-                WITH raw AS (
-                    SELECT p.canton_id, a.purpose,
-                           CAST(FLOOR(CAST(a.end_time - a.start_time AS DOUBLE) / 60) AS INTEGER) AS dur_min
-                    FROM read_parquet(?) a
-                    INNER JOIN read_parquet(?) p ON a.person_id = p.person_id
-                    WHERE p.canton_id IS NOT NULL
-                      AND a.end_time IS NOT NULL AND a.start_time IS NOT NULL
+        slot_expr = (
+            f"LEAST((CAST(FLOOR((a.end_time - a.start_time) / 60) AS INTEGER) / {step}) * {step}, {max_slot})"
+        )
+
+        for source in sources:
+            try:
+                con = get_source_cursor(source)
+            except Exception:
+                continue
+            slabel = _source_label(source)
+
+            if polygon_ids:
+                # For activities we filter on a.location_pt (the activity location,
+                # not the person's home). For canton-typed polygons we cannot use
+                # the canton_id shortcut (activities have no canton_id), so we
+                # always do the spatial join.
+                placeholders = ",".join(["?"] * len(polygon_ids))
+                resolve = make_label_resolver(con, polygon_ids, False)
+                rows = con.execute(f"""
+                    SELECT hp.polygon_id AS poly_key, a.purpose, {slot_expr} AS slot, COUNT(*) AS cnt
+                    FROM activities a
+                    JOIN hot_polygons hp ON hp.polygon_id IN ({placeholders})
+                       AND ST_Within(a.location_pt, hp.polygon_geom)
+                    WHERE a.start_time IS NOT NULL AND a.end_time IS NOT NULL
                       AND a.end_time >= a.start_time
-                      {cf}{pf.replace("purpose", "a.purpose")}
-                )
-                SELECT canton_id, purpose,
-                       LEAST((dur_min / {step}) * {step}, {max_slot}) AS slot,
-                       COUNT(*) AS cnt
-                FROM raw
-                GROUP BY canton_id, purpose, slot
-            """, [paths.synthetic_activities, paths.synthetic_persons]).fetchall()
-            for cid, purpose, slot, cnt in rows:
-                seen_cantons.add(int(cid))
-                seen_purposes.add(str(purpose))
-                counts[("Synthetic", int(cid), str(purpose), int(slot))] += cnt
+                    {pf}
+                    GROUP BY hp.polygon_id, a.purpose, slot
+                """, polygon_ids).fetchall()
+                for pid, purpose, slot, cnt in rows:
+                    label = resolve(pid)
+                    labels_seen.add(label)
+                    purposes_seen.add(str(purpose))
+                    counts[(label, slabel, str(purpose), int(slot))] += int(cnt)
 
-        if "Microcensus" in sources:
-            rows = con.execute(f"""
-                WITH raw AS (
-                    SELECT p.canton_id, t.purpose,
-                           CAST(FLOOR(CAST(t.activity_duration AS DOUBLE) / 60) AS INTEGER) AS dur_min
-                    FROM read_parquet(?) t
-                    INNER JOIN read_parquet(?) p ON t.person_id = p.person_id
-                    WHERE p.canton_id IS NOT NULL
-                      AND t.activity_duration IS NOT NULL
-                      AND t.activity_duration >= 0
-                      {cf}{pf.replace("purpose", "t.purpose")}
-                )
-                SELECT canton_id, purpose,
-                       LEAST((dur_min / {step}) * {step}, {max_slot}) AS slot,
-                       COUNT(*) AS cnt
-                FROM raw
-                GROUP BY canton_id, purpose, slot
-            """, [paths.microcensus_trips, paths.microcensus_persons]).fetchall()
-            for cid, purpose, slot, cnt in rows:
-                seen_cantons.add(int(cid))
-                seen_purposes.add(str(purpose))
-                counts[("Microcensus", int(cid), str(purpose), int(slot))] += cnt
+            rows_all = con.execute(f"""
+                SELECT a.purpose, {slot_expr} AS slot, COUNT(*) FROM activities a
+                WHERE a.start_time IS NOT NULL AND a.end_time IS NOT NULL
+                  AND a.end_time >= a.start_time
+                {pf}
+                GROUP BY a.purpose, slot
+            """).fetchall()
+            for purpose, slot, cnt in rows_all:
+                purposes_seen.add(str(purpose))
+                counts[("All", slabel, str(purpose), int(slot))] += int(cnt)
 
-        # Compute "All" canton aggregate
-        all_canton = defaultdict(int)
-        for (source, cid, purpose, slot), cnt in counts.items():
-            all_canton[(source, "All", purpose, slot)] += cnt
-        counts.update(all_canton)
-
-        # Compute "All" purpose aggregate
-        all_purpose = defaultdict(int)
-        for (source, cid, purpose, slot), cnt in counts.items():
+        # All-purpose rollups
+        for (label, src, purpose, slot), cnt in list(counts.items()):
             if purpose != "All":
-                all_purpose[(source, cid, "All", slot)] += cnt
-        counts.update(all_purpose)
+                counts[(label, src, "All", slot)] += cnt
 
-        # Compute totals per (source, cid, purpose) for denominator
-        totals = defaultdict(int)
-        for (source, cid, purpose, slot), cnt in counts.items():
-            totals[(source, cid, purpose)] += cnt
+        totals: dict = defaultdict(int)
+        for (label, src, purpose, slot), cnt in counts.items():
+            totals[(label, src, purpose)] += cnt
 
-        canton_names, canton_ids_by_name = build_canton_lookup(seen_cantons)
-        purposes = sorted(seen_purposes) + ["All"]
-
+        purposes = sorted(purposes_seen) + ["All"]
         out: dict = {}
-        for cname in canton_names + ["All"]:
-            cid = canton_ids_by_name.get(cname, "All")
+        for label in list(labels_seen) + ["All"]:
             for source in sources:
+                slabel = _source_label(source)
                 for purpose in purposes:
-                    denom = float(totals.get((source, cid, purpose), 0))
+                    denom = float(totals.get((label, slabel, purpose), 0))
                     slot_data = {
-                        _slot_label(s): round(float(counts.get((source, cid, purpose, s), 0)) / denom, 8)
+                        _slot_label(s): round(float(counts.get((label, slabel, purpose, s), 0)) / denom, 8)
                         if denom > 0 else 0.0
                         for s in slots
                     }
-                    out.setdefault(cname, {}).setdefault(source, {})[purpose] = slot_data
-
+                    out.setdefault(label, {}).setdefault(slabel, {})[purpose] = slot_data
         return out
