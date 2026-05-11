@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Hot-Polygons Viewer · webmap</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css">
+<style>
+  body { margin: 0; font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  #map { position: absolute; inset: 0; }
+  #panel {
+    position: absolute; top: 12px; left: 12px; z-index: 999;
+    background: white; padding: 12px 14px; border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.2); width: 320px; max-height: 90vh;
+    overflow-y: auto;
+  }
+  h1 { margin: 0 0 8px; font-size: 15px; }
+  .row { margin: 6px 0; display: flex; align-items: center; gap: 8px; }
+  .row label { flex: 1; user-select: none; }
+  .row .count { color: #888; font-size: 12px; }
+  .info { margin-top: 12px; padding: 10px; background: #f5f5f5; border-radius: 4px; font-size: 12px; }
+  .info code { background: #fff; padding: 1px 4px; border-radius: 2px; }
+  .info pre { background: #fff; padding: 6px; border-radius: 3px; overflow-x: auto; margin: 6px 0 0; max-height: 180px; }
+  .info b { color: #c43; }
+  .lookup { width: 100%; padding: 4px 6px; font-size: 12px; box-sizing: border-box; margin-top: 4px; }
+  .legend { display: flex; gap: 6px; align-items: center; font-size: 12px; }
+  .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 2px; border: 1px solid #888; }
+  .draw-hint { color: #555; font-size: 12px; margin-top: 4px; }
+  .panel-section { border-top: 1px solid #ddd; padding-top: 10px; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<div id="panel">
+  <h1>webmap polygons</h1>
+  <div class="row">
+    <span class="legend"><span class="swatch" style="background:#e74c3c44;border-color:#e74c3c"></span></span>
+    <input type="checkbox" id="toggle-canton" checked>
+    <label for="toggle-canton">Kantone</label>
+    <span class="count" id="count-canton"></span>
+  </div>
+  <div class="row">
+    <span class="legend"><span class="swatch" style="background:#3498db44;border-color:#3498db"></span></span>
+    <input type="checkbox" id="toggle-bezirk">
+    <label for="toggle-bezirk">Bezirke</label>
+    <span class="count" id="count-bezirk"></span>
+  </div>
+  <div class="row">
+    <span class="legend"><span class="swatch" style="background:#27ae6044;border-color:#27ae60"></span></span>
+    <input type="checkbox" id="toggle-gemeinde">
+    <label for="toggle-gemeinde">Gemeinden</label>
+    <span class="count" id="count-gemeinde"></span>
+  </div>
+
+  <div class="panel-section">
+    <label for="lookup">Polygon ID Lookup:</label>
+    <input class="lookup" id="lookup" type="text" placeholder="z.B. canton:1, gemeinde:261">
+  </div>
+
+  <div class="panel-section">
+    <b>Eigenes Polygon zeichnen</b>
+    <div class="draw-hint">Tools rechts oben → Polygon-Tool. Beim Beenden bekommst du die GeoJSON-Repräsentation für die <code>polygon=...</code> API.</div>
+  </div>
+
+  <div class="info" id="info">
+    <i>Klick auf eine Fläche oder zeichne ein eigenes Polygon.</i>
+  </div>
+</div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+<script>
+const map = L.map("map", { preferCanvas: true }).setView([46.8, 8.2], 8);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: "© OpenStreetMap contributors", maxZoom: 19,
+}).addTo(map);
+
+const STYLES = {
+  canton:   { color: "#e74c3c", weight: 1.8, fillOpacity: 0.10, fillColor: "#e74c3c" },
+  bezirk:   { color: "#3498db", weight: 1.0, fillOpacity: 0.08, fillColor: "#3498db" },
+  gemeinde: { color: "#27ae60", weight: 0.5, fillOpacity: 0.05, fillColor: "#27ae60" },
+};
+const HIGHLIGHT = { weight: 3, fillOpacity: 0.4 };
+
+const layers = {};   // type → L.geoJSON layer
+const features = {}; // type → array of feature objects
+const featureById = {}; // polygon_id → leaflet layer
+
+function styleFor(feature) {
+  return STYLES[feature.properties.polygon_type] || STYLES.canton;
+}
+
+function onFeatureClick(e) {
+  const f = e.target.feature;
+  showInfo(f, e.target);
+}
+
+function showInfo(feature, layer) {
+  const props = feature.properties;
+  const info = document.getElementById("info");
+  const pid = props.polygon_id;
+  const exampleAge = `/data/{id}/age.json?polygon_id=${encodeURIComponent(pid)}`;
+  const exampleMode = `/data/{id}/mode_share.json?polygon_id=${encodeURIComponent(pid)}`;
+  info.innerHTML = `
+    <div><b>${props.polygon_name}</b></div>
+    <div>polygon_id: <code>${pid}</code></div>
+    <div>type: ${props.polygon_type}</div>
+    ${props.parent_id ? `<div>parent: <code>${props.parent_id}</code></div>` : ""}
+    <div style="margin-top:8px">Beispiel-API:</div>
+    <pre>${exampleAge}\n${exampleMode}</pre>
+  `;
+  highlight(layer);
+}
+
+let highlighted = null;
+function highlight(layer) {
+  if (highlighted) {
+    highlighted.setStyle(styleFor(highlighted.feature));
+  }
+  highlighted = layer;
+  if (layer) layer.setStyle(HIGHLIGHT);
+}
+
+async function loadType(type, file) {
+  const res = await fetch(`./data/${file}`);
+  const fc = await res.json();
+  features[type] = fc.features;
+  document.getElementById(`count-${type}`).textContent = `(${fc.features.length})`;
+
+  const layer = L.geoJSON(fc, {
+    style: styleFor,
+    onEachFeature: (feature, lyr) => {
+      featureById[feature.properties.polygon_id] = lyr;
+      lyr.on("click", onFeatureClick);
+      lyr.bindTooltip(feature.properties.polygon_name, { sticky: true });
+    },
+  });
+  layers[type] = layer;
+
+  if (document.getElementById(`toggle-${type}`).checked) {
+    layer.addTo(map);
+  }
+}
+
+document.querySelectorAll('input[type=checkbox][id^=toggle-]').forEach(cb => {
+  cb.addEventListener("change", () => {
+    const type = cb.id.replace("toggle-", "");
+    if (cb.checked) {
+      layers[type] && layers[type].addTo(map);
+    } else {
+      layers[type] && map.removeLayer(layers[type]);
+    }
+  });
+});
+
+document.getElementById("lookup").addEventListener("change", (e) => {
+  const pid = e.target.value.trim();
+  const lyr = featureById[pid];
+  if (!lyr) {
+    document.getElementById("info").innerHTML = `<i>Nicht gefunden: <code>${pid}</code></i>`;
+    return;
+  }
+  // ensure parent layer is enabled
+  const t = pid.split(":")[0];
+  const cb = document.getElementById(`toggle-${t}`);
+  if (cb && !cb.checked) { cb.checked = true; cb.dispatchEvent(new Event("change")); }
+  map.fitBounds(lyr.getBounds(), { maxZoom: 12 });
+  showInfo(lyr.feature, lyr);
+});
+
+// Drawing tools
+const drawnItems = new L.FeatureGroup().addTo(map);
+const drawControl = new L.Control.Draw({
+  position: "topright",
+  draw: {
+    polygon: { allowIntersection: false, showArea: true, shapeOptions: { color: "#9b59b6" } },
+    rectangle: { shapeOptions: { color: "#9b59b6" } },
+    polyline: false, circle: false, marker: false, circlemarker: false,
+  },
+  edit: { featureGroup: drawnItems, edit: false },
+});
+map.addControl(drawControl);
+
+map.on(L.Draw.Event.CREATED, (e) => {
+  drawnItems.addLayer(e.layer);
+  const geojson = e.layer.toGeoJSON();
+  const oneLine = JSON.stringify(geojson.geometry);
+  const encoded = encodeURIComponent(oneLine);
+  const info = document.getElementById("info");
+  info.innerHTML = `
+    <div><b>Eigenes Polygon</b></div>
+    <div>${geojson.geometry.coordinates[0].length - 1} Vertices</div>
+    <div style="margin-top:8px">GeoJSON für die API (<code>polygon=...</code>):</div>
+    <pre>${oneLine}</pre>
+    <div style="margin-top:6px">URL-encoded (in den Provider einsetzen):</div>
+    <pre>?polygon=${encoded}</pre>
+    <div style="margin-top:6px">Frontend-seitig: GeoJSON in WGS84 als JSON-encoded String an den <code>polygon=</code>-Param dranhängen.</div>
+  `;
+});
+
+(async () => {
+  await Promise.all([
+    loadType("canton", "cantons.geojson"),
+    loadType("bezirk", "bezirke.geojson"),
+    loadType("gemeinde", "gemeinden.geojson"),
+  ]);
+})();
+</script>
+</body>
+</html>

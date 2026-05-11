@@ -51,3 +51,12 @@ __pycache__/
 *.duckdb
 *.parquet
 REFACTOR_NOTES.md
+
+# Local scratch / archived files
+/junk/
+
+# Polygon viewer exported geojson (regenerable from duckdb)
+/tools/polygon_viewer/data/
+
+# Test venv at backend root
+webmap-backend/.venv-test/
