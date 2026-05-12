@@ -39,6 +39,9 @@ import LinkSpeedsModule from "../matsim/LinkSpeedsModule";
 // Zone Flows
 import ZoneFlowsModule from "../matsim/ZoneFlowsModule";
 
+// Polygon Trips (in/out/within mode summary for a drawn polygon)
+import PolygonTripsModule from "../matsim/PolygonTripsModule";
+
 // Reset helpers for the spider/turning-movement overlays
 import { resetNodeFlowsOverlay } from "../map/useNodeFlowLayers";
 import { resetVolumeFlowOverlay } from "../map/useVolumeFlowLayers";
@@ -56,10 +59,11 @@ const MODULE_LABELS = {
   NodeFlows: "Node Flows",
   LinkSpeeds: "Link Speeds",
   ZoneFlows: "Zone Flows",
+  PolygonTrips: "Polygon Trips",
 };
 
 const TABLE_MODULES = new Set(["Network", "Volumes", "Transit", "TransitVolumes", "VolumeFlow", "LinkSpeeds"]);
-const POLYGON_MODULES = new Set(["Transit", "Volumes", "TransitVolumes", "LinkSpeeds"]);
+const POLYGON_MODULES = new Set(["Transit", "Volumes", "TransitVolumes", "LinkSpeeds", "PolygonTrips"]);
 
 const RightSidebar = () => {
   const { isGraphExpanded } = useModule();
@@ -130,18 +134,20 @@ const RightSidebar = () => {
 
       {isSidebarOpen && (
         <>
-          {/* Toolbar — show table / export icons */}
-          {hasTable && canton && (
+          {/* Toolbar — show table / export / polygon controls */}
+          {((hasTable && canton) || isGraphExpanded === "PolygonTrips") && (
             <div className="right-sidebar-toolbar">
-              <button
-                className="panel-toolbar-btn"
-                onClick={() => setIsFeatureTableOpen((prev) => !prev)}
-              >
-                <FontAwesomeIcon icon={faTableList} />
-                <span>{isFeatureTableOpen ? "Close Table" : "Open Table"}</span>
-              </button>
+              {hasTable && canton && (
+                <button
+                  className="panel-toolbar-btn"
+                  onClick={() => setIsFeatureTableOpen((prev) => !prev)}
+                >
+                  <FontAwesomeIcon icon={faTableList} />
+                  <span>{isFeatureTableOpen ? "Close Table" : "Open Table"}</span>
+                </button>
+              )}
 
-              {isFeatureTableOpen && (
+              {hasTable && canton && isFeatureTableOpen && (
                 <button
                   className="panel-toolbar-btn"
                   onClick={() => {
@@ -159,7 +165,22 @@ const RightSidebar = () => {
                 </button>
               )}
 
-              {POLYGON_MODULES.has(isGraphExpanded) && (
+              {isGraphExpanded === "PolygonTrips" && (
+                <button
+                  className="panel-toolbar-btn"
+                  onClick={() => {
+                    const exported = featureTableRef.current?.exportCsv?.();
+                    if (!exported) {
+                      console.warn("Export skipped: no table data available.");
+                    }
+                  }}
+                >
+                  <FontAwesomeIcon icon={faFileCsv} />
+                  <span>Export Table</span>
+                </button>
+              )}
+
+              {POLYGON_MODULES.has(isGraphExpanded) && (hasTable ? canton : true) && (
                 <>
                   <button
                     className="panel-toolbar-btn"
@@ -269,6 +290,10 @@ const RightSidebar = () => {
             )}
 
             {isGraphExpanded === "ZoneFlows" && <ZoneFlowsModule />}
+
+            {isGraphExpanded === "PolygonTrips" && (
+              <PolygonTripsModule featureTableRef={featureTableRef} />
+            )}
 
             {isGraphExpanded === "Network" && (
               <NetworkModule featureTableRef={featureTableRef} />

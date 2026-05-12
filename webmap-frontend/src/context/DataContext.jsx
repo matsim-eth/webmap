@@ -27,6 +27,12 @@ export const DataProvider = ({ children }) => {
   const [zoneFlowData, setZoneFlowData] = useState(null);
   const [zoneFlowLoading, setZoneFlowLoading] = useState(false);
 
+  const [polygonTripsData, setPolygonTripsData] = useState(null);
+  const [polygonTripsLoading, setPolygonTripsLoading] = useState(false);
+  const [showPolygonRoutes, setShowPolygonRoutes] = useState(false);
+  const [polygonRoutesData, setPolygonRoutesData] = useState(null);
+  const [polygonRoutesLoading, setPolygonRoutesLoading] = useState(false);
+
   const value = useMemo(() => ({
     datasetId, setDatasetId,
     dataURL, setDataURL,
@@ -41,6 +47,11 @@ export const DataProvider = ({ children }) => {
     linkSpeedsSummary, setLinkSpeedsSummary,
     zoneFlowData, setZoneFlowData,
     zoneFlowLoading, setZoneFlowLoading,
+    polygonTripsData, setPolygonTripsData,
+    polygonTripsLoading, setPolygonTripsLoading,
+    showPolygonRoutes, setShowPolygonRoutes,
+    polygonRoutesData, setPolygonRoutesData,
+    polygonRoutesLoading, setPolygonRoutesLoading,
   }), [
     datasetId, dataURL, cantonList,
     featureGeoJSON, tableFilterQuery, isFeatureTableOpen,
@@ -48,6 +59,8 @@ export const DataProvider = ({ children }) => {
     nodeFlowsData,
     linkSpeedsLinksMap, linkSpeedsSummary,
     zoneFlowData, zoneFlowLoading,
+    polygonTripsData, polygonTripsLoading,
+    showPolygonRoutes, polygonRoutesData, polygonRoutesLoading,
   ]);
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

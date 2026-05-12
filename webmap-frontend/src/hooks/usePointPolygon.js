@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { booleanPointInPolygon } from '@turf/turf';
 
 const STOP_LAYER = 'transit-stops-layer';
@@ -44,6 +44,11 @@ export default function usePointPolygon({
   onPolygonChange,
 }) {
   const [polygonFeatures, setPolygonFeatures] = useState([]);
+  // Tracks whether polygons were present last time computeSelection ran.
+  // Used to avoid firing onPolygonChange when the polygon state didn't
+  // actually change (e.g. featureGeoJSON refresh on timeRange change),
+  // which would otherwise clear the user's selected transit stop.
+  const hadPolygonsRef = useRef(false);
 
   // effect:audited — imperative mapbox draw event listeners for spatial filtering + feature-state fading
   useEffect(() => {
@@ -51,15 +56,21 @@ export default function usePointPolygon({
     if (!map || isGraphExpanded !== 'Transit') {
       if (map) clearPolygonFading(map);
       setPolygonFeatures([]);
+      hadPolygonsRef.current = false;
       return;
     }
 
     const computeSelection = () => {
       const draw = drawRef?.current;
+      const notifyIfChanged = (hasPolygonsNow) => {
+        if (hadPolygonsRef.current || hasPolygonsNow) onPolygonChange?.();
+        hadPolygonsRef.current = hasPolygonsNow;
+      };
+
       if (!draw || !featureGeoJSON?.features?.length) {
         clearPolygonFading(map);
         setPolygonFeatures([]);
-        onPolygonChange?.();
+        notifyIfChanged(false);
         return;
       }
 
@@ -67,7 +78,7 @@ export default function usePointPolygon({
       if (!polygons.length) {
         clearPolygonFading(map);
         setPolygonFeatures([]);
-        onPolygonChange?.();
+        notifyIfChanged(false);
         return;
       }
 
@@ -77,7 +88,7 @@ export default function usePointPolygon({
           polygons.some((p) => booleanPointInPolygon(f.geometry, p))
       );
       setPolygonFeatures(filtered);
-      onPolygonChange?.();
+      notifyIfChanged(true);
 
       // Remove any single-stop highlight from the map
       if (map.getLayer('transit-highlight-layer')) map.removeLayer('transit-highlight-layer');

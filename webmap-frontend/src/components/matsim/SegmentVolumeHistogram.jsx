@@ -5,8 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 
 const SegmentVolumeHistogram = ({
   linkId,
-  visualizeLinkId,
-  setVisualizeLinkId,
+  triggerVisualize,
   canton,
   timeRange = [0, 96],        // [startTick, endTick]
   onVolumeUpdate,
@@ -143,11 +142,7 @@ return (
           <h4 style={{ margin: 0 }}>Hourly Volume for Link {id}</h4>
           <button
             className="graph-button small"
-            onClick={() => {
-              if (id !== visualizeLinkId) {
-                setVisualizeLinkId(id);
-              }
-            }}
+            onClick={() => triggerVisualize?.(id)}
           >
             Visualize
           </button>

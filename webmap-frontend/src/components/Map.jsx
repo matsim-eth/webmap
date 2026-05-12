@@ -14,6 +14,9 @@ import useVolumeFlowLayers from './map/useVolumeFlowLayers';
 import useNodeFlowLayers from './map/useNodeFlowLayers';
 import useLinkSpeedsLayers from './map/useLinkSpeedsLayers';
 import useZoneFlowLayers from './map/useZoneFlowLayers';
+import usePolygonTrips from './map/usePolygonTrips';
+import usePolygonTripRoutes from './map/usePolygonTripRoutes';
+import usePolygonTripLayers from './map/usePolygonTripLayers';
 import useDrawTools from './map/useDrawTools';
 import { useModule } from '../context/ModuleContext';
 import { useMap } from '../context/MapContext';
@@ -33,6 +36,8 @@ export default function Map() {
     isLeftSidebarCollapsed,
     resetMapTrigger,
     labelSize,
+    mapLoading,
+    setMapLoading,
   } = useMap();
   const {
     dataURL,
@@ -56,6 +61,7 @@ export default function Map() {
     setClickedCanton,
     clickedCanton: searchCanton,
     visualizeLinkId,
+    visualizeNonce,
     setSelectedNetworkFeature,
     setSelectedTransitStop,
     setSelectedTransitLink,
@@ -141,12 +147,14 @@ export default function Map() {
     showMajorRoadsOnly: showMajorRoadsOnly,
     timeRange: timeRange,
     visualizeLinkId: visualizeLinkId,
+    visualizeNonce: visualizeNonce,
     setSelectedNetworkFeature: setSelectedNetworkFeature,
     setFeatureSelection: setFeatureSelection,
     isGraphExpanded: isGraphExpanded,
     resetMapTrigger: resetMapTrigger,
     labelSize: labelSize,
     setIsLoading,
+    setMapLoading,
     setFeatureGeoJSON: setFeatureGeoJSON,
     drawRef: contextDrawRef,
   });
@@ -239,6 +247,12 @@ export default function Map() {
     contextDrawRef,
   });
 
+  // Polygon Trips (in/out/within mode summary for a drawn polygon)
+  usePolygonTrips({ mapRef, mapReady });
+  // Polygon trip route data (car-only) + map rendering (3 colored layers)
+  usePolygonTripRoutes({ mapRef, mapReady });
+  usePolygonTripLayers({ mapRef, mapReady });
+
   // Combined feature selection focus for both network and transit (uses shared network-highlight)
   // Determine which query/modes to use based on current module
   const isTransitMode = isGraphExpanded === 'Transit' || isGraphExpanded === 'TransitVolumes';
@@ -280,6 +294,12 @@ export default function Map() {
         <div className="map-loading-overlay">
           <div className="spinner" />
           <div className="loading-text">Loading zone flows...</div>
+        </div>
+      )}
+      {mapLoading && !isLoading && !isLoadingSpeeds && !isLoadingNodes && !isLoadingZoneFlows && (
+        <div className="map-loading-overlay">
+          <div className="spinner" />
+          <div className="loading-text">Updating map...</div>
         </div>
       )}
       <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />

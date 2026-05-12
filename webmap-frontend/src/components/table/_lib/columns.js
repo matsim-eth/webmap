@@ -20,6 +20,16 @@ const renderFixed1 = (data) => (data == null ? '-' : Number(data).toFixed(1));
 const renderFixed3 = (data) => (data == null ? '-' : Number(data).toFixed(3));
 
 export const getColumnDefs = (selectedGraph) => {
+  if (selectedGraph === 'PolygonTrips') {
+    return [
+      { key: "mode", title: "Mode" },
+      { key: "outbound", title: "Outbound" },
+      { key: "inbound", title: "Inbound" },
+      { key: "internal", title: "Internal" },
+      { key: "total", title: "Total" },
+    ];
+  }
+
   if (selectedGraph === 'VolumeFlow') {
     return [
       { key: "directionId", title: "Link ID" },
@@ -64,6 +74,16 @@ export const getColumnDefs = (selectedGraph) => {
 };
 
 export const getDtColumns = (selectedGraph) => {
+  if (selectedGraph === 'PolygonTrips') {
+    return [
+      { data: "mode", title: "Mode" },
+      { data: "outbound", title: "Outbound", render: renderInteger },
+      { data: "inbound", title: "Inbound", render: renderInteger },
+      { data: "internal", title: "Internal", render: renderInteger },
+      { data: "total", title: "Total", render: renderInteger },
+    ];
+  }
+
   if (selectedGraph === 'VolumeFlow') {
     return [
       { data: "directionId", title: "Link ID" },
@@ -123,4 +143,6 @@ export const NUMERIC_SEARCH_COLS = new Set([
   "lineCount", "boardings", "alightings",
   // Link Speeds
   "avgSpeed", "freespeed", "congestionIndex", "dailyVolume",
+  // Polygon Trips
+  "outbound", "inbound", "internal", "total",
 ]);

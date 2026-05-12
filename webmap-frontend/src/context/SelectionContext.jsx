@@ -17,7 +17,15 @@ export const SelectionProvider = ({ children }) => {
   const [selectedTransitStop, setSelectedTransitStop] = useState(null);
 
   const [visualizeLinkId, setVisualizeLinkId] = useState(null);
+  const [visualizeNonce, setVisualizeNonce] = useState(0);
   const [hoveredMatrixCell, setHoveredMatrixCell] = useState(null);
+
+  // Triggers the ant-path even when the user re-selects the same link.
+  // Without the nonce, setVisualizeLinkId(sameId) is a no-op for useAntPath.
+  const triggerVisualize = (id) => {
+    setVisualizeLinkId(id == null ? null : String(id));
+    setVisualizeNonce((n) => n + 1);
+  };
 
   const [volumeFlowSegment, setVolumeFlowSegment] = useState(null);
   const [volumeFlowSelectedLink, setVolumeFlowSelectedLink] = useState(null);
@@ -33,6 +41,7 @@ export const SelectionProvider = ({ children }) => {
     selectedTransitLink, setSelectedTransitLink,
     selectedTransitStop, setSelectedTransitStop,
     visualizeLinkId, setVisualizeLinkId,
+    visualizeNonce, triggerVisualize,
     hoveredMatrixCell, setHoveredMatrixCell,
     volumeFlowSegment, setVolumeFlowSegment,
     volumeFlowSelectedLink, setVolumeFlowSelectedLink,
@@ -42,7 +51,7 @@ export const SelectionProvider = ({ children }) => {
     clickedCanton,
     featureSelection, selectedNetworkFeature,
     selectedTransitLink, selectedTransitStop,
-    visualizeLinkId, hoveredMatrixCell,
+    visualizeLinkId, visualizeNonce, hoveredMatrixCell,
     volumeFlowSegment, volumeFlowSelectedLink,
     linkSpeedsSelected,
     zoneFlowDestCanton,

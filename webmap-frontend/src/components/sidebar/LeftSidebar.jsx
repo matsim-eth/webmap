@@ -11,6 +11,7 @@ import {
   faArrowsTurnToDots,
   faGaugeHigh,
   faRightLeft,
+  faDrawPolygon,
 } from '@fortawesome/free-solid-svg-icons';
 import { useFileContext } from '../../FileContext';
 import { useModule } from '../../context/ModuleContext';
@@ -76,6 +77,7 @@ const LeftSidebar = () => {
     { id: 'NodeFlows', label: 'Node Flows', icon: faArrowsTurnToDots },
     { id: 'LinkSpeeds', label: 'Link Speeds', icon: faGaugeHigh },
     { id: 'ZoneFlows', label: 'Zone Flows', icon: faRightLeft },
+    { id: 'PolygonTrips', label: 'Polygon Trips', icon: faDrawPolygon },
   ];
 
   const handleModuleSelect = (moduleId) => {

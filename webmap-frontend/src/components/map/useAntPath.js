@@ -8,7 +8,7 @@ import { parsePipeList } from './_lib/pipeProps';
 // the overlay must be removed.
 const ANT_MODULES = new Set(['Volumes', 'Network', 'VolumeFlow', 'LinkSpeeds', 'TransitVolumes']);
 
-export default function useAntPath(mapRef, visualizeLinkId, graphExpandedRef, currentModule) {
+export default function useAntPath(mapRef, visualizeLinkId, graphExpandedRef, currentModule, visualizeNonce) {
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -161,5 +161,5 @@ export default function useAntPath(mapRef, visualizeLinkId, graphExpandedRef, cu
     // re-run when the selected per-id changes OR the active module switches
     // (so the cleanup above tears down the overlay in non-ant modules).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visualizeLinkId, currentModule]);
+  }, [visualizeLinkId, currentModule, visualizeNonce]);
 }

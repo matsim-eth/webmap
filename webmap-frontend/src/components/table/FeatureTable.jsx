@@ -59,6 +59,8 @@ const FeatureTable = forwardRef(
       setTableFilterQuery,
       showMajorRoadsOnly = false,
       initialOrder = DEFAULT_INITIAL_ORDER,
+      hideToolbar = false,
+      hideFooter = false,
     },
     ref
   ) => {
@@ -111,6 +113,7 @@ const FeatureTable = forwardRef(
       hasNoData,
       onRowClick,
       onSelectCoords,
+      hideFooter,
     });
 
     // Search → DataTables filter (numeric ops, accent expansion, etc.)
@@ -164,6 +167,7 @@ const FeatureTable = forwardRef(
 
     return (
       <div className="w-full" style={{ minHeight: 200 }}>
+        {!hideToolbar && (
         <div id={`${tableId}-toolbar`}>
           <label>Search in:</label>
           <select
@@ -227,6 +231,7 @@ const FeatureTable = forwardRef(
             </div>
           </span>
         </div>
+        )}
 
         <table
           id={tableId}

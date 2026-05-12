@@ -32,7 +32,7 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
   const {
     clickedCanton: canton,
     selectedTransitLink, setSelectedTransitLink,
-    visualizeLinkId, setVisualizeLinkId,
+    triggerVisualize,
     setFeatureSelection,
   } = useSelection();
   const { highlightedLineId, setHighlightedLineId } = useChoropleth();
@@ -500,8 +500,7 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
           highlightedLineId={highlightedLineId}
           timeRange={timeRange}
           canton={canton}
-          visualizeLinkId={visualizeLinkId}
-          setVisualizeLinkId={setVisualizeLinkId}
+          triggerVisualize={triggerVisualize}
           />
         ));
       })()}

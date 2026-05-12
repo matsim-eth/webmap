@@ -8,8 +8,7 @@ const TransitLinkHistogram = ({
   highlightedLineId,
   timeRange = [0, 96],
   canton,
-  visualizeLinkId,
-  setVisualizeLinkId
+  triggerVisualize
 }) => {
   const loadWithFallback = useLoadWithFallback();
 
@@ -83,12 +82,10 @@ const TransitLinkHistogram = ({
       <div className="plot-card">
         <div className="plot-card-header">
           <h4 style={{ margin: 0 }}>Transit Volume for Link {String(linkId)}</h4>
-          {setVisualizeLinkId && (
+          {triggerVisualize && (
             <button
               className="graph-button small"
-              onClick={() => {
-                if (linkId !== visualizeLinkId) setVisualizeLinkId(String(linkId));
-              }}
+              onClick={() => triggerVisualize(linkId)}
             >
               Visualize
             </button>

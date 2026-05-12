@@ -11,12 +11,14 @@ export default function useNetworkLayers({
   showMajorRoadsOnly,
   timeRange,
   visualizeLinkId,
+  visualizeNonce,
   setSelectedNetworkFeature,
   setFeatureSelection,
   isGraphExpanded,
   resetMapTrigger,
   graphExpandedRef,
   setIsLoading,
+  setMapLoading,
   labelSize,
   setFeatureGeoJSON,
   drawRef
@@ -435,7 +437,7 @@ export default function useNetworkLayers({
   // ANT PATH — pass `isGraphExpanded` so the effect re-runs (and cleans up
   // the ant-line layer) when the user switches to a module that doesn't own
   // this overlay (e.g. TransitStops).
-  useAntPath(mapRef, visualizeLinkId, graphExpandedRef, isGraphExpanded);
+  useAntPath(mapRef, visualizeLinkId, graphExpandedRef, isGraphExpanded, visualizeNonce);
   
   // Module switching (keep your logic; also update color ramps)
   useEffect(() => {
@@ -564,10 +566,23 @@ export default function useNetworkLayers({
         
         const updatedGeo = { ...source._data, features: updatedLineFeatures };
         source.setData(updatedGeo);
-        
+
         // Update feature table with new filtered volumes
         setFeatureGeoJSON?.(updatedGeo);
-        
+
+        // Clear the slider-triggered map loading overlay once the new GeoJSON
+        // is parsed and rendered. Using 'idle' would hang indefinitely when
+        // the ant-path animation keeps repainting; 'sourcedata' fires per
+        // setData and is the right signal here.
+        if (setMapLoading) {
+          const onSourceData = (e) => {
+            if (e.sourceId !== 'network-source' || !e.isSourceLoaded) return;
+            map.off('sourcedata', onSourceData);
+            setMapLoading(false);
+          };
+          map.on('sourcedata', onSourceData);
+        }
+
       }, [timeRange, linkVolumeData, isGraphExpanded, showMajorRoadsOnly]);
       
       // --- Canton change / cleanup ----------------------------------------------

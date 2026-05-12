@@ -44,6 +44,7 @@ export function useDataTable({
   hasNoData,
   onRowClick,
   onSelectCoords,
+  hideFooter = false,
 }) {
   const dtRef = useRef(null);
   const pluginsLoadedRef = useRef({ scroller: false });
@@ -125,7 +126,7 @@ export function useDataTable({
         autoWidth: false,
         order: initialOrder,
         // Our own toolbar replaces DT's built-in filter ('f')
-        dom: useScroller ? "rti" : "rtip",
+        dom: hideFooter ? "rt" : (useScroller ? "rti" : "rtip"),
         ...(useScroller
           ? { scrollY: height, scroller: true, paging: true, deferRender: true }
           : { paging: true, pageLength }),
@@ -214,6 +215,7 @@ export function useDataTable({
     pageLength,
     onRowClick,
     onSelectCoords,
+    hideFooter,
   ]);
 
   return dtRef;

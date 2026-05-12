@@ -10,7 +10,8 @@ RUN apt-get update \
 
 WORKDIR /app
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt \
+ && python -c "import duckdb; duckdb.connect().execute('INSTALL spatial')"
 
 # ── Dev: hot reload, source via bind mount ─────────────────────
 FROM base AS dev

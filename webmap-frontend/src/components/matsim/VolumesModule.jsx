@@ -26,11 +26,11 @@ const VolumesModule = ({ featureTableRef }) => {
   const {
     clickedCanton: canton,
     selectedNetworkFeature, setSelectedNetworkFeature,
-    visualizeLinkId, setVisualizeLinkId,
+    triggerVisualize,
     setFeatureSelection,
   } = useSelection();
   const { isGraphExpanded } = useModule();
-  const { mapRef, drawRef, labelSize, setLabelSize } = useMap();
+  const { mapRef, drawRef, labelSize, setLabelSize, setMapLoading } = useMap();
 
   const selectedGraph = isGraphExpanded;
 
@@ -168,7 +168,7 @@ const VolumesModule = ({ featureTableRef }) => {
     step={1}
     marks={marks}
     value={timeRange}
-    onChange={(val) => setTimeRange(val)}
+    onChange={(val) => { setMapLoading?.(true); setTimeRange(val); }}
     allowCross={false}
     style={{ marginLeft: "10%", width: "80%" }}
     />
@@ -292,8 +292,7 @@ const VolumesModule = ({ featureTableRef }) => {
         // Fallback to feature id if per_id_keys not available
         return [String(selectedNetworkFeature[0]?.id ?? '')];
       })()}
-      visualizeLinkId={visualizeLinkId}
-      setVisualizeLinkId={setVisualizeLinkId}
+      triggerVisualize={triggerVisualize}
       canton={canton}
       timeRange={timeRange}
       onVolumeUpdate={setFilteredVolume}

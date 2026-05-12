@@ -20,6 +20,10 @@ export const MapProvider = ({ children }) => {
   const [isLeftSidebarCollapsed, setIsLeftSidebarCollapsed] = useState(false);
   const [resetMapTrigger, setResetMapTrigger] = useState(false);
   const [labelSize, setLabelSize] = useState(11);
+  // Generic map-area loading flag — modules toggle this when an interaction
+  // (e.g. volumes time slider) triggers a map re-render the user should see
+  // a spinner for. Distinct from the per-module setIsLoading flags.
+  const [mapLoading, setMapLoading] = useState(false);
 
   const {
     setClickedCanton,
@@ -72,9 +76,11 @@ export const MapProvider = ({ children }) => {
     isLeftSidebarCollapsed, setIsLeftSidebarCollapsed,
     resetMapTrigger, setResetMapTrigger,
     labelSize, setLabelSize,
+    mapLoading, setMapLoading,
     resetMapView,
   }), [
     isSidebarOpen, isLeftSidebarCollapsed, resetMapTrigger, labelSize,
+    mapLoading,
     resetMapView,
   ]);
 
