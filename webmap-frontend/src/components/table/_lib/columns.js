@@ -23,9 +23,9 @@ export const getColumnDefs = (selectedGraph) => {
   if (selectedGraph === 'PolygonTrips') {
     return [
       { key: "mode", title: "Mode" },
+      { key: "internal", title: "Internal" },
       { key: "outbound", title: "Outbound" },
       { key: "inbound", title: "Inbound" },
-      { key: "internal", title: "Internal" },
       { key: "total", title: "Total" },
     ];
   }
@@ -77,9 +77,9 @@ export const getDtColumns = (selectedGraph) => {
   if (selectedGraph === 'PolygonTrips') {
     return [
       { data: "mode", title: "Mode" },
+      { data: "internal", title: "Internal", render: renderInteger },
       { data: "outbound", title: "Outbound", render: renderInteger },
       { data: "inbound", title: "Inbound", render: renderInteger },
-      { data: "internal", title: "Internal", render: renderInteger },
       { data: "total", title: "Total", render: renderInteger },
     ];
   }

@@ -1,19 +1,28 @@
-"""Resolves dataset roots and locates the per-source DuckDB files.
+"""Central path configuration for all data sources.
 
-After the v1 schema migration, every dataset directory contains exactly two
-files:
+Supports two modes:
+  1. Global: Set WEBMAP_ROOT env var → all requests use the same data directory.
+  2. Per-dataset: The webmap backend sets a ContextVar override per request,
+     resolved via the dataset service. Providers call get_data_paths() as
+     before — the override is transparent.
 
-    <root>/synthetic.duckdb
-    <root>/microcensus.duckdb
-
-The webmap backend opens these read-only and queries them directly; there are
-no parquets, no XML, no auxiliary files anymore. Both files are optional —
-``has_synthetic``/``has_microcensus`` reflect what's actually present.
-
-Two modes:
-  1. Global: WEBMAP_ROOT env var → all requests use the same dataset root.
-  2. Per-request: the backend sets a ContextVar override per request via the
-     dataset service (see base.py).
+Example layout (per dataset):
+    $ROOT/
+    ├── synthetic/
+    │   ├── output_persons.parquet
+    │   ├── switzerland_households.parquet
+    │   ├── switzerland_trips.parquet
+    │   ├── switzerland_activities.parquet
+    │   ├── output_trips.parquet
+    │   ├── switzerland_network.xml
+    │   ├── link_speeds.parquet
+    │   └── spider.duckdb
+    ├── microcensus/
+    │   ├── persons.parquet
+    │   ├── households.parquet
+    │   └── trips.parquet
+    └── json_preview/
+        └── *.json, *.geojson
 """
 
 import os
@@ -21,7 +30,7 @@ from contextvars import ContextVar
 from dataclasses import dataclass
 from pathlib import Path
 
-# Per-request root override (async-safe)
+# Per-request root override (async-safe, scoped per coroutine)
 _root_override: ContextVar[str | None] = ContextVar("_root_override", default=None)
 
 
@@ -32,45 +41,54 @@ def set_root_override(root: str | None) -> None:
 
 @dataclass(frozen=True)
 class DataPaths:
-    root: str
-    synthetic_db: str
-    microcensus_db: str
+    synthetic_persons: str
+    synthetic_households: str
+    synthetic_trips: str
+    synthetic_activities: str
+    synthetic_output_trips: str
+    microcensus_persons: str
+    microcensus_households: str
+    microcensus_trips: str
+    json_preview_dir: str
+    spider_db: str
+    network_xml: str
+    link_speeds: str
 
     @property
     def has_synthetic(self) -> bool:
-        return Path(self.synthetic_db).exists()
+        return Path(self.synthetic_persons).exists()
 
     @property
     def has_microcensus(self) -> bool:
-        return Path(self.microcensus_db).exists()
+        return Path(self.microcensus_persons).exists()
 
 
 def get_data_paths() -> DataPaths:
-    """Resolve the dataset root from per-request override or WEBMAP_ROOT."""
+    """Build DataPaths from the per-request override or WEBMAP_ROOT env var.
+
+    Priority: ContextVar override > WEBMAP_ROOT environment variable.
+    Raises RuntimeError if neither is available.
+    """
     root = _root_override.get() or os.getenv("WEBMAP_ROOT")
     if not root:
         raise RuntimeError(
             "No dataset root resolved and WEBMAP_ROOT is not set. "
             "Use /data/{dataset_id}/… or set the WEBMAP_ROOT env var."
         )
-    root_p = Path(root)
+    s = Path(root) / "synthetic"
+    m = Path(root) / "microcensus"
+    j = Path(root) / "json_preview"
     return DataPaths(
-        root=str(root_p),
-        synthetic_db=str(root_p / "synthetic.duckdb"),
-        microcensus_db=str(root_p / "microcensus.duckdb"),
+        synthetic_persons=str(s / "output_persons.parquet"),
+        synthetic_households=str(s / "switzerland_households.parquet"),
+        synthetic_trips=str(s / "switzerland_trips.parquet"),
+        synthetic_activities=str(s / "switzerland_activities.parquet"),
+        synthetic_output_trips=str(s / "output_trips.parquet"),
+        microcensus_persons=str(m / "persons.parquet"),
+        microcensus_households=str(m / "households.parquet"),
+        microcensus_trips=str(m / "trips.parquet"),
+        json_preview_dir=str(j),
+        spider_db=str(s / "spider.duckdb"),
+        network_xml=str(s / "switzerland_network.xml"),
+        link_speeds=str(s / "link_speeds.parquet"),
     )
-
-
-def db_path_for_source(source: str) -> str:
-    """Return the absolute DuckDB path for a source label.
-
-    Args:
-        source: 'synthetic' or 'microcensus' (case-insensitive).
-    """
-    paths = get_data_paths()
-    s = source.lower()
-    if s in ("synthetic", "syn"):
-        return paths.synthetic_db
-    if s in ("microcensus", "mc"):
-        return paths.microcensus_db
-    raise ValueError(f"unknown source: {source!r}")

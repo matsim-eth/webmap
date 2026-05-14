@@ -20,6 +20,7 @@ export const FilterProvider = ({ children }) => {
   const [selectedDirection, setSelectedDirection] = useState('total');
   const [volumeFlowDirection, setVolumeFlowDirection] = useState('bothflow');
   const [zoneFlowDirection, setZoneFlowDirection] = useState('both');
+  const [polygonRoutesCategory, setPolygonRoutesCategory] = useState('internal');
 
   const [linkSpeedsMetric, setLinkSpeedsMetric] = useState('congestion_index');
   const [linkSpeedsRoadTypes, setLinkSpeedsRoadTypes] = useState(['all']);
@@ -34,6 +35,7 @@ export const FilterProvider = ({ children }) => {
     selectedDirection, setSelectedDirection,
     volumeFlowDirection, setVolumeFlowDirection,
     zoneFlowDirection, setZoneFlowDirection,
+    polygonRoutesCategory, setPolygonRoutesCategory,
     linkSpeedsMetric, setLinkSpeedsMetric,
     linkSpeedsRoadTypes, setLinkSpeedsRoadTypes,
   }), [
@@ -41,6 +43,7 @@ export const FilterProvider = ({ children }) => {
     selectedNetworkModes, selectedTransitModes,
     showMajorRoadsOnly, showStopVolumeSymbology, showLineSymbology,
     selectedDirection, volumeFlowDirection, zoneFlowDirection,
+    polygonRoutesCategory,
     linkSpeedsMetric, linkSpeedsRoadTypes,
   ]);
 

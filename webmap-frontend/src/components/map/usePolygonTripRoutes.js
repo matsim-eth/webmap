@@ -24,7 +24,7 @@ export default function usePolygonTripRoutes({ mapRef, mapReady }) {
     const { drawRef } = useMap();
     const {
         datasetId,
-        showPolygonRoutes,
+        polygonTripsLoading,
         setPolygonRoutesData,
         setPolygonRoutesLoading,
     } = useData();
@@ -40,9 +40,7 @@ export default function usePolygonTripRoutes({ mapRef, mapReady }) {
     const fetchTokenRef = useRef(0);
 
     useEffect(() => {
-        if (!mapReady
-            || isGraphExpanded !== 'PolygonTrips'
-            || !showPolygonRoutes) {
+        if (!mapReady || isGraphExpanded !== 'PolygonTrips') {
             setPolygonRoutesData(null);
             setPolygonRoutesLoading(false);
             return;
@@ -51,6 +49,14 @@ export default function usePolygonTripRoutes({ mapRef, mapReady }) {
         const polygonParam = polygonsToParam(polygons);
         if (!polygonParam) {
             setPolygonRoutesData(null);
+            setPolygonRoutesLoading(false);
+            return;
+        }
+
+        // Wait for the totals (polygon_trips.json) to finish before kicking
+        // off the heavier routes query. Effect re-runs when the loading flag
+        // flips false, so this is a deferred prefetch, not a permanent skip.
+        if (polygonTripsLoading) {
             setPolygonRoutesLoading(false);
             return;
         }
@@ -102,7 +108,7 @@ export default function usePolygonTripRoutes({ mapRef, mapReady }) {
         }, 200);
 
         return () => clearTimeout(timer);
-    }, [mapReady, isGraphExpanded, showPolygonRoutes, polygons, timeRange, datasetId,
+    }, [mapReady, isGraphExpanded, polygonTripsLoading, polygons, timeRange, datasetId,
         setPolygonRoutesData, setPolygonRoutesLoading]);
 
     return null;

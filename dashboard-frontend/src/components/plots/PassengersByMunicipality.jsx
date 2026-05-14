@@ -85,6 +85,7 @@ const PassengersByMunicipality = ({ sidebarCollapsed, isExpanded = false, metric
     yaxis: {
       title: { text: `${label} (daily total)`, font: { size: 11 } },
       tickfont: { size: 9 },
+      rangemode: 'nonnegative',
     },
     hovermode: 'closest',
     showlegend: false,

@@ -105,31 +105,150 @@
     font-style: italic;
 }
 
-.pt-legend {
+.pt-direction-toggle {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px 14px;
-    padding: 8px 10px;
+    gap: 0;
     margin: 0 0 12px 0;
-    border: 1px solid var(--color-border, #e5e7eb);
-    border-radius: var(--radius, 6px);
-    font-size: 0.8em;
+    border-radius: var(--radius-sm, 4px);
+    overflow: hidden;
+    border: 1px solid var(--color-border-light, #e5e7eb);
 }
 
-.pt-legend-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+.pt-direction-btn {
+    flex: 1;
+    padding: 6px 0;
+    font-size: 0.82em;
+    font-weight: 500;
+    border: none;
+    background: var(--color-bg, #f3f4f6);
+    color: var(--color-text-secondary, #6b7280);
+    cursor: pointer;
+    transition: background var(--transition-fast, 0.15s ease), color var(--transition-fast, 0.15s ease);
+}
+
+.pt-direction-btn:not(:last-child) {
+    border-right: 1px solid var(--color-border-light, #e5e7eb);
+}
+
+.pt-direction-btn:hover {
+    background: var(--color-border, #e5e7eb);
+}
+
+.pt-direction-btn.active {
+    background: var(--color-primary-blue, #6366f1);
+    color: #fff;
+}
+
+/* --- Sortable plain table (DataTables-look-alike) --- */
+.pt-table-wrapper {
+    font-family: Inter, sans-serif;
+    color: var(--color-text, #374151);
+    font-size: 13px;
+    width: 100%;
+}
+
+.pt-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+}
+
+.pt-table thead th {
+    background: var(--color-bg-subtle, #f9fafb);
+    color: var(--color-text-dark, #111827);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--color-border, #e5e7eb);
+    border-top: 1px solid var(--color-border, #e5e7eb);
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+}
+
+.pt-table thead th:first-child {
+    border-top-left-radius: var(--radius-sm, 4px);
+}
+
+.pt-table thead th:last-child {
+    border-top-right-radius: var(--radius-sm, 4px);
+}
+
+.pt-table thead th:hover {
+    background: var(--color-bg, #f3f4f6);
+}
+
+.pt-th-label {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.pt-sort-arrow {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    margin-left: 6px;
+    vertical-align: middle;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    opacity: 0.25;
+    border-top: 5px solid var(--color-text-secondary, #6b7280);
+    border-bottom: none;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.pt-sort-asc .pt-sort-arrow {
+    opacity: 1;
+    border-top: none;
+    border-bottom: 5px solid var(--color-primary, #6366f1);
+}
+
+.pt-sort-desc .pt-sort-arrow {
+    opacity: 1;
+    border-top: 5px solid var(--color-primary, #6366f1);
+    border-bottom: none;
+}
+
+.pt-table tbody td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--color-border, #e5e7eb);
+    background: var(--color-surface, #ffffff);
     color: var(--color-text, #374151);
 }
 
-.pt-legend-swatch {
-    width: 18px;
-    height: 4px;
-    border-radius: 2px;
-    display: inline-block;
+.pt-table tbody tr.pt-odd td {
+    background: var(--color-bg-subtle, #f9fafb);
 }
 
-.pt-legend-swatch.outbound { background: #f97316; }
-.pt-legend-swatch.inbound  { background: #0ea5e9; }
-.pt-legend-swatch.internal { background: #16a34a; }
+.pt-table tbody tr:hover td {
+    background: var(--color-primary-light, rgba(99, 102, 241, 0.08));
+    color: var(--color-text-dark, #111827);
+}
+
+.pt-cell-text {
+    text-transform: capitalize;
+}
+
+.pt-cell-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.pt-table-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 12px;
+    color: var(--color-text-secondary, #6b7280);
+    font-size: 0.9em;
+    background: var(--color-bg-subtle, #f9fafb);
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: var(--radius-sm, 4px);
+}
+
+.pt-table-state--empty {
+    font-style: italic;
+}

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
-import FeatureTable from '../table/FeatureTable';
+import PolygonTripsTable from './PolygonTripsTable';
 import { useData } from '../../context/DataContext';
 import { useFilters } from '../../context/FilterContext';
 import { useMap } from '../../context/MapContext';
@@ -9,6 +9,20 @@ import useDrawPolygons from '../../hooks/useDrawPolygons';
 import { useModule } from '../../context/ModuleContext';
 import { marks, formatTimeLabel } from '../../utils/timeSliderUtils';
 import './PolygonTripsModule.css';
+
+const POLYGON_TRIPS_COLUMNS = [
+    { key: 'mode', title: 'Mode', numeric: false },
+    { key: 'internal', title: 'Internal', numeric: true },
+    { key: 'outbound', title: 'Outbound', numeric: true },
+    { key: 'inbound', title: 'Inbound', numeric: true },
+    { key: 'total', title: 'Total', numeric: true },
+];
+
+const ROUTE_CATEGORY_OPTIONS = [
+    { value: 'internal', label: 'Internal' },
+    { value: 'outbound', label: 'Outbound' },
+    { value: 'inbound', label: 'Inbound' },
+];
 
 const MODE_ORDER = ['car', 'pt', 'walk', 'bike', 'car_passenger', 'truck'];
 
@@ -24,7 +38,10 @@ const PolygonTripsModule = ({ featureTableRef }) => {
         showPolygonRoutes, setShowPolygonRoutes,
         polygonRoutesData, polygonRoutesLoading,
     } = useData();
-    const { timeRange, setTimeRange } = useFilters();
+    const {
+        timeRange, setTimeRange,
+        polygonRoutesCategory, setPolygonRoutesCategory,
+    } = useFilters();
     const { mapRef, drawRef } = useMap();
     const { isGraphExpanded } = useModule();
 
@@ -95,38 +112,36 @@ const PolygonTripsModule = ({ featureTableRef }) => {
                                 onChange={(e) => setShowPolygonRoutes(e.target.checked)}
                             />
                             Show trip routes on map
-                            {polygonRoutesLoading && <span> · loading…</span>}
+                            {showPolygonRoutes && polygonRoutesLoading && <span> · loading…</span>}
                         </label>
                         <span className="pt-routes-note">car only</span>
                     </div>
 
                     {showPolygonRoutes && (
-                        <div className="pt-legend">
-                            <span className="pt-legend-item">
-                                <span className="pt-legend-swatch outbound" />
-                                Outbound
-                                {polygonRoutesData?.category_totals
-                                    ? ` (${polygonRoutesData.category_totals.outbound.toLocaleString()})`
-                                    : ''}
-                            </span>
-                            <span className="pt-legend-item">
-                                <span className="pt-legend-swatch inbound" />
-                                Inbound
-                                {polygonRoutesData?.category_totals
-                                    ? ` (${polygonRoutesData.category_totals.inbound.toLocaleString()})`
-                                    : ''}
-                            </span>
-                            <span className="pt-legend-item">
-                                <span className="pt-legend-swatch internal" />
-                                Internal
-                                {polygonRoutesData?.category_totals
-                                    ? ` (${polygonRoutesData.category_totals.internal.toLocaleString()})`
-                                    : ''}
-                            </span>
+                        <div className="pt-direction-toggle">
+                            {ROUTE_CATEGORY_OPTIONS.map((opt) => {
+                                const count = polygonRoutesData?.category_totals?.[opt.value];
+                                return (
+                                    <button
+                                        key={opt.value}
+                                        className={`pt-direction-btn${polygonRoutesCategory === opt.value ? ' active' : ''}`}
+                                        onClick={() => setPolygonRoutesCategory(opt.value)}
+                                    >
+                                        {opt.label}
+                                        {count != null ? ` (${count.toLocaleString()})` : ''}
+                                    </button>
+                                );
+                            })}
                         </div>
                     )}
 
                     <div className="pt-totals-card">
+                        <div className="pt-total-cell">
+                            <span className="pt-total-label">Internal</span>
+                            <span className="pt-total-value">
+                                {polygonTripsLoading ? '…' : totals.internal.toLocaleString()}
+                            </span>
+                        </div>
                         <div className="pt-total-cell">
                             <span className="pt-total-label">Outbound</span>
                             <span className="pt-total-value">
@@ -139,22 +154,13 @@ const PolygonTripsModule = ({ featureTableRef }) => {
                                 {polygonTripsLoading ? '…' : totals.inbound.toLocaleString()}
                             </span>
                         </div>
-                        <div className="pt-total-cell">
-                            <span className="pt-total-label">Internal</span>
-                            <span className="pt-total-value">
-                                {polygonTripsLoading ? '…' : totals.internal.toLocaleString()}
-                            </span>
-                        </div>
                     </div>
 
-                    <FeatureTable
+                    <PolygonTripsTable
                         ref={featureTableRef}
                         tableId="polygon-trips-table"
-                        selectedGraph="PolygonTrips"
+                        columns={POLYGON_TRIPS_COLUMNS}
                         rows={tableRows}
-                        useScroller={false}
-                        hideToolbar
-                        hideFooter
                         loading={polygonTripsLoading}
                     />
 

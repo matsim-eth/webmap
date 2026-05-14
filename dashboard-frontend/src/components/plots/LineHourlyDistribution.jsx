@@ -72,6 +72,7 @@ const LineHourlyDistribution = ({ sidebarCollapsed, isExpanded = false }) => {
     yaxis: {
       title: { text: 'Passengers per 15 min', font: { size: 11 } },
       tickfont: { size: 9 },
+      rangemode: 'nonnegative',
     },
     barmode: 'group',
     legend: { orientation: 'h', y: 1.05, x: 0.5, xanchor: 'center', font: { size: 10 } },

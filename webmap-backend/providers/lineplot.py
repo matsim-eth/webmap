@@ -1,42 +1,107 @@
-"""Lineplot — departure time / distance distributions per polygon."""
+"""Lineplot provider for departure time and distance distributions.
 
-from __future__ import annotations
+Consolidates the former 6 endpoints into 1:
+  lineplot_departure_time_data_mode.json         -> ?metric=departure_time&group_by=mode
+  lineplot_departure_time_data_purpose.json       -> ?metric=departure_time&group_by=purpose
+  lineplot_euclidean_distance_data_mode.json      -> ?metric=euclidean_distance&group_by=mode
+  lineplot_euclidean_distance_data_purpose.json   -> ?metric=euclidean_distance&group_by=purpose
+  lineplot_network_distance_data_mode.json        -> ?metric=network_distance&group_by=mode
+  lineplot_network_distance_data_purpose.json     -> ?metric=network_distance&group_by=purpose
+
+Query params
+------------
+metric    (str): "departure_time" (default), "euclidean_distance", or "network_distance".
+group_by  (str): "mode" (default) or "purpose".
+canton    (str): Comma-separated canton names.
+source    (str): "Synthetic", "Microcensus", or omit for both.
+mode      (str): Comma-separated transport modes to include.
+purpose   (str): Comma-separated purposes to include.
+num_bins  (int): Number of bins (default 32).
+max_value (float): Upper bound (hours for time, km for distance). Auto for distance.
+gender    (str): "0" or "1" to filter by sex.
+age_min   (int): Minimum age (inclusive).
+age_max   (int): Maximum age (exclusive).
+"""
 
 from .base import DataProvider, Param, TRIP_FILTERS, SUMMARY_ONLY
-from .connection import get_source_cursor
+from .connection import get_connection
 from .helpers import (
-    age_filter_sql,
+    canton_filter_sql,
     gender_filter_sql,
-    get_hot_polygon_meta,
-    has_person_filters,
-    is_summary_only,
-    mode_filter_sql,
+    age_filter_sql,
     parse_source_param,
+    mode_filter_sql,
     purpose_filter_sql,
+    is_summary_only,
+    has_person_filters,
 )
-from ._pre_agg import label_for, make_label_resolver, polygon_filter_clause, resolve_polygon_ids
 from .lineplot_base import build_lineplot
+from .paths import get_data_paths
 
 
+# Column configurations per metric and source
+# (trip_table_attr, value_expr, join_expr)
 _METRIC_CONFIG = {
     "departure_time": {
-        "value_expr":      "t.departure_time / 3600.0",
-        "value_null_check": "t.departure_time",
+        "mc": {
+            "table_attr": "microcensus_trips",
+            "value_expr": "t.departure_time / 3600.0",
+            "value_null_check": "t.departure_time",
+            "join_expr": "t.person_id = p.person_id",
+            "group_cols": {"mode": "t.mode", "purpose": "t.purpose"},
+        },
+        "syn": {
+            "table_attr": "synthetic_trips",
+            "value_expr": "t.departure_time / 3600.0",
+            "value_null_check": "t.departure_time",
+            "join_expr": "t.person_id = p.person_id",
+            "group_cols": {"mode": "t.mode", "purpose": "t.preceding_purpose"},
+        },
         "tick_fn": "departure_time",
         "default_max": 30.0,
     },
     "euclidean_distance": {
-        "value_expr":      "t.crowfly_distance / 1000.0",
-        "value_null_check": "t.crowfly_distance",
+        "mc": {
+            "table_attr": "microcensus_trips",
+            "value_expr": "t.crowfly_distance / 1000.0",
+            "value_null_check": "t.crowfly_distance",
+            "join_expr": "t.person_id = p.person_id",
+            "group_cols": {"mode": "t.mode", "purpose": "t.purpose"},
+        },
+        "syn": {
+            "table_attr": "synthetic_output_trips",
+            "value_expr": "t.euclidean_distance / 1000.0",
+            "value_null_check": "t.euclidean_distance",
+            "join_expr": "TRY_CAST(t.person AS BIGINT) = p.person_id",
+            "group_cols": {"mode": "t.main_mode", "purpose": "t.end_activity_type"},
+        },
         "tick_fn": "distance",
         "default_max": None,
     },
     "network_distance": {
-        "value_expr":      "t.network_distance / 1000.0",
-        "value_null_check": "t.network_distance",
+        "mc": {
+            "table_attr": "microcensus_trips",
+            "value_expr": "t.network_distance / 1000.0",
+            "value_null_check": "t.network_distance",
+            "join_expr": "t.person_id = p.person_id",
+            "group_cols": {"mode": "t.mode", "purpose": "t.purpose"},
+        },
+        "syn": {
+            "table_attr": "synthetic_output_trips",
+            "value_expr": "t.traveled_distance / 1000.0",
+            "value_null_check": "t.traveled_distance",
+            "join_expr": "TRY_CAST(t.person AS BIGINT) = p.person_id",
+            "group_cols": {"mode": "t.main_mode", "purpose": "t.end_activity_type"},
+        },
         "tick_fn": "distance",
         "default_max": None,
     },
+}
+
+# Person tables per source
+_PERSON_TABLES = {
+    "mc": "microcensus_persons",
+    "syn": "synthetic_persons",
 }
 
 
@@ -44,7 +109,6 @@ class LineplotProvider(DataProvider):
     ROUTE = "lineplot.json"
     PARAMS = TRIP_FILTERS + [
         SUMMARY_ONLY,
-        Param("polygon_id", "Hot-polygon ID(s), comma-separated"),
         Param("metric", "Value to plot", enum=["departure_time", "euclidean_distance", "network_distance"]),
         Param("group_by", "Group results by 'mode' (default) or 'purpose'", enum=["mode", "purpose"]),
         Param("num_bins", "Number of bins (default 32)", param_type="integer"),
@@ -52,80 +116,124 @@ class LineplotProvider(DataProvider):
     ]
 
     def deliver(self, params: dict) -> dict:
+        paths = get_data_paths()
         sources = parse_source_param(params)
-        if not sources:
-            return {}
-        summary = is_summary_only(params) and not (params.get("canton") or params.get("polygon_id")) and not has_person_filters(params)
+        summary = is_summary_only(params) and not params.get("canton") and not has_person_filters(params)
+        cf = "" if summary else canton_filter_sql(params.get("canton"), "p.canton_id")
         gf = "" if summary else gender_filter_sql(params, "p.sex")
         af = "" if summary else age_filter_sql(params, "p.age")
-        mf = mode_filter_sql(params, "t.main_mode")
-        pf = purpose_filter_sql(params, "t.following_purpose")
 
-        metric = (params.get("metric") or "departure_time").lower()
+        metric = params.get("metric", "departure_time").lower()
+        group_by = params.get("group_by", "mode").lower()
+
         if metric not in _METRIC_CONFIG:
             metric = "departure_time"
-        cfg = _METRIC_CONFIG[metric]
-        group_by = (params.get("group_by") or "mode").lower()
         if group_by not in ("mode", "purpose"):
             group_by = "mode"
-        grp_col = "t.main_mode" if group_by == "mode" else "t.following_purpose"
+
+        config = _METRIC_CONFIG[metric]
 
         try:
             num_bins = int(params.get("num_bins", 32))
         except ValueError:
             num_bins = 32
-        max_value = cfg["default_max"]
-        if params.get("max_value"):
+
+        max_value_param = params.get("max_value")
+        if max_value_param:
             try:
-                max_value = float(params["max_value"])
+                max_value = float(max_value_param)
             except ValueError:
-                pass
+                max_value = config["default_max"]
+        else:
+            max_value = config["default_max"]
 
-        con0 = get_source_cursor(sources[0])
-        polygon_ids = [] if summary else resolve_polygon_ids(con0, params, default_type="canton")
+        con = get_connection()
 
-        # rows[source_name] = [(label, group_val, var_val), ...]
-        rows_by_source: dict[str, list[tuple]] = {"synthetic": [], "microcensus": []}
+        mc_rows = None
+        syn_rows = None
 
-        for source in sources:
-            try:
-                con = get_source_cursor(source)
-            except Exception:
-                continue
-            target = "microcensus" if source == "microcensus" else "synthetic"
+        if "Microcensus" in sources:
+            mc = config["mc"]
+            trip_path = getattr(paths, mc["table_attr"])
+            person_path = getattr(paths, _PERSON_TABLES["mc"])
+            group_col = mc["group_cols"][group_by]
 
-            if polygon_ids:
-                join, where, group_expr, bind, _ = polygon_filter_clause(polygon_ids)
-                resolve = make_label_resolver(con, polygon_ids,
-                                               all(p.startswith("canton:") for p in polygon_ids))
-                rows = con.execute(f"""
-                    SELECT {group_expr} AS poly_key, {grp_col} AS grp, {cfg['value_expr']} AS val
-                    FROM trips t
-                    JOIN persons p ON p.person_id = t.person_id
-                    {join}
-                    WHERE {grp_col} IS NOT NULL AND {cfg['value_null_check']} IS NOT NULL
-                    {where}{gf}{af}{mf}{pf}
-                """, bind).fetchall()
-                for poly_key, grp, val in rows:
-                    rows_by_source[target].append((resolve(poly_key), str(grp), float(val)))
+            if group_by == "mode":
+                extra = mode_filter_sql(params, group_col)
+            else:
+                extra = purpose_filter_sql(params, group_col)
 
-            if summary or not polygon_ids:
-                join = "JOIN persons p ON p.person_id = t.person_id" if (gf or af) else ""
-                rows = con.execute(f"""
-                    SELECT {grp_col}, {cfg['value_expr']}
-                    FROM trips t {join}
-                    WHERE {grp_col} IS NOT NULL AND {cfg['value_null_check']} IS NOT NULL
-                    {gf}{af}{mf}{pf}
-                """).fetchall()
-                for grp, val in rows:
-                    rows_by_source[target].append(("All", str(grp), float(val)))
+            join_null = ""
+            if "TRY_CAST" in mc["join_expr"]:
+                join_null = "AND TRY_CAST(t.person AS BIGINT) IS NOT NULL\n"
+
+            if summary:
+                raw = con.execute(f"""
+                    SELECT 0 AS canton_id, {group_col},
+                           {mc['value_expr']} AS val
+                    FROM read_parquet(?) t
+                    WHERE {group_col} IS NOT NULL
+                      AND {mc['value_null_check']} IS NOT NULL
+                    {join_null}{extra}
+                """, [trip_path]).fetchall()
+            else:
+                raw = con.execute(f"""
+                    SELECT p.canton_id, {group_col},
+                           {mc['value_expr']} AS val
+                    FROM read_parquet(?) t
+                    INNER JOIN read_parquet(?) p ON {mc['join_expr']}
+                    WHERE p.canton_id IS NOT NULL
+                      AND {group_col} IS NOT NULL
+                      AND {mc['value_null_check']} IS NOT NULL
+                      {join_null}
+                    {cf}{extra}{gf}{af}
+                """, [trip_path, person_path]).fetchall()
+            mc_rows = [(cid, grp, float(v)) for cid, grp, v in raw]
+
+        if "Synthetic" in sources:
+            syn = config["syn"]
+            trip_path = getattr(paths, syn["table_attr"])
+            person_path = getattr(paths, _PERSON_TABLES["syn"])
+            group_col = syn["group_cols"][group_by]
+
+            if group_by == "mode":
+                extra = mode_filter_sql(params, group_col)
+            else:
+                extra = purpose_filter_sql(params, group_col)
+
+            join_null = ""
+            if "TRY_CAST" in syn["join_expr"]:
+                join_null = "AND TRY_CAST(t.person AS BIGINT) IS NOT NULL\n"
+
+            if summary:
+                raw = con.execute(f"""
+                    SELECT 0 AS canton_id, {group_col},
+                           {syn['value_expr']} AS val
+                    FROM read_parquet(?) t
+                    WHERE {group_col} IS NOT NULL
+                      AND {syn['value_null_check']} IS NOT NULL
+                    {join_null}{extra}
+                """, [trip_path]).fetchall()
+            else:
+                raw = con.execute(f"""
+                    SELECT p.canton_id, {group_col},
+                           {syn['value_expr']} AS val
+                    FROM read_parquet(?) t
+                    INNER JOIN read_parquet(?) p ON {syn['join_expr']}
+                    WHERE p.canton_id IS NOT NULL
+                      AND {group_col} IS NOT NULL
+                      AND {syn['value_null_check']} IS NOT NULL
+                      {join_null}
+                    {cf}{extra}{gf}{af}
+                """, [trip_path, person_path]).fetchall()
+            syn_rows = [(cid, grp, float(v)) for cid, grp, v in raw]
 
         return build_lineplot(
-            microcensus_rows=rows_by_source["microcensus"] if "microcensus" in sources else None,
-            synthetic_rows=rows_by_source["synthetic"] if "synthetic" in sources else None,
+            microcensus_rows=mc_rows,
+            synthetic_rows=syn_rows,
             group_key=group_by,
             num_bins=num_bins,
             max_value=max_value,
-            tick_fn=cfg["tick_fn"],
+            tick_fn=config["tick_fn"],
             summary_only=summary,
         )

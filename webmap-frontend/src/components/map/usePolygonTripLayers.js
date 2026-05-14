@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useModule } from '../../context/ModuleContext';
 import { useData } from '../../context/DataContext';
+import { useFilters } from '../../context/FilterContext';
 import { useFileContext } from '../../FileContext';
 import { useLoadWithFallback } from '../../utils/useLoadWithFallback';
 import { safeRemoveLayer, safeRemoveSource } from './_lib/mapbox';
@@ -14,9 +15,15 @@ const LAYER_INTERNAL = 'polygon-trips-internal';
 const MODULE_LAYERS = [LAYER_OUTBOUND, LAYER_INBOUND, LAYER_INTERNAL];
 const MODULE_SOURCES = [SOURCE_ID];
 
-const COLOR_OUTBOUND = '#f97316'; // orange — leaving polygon
-const COLOR_INBOUND = '#0ea5e9';  // blue   — entering polygon
-const COLOR_INTERNAL = '#16a34a'; // green  — within polygon
+const CATEGORY_LAYER_MAP = {
+    outbound: LAYER_OUTBOUND,
+    inbound: LAYER_INBOUND,
+    internal: LAYER_INTERNAL,
+};
+
+const COLOR_OUTBOUND = '#f97316';
+const COLOR_INBOUND = '#f97316';
+const COLOR_INTERNAL = '#f97316';
 
 const widthExpr = (propName) => [
     'interpolate', ['linear'], ['coalesce', ['get', propName], 0],
@@ -53,6 +60,7 @@ const waitForMapIdle = (map) => new Promise((resolve) => {
 export default function usePolygonTripLayers({ mapRef, mapReady }) {
     const { isGraphExpanded } = useModule();
     const { dataURL, polygonRoutesData, showPolygonRoutes } = useData();
+    const { polygonRoutesCategory } = useFilters();
     const { fileMap } = useFileContext();
 
     const loadWithFallback = useLoadWithFallback(dataURL);
@@ -131,7 +139,12 @@ export default function usePolygonTripLayers({ mapRef, mapReady }) {
                 filter: ['>', ['coalesce', ['get', 'pt_int'], 0], 0],
             });
         }
-    }, []);
+        const activeLayer = CATEGORY_LAYER_MAP[polygonRoutesCategory] || LAYER_INTERNAL;
+        for (const layerId of MODULE_LAYERS) {
+            if (!map.getLayer(layerId)) continue;
+            map.setLayoutProperty(layerId, 'visibility', layerId === activeLayer ? 'visible' : 'none');
+        }
+    }, [polygonRoutesCategory]);
 
     const applyFlowsToSource = useCallback((map, data) => {
         const base = combinedGeoRef.current;

@@ -1,76 +1,75 @@
-"""Distinct transport modes per canton.
-
-Reads ``hot_polygon_trips`` (canton-scope rows) and lists modes that have
-non-zero trip counts. Faster than scanning trips because the precomputed
-counts already tell us which modes are present.
-"""
-
-from __future__ import annotations
-
 from .base import DataProvider, Param, CANTON, SOURCE
-from .connection import get_source_cursor
-from .constants import canton_name
-from .helpers import parse_source_param
-from ._pre_agg import resolve_polygon_ids
-
-
-# Mapping from hot_polygon_trips count column to the legacy mode name
-MODE_COL = {
-    "mode_car":           "car",
-    "mode_pt":            "pt",
-    "mode_walk":          "walk",
-    "mode_bike":          "bike",
-    "mode_car_passenger": "car_passenger",
-}
+from .connection import get_connection
+from .constants import canton_name, CANTON_MAP
+from .helpers import canton_filter_sql, parse_source_param, build_canton_lookup
+from .paths import get_data_paths
 
 
 class ModesByCantonProvider(DataProvider):
+    """Distinct transport modes available per canton across both data sources.
+
+    Query params:
+        canton        (str): Comma-separated canton names.
+        source        (str): "Synthetic", "Microcensus", or omit for both.
+        exclude_modes (str): Comma-separated modes to exclude from results.
+
+    Example: /data/modes_by_canton.json?canton=Zurich,Bern&exclude_modes=walk,other
+    """
+
     ROUTE = "modes_by_canton.json"
-    PARAMS = [
-        CANTON, SOURCE,
-        Param("exclude_modes", "Comma-separated modes to exclude from results"),
-        Param("polygon_id", "Hot-polygon ID(s), comma-separated"),
-    ]
+    PARAMS = [CANTON, SOURCE,
+              Param("exclude_modes", "Comma-separated modes to exclude from results")]
 
     def deliver(self, params: dict) -> dict:
+        paths = get_data_paths()
         sources = parse_source_param(params)
-        if not sources:
-            return {}
+        cf = canton_filter_sql(params.get("canton"), "p.canton_id")
+        con = get_connection()
+
         exclude = set()
         if params.get("exclude_modes"):
             exclude = {m.strip() for m in params["exclude_modes"].split(",")}
 
-        con0 = get_source_cursor(sources[0])
-        polygon_ids = resolve_polygon_ids(con0, params, default_type="canton")
+        # canton_id -> set of modes
+        modes_by_canton: dict[int, set[str]] = {}
 
-        cols = list(MODE_COL.keys())
-        cols_sql = ", ".join(cols)
-        # Aggregate union of modes-present across all sources
-        result: dict[str, list[str]] = {}
-        for source in sources:
-            try:
-                con = get_source_cursor(source)
-            except Exception:
-                continue
-            placeholders = ",".join(["?"] * len(polygon_ids))
+        if "Microcensus" in sources:
             rows = con.execute(f"""
-                SELECT polygon_id, {cols_sql}
-                FROM hot_polygon_trips
-                WHERE polygon_id IN ({placeholders})
-            """, polygon_ids).fetchall()
-            for r in rows:
-                pid = r[0]
-                if not pid.startswith("canton:"):
-                    continue
-                try:
-                    cid = int(pid.split(":", 1)[1])
-                except ValueError:
-                    continue
-                modes_here: set[str] = set()
-                for col, val in zip(cols, r[1:]):
-                    if val and val > 0 and MODE_COL[col] not in exclude:
-                        modes_here.add(MODE_COL[col])
-                cname = canton_name(cid)
-                existing = set(result.get(cname, []))
-                result[cname] = sorted(existing | modes_here)
+                SELECT DISTINCT p.canton_id, t.mode_detailed
+                FROM read_parquet(?) t
+                INNER JOIN read_parquet(?) p ON t.person_id = p.person_id
+                WHERE p.canton_id IS NOT NULL
+                  AND t.mode_detailed IS NOT NULL
+                {cf}
+            """, [paths.microcensus_trips, paths.microcensus_persons]).fetchall()
+            for cid, mode in rows:
+                cid = int(cid)
+                mode = str(mode)
+                modes_by_canton.setdefault(cid, set()).add(mode)
+
+        if "Synthetic" in sources:
+            rows = con.execute(f"""
+                SELECT p.canton_id, t.modes
+                FROM read_parquet(?) t
+                INNER JOIN read_parquet(?) p
+                    ON TRY_CAST(t.person AS BIGINT) = p.person_id
+                WHERE TRY_CAST(t.person AS BIGINT) IS NOT NULL
+                  AND p.canton_id IS NOT NULL
+                  AND t.modes IS NOT NULL
+                {cf}
+            """, [paths.synthetic_output_trips, paths.synthetic_persons]).fetchall()
+            for cid, modes_str in rows:
+                cid = int(cid)
+                sub_modes = str(modes_str).split("-")
+                for m in sub_modes:
+                    m = m.strip()
+                    if m:
+                        modes_by_canton.setdefault(cid, set()).add(m)
+
+        result: dict = {}
+        for cid, mode_set in sorted(modes_by_canton.items()):
+            cname = canton_name(cid)
+            filtered = sorted(mode_set - exclude)
+            result[cname] = filtered
+
         return result

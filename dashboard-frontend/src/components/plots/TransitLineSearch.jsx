@@ -1,8 +1,9 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import './TransitStopSearch.css';
 import { useData } from '../../context/DataContext';
 import { useDashboard } from '../../context/DashboardContext';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
+import useClickOutside from '../../hooks/useClickOutside';
 import {
   toLineList,
   isModeFilterActive,
@@ -32,6 +33,8 @@ const TransitLineSearch = () => {
   const [highlightIdx, setHighlightIdx] = useState(-1);
   // Hide the dropdown after a selection (until the user types again).
   const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useRef(null);
+  useClickOutside(wrapperRef, useCallback(() => setIsOpen(false), []));
 
   // Debounce only the dropdown filter — the input value is still bound to
   // `searchTerm` so typing feels instant. 120ms is short enough that the
@@ -132,7 +135,7 @@ const TransitLineSearch = () => {
   return (
     <div className="transit-stop-search-inline">
       <label className="control-label">Search Line</label>
-      <div className="search-wrapper">
+      <div className="search-wrapper" ref={wrapperRef}>
         <input
           type="text"
           value={searchTerm}
