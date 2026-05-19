@@ -91,6 +91,11 @@ export default function useCantons({
       const clickedLayerIds = [...new Set(clickedFeatures.map(f => f.layer.id))];
       const isStopClick = clickedLayerIds.includes("inter-cantonal-stops");
 
+      // Clicks landing on a destination-zone arc or dot are owned by the
+      // destination module (toggle selection); they must not switch the hub.
+      const DESTINATION_LAYERS = ['destination-arrows-line', 'destination-arrows-selected', 'destination-dots'];
+      if (DESTINATION_LAYERS.some(id => clickedLayerIds.includes(id))) return;
+
       // If select same as previous canton, don't do anything
       // (we extract prev canton by getting the current selected-canton-border)
       if (e.features.length > 0 && e.features[0].properties.NAME != map.getFilter("selected-canton-border")[2]) {

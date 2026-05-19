@@ -16,7 +16,15 @@ export const DataProvider = ({ children }) => {
   const [tableFilterQuery, setTableFilterQuery] = useState(null);
   const [isFeatureTableOpen, setIsFeatureTableOpen] = useState(false);
 
+  // Transit-mode polygon containment: Set of stop feature ids currently
+  // inside the drawn polygon(s). null = no polygon active. Pushed by
+  // TransitModule (via usePointPolygon) so the global search bar can
+  // exclude stops outside the polygon.
+  const [polygonStopIds, setPolygonStopIds] = useState(null);
+
   const [destinationData, setDestinationData] = useState(null);
+  const [destinationHoveredCanton, setDestinationHoveredCanton] = useState(null);
+  const [destinationSelectedCanton, setDestinationSelectedCanton] = useState(null);
   const [boardingData, setBoardingData] = useState(null);
 
   const [nodeFlowsData, setNodeFlowsData] = useState(null);
@@ -40,7 +48,10 @@ export const DataProvider = ({ children }) => {
     featureGeoJSON, setFeatureGeoJSON,
     tableFilterQuery, setTableFilterQuery,
     isFeatureTableOpen, setIsFeatureTableOpen,
+    polygonStopIds, setPolygonStopIds,
     destinationData, setDestinationData,
+    destinationHoveredCanton, setDestinationHoveredCanton,
+    destinationSelectedCanton, setDestinationSelectedCanton,
     boardingData, setBoardingData,
     nodeFlowsData, setNodeFlowsData,
     linkSpeedsLinksMap, setLinkSpeedsLinksMap,
@@ -54,8 +65,8 @@ export const DataProvider = ({ children }) => {
     polygonRoutesLoading, setPolygonRoutesLoading,
   }), [
     datasetId, dataURL, cantonList,
-    featureGeoJSON, tableFilterQuery, isFeatureTableOpen,
-    destinationData, boardingData,
+    featureGeoJSON, tableFilterQuery, isFeatureTableOpen, polygonStopIds,
+    destinationData, destinationHoveredCanton, destinationSelectedCanton, boardingData,
     nodeFlowsData,
     linkSpeedsLinksMap, linkSpeedsSummary,
     zoneFlowData, zoneFlowLoading,

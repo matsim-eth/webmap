@@ -19,7 +19,7 @@ import { useFileContext } from "../../FileContext";
 
 
 const TransitModule = ({ featureTableRef }) => {
-    const { dataURL, isFeatureTableOpen, featureGeoJSON, setTableFilterQuery } = useData();
+    const { dataURL, isFeatureTableOpen, featureGeoJSON, setTableFilterQuery, setPolygonStopIds } = useData();
     const {
         selectedTransitModes, setSelectedTransitModes,
         showStopVolumeSymbology, setShowStopVolumeSymbology,
@@ -69,6 +69,18 @@ const TransitModule = ({ featureTableRef }) => {
         selectedTransitModes,
         onPolygonChange: handlePolygonChange,
     });
+
+    // Publish polygon-contained stop IDs so the global search bar can
+    // exclude stops outside the polygon. null = no polygon active.
+    const prevPolyFeaturesRef = useRef(polygonFeatures);
+    if (prevPolyFeaturesRef.current !== polygonFeatures) {
+        prevPolyFeaturesRef.current = polygonFeatures;
+        setPolygonStopIds?.(
+            polygonFeatures.length === 0
+                ? null
+                : new Set(polygonFeatures.map((f) => f.id))
+        );
+    }
 
     // Filtered GeoJSON for table — only polygon-selected features when polygon is active
     const tableGeoJSON = useMemo(() => {

@@ -2,18 +2,65 @@ import React from "react";
 import "./NetworkLegend.css";
 import { useModule } from "../context/ModuleContext";
 import { useFilters } from "../context/FilterContext";
+import { useData } from "../context/DataContext";
+
+const DESTINATION_MODE_COLORS = {
+  car: "#636efa",
+  pt: "#00cc96",
+  bike: "#ab63fa",
+  walk: "#ffa15a",
+  all: "#1f77b4",
+};
+
+const DESTINATION_PURPOSE_COLORS = {
+  work: "#FFEE8C",
+  education: "#636efa",
+  shop: "#ffa15a",
+  leisure: "#00cc96",
+};
+
+// Map a destination-zone sizing factor to the legend-circle diameter in px.
+// Mirrors the map paint expressions in useDestinationZones.js:
+//   circle-radius      = 1.5 + factor * 36
+//   circle-stroke-width = 1.5  (drawn outside the radius)
+// Visible diameter = 2 * (radius + stroke) = 6 + factor * 72.
+// Legend dots use border-box width with a 1px CSS border, so this same value
+// can be passed straight to `width`/`height`.
+const destFactorToDiameter = (factor) => Math.round(6 + factor * 72);
+
+// Factor stops mirror the volume/share interpolations in useDestinationZones.js.
+const DESTINATION_SHARE_STOPS = [
+  { label: "10%", factor: 0.10 },
+  { label: "25%", factor: 0.25 },
+  { label: "50%", factor: 0.50 },
+];
+const DESTINATION_VOLUME_STOPS = [
+  { label: "100", factor: 0.06 },
+  { label: "500", factor: 0.165 },
+  { label: "1K",  factor: 0.285 },
+];
 
 const Legend = () => {
   const { isGraphExpanded: selectedGraph } = useModule();
   const { showStopVolumeSymbology, linkSpeedsMetric } = useFilters();
+  const { destinationData } = useData();
 
   const isVolumes = selectedGraph === "Volumes";
   const isNetwork = selectedGraph === "Network";
   const isTransit = selectedGraph === "Transit";
   const isVolumeFlow = selectedGraph === "VolumeFlow";
   const isLinkSpeeds = selectedGraph === "LinkSpeeds";
+  const isDestination = selectedGraph === "Destination";
 
-  if (!isVolumes && !isNetwork && !isVolumeFlow && !isLinkSpeeds && !(isTransit && showStopVolumeSymbology)) return null;
+  if (!isVolumes && !isNetwork && !isVolumeFlow && !isLinkSpeeds && !isDestination && !(isTransit && showStopVolumeSymbology)) return null;
+
+  const destMode = destinationData?.selectedMode || "all";
+  const destPurpose = destinationData?.selectedPurpose || "all";
+  // Purpose wins over mode if a specific purpose is picked (same rule as the map hook).
+  const destColor = (destPurpose !== "all" && DESTINATION_PURPOSE_COLORS[destPurpose])
+    || DESTINATION_MODE_COLORS[destMode]
+    || DESTINATION_MODE_COLORS.all;
+  const destSizingMode = destinationData?.sizingMode || "volume";
 
   // Link Speeds gradient + scale depends on selected metric
   const speedGradient = "linear-gradient(to right, #d7191c, #fdae61, #ffffbf, #a6d96a, #1a9641)";
@@ -120,6 +167,34 @@ const Legend = () => {
             className="network-legend-gradient"
             style={{ background: speedGradient }}
           />
+        </div>
+      )}
+
+      {/* Destination Zones Legend — content depends on the sizing toggle */}
+      {isDestination && (
+        <div className="network-legend-section">
+          <div className="network-legend-title">
+            {destSizingMode === "share" ? "Share of total flow" : "Destination volume (trips)"}
+          </div>
+          <div className="transit-stop-legend">
+            {(destSizingMode === "share" ? DESTINATION_SHARE_STOPS : DESTINATION_VOLUME_STOPS).map((row) => {
+              const d = destFactorToDiameter(row.factor);
+              return (
+              <div key={row.label} className="transit-stop-legend-item">
+                <div
+                  className="transit-stop-circle"
+                  style={{
+                    width: `${d}px`,
+                    height: `${d}px`,
+                    backgroundColor: destColor,
+                    borderColor: "#fff",
+                  }}
+                />
+                <span className="network-legend-label">{row.label}</span>
+              </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

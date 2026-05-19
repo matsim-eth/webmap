@@ -4,7 +4,7 @@
   left: calc(var(--left-sidebar-width) + 15px);
   z-index: 10;
   display: flex;
-  width: 250px;
+  width: 280px;
   gap: 8px;
   align-items: center;
   transition: left 0.3s ease;
@@ -40,27 +40,91 @@
 
 .suggestions {
   list-style: none;
-  margin: 0;
-  padding: 0;
+  margin: 4px 0 0 0;
+  padding: 4px 0;
   background: white;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-xs);
-  width: 175px;
-  max-height: 500px;
+  width: 220px;
+  max-height: 420px;
   overflow-y: auto;
   position: absolute;
   top: 100%;
   left: 0;
   z-index: 20;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .suggestions li {
-  padding: 8px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.15s ease;
 }
 
-.suggestions li:hover,
-.suggestions li.selected {
+.suggestion-header {
+  padding: 6px 10px 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  background: var(--color-bg-subtle);
+  cursor: default !important;
+  border-top: 1px solid var(--color-border);
+}
+
+.suggestion-header:first-child {
+  border-top: none;
+}
+
+.suggestion-canton {
+  padding: 8px 10px;
+  color: var(--color-text);
+}
+
+.suggestion-canton:hover,
+.suggestion-canton.selected {
   background: var(--color-primary);
   color: white;
+}
+
+.suggestion-stop {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--color-bg);
+}
+
+.suggestion-stop:last-child {
+  border-bottom: none;
+}
+
+.suggestion-stop:hover,
+.suggestion-stop.selected {
+  background: var(--color-primary-light);
+}
+
+.suggestion-stop .stop-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-dark);
+}
+
+.suggestion-stop .stop-modes {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  margin-top: 2px;
+}
+
+.suggestions::-webkit-scrollbar {
+  width: 6px;
+}
+.suggestions::-webkit-scrollbar-track {
+  background: var(--color-bg);
+  border-radius: 3px;
+}
+.suggestions::-webkit-scrollbar-thumb {
+  background: var(--color-border-light);
+  border-radius: 3px;
+}
+.suggestions::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
 }
