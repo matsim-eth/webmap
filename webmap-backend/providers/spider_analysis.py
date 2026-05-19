@@ -1,46 +1,24 @@
+"""Spider-analysis providers (inflow / outflow / both-flow).
+
+Backed by ``spider_routes`` and ``spider_link_index`` inside
+``synthetic.duckdb``. Person filters (sex, age, license, …) are applied
+via JOIN onto ``persons``. The legacy ``home_canton`` parameter is
+preserved as a convenience; new clients should pass ``polygon_id``.
 """
-Query params (shared)
----------------------
-link_id          (str, required)       : MATSim link ID to analyse.
-minute_start     (int, 0-1440)         : Time window start (minutes from midnight).
-minute_end       (int, 0-1440)         : Time window end (minutes from midnight).
-sex              (str, "0"/"1")        : Gender filter.
-age_min          (int)                 : Minimum age (inclusive).
-age_max          (int)                 : Maximum age (exclusive).
-employed         (str, "true"/"false") : Employment status.
-has_license      (str, "true"/"false") : Driving-licence filter.
-car_availability (str, "0"/"1"/"2")    : Car-availability class.
-home_canton      (str)                 : Canton name or ID (comma-separated).
-income           (str)                 : Income class (from households).
-"""
+
+from __future__ import annotations
 
 import duckdb
 
 from .base import DataProvider, Param
-from .helpers import canton_filter_sql
-from .paths import get_data_paths
-
-
-# ─── Per-dataset DuckDB connections (read-only) ─────────────────────
-
-import threading
-
-_connections: dict[str, duckdb.DuckDBPyConnection] = {}
-_connections_lock = threading.Lock()
+from .connection import get_source_cursor
+from .helpers import polygon_ids_from_params
 
 
 def _get_con() -> duckdb.DuckDBPyConnection:
-    """Return a cursor (thread-safe) from a read-only connection to spider.duckdb."""
-    paths = get_data_paths()
-    db_path = paths.spider_db
-    with _connections_lock:
-        if db_path not in _connections:
-            _connections[db_path] = duckdb.connect(db_path, read_only=True)
-            _connections[db_path].execute("SET memory_limit = '4GB'")
-        return _connections[db_path].cursor()
+    """Cursor on synthetic.duckdb (where spider_routes/index live)."""
+    return get_source_cursor("synthetic")
 
-
-# ─── Shared params & filter logic ─────────────────────────────────────
 
 _SPIDER_PARAMS = [
     Param("link_id", "MATSim link ID to analyse", required=True),
@@ -49,127 +27,107 @@ _SPIDER_PARAMS = [
     Param("age_max", "Maximum age (exclusive)", param_type="integer"),
     Param("employed", "Employment status", enum=["true", "false"]),
     Param("has_license", "Driving-licence filter", enum=["true", "false"]),
-    Param("car_availability", "Car-availability class", enum=["0", "1", "2"]),
-    Param("home_canton", "Canton name or ID (comma-separated)"),
-    Param("income", "Income class (from households)", param_type="integer"),
+    Param("car_availability", "Car-availability class", enum=["always", "sometimes", "never", "0", "1", "2"]),
+    Param("home_canton", "Canton name or ID (legacy, comma-separated)"),
+    Param("polygon_id", "Hot-polygon ID(s) for home filter, comma-separated"),
+    Param("income", "Income class (from households)"),
     Param("minute_start", "Time window start (minutes from midnight, 0-1440)", param_type="integer"),
     Param("minute_end", "Time window end (minutes from midnight, 0-1440)", param_type="integer"),
 ]
 
 
 class _SpiderBase(DataProvider):
-    """Common filter-building logic shared by all three spider endpoints."""
-
     def _build_filters(self, params: dict):
-        """Return (person_filter_sql, household_join_sql, time_filter_sql,
-                  bind_persons, bind_time)."""
-        person_clauses: list[str] = []
+        """Return (person_filter_clauses, polygon_join, polygon_bind,
+                  household_join, time_filter, bind_persons, bind_time)."""
+        clauses: list[str] = []
         bind_persons: list = []
 
-        # 1. sex
         sex = params.get("sex")
         if sex in ("0", "1"):
-            person_clauses.append("AND p.sex = ?")
-            bind_persons.append(int(sex))
+            clauses.append("AND p.sex = ?"); bind_persons.append(int(sex))
+        try:
+            if params.get("age_min") not in (None, ""):
+                clauses.append("AND p.age >= ?"); bind_persons.append(int(params["age_min"]))
+        except ValueError:
+            pass
+        try:
+            if params.get("age_max") not in (None, ""):
+                clauses.append("AND p.age < ?"); bind_persons.append(int(params["age_max"]))
+        except ValueError:
+            pass
+        empl = (params.get("employed") or "").lower()
+        if empl in ("true", "false"):
+            clauses.append("AND p.employed = ?"); bind_persons.append(empl == "true")
+        lic = (params.get("has_license") or "").lower()
+        if lic in ("true", "false"):
+            clauses.append("AND p.has_driving_license = ?"); bind_persons.append(lic == "true")
+        ca = params.get("car_availability")
+        if ca:
+            ca_map = {"0": "always", "1": "sometimes", "2": "never",
+                      "always": "always", "sometimes": "sometimes", "never": "never"}
+            if ca in ca_map:
+                clauses.append("AND p.car_availability = ?"); bind_persons.append(ca_map[ca])
 
-        # 2. age_min
-        age_min = params.get("age_min")
-        if age_min is not None and age_min != "":
-            try:
-                person_clauses.append("AND p.age >= ?")
-                bind_persons.append(int(age_min))
-            except ValueError:
-                pass
+        # Polygon-based home filter (replaces home_canton)
+        polygon_join = ""
+        polygon_bind: list = []
+        polygon_ids = polygon_ids_from_params({**params, "canton": params.get("home_canton") or ""})
+        if polygon_ids:
+            placeholders = ",".join(["?"] * len(polygon_ids))
+            polygon_join = f"""
+                JOIN hot_polygons hp ON hp.polygon_id IN ({placeholders})
+                   AND ST_Within(p.home_pt, hp.polygon_geom)
+            """
+            polygon_bind = polygon_ids
 
-        # 3. age_max
-        age_max = params.get("age_max")
-        if age_max is not None and age_max != "":
-            try:
-                person_clauses.append("AND p.age < ?")
-                bind_persons.append(int(age_max))
-            except ValueError:
-                pass
-
-        # 4. employed
-        employed = params.get("employed")
-        if employed is not None and employed.lower() in ("true", "false"):
-            person_clauses.append("AND p.employed = ?")
-            bind_persons.append(employed.lower() == "true")
-
-        # 5. has_license
-        has_license = params.get("has_license")
-        if has_license is not None and has_license.lower() in ("true", "false"):
-            person_clauses.append("AND p.has_driving_license = ?")
-            bind_persons.append(has_license.lower() == "true")
-
-        # 6. car_availability
-        car_avail = params.get("car_availability")
-        if car_avail is not None and car_avail in ("0", "1", "2"):
-            person_clauses.append("AND p.car_availability = ?")
-            bind_persons.append(float(car_avail))
-
-        # 7. home_canton
-        home_canton = params.get("home_canton")
-        canton_sql = canton_filter_sql(home_canton, "p.canton_id")
-        if canton_sql:
-            person_clauses.append(canton_sql)
-
-        # 8. income (requires household join)
         income = params.get("income")
-        needs_household_join = False
-        if income is not None and income != "":
-            try:
-                needs_household_join = True
-                person_clauses.append("AND h.income = ?")
-                bind_persons.append(int(income))
-            except ValueError:
-                needs_household_join = False
-
-        person_filter = "\n            ".join(person_clauses)
-
         household_join = ""
-        if needs_household_join:
-            household_join = (
-                "LEFT JOIN households h "
-                "ON p.household_id = h.household_id"
-            )
+        if income not in (None, ""):
+            try:
+                clauses.append("AND CAST(h.income_class AS INTEGER) = ?"); bind_persons.append(int(income))
+                household_join = "LEFT JOIN households h ON p.household_id = h.household_id"
+            except ValueError:
+                pass
 
-        # Time filter (on spider_link_index.departure_time)
+        # Time filter on spider_link_index.departure_time
         time_clauses: list[str] = []
         bind_time: list = []
-
-        minute_start = params.get("minute_start")
-        if minute_start is not None and minute_start != "":
-            try:
+        try:
+            if params.get("minute_start") not in (None, ""):
                 time_clauses.append("AND idx.departure_time >= ?")
-                bind_time.append(float(int(minute_start) * 60))
-            except ValueError:
-                pass
-
-        minute_end = params.get("minute_end")
-        if minute_end is not None and minute_end != "":
-            try:
+                bind_time.append(float(int(params["minute_start"]) * 60))
+        except ValueError:
+            pass
+        try:
+            if params.get("minute_end") not in (None, ""):
                 time_clauses.append("AND idx.departure_time < ?")
-                bind_time.append(float(int(minute_end) * 60))
-            except ValueError:
-                pass
+                bind_time.append(float(int(params["minute_end"]) * 60))
+        except ValueError:
+            pass
 
-        time_filter = "\n            ".join(time_clauses)
+        return (
+            "\n            ".join(clauses),
+            polygon_join, polygon_bind,
+            household_join,
+            "\n            ".join(time_clauses),
+            bind_persons, bind_time,
+        )
 
-        return person_filter, household_join, time_filter, bind_persons, bind_time
+    def _person_subquery(self, polygon_join, household_join, person_clauses):
+        """Return the subquery expression that resolves filtered person IDs."""
+        return f"""
+            SELECT p.person_id FROM persons p
+            {polygon_join}
+            {household_join}
+            WHERE 1=1
+            {person_clauses}
+        """
 
 
-# ─── 1. Spider Inflow ───────────────────────────────────────────────
+# ─── Spider Inflow ──────────────────────────────────────────────────
 
 class SpiderInflowProvider(_SpiderBase):
-    """Links *before* the target — inflow share (0-1).
-
-    Uses the inverted index for fast target-link lookup, then joins
-    back to spider_routes for route slicing.
-
-    Example: /data/spider_inflow.json?link_id=868430&sex=1
-    """
-
     ROUTE = "spider_inflow.json"
     PARAMS = _SPIDER_PARAMS
 
@@ -177,87 +135,50 @@ class SpiderInflowProvider(_SpiderBase):
         link_id = (params.get("link_id") or "").strip()
         if not link_id:
             return {"error": "link_id parameter is required"}
-
-        person_filter, household_join, time_filter, bind_persons, bind_time = \
+        person_clauses, poly_join, poly_bind, hh_join, time_filter, bind_persons, bind_time = \
             self._build_filters(params)
-
         con = _get_con()
+        psubq = self._person_subquery(poly_join, hh_join, person_clauses)
 
-        query = f"""
-            WITH target_trips AS (
-                SELECT idx.person_id, idx.trip_index,
-                       idx.position AS target_pos
-                FROM spider_link_index idx
-                INNER JOIN (
-                    SELECT CAST(p.person_id AS VARCHAR) AS person_id
-                    FROM persons p
-                    {household_join}
-                    WHERE 1=1
-                    {person_filter}
-                ) fp ON idx.person_id = fp.person_id
-                WHERE idx.link_id = ?
-                {time_filter}
-            ),
-            trip_count AS (
-                SELECT COUNT(*) AS total FROM target_trips
-            ),
-            matched_routes AS (
-                SELECT r.route_links, tt.target_pos
-                FROM spider_routes r
-                INNER JOIN target_trips tt
-                    ON r.person_id = tt.person_id
-                    AND r.trip_index = tt.trip_index
-            ),
-            inflow_links AS (
-                SELECT UNNEST(route_links[:target_pos - 1]) AS link_id
-                FROM matched_routes
-                WHERE target_pos > 1
-            )
-            SELECT il.link_id,
-                   ROUND(COUNT(*)::DOUBLE / NULLIF(tc.total, 0), 6) AS share
-            FROM inflow_links il, trip_count tc
-            GROUP BY il.link_id, tc.total
-            ORDER BY share DESC
-        """
-
-        bind = bind_persons + [link_id] + bind_time
-
+        bind = poly_bind + bind_persons + [link_id] + bind_time
         try:
-            rows = con.execute(query, bind).fetchall()
-            total_trips = con.execute(
-                f"""
-                SELECT COUNT(*)
-                FROM spider_link_index idx
-                INNER JOIN (
-                    SELECT CAST(p.person_id AS VARCHAR) AS person_id
-                    FROM persons p
-                    {household_join}
-                    WHERE 1=1
-                    {person_filter}
-                ) fp ON idx.person_id = fp.person_id
-                WHERE idx.link_id = ?
-                {time_filter}
-                """,
-                bind_persons + [link_id] + bind_time,
-            ).fetchone()[0]
+            rows = con.execute(f"""
+                WITH target_trips AS (
+                    SELECT idx.person_id, idx.trip_index, idx.position AS target_pos
+                    FROM spider_link_index idx
+                    INNER JOIN ({psubq}) fp ON idx.person_id = fp.person_id
+                    WHERE idx.link_id = ?
+                    {time_filter}
+                ),
+                tc AS (SELECT COUNT(*) AS total FROM target_trips),
+                routes AS (
+                    SELECT r.route_links, tt.target_pos
+                    FROM spider_routes r
+                    INNER JOIN target_trips tt
+                      ON r.person_id = tt.person_id AND r.trip_index = tt.trip_index
+                ),
+                inflow AS (
+                    SELECT UNNEST(route_links[:target_pos - 1]) AS link_id
+                    FROM routes WHERE target_pos > 1
+                )
+                SELECT il.link_id, ROUND(COUNT(*)::DOUBLE / NULLIF(tc.total, 0), 6)
+                FROM inflow il, tc
+                GROUP BY il.link_id, tc.total
+                ORDER BY 2 DESC
+            """, bind).fetchall()
+            total = con.execute(f"""
+                SELECT COUNT(*) FROM spider_link_index idx
+                INNER JOIN ({psubq}) fp ON idx.person_id = fp.person_id
+                WHERE idx.link_id = ? {time_filter}
+            """, bind).fetchone()[0]
         except Exception as e:
             return {"error": str(e)}
 
-        return {
-            "target_link": link_id,
-            "total_trips": total_trips,
-            "links": {row[0]: row[1] for row in rows},
-        }
+        return {"target_link": link_id, "total_trips": int(total),
+                "links": {r[0]: r[1] for r in rows}}
 
-
-# ─── 2. Spider Outflow ──────────────────────────────────────────────
 
 class SpiderOutflowProvider(_SpiderBase):
-    """Links *after* the target — outflow share (0-1).
-
-    Example: /data/spider_outflow.json?link_id=868430
-    """
-
     ROUTE = "spider_outflow.json"
     PARAMS = _SPIDER_PARAMS
 
@@ -265,89 +186,46 @@ class SpiderOutflowProvider(_SpiderBase):
         link_id = (params.get("link_id") or "").strip()
         if not link_id:
             return {"error": "link_id parameter is required"}
-
-        person_filter, household_join, time_filter, bind_persons, bind_time = \
+        person_clauses, poly_join, poly_bind, hh_join, time_filter, bind_persons, bind_time = \
             self._build_filters(params)
-
         con = _get_con()
-
-        query = f"""
-            WITH target_trips AS (
-                SELECT idx.person_id, idx.trip_index,
-                       idx.position AS target_pos
-                FROM spider_link_index idx
-                INNER JOIN (
-                    SELECT CAST(p.person_id AS VARCHAR) AS person_id
-                    FROM persons p
-                    {household_join}
-                    WHERE 1=1
-                    {person_filter}
-                ) fp ON idx.person_id = fp.person_id
-                WHERE idx.link_id = ?
-                {time_filter}
-            ),
-            trip_count AS (
-                SELECT COUNT(*) AS total FROM target_trips
-            ),
-            matched_routes AS (
-                SELECT r.route_links, tt.target_pos
-                FROM spider_routes r
-                INNER JOIN target_trips tt
-                    ON r.person_id = tt.person_id
-                    AND r.trip_index = tt.trip_index
-            ),
-            outflow_links AS (
-                SELECT UNNEST(route_links[target_pos + 1:]) AS link_id
-                FROM matched_routes
-                WHERE target_pos < len(route_links)
-            )
-            SELECT ol.link_id,
-                   ROUND(COUNT(*)::DOUBLE / NULLIF(tc.total, 0), 6) AS share
-            FROM outflow_links ol, trip_count tc
-            GROUP BY ol.link_id, tc.total
-            ORDER BY share DESC
-        """
-
-        bind = bind_persons + [link_id] + bind_time
-
+        psubq = self._person_subquery(poly_join, hh_join, person_clauses)
+        bind = poly_bind + bind_persons + [link_id] + bind_time
         try:
-            rows = con.execute(query, bind).fetchall()
-            total_trips = con.execute(
-                f"""
-                SELECT COUNT(*)
-                FROM spider_link_index idx
-                INNER JOIN (
-                    SELECT CAST(p.person_id AS VARCHAR) AS person_id
-                    FROM persons p
-                    {household_join}
-                    WHERE 1=1
-                    {person_filter}
-                ) fp ON idx.person_id = fp.person_id
-                WHERE idx.link_id = ?
-                {time_filter}
-                """,
-                bind_persons + [link_id] + bind_time,
-            ).fetchone()[0]
+            rows = con.execute(f"""
+                WITH target_trips AS (
+                    SELECT idx.person_id, idx.trip_index, idx.position AS target_pos
+                    FROM spider_link_index idx
+                    INNER JOIN ({psubq}) fp ON idx.person_id = fp.person_id
+                    WHERE idx.link_id = ? {time_filter}
+                ),
+                tc AS (SELECT COUNT(*) AS total FROM target_trips),
+                routes AS (
+                    SELECT r.route_links, tt.target_pos
+                    FROM spider_routes r
+                    INNER JOIN target_trips tt
+                      ON r.person_id = tt.person_id AND r.trip_index = tt.trip_index
+                ),
+                outflow AS (
+                    SELECT UNNEST(route_links[target_pos + 1:]) AS link_id
+                    FROM routes WHERE target_pos < len(route_links)
+                )
+                SELECT ol.link_id, ROUND(COUNT(*)::DOUBLE / NULLIF(tc.total, 0), 6)
+                FROM outflow ol, tc GROUP BY ol.link_id, tc.total ORDER BY 2 DESC
+            """, bind).fetchall()
+            total = con.execute(f"""
+                SELECT COUNT(*) FROM spider_link_index idx
+                INNER JOIN ({psubq}) fp ON idx.person_id = fp.person_id
+                WHERE idx.link_id = ? {time_filter}
+            """, bind).fetchone()[0]
         except Exception as e:
             return {"error": str(e)}
 
-        return {
-            "target_link": link_id,
-            "total_trips": total_trips,
-            "links": {row[0]: row[1] for row in rows},
-        }
+        return {"target_link": link_id, "total_trips": int(total),
+                "links": {r[0]: r[1] for r in rows}}
 
-
-# ─── 3. Spider Overlay ──────────────────────────────────────────────
 
 class SpiderOverlayProvider(_SpiderBase):
-    """All links in full routes through target — absolute trip count.
-
-    Uses pure index self-join (no route expansion needed).
-
-    Example: /data/spider_bothflow.json?link_id=868430
-    """
-
     ROUTE = "spider_bothflow.json"
     PARAMS = _SPIDER_PARAMS
 
@@ -355,62 +233,30 @@ class SpiderOverlayProvider(_SpiderBase):
         link_id = (params.get("link_id") or "").strip()
         if not link_id:
             return {"error": "link_id parameter is required"}
-
-        person_filter, household_join, time_filter, bind_persons, bind_time = \
+        person_clauses, poly_join, poly_bind, hh_join, time_filter, bind_persons, bind_time = \
             self._build_filters(params)
-
         con = _get_con()
-
-        query = f"""
-            WITH target_trips AS (
-                SELECT idx.person_id, idx.trip_index
-                FROM spider_link_index idx
-                INNER JOIN (
-                    SELECT CAST(p.person_id AS VARCHAR) AS person_id
-                    FROM persons p
-                    {household_join}
-                    WHERE 1=1
-                    {person_filter}
-                ) fp ON idx.person_id = fp.person_id
-                WHERE idx.link_id = ?
-                {time_filter}
-            ),
-            overlay AS (
-                SELECT idx2.link_id, COUNT(*)::INTEGER AS volume
-                FROM spider_link_index idx2
-                INNER JOIN target_trips tt
-                    ON idx2.person_id = tt.person_id
-                    AND idx2.trip_index = tt.trip_index
-                GROUP BY idx2.link_id
-            )
-            SELECT link_id, volume FROM overlay ORDER BY volume DESC
-        """
-
-        bind = bind_persons + [link_id] + bind_time
-
+        psubq = self._person_subquery(poly_join, hh_join, person_clauses)
+        bind = poly_bind + bind_persons + [link_id] + bind_time
         try:
-            rows = con.execute(query, bind).fetchall()
-            total_trips = con.execute(
-                f"""
-                SELECT COUNT(*)
-                FROM spider_link_index idx
-                INNER JOIN (
-                    SELECT CAST(p.person_id AS VARCHAR) AS person_id
-                    FROM persons p
-                    {household_join}
-                    WHERE 1=1
-                    {person_filter}
-                ) fp ON idx.person_id = fp.person_id
-                WHERE idx.link_id = ?
-                {time_filter}
-                """,
-                bind_persons + [link_id] + bind_time,
-            ).fetchone()[0]
+            rows = con.execute(f"""
+                WITH target_trips AS (
+                    SELECT idx.person_id, idx.trip_index FROM spider_link_index idx
+                    INNER JOIN ({psubq}) fp ON idx.person_id = fp.person_id
+                    WHERE idx.link_id = ? {time_filter}
+                )
+                SELECT idx2.link_id, COUNT(*)::INTEGER FROM spider_link_index idx2
+                INNER JOIN target_trips tt
+                  ON idx2.person_id = tt.person_id AND idx2.trip_index = tt.trip_index
+                GROUP BY idx2.link_id ORDER BY COUNT(*) DESC
+            """, bind).fetchall()
+            total = con.execute(f"""
+                SELECT COUNT(*) FROM spider_link_index idx
+                INNER JOIN ({psubq}) fp ON idx.person_id = fp.person_id
+                WHERE idx.link_id = ? {time_filter}
+            """, bind).fetchone()[0]
         except Exception as e:
             return {"error": str(e)}
 
-        return {
-            "target_link": link_id,
-            "total_trips": total_trips,
-            "links": {row[0]: row[1] for row in rows},
-        }
+        return {"target_link": link_id, "total_trips": int(total),
+                "links": {r[0]: int(r[1]) for r in rows}}

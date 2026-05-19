@@ -1,27 +1,35 @@
+"""Boarding data by line — served from the ``static_assets`` BLOB table.
+
+Phase 1: the v1 build leaves ``static_assets`` empty. We return ``{}``
+gracefully and rely on the upstream stage to backfill the JSON when PT
+data is available.
+"""
+
+from __future__ import annotations
+
 import json
-import os
 
 from .base import DataProvider, Param
-from .paths import get_data_paths
+from .connection import default_source, get_source_cursor
 
 
-# Per-dataset cache for boarding data
-_data_cache: dict[str, list] = {}
+_KEY = "boarding_data_by_line"
+
+
+def _load_static(con) -> list | None:
+    row = con.execute(
+        "SELECT payload FROM static_assets WHERE key = ?", [_KEY]
+    ).fetchone()
+    if not row or not row[0]:
+        return None
+    try:
+        data = json.loads(row[0])
+    except (TypeError, ValueError):
+        return None
+    return data
 
 
 class BoardingDataProvider(DataProvider):
-    """Boarding data by line, loaded from static JSON and filtered.
-
-    Query params:
-        canton     (str): Filter lines whose 'cantons' array contains this canton name.
-        vehicle    (str): Filter by vehicle type.
-        line_name  (str): Filter by line name (exact match).
-        line_id    (str): Filter by line ID (exact match).
-        time_range (str): Filter boarding time keys, e.g. "06:00-09:00".
-
-    Example: /data/boarding_data_by_line.json?canton=Zurich&time_range=06:00-09:00
-    """
-
     ROUTE = "boarding_data_by_line.json"
     PARAMS = [
         Param("canton", "Filter by canton name"),
@@ -31,76 +39,57 @@ class BoardingDataProvider(DataProvider):
         Param("time_range", "Filter boarding time keys, e.g. '06:00-09:00'"),
     ]
 
-    def _load(self) -> list:
-        paths = get_data_paths()
-        cache_key = paths.json_preview_dir
-        if cache_key not in _data_cache:
-            filepath = os.path.join(paths.json_preview_dir, "boarding_data_by_line.json")
-            with open(filepath, "r") as f:
-                _data_cache[cache_key] = json.load(f)
-        return _data_cache[cache_key]
-
     def deliver(self, params: dict) -> dict:
-        data = self._load()
+        src = default_source()
+        if not src:
+            return {"data": []}
+        try:
+            con = get_source_cursor(src)
+        except Exception:
+            return {"data": []}
+        data = _load_static(con)
+        if data is None:
+            return {"data": []}
 
+        entries = list(data.values()) if isinstance(data, dict) else list(data)
         canton = params.get("canton")
         vehicle = params.get("vehicle")
         line_name = params.get("line_name")
         line_id = params.get("line_id")
         time_range = params.get("time_range")
 
-        filtered = data
-        if isinstance(filtered, dict):
-            # If top-level is a dict, work with its values or return as-is
-            entries = list(filtered.values()) if not isinstance(filtered, list) else filtered
-        else:
-            entries = list(filtered)
-
         result = []
         for entry in entries:
             if not isinstance(entry, dict):
                 result.append(entry)
                 continue
-
-            if canton and "cantons" in entry:
-                cantons_list = entry["cantons"]
-                if isinstance(cantons_list, list) and canton not in cantons_list:
-                    continue
-
+            if canton and isinstance(entry.get("cantons"), list) and canton not in entry["cantons"]:
+                continue
             if vehicle and entry.get("vehicle") != vehicle:
                 continue
-
             if line_name and entry.get("line_name") != line_name:
                 continue
-
             if line_id and str(entry.get("line_id")) != str(line_id):
                 continue
-
             if time_range:
-                entry = self._filter_time_range(entry, time_range)
-
+                entry = _filter_time_range(entry, time_range)
             result.append(entry)
-
         return {"data": result}
 
-    @staticmethod
-    def _filter_time_range(entry: dict, time_range: str) -> dict:
-        """Filter boarding time keys within the given range (e.g. '06:00-09:00')."""
-        parts = time_range.split("-")
-        if len(parts) != 2:
-            return entry
-        start, end = parts[0].strip(), parts[1].strip()
 
-        filtered_entry = {}
-        for key, value in entry.items():
-            # Check if the key looks like a time (HH:MM format)
-            if isinstance(key, str) and len(key) == 5 and key[2] == ":":
-                try:
-                    if start <= key <= end:
-                        filtered_entry[key] = value
-                except (TypeError, ValueError):
-                    filtered_entry[key] = value
-            else:
-                filtered_entry[key] = value
-
-        return filtered_entry
+def _filter_time_range(entry: dict, time_range: str) -> dict:
+    parts = time_range.split("-")
+    if len(parts) != 2:
+        return entry
+    start, end = parts[0].strip(), parts[1].strip()
+    out = {}
+    for k, v in entry.items():
+        if isinstance(k, str) and len(k) == 5 and k[2] == ":":
+            try:
+                if start <= k <= end:
+                    out[k] = v
+            except (TypeError, ValueError):
+                out[k] = v
+        else:
+            out[k] = v
+    return out
