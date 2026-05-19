@@ -176,12 +176,13 @@ export default function useNetworkLayers({
       networkGeojson = await loadWithFallback(relativePath);
     } catch (error) {
       console.warn(`Failed to load network`, error);
-      // clear prop if failed
       setFeatureGeoJSON?.(null);
+      setIsLoading(false);
       return;
     }
     if (!networkGeojson) {
       setFeatureGeoJSON?.(null);
+      setIsLoading(false);
       return;
     }
     

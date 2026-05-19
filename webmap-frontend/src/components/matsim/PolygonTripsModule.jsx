@@ -18,12 +18,6 @@ const POLYGON_TRIPS_COLUMNS = [
     { key: 'total', title: 'Total', numeric: true },
 ];
 
-const ROUTE_CATEGORY_OPTIONS = [
-    { value: 'internal', label: 'Internal' },
-    { value: 'outbound', label: 'Outbound' },
-    { value: 'inbound', label: 'Inbound' },
-];
-
 const MODE_ORDER = ['car', 'pt', 'walk', 'bike', 'car_passenger', 'truck'];
 
 const orderModes = (modes) => {
@@ -33,15 +27,8 @@ const orderModes = (modes) => {
 };
 
 const PolygonTripsModule = ({ featureTableRef }) => {
-    const {
-        polygonTripsData, polygonTripsLoading,
-        showPolygonRoutes, setShowPolygonRoutes,
-        polygonRoutesData, polygonRoutesLoading,
-    } = useData();
-    const {
-        timeRange, setTimeRange,
-        polygonRoutesCategory, setPolygonRoutesCategory,
-    } = useFilters();
+    const { polygonTripsData, polygonTripsLoading } = useData();
+    const { timeRange, setTimeRange } = useFilters();
     const { mapRef, drawRef } = useMap();
     const { isGraphExpanded } = useModule();
 
@@ -104,37 +91,6 @@ const PolygonTripsModule = ({ featureTableRef }) => {
                 </div>
             ) : (
                 <>
-                    <div className="pt-routes-toggle">
-                        <label>
-                            <input
-                                type="checkbox"
-                                checked={showPolygonRoutes}
-                                onChange={(e) => setShowPolygonRoutes(e.target.checked)}
-                            />
-                            Show trip routes on map
-                            {showPolygonRoutes && polygonRoutesLoading && <span> · loading…</span>}
-                        </label>
-                        <span className="pt-routes-note">car only</span>
-                    </div>
-
-                    {showPolygonRoutes && (
-                        <div className="pt-direction-toggle">
-                            {ROUTE_CATEGORY_OPTIONS.map((opt) => {
-                                const count = polygonRoutesData?.category_totals?.[opt.value];
-                                return (
-                                    <button
-                                        key={opt.value}
-                                        className={`pt-direction-btn${polygonRoutesCategory === opt.value ? ' active' : ''}`}
-                                        onClick={() => setPolygonRoutesCategory(opt.value)}
-                                    >
-                                        {opt.label}
-                                        {count != null ? ` (${count.toLocaleString()})` : ''}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    )}
-
                     <div className="pt-totals-card">
                         <div className="pt-total-cell">
                             <span className="pt-total-label">Internal</span>

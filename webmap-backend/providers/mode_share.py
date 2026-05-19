@@ -79,7 +79,7 @@ class ModeShareProvider(DataProvider):
                         SELECT ST_Transform(ST_GeomFromGeoJSON('{geojson_str}'),
                                             'EPSG:4326', 'EPSG:2056', always_xy := true) AS geom
                     )
-                    SELECT {cols_sql} FROM trip_grid_origin_500m g, custom_poly
+                    SELECT {cols_sql} FROM trip_hex_origin_res9 g, custom_poly
                     WHERE ST_Intersects(g.cell_geom, custom_poly.geom)
                 """).fetchone()
                 vals = dict(zip(cols, row))
@@ -105,7 +105,7 @@ class ModeShareProvider(DataProvider):
                         if label != "All":
                             max_share[m] = max(max_share.get(m, 0.0), share)
 
-            sums = _sum_grid(con, "trip_grid_origin_500m", cols)
+            sums = _sum_grid(con, "trip_hex_origin_res9", cols)
             denom = sum(int(v or 0) for v in sums.values())
             if denom == 0:
                 # Source has no data — drop it entirely instead of emitting

@@ -124,21 +124,21 @@ def _polygon_area_km2(geojson_str: str) -> float:
 def pick_custom_grid(table: str, geojson_str: str, summary_grid: str) -> str:
     """Choose the appropriate grid table for a custom-polygon query.
 
-    For demo grids we have 100m / 500m / 5000m available.
-    For trip / out-of-home grids only 500m exists (the schema doesn't
-    pre-aggregate trip flows at 100m).
+    The v2 export ships H3 hex grids (res6 ≈ 36 km² cells, res9 ≈ 0.1 km²,
+    res12 ≈ 0.001 km²). Demo aggregates exist at all three resolutions;
+    trips and out-of-home only at res9.
     """
     if table == "hot_polygon_trips":
-        return "trip_grid_origin_500m"
+        return "trip_hex_origin_res9"
     if table == "hot_polygon_out_of_home":
-        return "out_of_home_grid_500m"
+        return "oh_hex_res9"
     if table == "hot_polygon_demo":
         area = _polygon_area_km2(geojson_str)
         if area < 1.0:
-            return "demo_grid_100m"
+            return "demo_hex_res12"
         if area < 100.0:
-            return "demo_grid_500m"
-        return "demo_grid_5000m"
+            return "demo_hex_res9"
+        return "demo_hex_res6"
     return summary_grid
 
 
@@ -261,7 +261,7 @@ def build_share_response(
     polygon_ids: list[str],
     column_to_bin: dict[str, str],
     table: str = "hot_polygon_demo",
-    summary_grid: str = "demo_grid_5000m",
+    summary_grid: str = "demo_hex_res6",
     bin_order: list[str] | None = None,
     round_digits: int | None = None,
     include_all: bool = True,
@@ -349,7 +349,7 @@ def build_share_response(
 
     # "All" rollup — sum across the whole dataset (not just selected polygons).
     # Skip a source entirely when its summary grid is empty (e.g. microcensus
-    # in a build that didn't populate demo_grid_*).
+    # in a build that didn't populate demo_hex_*).
     if include_all:
         for source in sources:
             try:
@@ -380,7 +380,7 @@ def build_count_response(
     polygon_ids: list[str],
     column_to_bin: dict[str, str],
     table: str = "hot_polygon_demo",
-    summary_grid: str = "demo_grid_5000m",
+    summary_grid: str = "demo_hex_res6",
     include_all: bool = True,
 ) -> dict:
     """Like build_share_response but returns absolute counts, not shares."""

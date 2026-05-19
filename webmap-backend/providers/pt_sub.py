@@ -108,7 +108,7 @@ class PtSubProvider(DataProvider):
                     num = float(vals.get(SUB_COL[s], 0) or 0)
                     entry[SUB_LABELS[s]] = round(num / denom, 16) if denom > 0 else 0.0
 
-            sums = _sum_grid(con, "demo_grid_5000m", cols)
+            sums = _sum_grid(con, "demo_hex_res6", cols)
             denom = float(sums.get("n_persons", 0) or 0)
             if denom == 0:
                 continue

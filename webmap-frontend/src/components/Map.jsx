@@ -15,8 +15,6 @@ import useNodeFlowLayers from './map/useNodeFlowLayers';
 import useLinkSpeedsLayers from './map/useLinkSpeedsLayers';
 import useZoneFlowLayers from './map/useZoneFlowLayers';
 import usePolygonTrips from './map/usePolygonTrips';
-import usePolygonTripRoutes from './map/usePolygonTripRoutes';
-import usePolygonTripLayers from './map/usePolygonTripLayers';
 import useDrawTools from './map/useDrawTools';
 import { useModule } from '../context/ModuleContext';
 import { useMap } from '../context/MapContext';
@@ -249,9 +247,6 @@ export default function Map() {
 
   // Polygon Trips (in/out/within mode summary for a drawn polygon)
   usePolygonTrips({ mapRef, mapReady });
-  // Polygon trip route data (car-only) + map rendering (3 colored layers)
-  usePolygonTripRoutes({ mapRef, mapReady });
-  usePolygonTripLayers({ mapRef, mapReady });
 
   // Combined feature selection focus for both network and transit (uses shared network-highlight)
   // Determine which query/modes to use based on current module

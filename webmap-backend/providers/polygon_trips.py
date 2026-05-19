@@ -6,9 +6,9 @@ Categories:
   - inbound:  start outside polygon, end inside
   - internal: both endpoints inside the polygon
 
-Coordinate system: the polygon is supplied in WGS84 (lng/lat), trip endpoints
-are stored in CH1903+/LV95 (EPSG:2056). DuckDB's spatial extension reprojects
-the polygon once per request.
+Coordinate system: the polygon is supplied in WGS84 (lng/lat). Trip endpoints
+in the duckdb `trips` table are already stored as GEOMETRY in CH1903+/LV95
+(EPSG:2056); the spatial extension reprojects the polygon once per request.
 
 Query params
 ------------
@@ -16,36 +16,14 @@ polygon       (str, required) : Polygon ring as "lng,lat;lng,lat;..." (closed
                                 or open — the ring is auto-closed).
 minute_start  (int, 0-1440)   : Departure time window start (minutes from midnight).
 minute_end    (int, 0-1440)   : Departure time window end (minutes from midnight).
+source        (str)           : "synthetic" (default) or "microcensus".
 """
 
 from __future__ import annotations
 
-import threading
-
-import duckdb
-
 from .base import DataProvider, Param
-from .paths import get_data_paths
+from .connection import get_source_cursor
 
-
-# ─── Per-dataset DuckDB connections (in-memory, spatial loaded) ────────
-
-_connections: dict[str, duckdb.DuckDBPyConnection] = {}
-_connections_lock = threading.Lock()
-
-
-def _get_con(parquet_path: str) -> duckdb.DuckDBPyConnection:
-    """Return a thread-safe cursor on a connection with spatial loaded."""
-    with _connections_lock:
-        if parquet_path not in _connections:
-            con = duckdb.connect()
-            con.execute("INSTALL spatial; LOAD spatial;")
-            con.execute("SET memory_limit = '4GB'")
-            _connections[parquet_path] = con
-        return _connections[parquet_path].cursor()
-
-
-# ─── Helpers ──────────────────────────────────────────────────────────
 
 def _parse_polygon(raw: str) -> str | None:
     """Convert "lng,lat;lng,lat;..." into a WGS84 POLYGON WKT, or None on bad input."""
@@ -71,12 +49,11 @@ def _parse_polygon(raw: str) -> str | None:
     return f"POLYGON(({inner}))"
 
 
-# ─── Provider ─────────────────────────────────────────────────────────
-
 _PARAMS = [
     Param("polygon", "Polygon ring as 'lng,lat;lng,lat;...' (WGS84)", required=True),
     Param("minute_start", "Departure window start (minutes from midnight)", param_type="integer"),
     Param("minute_end", "Departure window end (minutes from midnight)", param_type="integer"),
+    Param("source", "'synthetic' (default) or 'microcensus'"),
 ]
 
 
@@ -94,108 +71,79 @@ class PolygonTripsProvider(DataProvider):
         if not wkt:
             return {"error": "polygon parameter is required as 'lng,lat;lng,lat;...' with at least 3 points"}
 
-        # Optional time window on dep_time (string "HH:MM:SS" in output_trips.parquet)
+        source = (params.get("source") or "synthetic").lower()
+        if source in ("syn",):
+            source = "synthetic"
+        if source in ("mc",):
+            source = "microcensus"
+        if source not in ("synthetic", "microcensus"):
+            return {"error": f"unknown source: {source!r}"}
+
+        # Optional departure-time window. `trips.departure_time` is DOUBLE
+        # seconds-from-midnight in the new duckdb schema.
         time_clauses: list[str] = []
         time_bind: list = []
         for key, op in (("minute_start", ">="), ("minute_end", "<")):
             v = params.get(key)
             if v is not None and v != "":
                 try:
-                    time_clauses.append(f"AND trip_seconds {op} ?")
+                    time_clauses.append(f"AND departure_time {op} ?")
                     time_bind.append(float(int(v) * 60))
                 except ValueError:
                     pass
         time_filter = "\n            ".join(time_clauses)
 
-        parquet_path = get_data_paths().synthetic_output_trips
-        con = _get_con(parquet_path)
+        cur = get_source_cursor(source)
 
-        # Bounding-box pre-filter pushes ~99% of rows out before ST_Within runs.
-        # Without it the query takes ~13s; with it ~0.3s on 297k trips.
-        if time_filter:
-            query = f"""
-                WITH poly AS (
-                    SELECT ST_Transform(ST_GeomFromText(?),
-                                        'EPSG:4326', 'EPSG:2056',
-                                        always_xy := true) AS geom
-                ),
-                poly_bbox AS (
-                    SELECT geom,
-                           ST_XMin(geom) AS xmin, ST_XMax(geom) AS xmax,
-                           ST_YMin(geom) AS ymin, ST_YMax(geom) AS ymax
-                    FROM poly
-                ),
-                trips_with_time AS (
-                    SELECT *,
-                        CASE WHEN dep_time LIKE '%:%' THEN
-                            TRY_CAST(SPLIT_PART(dep_time, ':', 1) AS DOUBLE) * 3600 +
-                            TRY_CAST(SPLIT_PART(dep_time, ':', 2) AS DOUBLE) * 60 +
-                            TRY_CAST(SPLIT_PART(dep_time, ':', 3) AS DOUBLE)
-                        ELSE NULL END AS trip_seconds
-                    FROM read_parquet(?)
-                ),
-                classified AS (
-                    SELECT main_mode,
-                        CASE WHEN start_x BETWEEN p.xmin AND p.xmax
-                              AND start_y BETWEEN p.ymin AND p.ymax
-                             THEN ST_Within(ST_Point(start_x, start_y), p.geom)
-                             ELSE FALSE END AS start_in,
-                        CASE WHEN end_x BETWEEN p.xmin AND p.xmax
-                              AND end_y BETWEEN p.ymin AND p.ymax
-                             THEN ST_Within(ST_Point(end_x, end_y), p.geom)
-                             ELSE FALSE END AS end_in
-                    FROM trips_with_time t, poly_bbox p
-                    WHERE 1=1
-                    {time_filter}
-                )
+        # Bounding-box pre-filter via ST_X/ST_Y narrows ~99% of trips out
+        # before ST_Within runs. Without it the full ST_Within scan is ~slow
+        # at ~300k rows; with it the query is sub-second.
+        query = f"""
+            WITH poly AS (
+                SELECT ST_Transform(ST_GeomFromText(?),
+                                    'EPSG:4326', 'EPSG:2056',
+                                    always_xy := true) AS geom
+            ),
+            poly_bbox AS (
+                SELECT geom,
+                       ST_XMin(geom) AS xmin, ST_XMax(geom) AS xmax,
+                       ST_YMin(geom) AS ymin, ST_YMax(geom) AS ymax
+                FROM poly
+            ),
+            trips_in_bbox AS (
                 SELECT main_mode,
-                       SUM(CASE WHEN start_in AND NOT end_in THEN 1 ELSE 0 END)::INTEGER AS outbound,
-                       SUM(CASE WHEN NOT start_in AND end_in THEN 1 ELSE 0 END)::INTEGER AS inbound,
-                       SUM(CASE WHEN start_in AND end_in     THEN 1 ELSE 0 END)::INTEGER AS internal
-                FROM classified
-                WHERE start_in OR end_in
-                GROUP BY main_mode
-                ORDER BY main_mode
-            """
-            bind = [wkt, parquet_path] + time_bind
-        else:
-            query = """
-                WITH poly AS (
-                    SELECT ST_Transform(ST_GeomFromText(?),
-                                        'EPSG:4326', 'EPSG:2056',
-                                        always_xy := true) AS geom
-                ),
-                poly_bbox AS (
-                    SELECT geom,
-                           ST_XMin(geom) AS xmin, ST_XMax(geom) AS xmax,
-                           ST_YMin(geom) AS ymin, ST_YMax(geom) AS ymax
-                    FROM poly
-                ),
-                classified AS (
-                    SELECT main_mode,
-                        CASE WHEN start_x BETWEEN p.xmin AND p.xmax
-                              AND start_y BETWEEN p.ymin AND p.ymax
-                             THEN ST_Within(ST_Point(start_x, start_y), p.geom)
-                             ELSE FALSE END AS start_in,
-                        CASE WHEN end_x BETWEEN p.xmin AND p.xmax
-                              AND end_y BETWEEN p.ymin AND p.ymax
-                             THEN ST_Within(ST_Point(end_x, end_y), p.geom)
-                             ELSE FALSE END AS end_in
-                    FROM read_parquet(?) t, poly_bbox p
-                )
+                       ST_X(origin_pt) AS ox, ST_Y(origin_pt) AS oy,
+                       ST_X(dest_pt)   AS dx, ST_Y(dest_pt)   AS dy,
+                       origin_pt, dest_pt
+                FROM trips
+                WHERE 1=1
+                {time_filter}
+            ),
+            classified AS (
                 SELECT main_mode,
-                       SUM(CASE WHEN start_in AND NOT end_in THEN 1 ELSE 0 END)::INTEGER AS outbound,
-                       SUM(CASE WHEN NOT start_in AND end_in THEN 1 ELSE 0 END)::INTEGER AS inbound,
-                       SUM(CASE WHEN start_in AND end_in     THEN 1 ELSE 0 END)::INTEGER AS internal
-                FROM classified
-                WHERE start_in OR end_in
-                GROUP BY main_mode
-                ORDER BY main_mode
-            """
-            bind = [wkt, parquet_path]
+                    CASE WHEN ox BETWEEN p.xmin AND p.xmax
+                          AND oy BETWEEN p.ymin AND p.ymax
+                         THEN ST_Within(origin_pt, p.geom)
+                         ELSE FALSE END AS start_in,
+                    CASE WHEN dx BETWEEN p.xmin AND p.xmax
+                          AND dy BETWEEN p.ymin AND p.ymax
+                         THEN ST_Within(dest_pt, p.geom)
+                         ELSE FALSE END AS end_in
+                FROM trips_in_bbox t, poly_bbox p
+            )
+            SELECT main_mode,
+                   SUM(CASE WHEN start_in AND NOT end_in THEN 1 ELSE 0 END)::INTEGER AS outbound,
+                   SUM(CASE WHEN NOT start_in AND end_in THEN 1 ELSE 0 END)::INTEGER AS inbound,
+                   SUM(CASE WHEN start_in AND end_in     THEN 1 ELSE 0 END)::INTEGER AS internal
+            FROM classified
+            WHERE start_in OR end_in
+            GROUP BY main_mode
+            ORDER BY main_mode
+        """
+        bind = [wkt] + time_bind
 
         try:
-            rows = con.execute(query, bind).fetchall()
+            rows = cur.execute(query, bind).fetchall()
         except Exception as e:
             return {"error": str(e)}
 
