@@ -39,6 +39,7 @@ const ZoneFlowsModule = () => {
 
     const sameCanton = zoneFlowOriginCanton && zoneFlowOriginCanton === zoneFlowDestCanton;
     const totalTrips = zoneFlowData?.total_trips ?? null;
+    const flowError = zoneFlowData?.error ?? null;
     const linkCount = zoneFlowData?.links_by_canton
         ? Object.values(zoneFlowData.links_by_canton).reduce((sum, m) => sum + Object.keys(m).length, 0)
         : 0;
@@ -154,7 +155,12 @@ const ZoneFlowsModule = () => {
                             </tr>
                         </tbody>
                     </table>
-                    {!zoneFlowLoading && totalTrips === 0 && (
+                    {!zoneFlowLoading && flowError && (
+                        <p className="hint" style={{ marginTop: 10, color: '#c0392b' }}>
+                            Could not load flows: {flowError}
+                        </p>
+                    )}
+                    {!zoneFlowLoading && !flowError && totalTrips === 0 && (
                         <p className="hint" style={{ marginTop: 10 }}>
                             No trips matched these filters.
                         </p>
