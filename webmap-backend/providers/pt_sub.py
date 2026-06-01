@@ -19,6 +19,8 @@ from .helpers import (
 )
 from ._pre_agg import (
     label_for,
+    make_label_resolver,
+    polygon_filter_clause,
     resolve_polygon_ids,
     _select_hot_row,
     _sum_grid,
@@ -128,19 +130,22 @@ class PtSubProvider(DataProvider):
             except Exception:
                 continue
             if polygon_ids:
-                placeholders = ",".join(["?"] * len(polygon_ids))
+                # Use the shared polygon filter: canton_id fast-path for
+                # cantons (consistent with every other provider, ~100x faster
+                # than ST_Within), spatial join only for gemeinde/custom.
+                join, where, group_expr, bind_poly, _ = polygon_filter_clause(polygon_ids)
+                resolve = make_label_resolver(
+                    con, polygon_ids, all(p.startswith("canton:") for p in polygon_ids)
+                )
                 rows = con.execute(f"""
-                    SELECT hp.polygon_id, COUNT(*) AS total, {_sub_sum_sql('p')}
-                    FROM persons p
-                    JOIN hot_polygons hp ON hp.polygon_id IN ({placeholders})
-                       AND ST_Within(p.home_pt, hp.polygon_geom)
-                    WHERE 1=1{gf}{af}
-                    GROUP BY hp.polygon_id
-                """, polygon_ids).fetchall()
-                meta = get_hot_polygon_meta(con, polygon_ids)
+                    SELECT {group_expr} AS gkey, COUNT(*) AS total, {_sub_sum_sql('p')}
+                    FROM persons p {join}
+                    WHERE 1=1{where}{gf}{af}
+                    GROUP BY {group_expr}
+                """, bind_poly).fetchall()
                 for r in rows:
-                    pid = r[0]; total = float(r[1] or 0)
-                    label = label_for(pid, meta)
+                    total = float(r[1] or 0)
+                    label = resolve(r[0])
                     entry = out.setdefault(label, {}).setdefault(_source_label(source), {})
                     for i, s in enumerate(SUBS):
                         num = float(r[2 + i] or 0)
@@ -224,25 +229,26 @@ class PtSubProvider(DataProvider):
             overall_totals = defaultdict(int)
 
             if polygon_ids:
-                placeholders = ",".join(["?"] * len(polygon_ids))
+                # canton_id fast-path for cantons (consistent with every other
+                # provider, ~100x faster than ST_Within); spatial only otherwise.
+                pjoin, pwhere, group_expr, bind_poly, _ = polygon_filter_clause(polygon_ids)
+                resolve = make_label_resolver(
+                    con, polygon_ids, all(p.startswith("canton:") for p in polygon_ids)
+                )
                 rows = con.execute(f"""
-                    SELECT hp.polygon_id, {grp_sql} AS grp, COUNT(*) AS total, {_sub_sum_sql('p')}
-                    FROM persons p
+                    SELECT {group_expr} AS gkey, {grp_sql} AS grp, COUNT(*) AS total, {_sub_sum_sql('p')}
+                    FROM persons p {pjoin}
                     {join_clause}
-                    JOIN hot_polygons hp ON hp.polygon_id IN ({placeholders})
-                       AND ST_Within(p.home_pt, hp.polygon_geom)
-                    WHERE 1=1{grp_filter}{extra_where}
-                    GROUP BY hp.polygon_id, grp
-                """, polygon_ids).fetchall()
-                meta = get_hot_polygon_meta(con, polygon_ids)
+                    WHERE 1=1{pwhere}{grp_filter}{extra_where}
+                    GROUP BY {group_expr}, grp
+                """, bind_poly).fetchall()
                 seen_grps = set()
                 for r in rows:
-                    pid = r[0]
                     grp = grp_label_fn(r[1]) if r[1] is not None else None
                     if grp is None:
                         continue
                     seen_grps.add(grp)
-                    label = label_for(pid, meta)
+                    label = resolve(r[0])
                     totals[(label, grp)] += int(r[2] or 0)
                     overall_totals[label] += int(r[2] or 0)
                     for i, s in enumerate(SUBS):
