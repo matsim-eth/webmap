@@ -52,7 +52,11 @@ class MunicipalitiesProvider(DataProvider):
         return data
 
     def deliver(self, params: dict) -> dict:
-        data = self._load()
+        try:
+            data = self._load()
+        except FileNotFoundError:
+            return {"error": "municipalities.geojson not available in this dataset "
+                             "(json_preview assets were not built)"}
 
         cantons_param = params.get("cantons")
         if not cantons_param:

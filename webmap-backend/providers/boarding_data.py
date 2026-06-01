@@ -41,7 +41,11 @@ class BoardingDataProvider(DataProvider):
         return _data_cache[cache_key]
 
     def deliver(self, params: dict) -> dict:
-        data = self._load()
+        try:
+            data = self._load()
+        except FileNotFoundError:
+            return {"error": "boarding_data_by_line.json not available in this dataset "
+                             "(json_preview assets were not built)"}
 
         canton = params.get("canton")
         vehicle = params.get("vehicle")

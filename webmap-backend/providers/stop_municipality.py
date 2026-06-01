@@ -41,7 +41,11 @@ class StopMunicipalityProvider(DataProvider):
         return data
 
     def deliver(self, params: dict) -> dict:
-        data = self._load()
+        try:
+            data = self._load()
+        except FileNotFoundError:
+            return {"error": "stop_municipality.json not available in this dataset "
+                             "(json_preview assets were not built)"}
 
         cantons_param = params.get("cantons")
         if not cantons_param:

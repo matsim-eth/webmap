@@ -38,7 +38,11 @@ class StopTransferDataProvider(DataProvider):
         return StopTransferDataProvider._data
 
     def deliver(self, params: dict) -> dict:
-        data = self._load()
+        try:
+            data = self._load()
+        except FileNotFoundError:
+            return {"error": "stop_transfer_data_by_canton.json not available in this dataset "
+                             "(json_preview assets were not built)"}
 
         canton_param = params.get("canton")
         min_boardings = None
