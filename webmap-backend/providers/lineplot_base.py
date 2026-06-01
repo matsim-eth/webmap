@@ -50,6 +50,69 @@ def _distance_ticks(max_value: float):
     return tick_labels, tick_vals
 
 
+def assemble_from_counts(
+    *,
+    counts: dict,
+    bin_totals: dict,
+    source_names: list,
+    seen_labels: set,
+    seen_groups: set,
+    group_key: str,
+    num_bins: int,
+    bin_width: float,
+    max_value: float,
+    tick_fn: str,
+    summary_only: bool = False,
+):
+    """Build the lineplot JSON from PRE-BINNED counts (computed in SQL).
+
+    ``counts[(source, label, bin_index, group_value)] = count`` and
+    ``bin_totals[(source, label, bin_index)] = count``. This is the
+    memory-efficient counterpart to :func:`build_lineplot`: the per-trip
+    binning is done in DuckDB, so only the bounded (label × group × bin)
+    aggregates ever reach Python. Output is byte-for-byte identical to
+    ``build_lineplot`` for the same data.
+    """
+    sorted_groups = sorted(seen_groups)
+    bin_labels = []
+    bin_midpoints = []
+    for bi in range(num_bins):
+        lo = bi * bin_width
+        hi = (bi + 1) * bin_width
+        bin_labels.append(f"{lo:.1f}-{hi:.1f}")
+        bin_midpoints.append((lo + hi) / 2.0)
+
+    if tick_fn == "departure_time":
+        tick_labels, tick_vals = _departure_time_ticks(max_value)
+    else:
+        tick_labels, tick_vals = _distance_ticks(max_value)
+
+    result: dict = {}
+    label_list = ["All"] if summary_only else ["All"] + sorted(seen_labels)
+    for label in label_list:
+        block: dict = {}
+        for source_name in source_names:
+            records = []
+            for bi in range(num_bins):
+                bt = bin_totals.get((source_name, label, bi), 0.0)
+                for gv in sorted_groups:
+                    cnt = counts.get((source_name, label, bi, gv), 0.0)
+                    pct = (cnt / bt * 100.0) if bt > 0 else 0.0
+                    records.append({
+                        "variable_bin": bin_labels[bi],
+                        group_key: gv,
+                        "count": cnt,
+                        "percentage": pct,
+                        "variable_midpoint": bin_midpoints[bi],
+                    })
+            block[source_name] = records
+        block["tick_labels"] = tick_labels
+        block["tick_vals"] = tick_vals
+        block["max_value"] = max_value
+        result[label] = block
+    return result
+
+
 def build_lineplot(
     *,
     microcensus_rows=None,

@@ -1,8 +1,18 @@
 """Distance histogram per polygon, grouped by mode or purpose.
 
-Always raw scan (we need the raw values to bucket them). With the R-tree
-spatial index on persons.home_pt and the indexed JOIN onto hot_polygons,
-this is fast enough at 10M scale.
+Two SQL passes keep memory flat at country scale (never one Python row per
+trip):
+
+  1. **Aggregates** — per (polygon, group, source): count, mean, q1, q3, max
+     via ``quantile_cont``. From these we derive each group's IQR-based bin
+     width and bin count (exactly as the legacy code did from the raw sorted
+     values).
+  2. **Bin counts** — the per-group bin width/count are fed back as a small
+     ``VALUES`` table and joined, so DuckDB buckets the trips with
+     ``FLOOR(dist / bin_width)`` and returns only the bounded
+     (polygon × group × bin) counts.
+
+Output is identical to the previous raw-fetch implementation.
 """
 
 from __future__ import annotations
@@ -12,14 +22,13 @@ from .connection import get_source_cursor
 from .helpers import (
     age_filter_sql,
     gender_filter_sql,
-    get_hot_polygon_meta,
     has_person_filters,
     is_summary_only,
     mode_filter_sql,
     parse_source_param,
     purpose_filter_sql,
 )
-from ._pre_agg import label_for, polygon_filter_clause, make_label_resolver, resolve_polygon_ids, _source_label
+from ._pre_agg import make_label_resolver, polygon_filter_clause, resolve_polygon_ids, _source_label
 
 
 _DIST_COLS = {
@@ -28,28 +37,9 @@ _DIST_COLS = {
 }
 
 
-def _compute_hist(values, bin_width, total_bins):
-    n = len(values)
-    if n == 0:
-        return [0.0] * total_bins, 0.0, 0
-    counts = [0] * total_bins
-    total = 0.0
-    for v in values:
-        idx = int(v / bin_width) if bin_width > 0 else 0
-        if idx >= total_bins:
-            idx = total_bins - 1
-        counts[idx] += 1
-        total += v
-    return [(c / n) * 100.0 for c in counts], total / n, n
-
-
-def _quantile(sorted_vals, q):
-    if not sorted_vals:
-        return 0.0
-    idx = q * (len(sorted_vals) - 1)
-    lo = int(idx); hi = min(lo + 1, len(sorted_vals) - 1)
-    frac = idx - lo
-    return sorted_vals[lo] * (1 - frac) + sorted_vals[hi] * frac
+def _sql_str(v) -> str:
+    """Escape a value for inline use in a VALUES literal."""
+    return "'" + str(v).replace("'", "''") + "'"
 
 
 class HistogramDistanceProvider(DataProvider):
@@ -102,9 +92,83 @@ class HistogramDistanceProvider(DataProvider):
         con0 = get_source_cursor(sources[0])
         polygon_ids = [] if summary else resolve_polygon_ids(con0, params, default_type="canton")
 
-        # raw[(label, group, source)] = [distances]
-        raw: dict[tuple[str, str, str], list[float]] = {}
+        base_where = f"{grp_col} IS NOT NULL AND {dist_col} IS NOT NULL"
 
+        # agg[(label, grp, slabel)] = {"n":, "mean":, "q1":, "q3":, "mx":}
+        agg: dict[tuple[str, str, str], dict] = {}
+        # gkeys[(label, grp, source)] = raw SQL group key (for the bin-count pass)
+        gkeys: dict[tuple[str, str, str], object] = {}
+
+        for source in sources:
+            try:
+                con = get_source_cursor(source)
+            except Exception:
+                continue
+            slabel = _source_label(source)
+
+            # ── Pass 1: aggregates ──────────────────────────────────────────
+            if polygon_ids:
+                join, where, group_expr, bind, _ = polygon_filter_clause(polygon_ids)
+                resolve = make_label_resolver(con, polygon_ids,
+                                               all(p.startswith("canton:") for p in polygon_ids))
+                rows = con.execute(f"""
+                    SELECT {group_expr} AS gkey, {grp_col} AS grp,
+                           count(*) AS n, avg({dist_col}) AS mean,
+                           quantile_cont({dist_col}, 0.25) AS q1,
+                           quantile_cont({dist_col}, 0.75) AS q3,
+                           max({dist_col}) AS mx
+                    FROM trips t JOIN persons p ON p.person_id = t.person_id
+                    {join}
+                    WHERE {base_where} {where}{gf}{af}{mf}{pf}
+                    GROUP BY {group_expr}, {grp_col}
+                """, bind).fetchall()
+                for gkey, grp, n, mean, q1, q3, mx in rows:
+                    label = resolve(gkey)
+                    k = (label, str(grp), slabel)
+                    agg[k] = {"n": n, "mean": mean, "q1": q1, "q3": q3, "mx": mx}
+                    gkeys[(label, str(grp), source)] = gkey
+
+            join_all = "JOIN persons p ON p.person_id = t.person_id" if person_join_needed else ""
+            rows_all = con.execute(f"""
+                SELECT {grp_col} AS grp, count(*) AS n, avg({dist_col}) AS mean,
+                       quantile_cont({dist_col}, 0.25) AS q1,
+                       quantile_cont({dist_col}, 0.75) AS q3,
+                       max({dist_col}) AS mx
+                FROM trips t {join_all}
+                WHERE {base_where} {gf}{af}{mf}{pf}
+                GROUP BY {grp_col}
+            """).fetchall()
+            for grp, n, mean, q1, q3, mx in rows_all:
+                agg[("All", str(grp), slabel)] = {"n": n, "mean": mean, "q1": q1, "q3": q3, "mx": mx}
+
+        # ── Derive per (label, grp) bin width / count (legacy formulas) ──────
+        # binparams[(label, grp)] = (bin_width, total_bins, bins)
+        binparams: dict[tuple[str, str], tuple] = {}
+        labels = sorted({k[0] for k in agg.keys()})
+        for label in labels:
+            for grp in sorted({k[1] for k in agg.keys() if k[0] == label}):
+                s = agg.get((label, grp, "Synthetic"))
+                m = agg.get((label, grp, "Microcensus"))
+                if not s and not m:
+                    continue
+                if s:
+                    q1, q3 = s["q1"], s["q3"]
+                    range_max = q3 + max_iqr * (q3 - q1)
+                    bin_width = range_max / num_bins if range_max > 0 else 1.0
+                else:
+                    bin_width = (m["mx"] / num_bins) if (m and m["mx"] and m["mx"] > 0) else 1.0
+                if bin_width <= 0:
+                    continue
+                all_max = max(s["mx"] if s else 0, m["mx"] if m else 0)
+                if max_distance_cap and max_distance_cap > 0:
+                    all_max = min(all_max, max_distance_cap)
+                total_bins = max(num_bins, int(all_max / bin_width) + 1)
+                bins = [round(i * bin_width, 2) for i in range(total_bins + 1)]
+                binparams[(label, grp)] = (bin_width, total_bins, bins)
+
+        # ── Pass 2: bin counts via VALUES join (per source) ─────────────────
+        # histcounts[(label, grp, slabel)] = {bin_index: count}
+        histcounts: dict[tuple[str, str, str], dict] = {}
         for source in sources:
             try:
                 con = get_source_cursor(source)
@@ -115,66 +179,81 @@ class HistogramDistanceProvider(DataProvider):
             # Per-polygon
             if polygon_ids:
                 join, where, group_expr, bind, _ = polygon_filter_clause(polygon_ids)
-                resolve = make_label_resolver(con, polygon_ids,
-                                               all(p.startswith("canton:") for p in polygon_ids))
-                rows = con.execute(f"""
-                    SELECT {group_expr} AS poly_key, {grp_col} AS grp, {dist_col} AS dist
-                    FROM trips t
-                    JOIN persons p ON p.person_id = t.person_id
-                    {join}
-                    WHERE {grp_col} IS NOT NULL AND {dist_col} IS NOT NULL
-                    {where}{gf}{af}{mf}{pf}
-                """, bind).fetchall()
-                for poly_key, grp, dist in rows:
-                    label = resolve(poly_key)
-                    raw.setdefault((label, str(grp), slabel), []).append(float(dist))
+                vals = []
+                for (label, grp), (bw, tb, _b) in binparams.items():
+                    if label == "All":
+                        continue
+                    gk = gkeys.get((label, grp, source))
+                    if gk is None:
+                        continue
+                    gk_lit = gk if isinstance(gk, (int, float)) else _sql_str(gk)
+                    vals.append(f"({gk_lit}, {_sql_str(grp)}, {bw}, {tb})")
+                if vals:
+                    values_sql = ", ".join(vals)
+                    rows = con.execute(f"""
+                        WITH w(gkey, grp, bw, tb) AS (VALUES {values_sql})
+                        SELECT {group_expr} AS gkey, {grp_col} AS grp,
+                               LEAST(CAST(FLOOR({dist_col} / w.bw) AS INTEGER), w.tb - 1) AS bin,
+                               count(*) AS c
+                        FROM trips t JOIN persons p ON p.person_id = t.person_id
+                        {join}
+                        JOIN w ON w.gkey = {group_expr} AND w.grp = {grp_col}
+                        WHERE {base_where} {where}{gf}{af}{mf}{pf}
+                        GROUP BY {group_expr}, {grp_col}, bin
+                    """, bind).fetchall()
+                    resolve = make_label_resolver(con, polygon_ids,
+                                                   all(p.startswith("canton:") for p in polygon_ids))
+                    for gkey, grp, b, c in rows:
+                        histcounts.setdefault((resolve(gkey), str(grp), slabel), {})[b] = c
 
             # "All" rollup
-            join = "JOIN persons p ON p.person_id = t.person_id" if person_join_needed else ""
-            rows_all = con.execute(f"""
-                SELECT {grp_col} AS grp, {dist_col} AS dist
-                FROM trips t
-                {join}
-                WHERE {grp_col} IS NOT NULL AND {dist_col} IS NOT NULL
-                {gf}{af}{mf}{pf}
-            """).fetchall()
-            for grp, dist in rows_all:
-                raw.setdefault(("All", str(grp), slabel), []).append(float(dist))
+            all_vals = []
+            for (label, grp), (bw, tb, _b) in binparams.items():
+                if label != "All":
+                    continue
+                all_vals.append(f"({_sql_str(grp)}, {bw}, {tb})")
+            if all_vals:
+                values_sql = ", ".join(all_vals)
+                join_all = "JOIN persons p ON p.person_id = t.person_id" if person_join_needed else ""
+                rows = con.execute(f"""
+                    WITH w(grp, bw, tb) AS (VALUES {values_sql})
+                    SELECT {grp_col} AS grp,
+                           LEAST(CAST(FLOOR({dist_col} / w.bw) AS INTEGER), w.tb - 1) AS bin,
+                           count(*) AS c
+                    FROM trips t {join_all}
+                    JOIN w ON w.grp = {grp_col}
+                    WHERE {base_where} {gf}{af}{mf}{pf}
+                    GROUP BY {grp_col}, bin
+                """).fetchall()
+                for grp, b, c in rows:
+                    histcounts.setdefault(("All", str(grp), slabel), {})[b] = c
 
-        # Reorganize: result[label][group] = {bins, hists, ...}
+        # ── Assemble output ─────────────────────────────────────────────────
+        def _hist(counts: dict, total_bins: int, n: int):
+            if not n:
+                return [0.0] * total_bins
+            return [(counts.get(b, 0) / n) * 100.0 for b in range(total_bins)]
+
         result: dict = {}
-        labels = sorted({k[0] for k in raw.keys()})
         for label in labels:
-            label_groups = sorted({k[1] for k in raw.keys() if k[0] == label})
             label_result: dict = {}
-            for grp in label_groups:
-                synth_vals = sorted(raw.get((label, grp, "Synthetic"), []))
-                micro_vals = raw.get((label, grp, "Microcensus"), [])
-                if not synth_vals and not micro_vals:
+            for grp in sorted({k[1] for k in agg.keys() if k[0] == label}):
+                if (label, grp) not in binparams:
                     continue
-                if synth_vals:
-                    q1 = _quantile(synth_vals, 0.25); q3 = _quantile(synth_vals, 0.75)
-                    range_max = q3 + max_iqr * (q3 - q1)
-                    bin_width = range_max / num_bins if range_max > 0 else 1.0
-                else:
-                    max_dist = max(micro_vals)
-                    bin_width = max_dist / num_bins if max_dist > 0 else 1.0
-                if bin_width <= 0:
-                    continue
-                all_max = max(max(synth_vals) if synth_vals else 0, max(micro_vals) if micro_vals else 0)
-                if max_distance_cap and max_distance_cap > 0:
-                    all_max = min(all_max, max_distance_cap)
-                total_bins = max(num_bins, int(all_max / bin_width) + 1)
-                bins = [round(i * bin_width, 2) for i in range(total_bins + 1)]
-                m_hist, m_mean, m_n = _compute_hist(micro_vals, bin_width, total_bins)
-                s_hist, s_mean, s_n = _compute_hist(synth_vals, bin_width, total_bins)
+                bin_width, total_bins, bins = binparams[(label, grp)]
+                s = agg.get((label, grp, "Synthetic"))
+                m = agg.get((label, grp, "Microcensus"))
+                s_n = s["n"] if s else 0
+                m_n = m["n"] if m else 0
+                s_hist = _hist(histcounts.get((label, grp, "Synthetic"), {}), total_bins, s_n)
+                m_hist = _hist(histcounts.get((label, grp, "Microcensus"), {}), total_bins, m_n)
                 label_result[grp] = {
                     "bin_width": bin_width,
                     "bins": bins,
                     "microcensus_histogram": m_hist,
                     "synthetic_histogram": s_hist,
-                    "microcensus_mean": round(m_mean, 6),
-                    "synthetic_mean": round(s_mean, 6),
+                    "microcensus_mean": round(m["mean"], 6) if m and m["mean"] is not None else 0.0,
+                    "synthetic_mean": round(s["mean"], 6) if s and s["mean"] is not None else 0.0,
                     "microcensus_sample_size": m_n,
                     "synthetic_sample_size": s_n,
                 }
