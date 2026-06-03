@@ -421,12 +421,19 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
                 }
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
             } catch (err) {
-                if (err.name !== 'AbortError') console.warn('Failed to fetch link speeds:', err);
+                if (err.name !== 'AbortError') {
+                    console.warn('Failed to fetch link speeds:', err);
+                    setIsLoading?.(false);  // stop the spinner on error (don't hang forever)
+                }
                 return;
             }
             const data = await res.json();
             if (cancelled) return;
-            if (data.error) { console.warn('Link speeds error:', data.error); return; }
+            if (data.error) {
+                console.warn('Link speeds error:', data.error);
+                setIsLoading?.(false);  // no link-speed data → clear loading instead of spinning forever
+                return;
+            }
             const allLinks = data.links || {};
             cacheRef.current = { key: cacheKey, links: allLinks };
             setLinksState({ key: cacheKey, links: allLinks });

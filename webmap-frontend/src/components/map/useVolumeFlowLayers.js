@@ -57,6 +57,11 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
     const lastClickRef = useRef(null); // { keys, feature }
     // Cache spider data per key + aggregated so link switching doesn't re-fetch
     const spiderCacheRef = useRef(null);
+    // Abort in-flight spider fetches when a new link is clicked. Each spider
+    // query is a multi-second scan of the 255M-row index; without cancelling,
+    // rapid clicking piles up dozens of concurrent heavy queries and saturates
+    // the backend.
+    const spiderAbortRef = useRef(null);
     // Ref to read current selectedLink without adding it to main effect deps
     const selectedLinkRef = useRef(volumeFlowSelectedLink);
     selectedLinkRef.current = volumeFlowSelectedLink;
@@ -250,15 +255,21 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
 
     // --- Fetch spider data for ALL keys, cache, then render for a selection ---
     const fetchAndCacheSpiders = useCallback(async (map, keys, feature, direction) => {
+        // Cancel any spider fetches still running from a previous click so they
+        // don't pile up on the backend.
+        if (spiderAbortRef.current) spiderAbortRef.current.abort();
+        const abort = new AbortController();
+        spiderAbortRef.current = abort;
+        const signal = abort.signal;
         try {
             // Fetch spider data for all keys in parallel
             const results = await Promise.all(
                 keys.map(async (key) => {
-                    let res = await fetch(`/backend/data/${datasetId}/spider_${direction}.json?link_id=${key}`);
+                    let res = await fetch(`/backend/data/${datasetId}/spider_${direction}.json?link_id=${key}`, { signal });
                     if (res.status === 401) {
                       const refreshed = await handle401();
                       if (!refreshed) return { key, total_trips: 0, spiderMap: new Map() };
-                      res = await fetch(`/backend/data/${datasetId}/spider_${direction}.json?link_id=${key}`);
+                      res = await fetch(`/backend/data/${datasetId}/spider_${direction}.json?link_id=${key}`, { signal });
                     }
                     if (!res.ok) throw new Error(`HTTP ${res.status}`);
                     const spider = await res.json();
@@ -301,6 +312,8 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
 
             return cache;
         } catch (err) {
+            // Superseded by a newer click → not an error, just stop quietly.
+            if (err?.name === 'AbortError') return null;
             console.error('Failed to fetch spider data:', err);
             return null;
         }

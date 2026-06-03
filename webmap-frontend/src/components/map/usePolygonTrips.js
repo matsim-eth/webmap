@@ -80,17 +80,18 @@ export default function usePolygonTrips({ mapRef, mapReady }) {
         // Debounce: vertex drags fire draw.update per pointermove. Wait until
         // the user pauses before issuing a request, and skip the loading flag
         // until then so the UI doesn't flicker mid-drag.
+        const abort = new AbortController();
         const timer = setTimeout(() => {
             const token = ++fetchTokenRef.current;
             setPolygonTripsLoading(true);
 
             (async () => {
                 try {
-                    let res = await fetch(url);
+                    let res = await fetch(url, { signal: abort.signal });
                     if (res.status === 401) {
                         const refreshed = await handle401();
                         if (!refreshed) return;
-                        res = await fetch(url);
+                        res = await fetch(url, { signal: abort.signal });
                     }
                     if (!res.ok) throw new Error(`HTTP ${res.status}`);
                     const data = await res.json();
@@ -102,6 +103,7 @@ export default function usePolygonTrips({ mapRef, mapReady }) {
                         setPolygonTripsData(data);
                     }
                 } catch (err) {
+                    if (err?.name === 'AbortError') return;
                     if (token !== fetchTokenRef.current) return;
                     console.error('Failed to fetch polygon_trips', err);
                     setPolygonTripsData(null);
@@ -111,7 +113,9 @@ export default function usePolygonTrips({ mapRef, mapReady }) {
             })();
         }, 150);
 
-        return () => clearTimeout(timer);
+        // Cleanup aborts the in-flight scan (and cancels a pending debounce) so
+        // a new polygon/time selection doesn't leave the old query running.
+        return () => { clearTimeout(timer); abort.abort(); };
     }, [mapReady, isGraphExpanded, polygons, timeRange, datasetId, setPolygonTripsData, setPolygonTripsLoading]);
 
     return null;

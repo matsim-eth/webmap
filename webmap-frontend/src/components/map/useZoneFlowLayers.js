@@ -297,17 +297,23 @@ export default function useZoneFlowLayers({ mapRef, mapReady, loadWithFallback, 
         const token = ++fetchTokenRef.current;
         setZoneFlowLoading(true);
 
+        // Abort the previous (heavy) zone_flows scan when params change, so a
+        // new canton/time selection doesn't leave the old query running on the
+        // backend (the token below already discards stale *results*; this also
+        // stops the wasted backend work).
+        const abort = new AbortController();
+
         const fetchFlows = async () => {
             const url = `/backend/data/${datasetId}/zone_flows.json?${params.toString()}`;
             try {
-                let res = await fetch(url);
+                let res = await fetch(url, { signal: abort.signal });
                 if (res.status === 401) {
                     const refreshed = await handle401();
                     if (!refreshed) {
                         if (token === fetchTokenRef.current) setZoneFlowLoading(false);
                         return;
                     }
-                    res = await fetch(url);
+                    res = await fetch(url, { signal: abort.signal });
                 }
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const data = await res.json();
@@ -320,6 +326,7 @@ export default function useZoneFlowLayers({ mapRef, mapReady, loadWithFallback, 
                 }
                 // Loading stays true here — EFFECT 3 clears it once the map idles.
             } catch (err) {
+                if (err?.name === 'AbortError') return;
                 if (token !== fetchTokenRef.current) return;
                 console.error('Failed to fetch zone_flows', err);
                 setZoneFlowData(null);
@@ -327,6 +334,7 @@ export default function useZoneFlowLayers({ mapRef, mapReady, loadWithFallback, 
             }
         };
         fetchFlows();
+        return () => abort.abort();
     }, [mapReady, mapRef, isGraphExpanded, zoneFlowOriginCanton, zoneFlowDestCanton, zoneFlowDirection, timeRange, datasetId, setZoneFlowData, setZoneFlowLoading]);
 
     // ── EFFECT 3: paint overlay whenever flow data changes ──

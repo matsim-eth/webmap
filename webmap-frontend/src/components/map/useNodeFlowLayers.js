@@ -134,6 +134,7 @@ export default function useNodeFlowLayers({ mapRef, mapReady, setIsLoading }) {
     const hoverHandlerRef = useRef(null);
     const leaveHandlerRef = useRef(null);
     const lastNodeRef = useRef(null);
+    const nodeAbortRef = useRef(null); // aborts the previous node_flows fetch
     const antIntervalRef = useRef(null);
     // Per linkId: true if the linestring's last coord is closer to the node than the first
     const coordsEndAtNodeRef = useRef({});
@@ -530,21 +531,29 @@ export default function useNodeFlowLayers({ mapRef, mapReady, setIsLoading }) {
 
     // -- fetch node flows from backend --
     const fetchNodeFlows = useCallback(async (nodeId) => {
+        // Cancel the previous node's (heavy) flow query so clicking through
+        // several nodes doesn't stack concurrent scans on the backend.
+        if (nodeAbortRef.current) nodeAbortRef.current.abort();
+        const abort = new AbortController();
+        nodeAbortRef.current = abort;
         const minuteStart = (debouncedTimeRange?.[0] ?? 0) * 15;
         const minuteEnd = (debouncedTimeRange?.[1] ?? 96) * 15;
         const url = `/backend/data/${datasetId}/node_flows.json?node_id=${nodeId}&minute_start=${minuteStart}&minute_end=${minuteEnd}`;
         try {
-            let res = await fetch(url);
+            let res = await fetch(url, { signal: abort.signal });
             if (res.status === 401) {
                 const refreshed = await handle401();
                 if (!refreshed) return null;
-                res = await fetch(url);
+                res = await fetch(url, { signal: abort.signal });
             }
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
             if (data.error) { console.warn('Node flows error:', data.error); return null; }
             return data;
-        } catch (err) { console.error('Failed to fetch node flows:', err); return null; }
+        } catch (err) {
+            if (err?.name === 'AbortError') return null;
+            console.error('Failed to fetch node flows:', err); return null;
+        }
     }, [datasetId, debouncedTimeRange]);
 
     // -- load nodes GeoJSON for a canton --
