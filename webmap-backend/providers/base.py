@@ -160,6 +160,13 @@ def mount_provider(app: FastAPI, provider: DataProvider, prefix: str = "/data") 
             elif params.get("summary_only") and isinstance(result, dict) and "All" in result:
                 result = {"All": result["All"]}
             return JSONResponse(result)
+        except Exception as exc:
+            # A provider raising (e.g. an older/incompatible dataset whose
+            # duckdb lacks v2 columns) must not 500 the whole request — degrade
+            # to the same {"error": ...} shape providers already use for missing
+            # assets, so the frontend shows "no data" and falls back cleanly.
+            logger.warning("provider %s failed: %s", getattr(provider, "ROUTE", "?"), exc)
+            return JSONResponse({"error": f"data unavailable for this dataset: {exc}"})
         finally:
             set_root_override(None)
 

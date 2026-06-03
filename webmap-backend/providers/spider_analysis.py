@@ -8,16 +8,47 @@ preserved as a convenience; new clients should pass ``polygon_id``.
 
 from __future__ import annotations
 
+from collections import OrderedDict
+
 import duckdb
 
 from .base import DataProvider, Param
 from .connection import get_source_cursor
 from .helpers import polygon_ids_from_params
+from .paths import dataset_key
 
 
 def _get_con() -> duckdb.DuckDBPyConnection:
     """Cursor on synthetic.duckdb (where spider_routes/index live)."""
     return get_source_cursor("synthetic")
+
+
+# ─── Result cache ──────────────────────────────────────────────────────────
+# Each spider query scans the 255M-row spider_link_index; cold that is many
+# seconds. Clicking links in the map fires one query per link, so the same
+# target (and re-clicks) recur constantly. The dataset is read-only, so a given
+# (route, dataset, params) always yields the same result — cache it. Bounded
+# LRU keeps memory in check.
+_SPIDER_CACHE: "OrderedDict[tuple, dict]" = OrderedDict()
+_SPIDER_CACHE_MAX = 64
+
+
+def _spider_cache_get(route: str, params: dict):
+    key = (route, dataset_key(),
+           tuple(sorted((k, str(v)) for k, v in params.items() if v not in (None, ""))))
+    hit = _SPIDER_CACHE.get(key)
+    if hit is not None:
+        _SPIDER_CACHE.move_to_end(key)
+    return key, hit
+
+
+def _spider_cache_put(key: tuple, value: dict) -> None:
+    if isinstance(value, dict) and set(value.keys()) == {"error"}:
+        return  # don't cache errors — let the next request retry
+    _SPIDER_CACHE[key] = value
+    _SPIDER_CACHE.move_to_end(key)
+    while len(_SPIDER_CACHE) > _SPIDER_CACHE_MAX:
+        _SPIDER_CACHE.popitem(last=False)
 
 
 _SPIDER_PARAMS = [
@@ -124,6 +155,18 @@ class _SpiderBase(DataProvider):
             {person_clauses}
         """
 
+    def _derive_total(self, con, rows, psubq, time_filter, bind):
+        """Trip total carried as the last column of each in/out-flow row
+        (ANY_VALUE(tc.total)). Only when there are no flow rows (rare: target
+        trips with no upstream/downstream link) fall back to a direct count."""
+        if rows:
+            return rows[0][-1]
+        return con.execute(f"""
+            SELECT COUNT(*) FROM spider_link_index idx
+            INNER JOIN ({psubq}) fp ON idx.person_id = fp.person_id
+            WHERE idx.link_id = ? {time_filter}
+        """, bind).fetchone()[0]
+
 
 # ─── Spider Inflow ──────────────────────────────────────────────────
 
@@ -135,6 +178,9 @@ class SpiderInflowProvider(_SpiderBase):
         link_id = (params.get("link_id") or "").strip()
         if not link_id:
             return {"error": "link_id parameter is required"}
+        ckey, hit = _spider_cache_get(self.ROUTE, params)
+        if hit is not None:
+            return hit
         person_clauses, poly_join, poly_bind, hh_join, time_filter, bind_persons, bind_time = \
             self._build_filters(params)
         con = _get_con()
@@ -143,7 +189,7 @@ class SpiderInflowProvider(_SpiderBase):
         bind = poly_bind + bind_persons + [link_id] + bind_time
         try:
             rows = con.execute(f"""
-                WITH target_trips AS (
+                WITH target_trips AS MATERIALIZED (
                     SELECT idx.person_id, idx.trip_index, idx.position AS target_pos
                     FROM spider_link_index idx
                     INNER JOIN ({psubq}) fp ON idx.person_id = fp.person_id
@@ -161,21 +207,20 @@ class SpiderInflowProvider(_SpiderBase):
                     SELECT UNNEST(route_links[:target_pos - 1]) AS link_id
                     FROM routes WHERE target_pos > 1
                 )
-                SELECT il.link_id, ROUND(COUNT(*)::DOUBLE / NULLIF(tc.total, 0), 6)
+                SELECT il.link_id, ROUND(COUNT(*)::DOUBLE / NULLIF(tc.total, 0), 6),
+                       ANY_VALUE(tc.total)
                 FROM inflow il, tc
                 GROUP BY il.link_id, tc.total
                 ORDER BY 2 DESC
             """, bind).fetchall()
-            total = con.execute(f"""
-                SELECT COUNT(*) FROM spider_link_index idx
-                INNER JOIN ({psubq}) fp ON idx.person_id = fp.person_id
-                WHERE idx.link_id = ? {time_filter}
-            """, bind).fetchone()[0]
+            total = self._derive_total(con, rows, psubq, time_filter, bind)
         except Exception as e:
             return {"error": str(e)}
 
-        return {"target_link": link_id, "total_trips": int(total),
-                "links": {r[0]: r[1] for r in rows}}
+        result = {"target_link": link_id, "total_trips": int(total),
+                  "links": {r[0]: r[1] for r in rows}}
+        _spider_cache_put(ckey, result)
+        return result
 
 
 class SpiderOutflowProvider(_SpiderBase):
@@ -186,6 +231,9 @@ class SpiderOutflowProvider(_SpiderBase):
         link_id = (params.get("link_id") or "").strip()
         if not link_id:
             return {"error": "link_id parameter is required"}
+        ckey, hit = _spider_cache_get(self.ROUTE, params)
+        if hit is not None:
+            return hit
         person_clauses, poly_join, poly_bind, hh_join, time_filter, bind_persons, bind_time = \
             self._build_filters(params)
         con = _get_con()
@@ -193,7 +241,7 @@ class SpiderOutflowProvider(_SpiderBase):
         bind = poly_bind + bind_persons + [link_id] + bind_time
         try:
             rows = con.execute(f"""
-                WITH target_trips AS (
+                WITH target_trips AS MATERIALIZED (
                     SELECT idx.person_id, idx.trip_index, idx.position AS target_pos
                     FROM spider_link_index idx
                     INNER JOIN ({psubq}) fp ON idx.person_id = fp.person_id
@@ -210,19 +258,18 @@ class SpiderOutflowProvider(_SpiderBase):
                     SELECT UNNEST(route_links[target_pos + 1:]) AS link_id
                     FROM routes WHERE target_pos < len(route_links)
                 )
-                SELECT ol.link_id, ROUND(COUNT(*)::DOUBLE / NULLIF(tc.total, 0), 6)
+                SELECT ol.link_id, ROUND(COUNT(*)::DOUBLE / NULLIF(tc.total, 0), 6),
+                       ANY_VALUE(tc.total)
                 FROM outflow ol, tc GROUP BY ol.link_id, tc.total ORDER BY 2 DESC
             """, bind).fetchall()
-            total = con.execute(f"""
-                SELECT COUNT(*) FROM spider_link_index idx
-                INNER JOIN ({psubq}) fp ON idx.person_id = fp.person_id
-                WHERE idx.link_id = ? {time_filter}
-            """, bind).fetchone()[0]
+            total = self._derive_total(con, rows, psubq, time_filter, bind)
         except Exception as e:
             return {"error": str(e)}
 
-        return {"target_link": link_id, "total_trips": int(total),
-                "links": {r[0]: r[1] for r in rows}}
+        result = {"target_link": link_id, "total_trips": int(total),
+                  "links": {r[0]: r[1] for r in rows}}
+        _spider_cache_put(ckey, result)
+        return result
 
 
 class SpiderOverlayProvider(_SpiderBase):
@@ -233,30 +280,38 @@ class SpiderOverlayProvider(_SpiderBase):
         link_id = (params.get("link_id") or "").strip()
         if not link_id:
             return {"error": "link_id parameter is required"}
+        ckey, hit = _spider_cache_get(self.ROUTE, params)
+        if hit is not None:
+            return hit
         person_clauses, poly_join, poly_bind, hh_join, time_filter, bind_persons, bind_time = \
             self._build_filters(params)
         con = _get_con()
         psubq = self._person_subquery(poly_join, hh_join, person_clauses)
         bind = poly_bind + bind_persons + [link_id] + bind_time
         try:
+            # Single scan: materialise the (small) target-trips set once, then
+            # derive BOTH the per-link aggregation and the trip total from it.
+            # (The old code ran a second full COUNT query that re-scanned the
+            # 255M-row index for the same total — roughly doubling cold time.)
             rows = con.execute(f"""
-                WITH target_trips AS (
+                WITH target_trips AS MATERIALIZED (
                     SELECT idx.person_id, idx.trip_index FROM spider_link_index idx
                     INNER JOIN ({psubq}) fp ON idx.person_id = fp.person_id
                     WHERE idx.link_id = ? {time_filter}
-                )
-                SELECT idx2.link_id, COUNT(*)::INTEGER FROM spider_link_index idx2
+                ),
+                tc AS (SELECT COUNT(*) AS total FROM target_trips)
+                SELECT idx2.link_id, COUNT(*)::INTEGER, ANY_VALUE(tc.total)
+                FROM spider_link_index idx2
                 INNER JOIN target_trips tt
                   ON idx2.person_id = tt.person_id AND idx2.trip_index = tt.trip_index
+                CROSS JOIN tc
                 GROUP BY idx2.link_id ORDER BY COUNT(*) DESC
             """, bind).fetchall()
-            total = con.execute(f"""
-                SELECT COUNT(*) FROM spider_link_index idx
-                INNER JOIN ({psubq}) fp ON idx.person_id = fp.person_id
-                WHERE idx.link_id = ? {time_filter}
-            """, bind).fetchone()[0]
         except Exception as e:
             return {"error": str(e)}
 
-        return {"target_link": link_id, "total_trips": int(total),
-                "links": {r[0]: int(r[1]) for r in rows}}
+        total = int(rows[0][2]) if rows else 0
+        result = {"target_link": link_id, "total_trips": total,
+                  "links": {r[0]: int(r[1]) for r in rows}}
+        _spider_cache_put(ckey, result)
+        return result

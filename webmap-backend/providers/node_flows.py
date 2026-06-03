@@ -1,56 +1,40 @@
 """Node-level turning-movement matrix.
 
-Network topology now comes from ``network_links`` (no XML parsing).
+Network topology is queried **on demand** from ``network_links`` — only the
+links touching the requested node — instead of building a full in-memory
+topology of all ~1.7M links per worker. That removes a ~6 s cold start and a
+few hundred MB of per-worker memory; the per-request cost is one small lookup.
 Filter logic and spider join semantics match SpiderInflow/Outflow.
 """
 
 from __future__ import annotations
 
-import threading
-from dataclasses import dataclass, field
-
 from .base import Param
-from .connection import get_source_cursor
 from .spider_analysis import _SpiderBase, _get_con
 
 
-@dataclass
-class _NodeTopology:
-    entering: list[str] = field(default_factory=list)
-    exiting: list[str] = field(default_factory=list)
+_CAR = "(modes IS NULL OR modes LIKE '%car%')"
 
 
-@dataclass
-class _NetworkData:
-    nodes: dict[str, _NodeTopology] = field(default_factory=dict)
-    link_to_nodes: dict[str, tuple[str, str]] = field(default_factory=dict)
+def _link_endpoints(con, link_id: str):
+    """Return (from_node, to_node) for a car link, or None."""
+    r = con.execute(
+        f"SELECT from_node, to_node FROM network_links WHERE link_id = ? AND {_CAR} LIMIT 1",
+        [link_id],
+    ).fetchone()
+    return (r[0], r[1]) if r else None
 
 
-_network_cache: dict[str, _NetworkData] = {}
-_network_lock = threading.Lock()
-
-
-def _get_network() -> _NetworkData:
-    """Read network_links from synthetic.duckdb and build a topology lookup."""
-    key = "synthetic"
-    with _network_lock:
-        if key in _network_cache:
-            return _network_cache[key]
-        con = get_source_cursor("synthetic")
-        rows = con.execute(
-            "SELECT link_id, from_node, to_node, modes FROM network_links"
-        ).fetchall()
-        nd = _NetworkData()
-        for link_id, fr, to, modes in rows:
-            if not link_id or not fr or not to:
-                continue
-            if modes and "car" not in modes:
-                continue
-            nd.link_to_nodes[link_id] = (fr, to)
-            nd.nodes.setdefault(fr, _NodeTopology()).exiting.append(link_id)
-            nd.nodes.setdefault(to, _NodeTopology()).entering.append(link_id)
-        _network_cache[key] = nd
-        return nd
+def _node_links(con, node_id: str):
+    """Return (entering_links, exiting_links) for a node (car links only)."""
+    rows = con.execute(
+        f"""SELECT link_id, from_node, to_node FROM network_links
+            WHERE (from_node = ? OR to_node = ?) AND {_CAR}""",
+        [node_id, node_id],
+    ).fetchall()
+    entering = [lid for lid, fr, to in rows if to == node_id]
+    exiting = [lid for lid, fr, to in rows if fr == node_id]
+    return entering, exiting
 
 
 _NODE_FLOWS_PARAMS = [
@@ -81,36 +65,28 @@ class NodeFlowsProvider(_SpiderBase):
         end = (params.get("end") or "to").strip().lower()
         warmup = str(params.get("warmup") or "").lower() in ("1", "true")
 
-        if not warmup and not node_id and not link_id:
+        if warmup:
+            return {"warmed": True}
+        if not node_id and not link_id:
             return {"error": "node_id or link_id parameter is required"}
 
-        try:
-            net = _get_network()
-        except Exception as e:
-            return {"error": f"Failed to load network: {e}"}
-
-        if warmup:
-            return {"warmed": True, "nodes": len(net.nodes), "links": len(net.link_to_nodes)}
+        con = _get_con()
 
         if not node_id and link_id:
-            endpoints = net.link_to_nodes.get(link_id)
+            endpoints = _link_endpoints(con, link_id)
             if not endpoints:
                 return {"error": f"Link {link_id} not found in network"}
             node_id = endpoints[1] if end == "to" else endpoints[0]
 
-        topo = net.nodes.get(node_id)
-        if topo is None:
+        entering, exiting = _node_links(con, node_id)
+        if not entering and not exiting:
             return {"error": f"Node {node_id} not found in network"}
-
-        entering = topo.entering
-        exiting = topo.exiting
         if not entering or not exiting:
             return {"node_id": node_id, "entering_links": entering, "exiting_links": exiting,
                     "total_movements": 0, "matrix": {}}
 
         person_clauses, poly_join, poly_bind, hh_join, time_filter, bind_persons, bind_time = \
             self._build_filters(params)
-        con = _get_con()
         psubq = self._person_subquery(poly_join, hh_join, person_clauses)
 
         entering_ph = ", ".join(["?"] * len(entering))

@@ -1,8 +1,13 @@
-import json
-import os
+from collections import defaultdict
 
 from .base import DataProvider, Param
-from .paths import get_data_paths
+from .constants import canton_name
+from .helpers import load_static_asset
+from .paths import dataset_key
+
+
+# Per-dataset cache, keyed by dataset root.
+_transfer_cache: dict[str, dict] = {}
 
 
 class StopTransferDataProvider(DataProvider):
@@ -27,15 +32,38 @@ class StopTransferDataProvider(DataProvider):
         Param("min_transfers", "Only include stops with at least this many transfers", param_type="integer"),
         Param("stop_id", "Comma-separated stop IDs to include"),
     ]
-    _data: dict | None = None
-
     def _load(self) -> dict:
-        if StopTransferDataProvider._data is None:
-            paths = get_data_paths()
-            filepath = os.path.join(paths.json_preview_dir, "stop_transfer_data_by_canton.json")
-            with open(filepath, "r") as f:
-                StopTransferDataProvider._data = json.load(f)
-        return StopTransferDataProvider._data
+        """Transform the v2 static_asset (list of
+        ``{canton_id, total_transfers, stops:[{stop_id, name, bfs, transfers}]}``)
+        into the canton-name-keyed dict the frontend expects, adding per-stop
+        ``boardings`` (summed from boarding_data, since the transfer asset only
+        carries transfers)."""
+        dk = dataset_key()
+        if dk in _transfer_cache:
+            return _transfer_cache[dk]
+        raw = load_static_asset("synthetic", "stop_transfer_data_by_canton")
+        if raw is None:
+            raise FileNotFoundError("stop_transfer_data not in static_assets")
+
+        # per-stop total boardings from boarding_data_by_line
+        boardings_by_stop: dict[str, int] = defaultdict(int)
+        boarding = load_static_asset("synthetic", "boarding_data_by_line") or []
+        for line in boarding:
+            for stop in line.get("stops", []):
+                sid = stop.get("stop_id")
+                for d in stop.get("data", []):
+                    boardings_by_stop[sid] += d.get("boardings", 0)
+
+        out: dict[str, list] = {}
+        for entry in raw:
+            cname = canton_name(entry.get("canton_id"))
+            stops = []
+            for s in entry.get("stops", []):
+                sid = s.get("stop_id")
+                stops.append({**s, "boardings": int(boardings_by_stop.get(sid, 0))})
+            out[cname] = stops
+        _transfer_cache[dk] = out
+        return out
 
     def deliver(self, params: dict) -> dict:
         try:

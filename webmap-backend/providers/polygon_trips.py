@@ -23,6 +23,9 @@ from __future__ import annotations
 
 from .base import DataProvider, Param
 from .connection import get_source_cursor
+from .result_cache import make_cache
+
+_cget, _cput = make_cache(maxsize=48)
 
 
 def _parse_polygon(raw: str) -> str | None:
@@ -78,6 +81,10 @@ class PolygonTripsProvider(DataProvider):
             source = "microcensus"
         if source not in ("synthetic", "microcensus"):
             return {"error": f"unknown source: {source!r}"}
+
+        ckey, hit = _cget(self.ROUTE, params)
+        if hit is not None:
+            return hit
 
         # Optional departure-time window. `trips.departure_time` is DOUBLE
         # seconds-from-midnight in the new duckdb schema.
@@ -159,8 +166,10 @@ class PolygonTripsProvider(DataProvider):
             totals["inbound"] += int(inbound or 0)
             totals["internal"] += int(internal or 0)
 
-        return {
+        result = {
             "totals": totals,
             "total_trips": totals["outbound"] + totals["inbound"] + totals["internal"],
             "by_mode": by_mode,
         }
+        _cput(ckey, result)
+        return result

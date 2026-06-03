@@ -1,8 +1,7 @@
-import json
-import os
-
 from .base import DataProvider, Param
-from .paths import get_data_paths
+from .constants import canton_name
+from .helpers import load_static_asset
+from .paths import dataset_key
 
 
 _cache: dict[str, dict] = {}
@@ -29,15 +28,24 @@ class StopMunicipalityProvider(DataProvider):
     ]
 
     def _load(self) -> dict:
-        paths = get_data_paths()
-        cache_key = paths.json_preview_dir
-        if cache_key in _cache:
-            return _cache[cache_key]
-
-        filepath = os.path.join(paths.json_preview_dir, "stop_municipality.json")
-        with open(filepath, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        _cache[cache_key] = data
+        dk = dataset_key()
+        if dk in _cache:
+            return _cache[dk]
+        raw = load_static_asset("synthetic", "stop_municipality")
+        if raw is None:
+            raise FileNotFoundError("stop_municipality not in static_assets")
+        # Field mapping for the frontend: it keys on `bfs_nummer`, `municipality`
+        # and `kanton` (name); the v2 asset uses `bfs`, `gemeinde`, `canton_id`.
+        data = {
+            sid: {
+                **info,
+                "kanton": canton_name(info["canton_id"]) if info.get("canton_id") is not None else None,
+                "bfs_nummer": info.get("bfs"),
+                "municipality": info.get("gemeinde"),
+            }
+            for sid, info in raw.items()
+        }
+        _cache[dk] = data
         return data
 
     def deliver(self, params: dict) -> dict:

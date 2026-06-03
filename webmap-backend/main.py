@@ -94,8 +94,33 @@ def _ttl_seconds_from_exp(exp: int | None) -> int | None:
 # App
 # ---------------------------------------------------------------------------
 
+def _prewarm_speed_cache() -> None:
+    """Background: precompute the slow, parameter-less speed_dashboard for every
+    dataset so the first user doesn't wait ~30s (minutes on a cold server) for
+    the 50M-row scan. Runs one dataset at a time in a daemon thread; disable
+    with WEBMAP_PREWARM=0. Errors are swallowed (incompatible datasets just skip)."""
+    import glob
+    from providers.paths import set_root_override
+    from providers.link_speeds import SpeedDashboardProvider
+
+    base = os.getenv("WEBMAP_ROOT", "/data/datasets/public")
+    roots = sorted({os.path.dirname(p) for p in glob.glob(os.path.join(base, "*", "synthetic.duckdb"))})
+    for root in roots:
+        try:
+            set_root_override(root)
+            SpeedDashboardProvider().deliver({})
+            logger.info("prewarmed speed_dashboard for %s", root)
+        except Exception as exc:
+            logger.warning("prewarm skipped for %s: %s", root, exc)
+        finally:
+            set_root_override(None)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    if os.getenv("WEBMAP_PREWARM", "1").strip().lower() in {"1", "true"}:
+        import threading
+        threading.Thread(target=_prewarm_speed_cache, name="prewarm", daemon=True).start()
     yield
 
 
@@ -158,6 +183,97 @@ if ALLOWED_ORIGINS:
 
 for provider in ALL_PROVIDERS:
     mount_provider(app, provider, prefix="/data")
+
+
+# --- matsim/* geometry assets from the duckdb static_assets table ----------
+# The frontend's loadWithFallback tries /backend/data/{id}/matsim/... before its
+# GitHub-CDN fallback. We serve the per-canton merged_segments (zone-flow link
+# geometry) straight from static_assets so the map uses the dataset's OWN
+# network. Unknown paths return 404 → frontend falls back to GitHub.
+import asyncio as _asyncio
+import re as _re
+
+from fastapi import Response as _Response
+
+from providers.base import _resolve_dataset_root
+from providers.paths import set_root_override as _set_root_override
+from providers.helpers import load_static_asset_bytes, resolve_canton_to_polygon_id
+
+_MERGED_SUFFIX = "_merged_segments.geojson"
+_COUNTS_RE = _re.compile(r"transit/per_canton_counts/(.+)_counts\.json$")
+_STOPS_RE = _re.compile(r"transit/stops_by_canton/(.+)_stops\.geojson$")
+
+
+def _canton_id_from(name: str) -> int | None:
+    pid = resolve_canton_to_polygon_id(name)
+    try:
+        return int(pid.split(":", 1)[1]) if pid else None
+    except (ValueError, IndexError):
+        return None
+
+
+@app.get("/data/{dataset_id}/matsim/{asset_path:path}")
+async def matsim_asset(dataset_id: int, asset_path: str, request: Request):
+    """Serve matsim/* assets from the dataset's duckdb (merged_segments link
+    geometry; per_canton_counts rebuilt from boarding_data). Unknown paths 404
+    → the frontend's loadWithFallback then tries the GitHub CDN."""
+    try:
+        user = await OptionalUser(request)
+        user_id = int(user.get("sub") or user.get("id") or 0)
+        access_token = request.cookies.get(ACCESS_COOKIE_NAME, "")
+        root = await _resolve_dataset_root(dataset_id, user_id, access_token)
+        _set_root_override(root)
+    except Exception:
+        return JSONResponse({"error": "dataset resolution failed"}, status_code=400)
+    try:
+        if asset_path.endswith(_MERGED_SUFFIX):
+            cid = _canton_id_from(asset_path[: -len(_MERGED_SUFFIX)])
+            if cid is None:
+                return JSONResponse({"error": "not found"}, status_code=404)
+            payload = await _asyncio.to_thread(
+                load_static_asset_bytes, "synthetic", f"merged_segments:{cid}"
+            )
+            if payload is None:
+                return JSONResponse({"error": "not found"}, status_code=404)
+            return _Response(content=payload, media_type="application/geo+json")
+
+        m = _COUNTS_RE.match(asset_path)
+        if m:
+            cid = _canton_id_from(m.group(1))
+            if cid is None:
+                return JSONResponse({"error": "not found"}, status_code=404)
+            from providers.boarding_data import per_canton_counts
+            rows = await _asyncio.to_thread(per_canton_counts, cid)
+            return JSONResponse(rows)
+
+        ms = _STOPS_RE.match(asset_path)
+        if ms:
+            name = ms.group(1)
+            if name == "inter_cantonal":
+                from providers.transit_stops import inter_cantonal_stops
+                fc = await _asyncio.to_thread(inter_cantonal_stops)
+                return JSONResponse(fc)
+            cid = _canton_id_from(name)
+            if cid is None:
+                return JSONResponse({"error": "not found"}, status_code=404)
+            from providers.transit_stops import stops_by_canton
+            fc = await _asyncio.to_thread(stops_by_canton, cid)
+            return JSONResponse(fc)
+
+        if asset_path == "transit/transit_modes_by_canton.json":
+            from providers.transit_stops import transit_modes
+            tm = await _asyncio.to_thread(transit_modes)
+            return JSONResponse(tm)
+
+        return JSONResponse({"error": "not found"}, status_code=404)
+    except Exception as exc:
+        # Incompatible/older dataset (missing static_assets etc.) must 404, not
+        # 500 — the frontend's loadWithFallback then tries the GitHub CDN.
+        logger.warning("matsim_asset %s failed: %s", asset_path, exc)
+        return JSONResponse({"error": "not found"}, status_code=404)
+    finally:
+        _set_root_override(None)
+
 
 # --- Exception handlers ---------------------------------------------------
 

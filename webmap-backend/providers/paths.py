@@ -33,6 +33,13 @@ def set_root_override(root: str | None) -> None:
     _root_override.set(root)
 
 
+def dataset_key() -> str:
+    """Stable identifier (the resolved root path) for the dataset currently in
+    scope. Use this to key per-dataset in-memory caches so a worker serving
+    several datasets never returns one dataset's cached assets for another."""
+    return _root_override.get() or os.getenv("WEBMAP_ROOT") or ""
+
+
 @dataclass(frozen=True)
 class DataPaths:
     root: str

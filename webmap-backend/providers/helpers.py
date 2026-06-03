@@ -19,9 +19,47 @@ but their inputs are now hot-polygon rows or pre-aggregated grid sums.
 from __future__ import annotations
 
 import json
+import unicodedata
 from typing import Any
 
 from .constants import CANTON_MAP, canton_name
+
+
+# ─── Static assets (JSON/GeoJSON BLOBs stored in the duckdb) ───────────────
+
+def load_static_asset(source: str, key: str):
+    """Load a JSON/GeoJSON asset stored as a BLOB in the ``static_assets`` table
+    of the dataset's duckdb. Returns the parsed object, or None if absent.
+
+    v2 datasets ship these assets inside the duckdb (no more json_preview files).
+    """
+    from .connection import get_source_cursor
+    try:
+        cur = get_source_cursor(source)
+        row = cur.execute(
+            "SELECT payload FROM static_assets WHERE key = ?", [key]
+        ).fetchone()
+    except Exception:
+        return None
+    if not row or row[0] is None:
+        return None
+    return json.loads(bytes(row[0]))
+
+
+def load_static_asset_bytes(source: str, key: str) -> bytes | None:
+    """Return the raw payload bytes of a ``static_assets`` entry (no JSON
+    parsing — for serving a GeoJSON/JSON blob straight through)."""
+    from .connection import get_source_cursor
+    try:
+        cur = get_source_cursor(source)
+        row = cur.execute(
+            "SELECT payload FROM static_assets WHERE key = ?", [key]
+        ).fetchone()
+    except Exception:
+        return None
+    if not row or row[0] is None:
+        return None
+    return bytes(row[0])
 
 
 # ─── Source resolution ────────────────────────────────────────────────────
@@ -41,7 +79,16 @@ def parse_source_param(params: dict) -> list[str]:
 
 # ─── Polygon resolution ───────────────────────────────────────────────────
 
-_NAME_TO_CANTON_ID = {v.lower(): k for k, v in CANTON_MAP.items()}
+def _norm_canton(s: str) -> str:
+    """Normalise a canton name for matching: strip accents, lowercase, and drop
+    spaces/dots/hyphens so 'Zürich', 'Graubünden', 'Genève', 'St. Gallen',
+    'Appenzell Ausserrhoden' all match CANTON_MAP's ASCII spellings."""
+    s = unicodedata.normalize("NFKD", s or "")
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    return "".join(ch for ch in s.lower() if ch.isalnum())
+
+
+_NAME_TO_CANTON_ID = {_norm_canton(v): k for k, v in CANTON_MAP.items()}
 
 
 def resolve_canton_to_polygon_id(value: str) -> str | None:
@@ -59,7 +106,7 @@ def resolve_canton_to_polygon_id(value: str) -> str | None:
             return f"canton:{cid}"
     except ValueError:
         pass
-    cid = _NAME_TO_CANTON_ID.get(v.lower())
+    cid = _NAME_TO_CANTON_ID.get(_norm_canton(v))
     return f"canton:{cid}" if cid is not None else None
 
 

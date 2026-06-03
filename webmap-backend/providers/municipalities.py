@@ -1,8 +1,6 @@
-import json
-import os
-
 from .base import DataProvider, Param
-from .paths import get_data_paths
+from .helpers import load_static_asset
+from .paths import dataset_key
 
 
 _cache: dict[str, dict] = {}
@@ -40,15 +38,13 @@ class MunicipalitiesProvider(DataProvider):
     ]
 
     def _load(self) -> dict:
-        paths = get_data_paths()
-        cache_key = paths.json_preview_dir
-        if cache_key in _cache:
-            return _cache[cache_key]
-
-        filepath = os.path.join(paths.json_preview_dir, "municipalities.geojson")
-        with open(filepath, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        _cache[cache_key] = data
+        dk = dataset_key()
+        if dk in _cache:
+            return _cache[dk]
+        data = load_static_asset("synthetic", "municipalities")
+        if data is None:
+            raise FileNotFoundError("municipalities not in static_assets")
+        _cache[dk] = data
         return data
 
     def deliver(self, params: dict) -> dict:

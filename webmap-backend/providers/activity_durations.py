@@ -1,7 +1,9 @@
 """Activity-duration distribution per polygon and purpose.
 
-Always raw scan against ``activities`` (with R-tree polygon join). The
-v1 schema does not pre-aggregate durations.
+Canton breakdowns use the precomputed ``activities.canton_id`` column (built by
+the pipeline via point-in-polygon) → per-request work is a plain integer
+GROUP BY, no spatial join, no cache. Custom (non-canton) polygons fall back to
+a direct ``ST_Within`` against the activity location.
 """
 
 from __future__ import annotations
@@ -10,6 +12,7 @@ from collections import defaultdict
 
 from .base import DataProvider, Param, CANTON, SOURCE, PURPOSE
 from .connection import get_source_cursor
+from .constants import canton_name
 from .helpers import (
     get_hot_polygon_meta,
     parse_source_param,
@@ -49,6 +52,7 @@ class ActivityDurationsProvider(DataProvider):
 
         con0 = get_source_cursor(sources[0])
         polygon_ids = resolve_polygon_ids(con0, params, default_type="canton")
+        all_cantons = bool(polygon_ids) and all(p.startswith("canton:") for p in polygon_ids)
 
         counts: dict = defaultdict(int)
         purposes_seen: set = set()
@@ -65,11 +69,33 @@ class ActivityDurationsProvider(DataProvider):
                 continue
             slabel = _source_label(source)
 
-            if polygon_ids:
-                # For activities we filter on a.location_pt (the activity location,
-                # not the person's home). For canton-typed polygons we cannot use
-                # the canton_id shortcut (activities have no canton_id), so we
-                # always do the spatial join.
+            if polygon_ids and all_cantons:
+                # Fast path: precomputed activities.canton_id, plain GROUP BY.
+                try:
+                    canton_ids = [int(p.split(":", 1)[1]) for p in polygon_ids]
+                except (ValueError, IndexError):
+                    canton_ids = []
+                if canton_ids:
+                    ph = ",".join("?" * len(canton_ids))
+                    rows = con.execute(f"""
+                        SELECT a.canton_id AS cid, a.purpose, {slot_expr} AS slot, COUNT(*) AS cnt
+                        FROM activities a
+                        WHERE a.canton_id IN ({ph})
+                          AND a.start_time IS NOT NULL AND a.end_time IS NOT NULL
+                          AND a.end_time >= a.start_time
+                        {pf}
+                        GROUP BY a.canton_id, a.purpose, slot
+                    """, canton_ids).fetchall()
+                    for cid, purpose, slot, cnt in rows:
+                        if cid is None:
+                            continue
+                        label = canton_name(cid)
+                        labels_seen.add(label)
+                        purposes_seen.add(str(purpose))
+                        counts[(label, slabel, str(purpose), int(slot))] += int(cnt)
+
+            elif polygon_ids:
+                # Custom / non-canton polygons: direct spatial join.
                 placeholders = ",".join(["?"] * len(polygon_ids))
                 resolve = make_label_resolver(con, polygon_ids, False)
                 rows = con.execute(f"""

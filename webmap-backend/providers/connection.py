@@ -23,6 +23,14 @@ _pool: dict[str, duckdb.DuckDBPyConnection] = {}
 _pool_lock = threading.Lock()
 
 
+import os
+
+# Spill directory for hash-aggregates/sorts that exceed memory. The dataset
+# directories are mounted read-only, so DuckDB's default (`<db>.tmp` next to
+# the file) fails on a read-only filesystem; point it at a writable temp dir.
+_TEMP_DIR = os.getenv("DUCKDB_TEMP_DIR", "/tmp/duckdb_spill")
+
+
 def _open_readonly(db_path: str) -> duckdb.DuckDBPyConnection:
     """Open a DuckDB read-only with spatial extension loaded."""
     con = duckdb.connect(db_path, read_only=True)
@@ -31,6 +39,12 @@ def _open_readonly(db_path: str) -> duckdb.DuckDBPyConnection:
     except Exception:
         # Extension may need install on first use
         con.execute("INSTALL spatial; LOAD spatial;")
+    try:
+        os.makedirs(_TEMP_DIR, exist_ok=True)
+        con.execute(f"SET temp_directory = '{_TEMP_DIR}';")
+    except Exception:
+        # Non-fatal: queries that don't spill still work.
+        pass
     return con
 
 

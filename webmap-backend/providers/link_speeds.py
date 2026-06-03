@@ -18,21 +18,46 @@ minute_end   (int)  : Time window end (minutes from midnight, 0-1440)
 
 from __future__ import annotations
 
-import duckdb
+from collections import OrderedDict
 
 from .base import DataProvider, Param
 from .constants import CANTON_MAP
-from .paths import get_data_paths
+from .connection import get_source_cursor
+from .paths import dataset_key
 
 _NAME_TO_ID = {v.lower(): k for k, v in CANTON_MAP.items()}
 
-def _get_con() -> duckdb.DuckDBPyConnection:
-    """Fresh in-memory connection per request. A shared module-level connection
-    would serialize concurrent scans under FastAPI's threadpool, causing proxy-
-    side "socket hang up" on overlapping requests (e.g. time slider drag).
-    DuckDB caches parquet metadata at the OS/file level, so the cost of opening
-    a new connection is minimal."""
-    return duckdb.connect(":memory:")
+# ─── Result cache ──────────────────────────────────────────────────────────
+# link_speeds.json (per canton/time-window) and speed_dashboard.json scan the
+# 50M-row link_speeds table; cold that is tens of seconds. The dataset is
+# read-only so a given (dataset, params) always yields the same result — cache
+# it. Bounded LRU keeps memory in check (link_speeds responses are ~20 MB each).
+_RESULT_CACHE: "OrderedDict[tuple, dict]" = OrderedDict()
+_CACHE_MAX = 24
+
+
+def _cache_get(route: str, params: dict):
+    key = (route, dataset_key(),
+           tuple(sorted((k, str(v)) for k, v in params.items() if v not in (None, ""))))
+    hit = _RESULT_CACHE.get(key)
+    if hit is not None:
+        _RESULT_CACHE.move_to_end(key)
+    return key, hit
+
+
+def _cache_put(key: tuple, value: dict) -> None:
+    # Don't cache error responses — let the next request retry.
+    if isinstance(value, dict) and set(value.keys()) == {"error"}:
+        return
+    _RESULT_CACHE[key] = value
+    _RESULT_CACHE.move_to_end(key)
+    while len(_RESULT_CACHE) > _CACHE_MAX:
+        _RESULT_CACHE.popitem(last=False)
+
+def _get_con():
+    """Pooled read-only cursor on synthetic.duckdb (where the link_speeds table
+    now lives — v2 stores speeds as a table, not a parquet file)."""
+    return get_source_cursor("synthetic")
 
 
 def _resolve_cantons(raw: str) -> list[int]:
@@ -57,7 +82,9 @@ def _resolve_cantons(raw: str) -> list[int]:
 
 def _build_filters(params: dict) -> tuple[str, list]:
     """Build SQL WHERE clauses from query params."""
-    clauses: list[str] = []
+    # Exclude abstract links with non-finite freespeed (MATSim sets freespeed to
+    # infinity on teleport/abstract links); they would poison the weighted sums.
+    clauses: list[str] = ["isfinite(freespeed)"]
     bind: list = []
 
     # Road type filter
@@ -78,23 +105,21 @@ def _build_filters(params: dict) -> tuple[str, list]:
             clauses.append(f"canton_id IN ({placeholders})")
             bind.extend(canton_ids)
 
-    # Time filter (time_bin is in minutes from midnight)
+    # Time filter. The v2 `time_bin` column is a 15-minute bin INDEX (0..95);
+    # query params are minutes-from-midnight, so convert minutes → bin index.
     minute_start = params.get("minute_start")
     if minute_start is not None and minute_start != "":
         try:
-            ms = int(minute_start)
-            # Round down to nearest time bin
             clauses.append("time_bin >= ?")
-            bind.append(ms - (ms % 15))
+            bind.append(int(minute_start) // 15)
         except ValueError:
             pass
 
     minute_end = params.get("minute_end")
     if minute_end is not None and minute_end != "":
         try:
-            me = int(minute_end)
             clauses.append("time_bin < ?")
-            bind.append(me)
+            bind.append((int(minute_end) + 14) // 15)
         except ValueError:
             pass
 
@@ -124,9 +149,9 @@ class LinkSpeedsProvider(DataProvider):
     PARAMS = _LINK_SPEED_PARAMS
 
     def deliver(self, params: dict) -> dict:
-        paths = get_data_paths()
-        parquet = paths.link_speeds
-
+        ckey, hit = _cache_get(self.ROUTE, params)
+        if hit is not None:
+            return hit
         where, bind = _build_filters(params)
 
         try:
@@ -141,7 +166,7 @@ class LinkSpeedsProvider(DataProvider):
                     ROUND(SUM(avg_speed * volume) / SUM(volume)
                           / AVG(freespeed), 4)       AS congestion_index,
                     SUM(volume)::INTEGER              AS volume
-                FROM read_parquet('{parquet}')
+                FROM link_speeds
                 WHERE {where}
                 GROUP BY link_id
                 ORDER BY volume DESC
@@ -159,10 +184,12 @@ class LinkSpeedsProvider(DataProvider):
                 "volume": r[5],
             }
 
-        return {
+        result = {
             "total_links": len(links),
             "links": links,
         }
+        _cache_put(ckey, result)
+        return result
 
 
 class SpeedDashboardProvider(DataProvider):
@@ -180,9 +207,9 @@ class SpeedDashboardProvider(DataProvider):
     PARAMS = _LINK_SPEED_PARAMS
 
     def deliver(self, params: dict) -> dict:
-        paths = get_data_paths()
-        parquet = paths.link_speeds
-
+        ckey, hit = _cache_get(self.ROUTE, params)
+        if hit is not None:
+            return hit
         where, bind = _build_filters(params)
 
         try:
@@ -202,7 +229,7 @@ class SpeedDashboardProvider(DataProvider):
                     SUM(volume)             AS vol,
                     CASE WHEN GROUPING(time_bin) = 1
                          THEN COUNT(DISTINCT link_id) END AS link_count
-                FROM read_parquet('{parquet}')
+                FROM link_speeds
                 WHERE {where}
                 GROUP BY GROUPING SETS (
                     (time_bin, road_type),
@@ -233,7 +260,7 @@ class SpeedDashboardProvider(DataProvider):
             vol_int = int(vol) if vol is not None else 0
             if g_time == 0 and g_rt == 0:
                 by_time_road_type.append({
-                    "time_bin": time_bin,
+                    "time_bin": time_bin * 15,  # bin index → minutes from midnight
                     "road_type": road_type,
                     "avg_speed_kmh": kmh(speed_num, vol),
                     "congestion_index": cong(speed_num, free_num),
@@ -250,7 +277,7 @@ class SpeedDashboardProvider(DataProvider):
                 })
             elif g_time == 0 and g_rt == 1:
                 by_time.append({
-                    "time_bin": time_bin,
+                    "time_bin": time_bin * 15,  # bin index → minutes from midnight
                     "avg_speed_kmh": kmh(speed_num, vol),
                     "congestion_index": cong(speed_num, free_num),
                     "total_volume": vol_int,
@@ -268,7 +295,7 @@ class SpeedDashboardProvider(DataProvider):
         by_time.sort(key=lambda r: r["time_bin"] or 0)
         by_time_road_type.sort(key=lambda r: (r["time_bin"] or 0, r["road_type"] or ""))
 
-        return {
+        result = {
             "network_summary": summary or {
                 "total_links": 0,
                 "avg_speed_kmh": None,
@@ -280,3 +307,5 @@ class SpeedDashboardProvider(DataProvider):
             "by_time": by_time,
             "by_time_road_type": by_time_road_type,
         }
+        _cache_put(ckey, result)
+        return result

@@ -25,6 +25,16 @@ from .helpers import (
 from ._pre_agg import label_for, make_label_resolver, polygon_filter_clause, resolve_polygon_ids, _source_label
 
 
+def _grp_sort_key(x):
+    """Sort group labels numerically when possible, else lexically — without
+    ever comparing int to str. Handles negatives (e.g. income_class '-1')
+    and non-numeric labels uniformly."""
+    try:
+        return (0, int(x))
+    except (ValueError, TypeError):
+        return (1, str(x))
+
+
 def _parse_age_bins(params: dict):
     bs = params.get("bounds")
     if not bs:
@@ -174,7 +184,7 @@ class NumCarsProvider(DataProvider):
                 all_oc[cc] += 1
                 all_ot += 1
 
-            grps = bin_order or sorted(seen_grps, key=lambda x: (int(x) if x.isdigit() else x))
+            grps = bin_order or sorted(seen_grps, key=_grp_sort_key)
             cc_classes = sorted(seen_cc, key=lambda x: int(x))
 
             labels_with_data = {k[0] for k in totals.keys()}

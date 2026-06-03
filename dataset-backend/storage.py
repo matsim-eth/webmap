@@ -107,11 +107,19 @@ _IGNORE_DIRS = {"json_preview", "__pycache__"}
 
 
 def list_data_categories(owner_id: int, dataset_id: int, is_public: bool = False) -> list[str]:
-    """Return names of non-empty data subdirectories (e.g. ['synthetic', 'microcensus'])."""
+    """Return the data categories of a dataset (e.g. ['microcensus', 'synthetic']).
+
+    Recognises both layouts:
+      * v1: non-empty subdirectories named after the category (``synthetic/``)
+      * v2: per-category DuckDB files (``synthetic.duckdb``)
+    """
     root = dataset_root(owner_id, dataset_id, is_public)
     if not root.exists():
         return []
-    return sorted(
-        d.name for d in root.iterdir()
-        if d.is_dir() and d.name not in _IGNORE_DIRS and any(d.iterdir())
-    )
+    cats: set[str] = set()
+    for entry in root.iterdir():
+        if entry.is_dir() and entry.name not in _IGNORE_DIRS and any(entry.iterdir()):
+            cats.add(entry.name)
+        elif entry.is_file() and entry.suffix == ".duckdb":
+            cats.add(entry.stem)  # 'synthetic.duckdb' -> 'synthetic'
+    return sorted(cats)

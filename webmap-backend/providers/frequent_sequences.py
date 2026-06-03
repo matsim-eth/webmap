@@ -6,6 +6,7 @@ from collections import defaultdict
 
 from .base import DataProvider, Param, CANTON, SOURCE
 from .connection import get_source_cursor
+from .constants import canton_name
 from .helpers import (
     get_hot_polygon_meta,
     parse_source_param,
@@ -43,6 +44,7 @@ class FrequentSequencesProvider(DataProvider):
 
         con0 = get_source_cursor(sources[0])
         polygon_ids = resolve_polygon_ids(con0, params, default_type="canton")
+        all_cantons = bool(polygon_ids) and all(p.startswith("canton:") for p in polygon_ids)
 
         counts: dict = defaultdict(int)
         totals: dict = defaultdict(int)
@@ -55,39 +57,70 @@ class FrequentSequencesProvider(DataProvider):
                 continue
             slabel = _source_label(source)
 
-            if polygon_ids:
-                join, where, group_expr, bind, _ = polygon_filter_clause(polygon_ids)
-                resolve = make_label_resolver(con, polygon_ids,
-                                               all(p.startswith("canton:") for p in polygon_ids))
+            if all_cantons:
+                # Single scan: build the per-person sequence once (keyed by home
+                # canton_id), then GROUPING SETS gives both per-canton and the
+                # all-CH rollup at once — no separate second scan.
+                try:
+                    wanted = {int(p.split(":", 1)[1]) for p in polygon_ids}
+                except (ValueError, IndexError):
+                    wanted = set()
                 rows = con.execute(f"""
                     WITH ps AS (
-                        SELECT {group_expr} AS poly_key,
+                        SELECT a.person_id, p.canton_id AS cid,
                                STRING_AGG({_PURPOSE_CASE}, '-' ORDER BY a.activity_index) AS seq
                         FROM activities a
                         JOIN persons p ON p.person_id = a.person_id
-                        {join}
-                        WHERE a.purpose IS NOT NULL{where}
-                        GROUP BY a.person_id, poly_key
+                        WHERE a.purpose IS NOT NULL
+                        GROUP BY a.person_id, p.canton_id
                     )
-                    SELECT poly_key, seq, COUNT(*) FROM ps GROUP BY poly_key, seq
-                """, bind).fetchall()
-                for poly_key, seq, cnt in rows:
-                    label = resolve(poly_key)
-                    labels_seen.add(label)
+                    SELECT cid, seq, COUNT(*) FROM ps
+                    GROUP BY GROUPING SETS ((cid, seq), (seq))
+                """).fetchall()
+                for cid, seq, cnt in rows:
+                    if cid is None:
+                        label = "All"
+                    elif cid in wanted:
+                        label = canton_name(cid)
+                        labels_seen.add(label)
+                    else:
+                        continue
                     counts[(label, slabel, str(seq))] += int(cnt)
                     totals[(label, slabel)] += int(cnt)
+            else:
+                if polygon_ids:
+                    # Custom / non-canton polygons: spatial join.
+                    join, where, group_expr, bind, _ = polygon_filter_clause(polygon_ids)
+                    resolve = make_label_resolver(con, polygon_ids, False)
+                    rows = con.execute(f"""
+                        WITH ps AS (
+                            SELECT {group_expr} AS poly_key,
+                                   STRING_AGG({_PURPOSE_CASE}, '-' ORDER BY a.activity_index) AS seq
+                            FROM activities a
+                            JOIN persons p ON p.person_id = a.person_id
+                            {join}
+                            WHERE a.purpose IS NOT NULL{where}
+                            GROUP BY a.person_id, poly_key
+                        )
+                        SELECT poly_key, seq, COUNT(*) FROM ps GROUP BY poly_key, seq
+                    """, bind).fetchall()
+                    for poly_key, seq, cnt in rows:
+                        label = resolve(poly_key)
+                        labels_seen.add(label)
+                        counts[(label, slabel, str(seq))] += int(cnt)
+                        totals[(label, slabel)] += int(cnt)
 
-            rows_all = con.execute(f"""
-                WITH ps AS (
-                    SELECT a.person_id,
-                           STRING_AGG({_PURPOSE_CASE}, '-' ORDER BY a.activity_index) AS seq
-                    FROM activities a WHERE a.purpose IS NOT NULL GROUP BY a.person_id
-                )
-                SELECT seq, COUNT(*) FROM ps GROUP BY seq
-            """).fetchall()
-            for seq, cnt in rows_all:
-                counts[("All", slabel, str(seq))] += int(cnt)
-                totals[("All", slabel)] += int(cnt)
+                rows_all = con.execute(f"""
+                    WITH ps AS (
+                        SELECT a.person_id,
+                               STRING_AGG({_PURPOSE_CASE}, '-' ORDER BY a.activity_index) AS seq
+                        FROM activities a WHERE a.purpose IS NOT NULL GROUP BY a.person_id
+                    )
+                    SELECT seq, COUNT(*) FROM ps GROUP BY seq
+                """).fetchall()
+                for seq, cnt in rows_all:
+                    counts[("All", slabel, str(seq))] += int(cnt)
+                    totals[("All", slabel)] += int(cnt)
 
         out: dict = {}
         for label in list(labels_seen) + ["All"]:
