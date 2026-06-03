@@ -9,13 +9,13 @@ const TransitStopSearch = ({ canton }) => {
   const [filteredStops, setFilteredStops] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const { getCantonData } = useData();
-  const { selectedTransitStop, setSelectedTransitStop, selectedTransitLine, setSelectedTransitLine } = useDashboard();
+  const { selectedTransitStop, setSelectedTransitStop, selectedTransitLine, setSelectedTransitLine, datasetId } = useDashboard();
   const prevCantonRef = useRef(canton);
 
   // Load transit stops data when canton changes
   const cantonEnabled = !!canton && canton !== 'All';
   const { data: stopsData = null, isLoading: loading } = useQuery({
-    queryKey: ['transitStopsSearch', canton],
+    queryKey: ['transitStopsSearch', datasetId, canton],
     queryFn: async () => {
       const geojson = await getCantonData(`matsim/transit/stops_by_canton/${canton}_stops.geojson`);
       if (!geojson || !geojson.features || geojson.features.length === 0) {

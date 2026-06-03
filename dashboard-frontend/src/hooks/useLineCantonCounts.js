@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../context/DataContext';
+import { useDashboard } from '../context/DashboardContext';
 import { useEffectiveLineCantons } from './useEffectiveLineCantons';
 
 /**
@@ -20,13 +21,14 @@ import { useEffectiveLineCantons } from './useEffectiveLineCantons';
  */
 export function useLineCantonCounts(selectedLineMeta) {
   const { getCantonData } = useData();
+  const { datasetId } = useDashboard();
 
   const lineId = selectedLineMeta?.line_id ?? null;
   const { cantons, isLoading: cantonsLoading } = useEffectiveLineCantons(selectedLineMeta);
   const cantonsKey = [...cantons].sort().join('|');
 
   const query = useQuery({
-    queryKey: ['line-canton-counts', lineId, cantonsKey],
+    queryKey: ['line-canton-counts', datasetId, lineId, cantonsKey],
     enabled: !!lineId && cantons.length > 0,
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {

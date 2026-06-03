@@ -6,11 +6,11 @@ import cantonAlias from "../../utils/canton_alias.json";
 import PlotLoader from "./PlotLoader";
 
 const TransitStopSummary = () => {
-  const { selectedCanton, selectedTransitStop, selectedTransitLine } = useDashboard();
+  const { selectedCanton, selectedTransitStop, selectedTransitLine, datasetId } = useDashboard();
   const { getCantonData } = useData();
 
   const { data: rawData = null } = useQuery({
-    queryKey: ['cantonCounts', selectedCanton],
+    queryKey: ['cantonCounts', datasetId, selectedCanton],
     queryFn: () =>
       getCantonData(`matsim/transit/per_canton_counts/${selectedCanton}_counts.json`)
         .catch(() => null),

@@ -7,7 +7,7 @@ import { useResizeOnSidebarChange } from "../../hooks/useResizeOnSidebarChange";
 import PlotLoader from "./PlotLoader";
 
 const TransferDestinations = ({ sidebarCollapsed, isExpanded = false }) => {
-  const { selectedCanton, selectedTransitStop } = useDashboard();
+  const { selectedCanton, selectedTransitStop, datasetId } = useDashboard();
   const { getData, getCantonData } = useData();
 
   const transferData = getData("stop_transfer_data_by_canton.json");
@@ -15,7 +15,7 @@ const TransferDestinations = ({ sidebarCollapsed, isExpanded = false }) => {
   useResizeOnSidebarChange(sidebarCollapsed);
 
   const { data: stopsData = null } = useQuery({
-    queryKey: ['cantonStops', selectedCanton],
+    queryKey: ['cantonStops', datasetId, selectedCanton],
     queryFn: () =>
       getCantonData(`matsim/transit/stops_by_canton/${selectedCanton}_stops.geojson`)
         .then((geojson) => geojson?.features || [])

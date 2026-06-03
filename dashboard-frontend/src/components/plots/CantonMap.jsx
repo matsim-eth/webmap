@@ -20,6 +20,7 @@ const CantonMap = ({ sidebarCollapsed, isExpanded = false, activeTab }) => {
     selectedMunicipality, setSelectedMunicipality,
     selectedLineModes,
     polygonSet,
+    datasetId,
   } = useDashboard();
   const { getCantonData } = useData();
 
@@ -64,7 +65,7 @@ const CantonMap = ({ sidebarCollapsed, isExpanded = false, activeTab }) => {
     && !hideLineByFilter
     && !!linePolygonIds?.size;
   const { data: muniGeo } = useQuery({
-    queryKey: ['municipalities-geojson', cantonsKey],
+    queryKey: ['municipalities-geojson', datasetId, cantonsKey],
     enabled: muniEnabled,
     staleTime: 5 * 60 * 1000,
     queryFn: () => {

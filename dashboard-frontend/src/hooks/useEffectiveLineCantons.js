@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../context/DataContext';
+import { useDashboard } from '../context/DashboardContext';
 import { parseStopFeatureLines } from '../utils/transitLineFilter';
 
 /**
@@ -27,12 +28,13 @@ import { parseStopFeatureLines } from '../utils/transitLineFilter';
  */
 export function useEffectiveLineCantons(selectedLineMeta) {
   const { getCantonData } = useData();
+  const { datasetId } = useDashboard();
   const lineId = selectedLineMeta?.line_id ?? null;
   const metaCantons = selectedLineMeta?.cantons ?? [];
   const needsDiscovery = !!lineId && metaCantons.length === 0;
 
   const { data: discovered, isLoading } = useQuery({
-    queryKey: ['discovered-line-cantons', lineId],
+    queryKey: ['discovered-line-cantons', datasetId, lineId],
     enabled: needsDiscovery,
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {

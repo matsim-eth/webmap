@@ -1,9 +1,17 @@
-import React, { createContext, useContext, useState, useRef, useCallback } from "react";
+import React, { createContext, useContext, useState, useRef, useCallback, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLoadWithFallback } from "../utils/useLoadWithFallback";
+import { useDashboard } from "./DashboardContext";
 import { handle401 } from "../utils/auth";
 
 const DataContext = createContext();
-const DEFAULT_CACHE_LIMIT_MB = Number(import.meta.env.VITE_DATA_CACHE_MB ?? 60);
+// v2 (15x) assets are large: boarding_data_by_line ≈ 38 MB and municipalities
+// ≈ 54 MB raw, and estimateSize counts ~2× (stringify length). With the old
+// 60 MB budget a single asset exceeded the limit, so any two large assets on a
+// tab evicted each other in a loop — getData refetched the evicted file, bumped
+// cacheVersion, re-rendered every consumer, and thrashed (constant refetch +
+// flicker). Budget must comfortably hold the working set of the heaviest tab.
+const DEFAULT_CACHE_LIMIT_MB = Number(import.meta.env.VITE_DATA_CACHE_MB ?? 768);
 const CACHE_LIMIT_BYTES =
   (Number.isFinite(DEFAULT_CACHE_LIMIT_MB) && DEFAULT_CACHE_LIMIT_MB > 0
     ? DEFAULT_CACHE_LIMIT_MB
@@ -48,6 +56,26 @@ export const DataProvider = ({ children }) => {
   const loadWithFallback = useLoadWithFallback();
   const loaderRef = useRef(loadWithFallback);
   loaderRef.current = loadWithFallback; // always keep latest ref
+
+  // Cross-dataset isolation: the in-memory cache is keyed by relative path
+  // (e.g. "stop_municipality.json?cantons=Zurich") WITHOUT the dataset id, and
+  // react-query keys likewise omit it. Without this, switching datasets serves
+  // the previous dataset's cached responses (e.g. dataset-1 stop_municipality
+  // against dataset-2 stop_ids → empty municipality charts). Clear both caches
+  // whenever the active dataset changes so everything refetches.
+  const queryClient = useQueryClient();
+  const { datasetId } = useDashboard();
+  const prevDatasetRef = useRef(datasetId);
+  useEffect(() => {
+    if (prevDatasetRef.current === datasetId) return;
+    prevDatasetRef.current = datasetId;
+    cacheRef.current = {};
+    cacheOrderRef.current = new Map();
+    cacheSizeRef.current = 0;
+    inflightRef.current = new Map();
+    setCacheVersion((v) => v + 1);
+    queryClient.clear();
+  }, [datasetId, queryClient]);
 
   const getCached = useCallback((key) => {
     if (!(key in cacheRef.current)) return undefined;

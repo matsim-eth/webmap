@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../context/DataContext';
+import { useDashboard } from '../context/DashboardContext';
 import { useLineCantonCounts } from './useLineCantonCounts';
 import { useEffectiveLineCantons } from './useEffectiveLineCantons';
 import { parseStopFeatureLines } from '../utils/transitLineFilter';
@@ -29,6 +30,7 @@ import { findContainingFeature } from '../utils/pointInPolygon';
  */
 export function useLinePolygonCounts(selectedLineMeta, polygonSet) {
   const { getCantonData } = useData();
+  const { datasetId } = useDashboard();
 
   const lineId = selectedLineMeta?.line_id ?? null;
   const { cantons, isLoading: cantonsLoading } = useEffectiveLineCantons(selectedLineMeta);
@@ -42,7 +44,7 @@ export function useLinePolygonCounts(selectedLineMeta, polygonSet) {
   // Stops on the line, with coords. Used for muni-seeding (so zero-count
   // munis still render) AND for the custom PiP path.
   const { data: stopsOnLine, isLoading: stopsLoading, isError: stopsError } = useQuery({
-    queryKey: ['line-stops-with-coords', lineId, cantonsKey],
+    queryKey: ['line-stops-with-coords', datasetId, lineId, cantonsKey],
     enabled,
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
@@ -80,7 +82,7 @@ export function useLinePolygonCounts(selectedLineMeta, polygonSet) {
     isLoading: muniLookupLoading,
     isError: muniLookupError,
   } = useQuery({
-    queryKey: ['stop-municipality-lookup', cantonsKey],
+    queryKey: ['stop-municipality-lookup', datasetId, cantonsKey],
     enabled: enabled && !isCustom,
     staleTime: 5 * 60 * 1000,
     queryFn: () => {

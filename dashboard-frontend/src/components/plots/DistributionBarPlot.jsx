@@ -105,14 +105,21 @@ const DistributionBarPlot = ({
   const validSlots = resolvedSlots.filter((s) => s.resolvedData);
   if (validSlots.length === 0) return <div className="plot-loading">No data available</div>;
 
-  // Determine categories from the first slot with data
+  // Determine categories from the UNION of all slots' keys — not just
+  // validSlots[0]. An empty `{}` is truthy and passes the validSlots filter,
+  // so if the first slot has no data for this metric (e.g. microcensus has no
+  // n_activities) taking keys from validSlots[0] alone would blank the whole
+  // chart even though a later slot (synthetic) has data. The union keeps the
+  // populated slot's ordering since the empty slot contributes nothing.
   let categories;
   if (customCategories) {
     categories = customCategories.map((c) => c.key);
-  } else if (filterType === null) {
-    categories = Object.keys(validSlots[0].resolvedData);
   } else {
-    categories = Object.keys(validSlots[0].resolvedData);
+    const keySet = new Set();
+    for (const s of validSlots) {
+      for (const k of Object.keys(s.resolvedData || {})) keySet.add(k);
+    }
+    categories = [...keySet];
   }
 
   // Sort distance categories by first slot's average (ascending)

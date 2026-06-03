@@ -13,7 +13,7 @@ const METRICS = {
 };
 
 const PassengersByStop = ({ sidebarCollapsed, isExpanded = false, metric = "boardings" }) => {
-  const { selectedCanton, selectedTransitStop, selectedTransitLine } = useDashboard();
+  const { selectedCanton, selectedTransitStop, selectedTransitLine, datasetId } = useDashboard();
   const { getCantonData } = useData();
 
   const { label, color } = METRICS[metric] || METRICS.boardings;
@@ -21,7 +21,7 @@ const PassengersByStop = ({ sidebarCollapsed, isExpanded = false, metric = "boar
   useResizeOnSidebarChange(sidebarCollapsed);
 
   const { data: rawData = null } = useQuery({
-    queryKey: ['cantonCounts', selectedCanton],
+    queryKey: ['cantonCounts', datasetId, selectedCanton],
     queryFn: () =>
       getCantonData(`matsim/transit/per_canton_counts/${selectedCanton}_counts.json`)
         .catch(() => null),
