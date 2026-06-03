@@ -8,6 +8,7 @@ export default defineConfig({
   server: {
     port: 5121,
     host: '0.0.0.0',
+    allowedHosts: true,
     hmr: {
       clientPort: 80,
       path: '/webmap/',

@@ -8,6 +8,7 @@ export default defineConfig({
   server: {
     port: 5122,
     host: '0.0.0.0',
+    allowedHosts: true,
     hmr: {
       clientPort: 80,
       path: '/dashboard/',
