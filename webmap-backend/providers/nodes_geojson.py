@@ -20,6 +20,12 @@ from fastapi.responses import JSONResponse
 from .base import DataProvider, Param
 from .connection import get_source_cursor
 from .helpers import resolve_canton_to_polygon_id
+from .paths import dataset_key
+
+# node_flows only analyses car/road turning movements, so the clickable nodes
+# must be road nodes. PT-only junctions (tram/rail) have no car link and would
+# return "node not found" — exclude them here so they aren't shown/clickable.
+_CAR = "(modes IS NULL OR modes LIKE '%car%')"
 
 
 _COORD_DECIMALS = 6  # ~0.1 m; keeps the payload small
@@ -56,7 +62,7 @@ class NodesGeoJSONProvider(DataProvider):
         if cid is None:
             return {"error": f"Unknown canton: {canton}"}
 
-        cache_key = ("synthetic", cid)
+        cache_key = (dataset_key(), cid)
         with _lock:
             cached = _fc_cache.get(cache_key)
             if cached is not None:
@@ -73,6 +79,11 @@ class NodesGeoJSONProvider(DataProvider):
                                ST_Transform(geom, 'EPSG:2056', 'EPSG:4326', always_xy := true) AS p
                         FROM network_nodes
                         WHERE canton_id = ?
+                          AND node_id IN (
+                              SELECT from_node FROM network_links WHERE {_CAR}
+                              UNION
+                              SELECT to_node   FROM network_links WHERE {_CAR}
+                          )
                     )
                     """,
                     [cid],
