@@ -237,6 +237,16 @@ async def matsim_asset(dataset_id: int, asset_path: str, request: Request):
                 return JSONResponse({"error": "not found"}, status_code=404)
             return _Response(content=payload, media_type="application/geo+json")
 
+        # Transit line route geometry (one LineString per route) — served straight
+        # from the `transit_routes` static_asset (GeoJSON BLOB) for the map overlay.
+        if asset_path == "transit/routes/transit_routes.geojson":
+            payload = await _asyncio.to_thread(
+                load_static_asset_bytes, "synthetic", "transit_routes"
+            )
+            if payload is None:
+                return JSONResponse({"error": "not found"}, status_code=404)
+            return _Response(content=payload, media_type="application/geo+json")
+
         m = _COUNTS_RE.match(asset_path)
         if m:
             cid = _canton_id_from(m.group(1))

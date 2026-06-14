@@ -33,11 +33,12 @@ class StopTransferDataProvider(DataProvider):
         Param("stop_id", "Comma-separated stop IDs to include"),
     ]
     def _load(self) -> dict:
-        """Transform the v2 static_asset (list of
-        ``{canton_id, total_transfers, stops:[{stop_id, name, bfs, transfers}]}``)
-        into the canton-name-keyed dict the frontend expects, adding per-stop
-        ``boardings`` (summed from boarding_data, since the transfer asset only
-        carries transfers)."""
+        """Transform the v2 static_asset (list of ``{canton_id, total_transfers,
+        stops:[{stop_id, name, bfs, transfers, total_transfers_in/out,
+        line_transfers, stop_transfers}]}``) into the shape the dashboard's
+        TransferMatrix / TransferDestinations expect: ``{canton_name: {stop_id:
+        stop_dict}}`` (keyed by stop_id, NOT a list). Per-stop ``boardings`` is
+        added from boarding_data."""
         dk = dataset_key()
         if dk in _transfer_cache:
             return _transfer_cache[dk]
@@ -54,13 +55,15 @@ class StopTransferDataProvider(DataProvider):
                 for d in stop.get("data", []):
                     boardings_by_stop[sid] += d.get("boardings", 0)
 
-        out: dict[str, list] = {}
+        out: dict[str, dict] = {}
         for entry in raw:
             cname = canton_name(entry.get("canton_id"))
-            stops = []
+            stops: dict[str, dict] = {}
             for s in entry.get("stops", []):
                 sid = s.get("stop_id")
-                stops.append({**s, "boardings": int(boardings_by_stop.get(sid, 0))})
+                # line_transfers / stop_transfers / total_transfers_in/out pass
+                # through from the asset; the frontend reads them directly.
+                stops[sid] = {**s, "boardings": int(boardings_by_stop.get(sid, 0))}
             out[cname] = stops
         _transfer_cache[dk] = out
         return out
@@ -99,38 +102,29 @@ class StopTransferDataProvider(DataProvider):
         else:
             filtered_data = dict(data)
 
-        # Filter stops within each canton
+        # Filter stops within each canton (inner value is {stop_id: stop_dict})
         if min_boardings is not None or min_transfers is not None or stop_ids is not None:
             result = {}
             for canton_key, stops in filtered_data.items():
-                if not isinstance(stops, list):
+                if not isinstance(stops, dict):
                     result[canton_key] = stops
                     continue
 
-                filtered_stops = []
-                for stop in stops:
-                    if not isinstance(stop, dict):
-                        filtered_stops.append(stop)
+                kept = {}
+                for sid, stop in stops.items():
+                    if stop_ids is not None and str(sid) not in stop_ids:
                         continue
-
-                    if stop_ids is not None:
-                        sid = str(stop.get("stop_id", ""))
-                        if sid not in stop_ids:
-                            continue
-
                     if min_boardings is not None:
-                        boardings = stop.get("boardings", 0)
-                        if isinstance(boardings, (int, float)) and boardings < min_boardings:
+                        b = stop.get("boardings", 0)
+                        if isinstance(b, (int, float)) and b < min_boardings:
                             continue
-
                     if min_transfers is not None:
-                        transfers = stop.get("transfers", 0)
-                        if isinstance(transfers, (int, float)) and transfers < min_transfers:
+                        t = stop.get("transfers", 0)
+                        if isinstance(t, (int, float)) and t < min_transfers:
                             continue
+                    kept[sid] = stop
 
-                    filtered_stops.append(stop)
-
-                result[canton_key] = filtered_stops
+                result[canton_key] = kept
             return result
 
         return filtered_data
