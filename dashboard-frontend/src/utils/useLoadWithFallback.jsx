@@ -7,7 +7,6 @@ export const useLoadWithFallback = (explicitDataURL) => {
   const { datasetId } = useDashboard();
 
   const BACKEND_DATA_URL = `/backend/data/${datasetId}/`;
-  const DEFAULT_DATA_URL = "https://matsim-eth.github.io/webmap/data/";
 
   const loadWithFallback = async (relativePath) => {
     const localPath = `data/${relativePath}`;
@@ -23,12 +22,16 @@ export const useLoadWithFallback = (explicitDataURL) => {
       }
     }
 
-    // 2. Try from remote sources (backend first, then GitHub fallback)
+    // 2. Try remote sources. The dataset-versioned backend is authoritative and
+    // comes FIRST. We deliberately do NOT fall back to the fixed GitHub CDN:
+    // that served dataset-independent reference data, so when a dataset's asset
+    // failed to load every dataset silently showed the SAME numbers (e.g. the
+    // 5% and 15% runs reporting identical passenger counts). A backend miss now
+    // surfaces as empty/error for that specific dataset instead of masking it.
     const candidates = [
+      BACKEND_DATA_URL,
       explicitDataURL,
       contextDataURL,
-      BACKEND_DATA_URL,
-      DEFAULT_DATA_URL
     ].filter(Boolean);
 
     for (const base of candidates) {
