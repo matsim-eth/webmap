@@ -58,8 +58,13 @@ class ActivityDurationsProvider(DataProvider):
         purposes_seen: set = set()
         labels_seen: set = set()
 
+        # Bucket the duration (seconds → minutes) into `step`-minute slots. NB:
+        # DuckDB `/` is FLOAT division, so the old `(minutes / step) * step`
+        # returned the raw minute value (no bucketing) — every non-multiple-of-
+        # step duration then fell outside the emitted `slots` list, so the bars
+        # summed to far less than 100%. Floor-divide explicitly to bin correctly.
         slot_expr = (
-            f"LEAST((CAST(FLOOR((a.end_time - a.start_time) / 60) AS INTEGER) / {step}) * {step}, {max_slot})"
+            f"LEAST(CAST(FLOOR((a.end_time - a.start_time) / 60.0 / {step}) AS INTEGER) * {step}, {max_slot})"
         )
 
         for source in sources:
