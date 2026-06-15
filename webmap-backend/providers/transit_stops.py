@@ -18,6 +18,7 @@ Results are cached per process (the dataset is read-only).
 from __future__ import annotations
 
 import re
+import threading
 from collections import defaultdict
 
 from .connection import get_source_cursor
@@ -33,6 +34,11 @@ _STATION_RE = re.compile(r"^(\d+)")
 # serving several datasets never mixes one dataset's stops into another.
 _ds_cache: dict[str, dict] = {}
 
+# Serialises the (expensive, ~seconds) _build() so N concurrent first-requests
+# for different cantons don't each kick off a full country-wide build at once
+# (thundering herd). The first request builds; the rest wait and reuse it.
+_build_lock = threading.Lock()
+
 
 def _linkid(stop_id: str) -> str | None:
     """The network link id embedded after '.link:' in a stop_id."""
@@ -42,27 +48,25 @@ def _linkid(stop_id: str) -> str | None:
 
 
 def _resolve_coords(cur, linkids: list[str]) -> dict[str, tuple]:
-    """link_id → (lon, lat) via the link's to_node geometry (EPSG:2056→4326)."""
-    out: dict[str, tuple] = {}
-    chunk = 800
-    for i in range(0, len(linkids), chunk):
-        part = linkids[i : i + chunk]
-        ph = ",".join(["?"] * len(part))
-        rows = cur.execute(
-            f"""
-            SELECT l.link_id,
-                   ST_X(ST_Transform(n.geom, 'EPSG:2056', 'EPSG:4326', always_xy := true)),
-                   ST_Y(ST_Transform(n.geom, 'EPSG:2056', 'EPSG:4326', always_xy := true))
-            FROM network_links l
-            JOIN network_nodes n ON n.node_id = l.to_node
-            WHERE l.link_id IN ({ph})
-            """,
-            part,
-        ).fetchall()
-        for lid, x, y in rows:
-            if x is not None and y is not None:
-                out[lid] = (x, y)
-    return out
+    """link_id → (lon, lat) via the link's to_node geometry (EPSG:2056→4326).
+
+    One query (``IN (SELECT UNNEST(?))``) instead of chunked 800-id batches, so
+    the 1.7M-row ``network_links`` scan happens once rather than ~75 times — the
+    dominant cost of the build (cuts it roughly in half on a cold dataset)."""
+    if not linkids:
+        return {}
+    rows = cur.execute(
+        """
+        SELECT l.link_id,
+               ST_X(ST_Transform(n.geom, 'EPSG:2056', 'EPSG:4326', always_xy := true)),
+               ST_Y(ST_Transform(n.geom, 'EPSG:2056', 'EPSG:4326', always_xy := true))
+        FROM network_links l
+        JOIN network_nodes n ON n.node_id = l.to_node
+        WHERE l.link_id IN (SELECT UNNEST(?))
+        """,
+        [list(linkids)],
+    ).fetchall()
+    return {lid: (x, y) for lid, x, y in rows if x is not None and y is not None}
 
 
 def _build() -> dict:
@@ -156,12 +160,20 @@ def _build() -> dict:
 
 
 def _bundle() -> dict:
-    """Return (building if needed) the cached bundle for the current dataset."""
+    """Return (building if needed) the cached bundle for the current dataset.
+
+    Double-checked locking: the common case (already built) is lock-free; only
+    the first request per dataset takes the lock and runs _build(), so parallel
+    first-requests collapse onto a single build instead of stampeding the DB."""
     dk = dataset_key()
     b = _ds_cache.get(dk)
-    if b is None:
-        b = _ds_cache[dk] = _build()
-    return b
+    if b is not None:
+        return b
+    with _build_lock:
+        b = _ds_cache.get(dk)
+        if b is None:
+            b = _ds_cache[dk] = _build()
+        return b
 
 
 def stops_by_canton(canton_id: int) -> dict:

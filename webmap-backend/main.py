@@ -94,24 +94,35 @@ def _ttl_seconds_from_exp(exp: int | None) -> int | None:
 # App
 # ---------------------------------------------------------------------------
 
-def _prewarm_speed_cache() -> None:
-    """Background: precompute the slow, parameter-less speed_dashboard for every
-    dataset so the first user doesn't wait ~30s (minutes on a cold server) for
-    the 50M-row scan. Runs one dataset at a time in a daemon thread; disable
-    with WEBMAP_PREWARM=0. Errors are swallowed (incompatible datasets just skip)."""
+def _prewarm_caches() -> None:
+    """Background: precompute the two slow, parameter-less builds for every
+    dataset so the first user never waits on a cold scan:
+      • speed_dashboard — a 50M-row link_speeds scan (~30s, minutes cold);
+      • transit stops    — a country-wide _build() over boarding_data + the
+        1.7M-row network (~seconds, much worse on a cold mmap), which otherwise
+        fires on the first stops_by_canton request.
+    Runs one dataset at a time in a daemon thread; disable with WEBMAP_PREWARM=0.
+    Errors are swallowed (incompatible datasets just skip)."""
     import glob
     from providers.paths import set_root_override
     from providers.link_speeds import SpeedDashboardProvider
+    from providers.transit_stops import inter_cantonal_stops
 
     base = os.getenv("WEBMAP_ROOT", "/data/datasets/public")
     roots = sorted({os.path.dirname(p) for p in glob.glob(os.path.join(base, "*", "synthetic.duckdb"))})
     for root in roots:
+        set_root_override(root)
         try:
-            set_root_override(root)
-            SpeedDashboardProvider().deliver({})
-            logger.info("prewarmed speed_dashboard for %s", root)
-        except Exception as exc:
-            logger.warning("prewarm skipped for %s: %s", root, exc)
+            try:
+                SpeedDashboardProvider().deliver({})
+                logger.info("prewarmed speed_dashboard for %s", root)
+            except Exception as exc:
+                logger.warning("speed prewarm skipped for %s: %s", root, exc)
+            try:
+                inter_cantonal_stops()  # triggers the per-dataset transit _build()
+                logger.info("prewarmed transit stops for %s", root)
+            except Exception as exc:
+                logger.warning("transit prewarm skipped for %s: %s", root, exc)
         finally:
             set_root_override(None)
 
@@ -120,7 +131,7 @@ def _prewarm_speed_cache() -> None:
 async def lifespan(app: FastAPI):
     if os.getenv("WEBMAP_PREWARM", "1").strip().lower() in {"1", "true"}:
         import threading
-        threading.Thread(target=_prewarm_speed_cache, name="prewarm", daemon=True).start()
+        threading.Thread(target=_prewarm_caches, name="prewarm", daemon=True).start()
     yield
 
 

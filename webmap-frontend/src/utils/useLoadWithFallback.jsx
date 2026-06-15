@@ -23,11 +23,18 @@ export const useLoadWithFallback = (explicitDataURL) => {
       }
     }
 
-    // 2. Try from remote sources
+    // 2. Try from remote sources. The dataset-versioned backend is AUTHORITATIVE
+    // and must come first: explicitDataURL/contextDataURL both default to the
+    // fixed GitHub CDN, which serves dataset-independent reference data — if it
+    // is tried first it wins for dataset-specific assets (e.g.
+    // per_canton_counts), so every dataset shows the SAME numbers (the 1% and 5%
+    // runs both reporting 50 boardings at a stop). Backend first → each dataset
+    // gets its own data; the CDN remains only as a last resort for static assets
+    // the backend doesn't serve.
     const candidates = [
+      BACKEND_DATA_URL,
       explicitDataURL,
       contextDataURL,
-      BACKEND_DATA_URL,
       DEFAULT_DATA_URL
     ].filter(Boolean); // remove undefined/null
 
