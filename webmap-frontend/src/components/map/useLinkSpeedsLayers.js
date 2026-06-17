@@ -198,7 +198,7 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
                 source: SPEEDS_AGG_SOURCE_ID,
                 maxzoom: SPLIT_ZOOM,
                 paint: {
-                    'line-width': ['interpolate', ['linear'], ['get', 'capacity'], 300, 2, 4000, 9],
+                    'line-width': ['interpolate', ['linear'], ['coalesce', ['get', 'capacity'], 1000], 300, 2, 4000, 9],
                     'line-color': ramp,
                     'line-opacity': 0.9,
                 },
@@ -211,7 +211,7 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
                 source: SPEEDS_SOURCE_ID,
                 minzoom: SPLIT_ZOOM,
                 paint: {
-                    'line-width': ['interpolate', ['linear'], ['get', 'capacity'], 300, 2, 4000, 9],
+                    'line-width': ['interpolate', ['linear'], ['coalesce', ['get', 'capacity'], 1000], 300, 2, 4000, 9],
                     'line-color': ramp,
                     'line-opacity': 0.9,
                     'line-offset': LINE_OFFSET_EXPR,
@@ -345,7 +345,7 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
                 source: 'network-highlight',
                 paint: {
                     // Narrow highlight — we're only selecting one direction.
-                    'line-width': ['interpolate', ['linear'], ['get', 'capacity'], 300, 6, 4000, 15],
+                    'line-width': ['interpolate', ['linear'], ['coalesce', ['get', 'capacity'], 1000], 300, 6, 4000, 15],
                     'line-color': '#00a2ff',
                     'line-opacity': 1,
                     'line-offset': LINE_OFFSET_EXPR,
@@ -531,7 +531,7 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
         const map = mapRef.current;
         if (!map.getLayer('network-highlight')) return;
 
-        const defaultWidth = ['interpolate', ['linear'], ['get', 'capacity'], 300, 6, 4000, 15];
+        const defaultWidth = ['interpolate', ['linear'], ['coalesce', ['get', 'capacity'], 1000], 300, 6, 4000, 15];
         // Only widen for merged (non-split) selections — per-direction clicks
         // highlight a single offset line and should stay narrow.
         const isSplitSelection = !!featureSelection?.feature?.properties?.ls_arrow;
@@ -546,7 +546,7 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
             map.setPaintProperty('network-highlight', 'line-width', ['step', ['zoom'],
                 defaultWidth,
                 SPLIT_ZOOM,
-                ['interpolate', ['linear'], ['get', 'capacity'], 300, 18, 4000, 28],
+                ['interpolate', ['linear'], ['coalesce', ['get', 'capacity'], 1000], 300, 18, 4000, 28],
             ]);
         } else {
             map.setPaintProperty('network-highlight', 'line-width', defaultWidth);

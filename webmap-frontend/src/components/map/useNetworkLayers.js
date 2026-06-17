@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import useAntPath from './useAntPath';
 import { safeRemoveLayer, safeRemoveSource, setVisibility, setFilter } from './_lib/mapbox';
-import { parsePipeList, decoratePerIdMinMax, decorateLineVolumesFromPerId } from './_lib/pipeProps';
+import { parsePipeList, decoratePerIdMinMax, decorateLineVolumesFromPerId, mergeSegmentsByGeometry } from './_lib/pipeProps';
+import { CLICKABLE_ROAD_FILTER } from './_lib/mapboxFilters';
 
 export default function useNetworkLayers({
   mapRef,
@@ -186,6 +187,13 @@ export default function useNetworkLayers({
       return;
     }
     
+    // New per-link merged_segments format (one feature per directed link,
+    // singular `link_id`, no per_id_*) → merge forward+reverse links sharing a
+    // geometry into one segment carrying per_id_keys/per_id_arrows, so the
+    // downstream hooks (VolumeFlow dropdown, LinkSpeeds/NodeFlows offset) work as
+    // before. No-op on old-format data that already has per_id_keys.
+    networkGeojson.features = mergeSegmentsByGeometry(networkGeojson.features);
+
     originalNetworkGeoJSON.current = networkGeojson;
 
     decorateLineVolumesFromPerId(networkGeojson.features);
@@ -243,13 +251,10 @@ export default function useNetworkLayers({
     updateNetworkFilter(selectedNetworkModesRef.current);
     
     if (graphExpandedRef.current === 'VolumeFlow' || graphExpandedRef.current === 'NodeFlows' || graphExpandedRef.current === 'LinkSpeeds') {
-      // VolumeFlow/NodeFlows: car roads with >0 volume only (no major roads restriction), no labels
-      const vfFilter = ['all',
-        ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']] , 0],
-        ['>', ['get', 'daily_avg_volume'], 0]
-      ];
-      map.setFilter('click-network-layer', vfFilter);
-      map.setFilter('network-layer', vfFilter);
+      // VolumeFlow/NodeFlows: clickable road links (car+volume for rich datasets,
+      // all links for the stripped per-link merged_segments format), no labels
+      map.setFilter('click-network-layer', CLICKABLE_ROAD_FILTER);
+      map.setFilter('network-layer', CLICKABLE_ROAD_FILTER);
     } else if (graphExpandedRef.current === 'Volumes') {
       // Volumes: car roads + optional major roads filter
       const carFilter = ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0];
@@ -341,12 +346,8 @@ export default function useNetworkLayers({
     // If "all" modes selected, remove filter (or apply car filter for VolumeFlow)
     if (!modes || modes.includes('all')) {
       if (graphExpandedRef.current === 'VolumeFlow' || graphExpandedRef.current === 'NodeFlows' || graphExpandedRef.current === 'LinkSpeeds') {
-        // VolumeFlow/NodeFlows: car roads with >0 volume only
-        const vfFilter = ['all',
-          ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0],
-          ['>', ['get', 'daily_avg_volume'], 0]
-        ];
-        setFilter(map, ['network-layer', 'click-network-layer'], vfFilter);
+        // VolumeFlow/NodeFlows: clickable road links (tolerates stripped format)
+        setFilter(map, ['network-layer', 'click-network-layer'], CLICKABLE_ROAD_FILTER);
       } else {
         setFilter(map, ['network-layer', 'click-network-layer', 'network-highlight'], null);
       }
@@ -405,8 +406,9 @@ export default function useNetworkLayers({
     const carFilter = ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0];
     let fullFilter;
     if (isGraphExpanded === 'VolumeFlow' || isGraphExpanded === 'NodeFlows' || isGraphExpanded === 'LinkSpeeds') {
-      // VolumeFlow/NodeFlows: car roads with >0 volume (never major-only)
-      fullFilter = ['all', carFilter, ['>', ['get', 'daily_avg_volume'], 0]];
+      // VolumeFlow/NodeFlows: clickable road links (never major-only; tolerates
+      // the stripped per-link merged_segments format that lacks modes/volume)
+      fullFilter = CLICKABLE_ROAD_FILTER;
     } else if (showMajorRoadsOnly) {
       fullFilter = ['all', carFilter, ['>', ['get', 'capacity'], 1200]];
     } else {
@@ -505,12 +507,8 @@ export default function useNetworkLayers({
           map.setPaintProperty('network-layer', 'line-opacity', 0.4);
           map.setPaintProperty('click-network-layer', 'line-width', 10);
           setLabelVisibility(map, false);
-          // Apply car-mode + volume>0 filter (all car roads, not just major)
-          const vfFilter = ['all',
-            ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0],
-            ['>', ['get', 'daily_avg_volume'], 0]
-          ];
-          setFilter(map, ['network-layer', 'click-network-layer'], vfFilter);
+          // Clickable road links (tolerates stripped per-link merged_segments format)
+          setFilter(map, ['network-layer', 'click-network-layer'], CLICKABLE_ROAD_FILTER);
         } else {
           // Network / Volumes: full color ramp
           const colorRamp = isGraphExpanded === 'Volumes'

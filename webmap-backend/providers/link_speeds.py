@@ -192,6 +192,43 @@ class LinkSpeedsProvider(DataProvider):
         return result
 
 
+class LinkVolumesProvider(DataProvider):
+    """Per-link total daily volume (vehicles) for a canton, summed across time
+    bins from the link_speeds table. Used by the VolumeFlow module to hide links
+    that carry no traffic — the old merged-network asset baked a `daily_avg_volume`
+    attribute per link, but the v2 per-link geometry asset doesn't, so the
+    frontend computes it from this endpoint instead. Only links with volume > 0
+    are returned (absent link → 0 trips → hidden).
+
+    Example: /data/{id}/link_volumes.json?canton=Zurich
+    """
+
+    ROUTE = "link_volumes.json"
+    PARAMS = _LINK_SPEED_PARAMS
+
+    def deliver(self, params: dict) -> dict:
+        ckey, hit = _cache_get(self.ROUTE, params)
+        if hit is not None:
+            return hit
+        where, bind = _build_filters(params)
+
+        try:
+            con = _get_con()
+            rows = con.execute(f"""
+                SELECT link_id, SUM(volume)::INTEGER AS volume
+                FROM link_speeds
+                WHERE {where}
+                GROUP BY link_id
+                HAVING SUM(volume) > 0
+            """, bind).fetchall()
+        except Exception as e:
+            return {"error": str(e)}
+
+        result = {"total_links": len(rows), "links": {r[0]: r[1] for r in rows}}
+        _cache_put(ckey, result)
+        return result
+
+
 class SpeedDashboardProvider(DataProvider):
     """Aggregated speed statistics for the dashboard.
 

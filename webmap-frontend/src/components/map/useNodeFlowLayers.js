@@ -7,6 +7,7 @@ import { useDebounced } from '../../hooks/useDebounced';
 import { handle401 } from '../../utils/auth';
 import { safeRemoveLayer, safeRemoveSource, setFilter } from './_lib/mapbox';
 import { parsePipeList } from './_lib/pipeProps';
+import { CLICKABLE_ROAD_FILTER } from './_lib/mapboxFilters';
 
 // Layer/source IDs
 const NODES_SOURCE = 'node-flows-nodes';
@@ -628,11 +629,7 @@ export default function useNodeFlowLayers({ mapRef, mapReady, setIsLoading }) {
         if (map.getLayer('network-layer'))
             map.setPaintProperty('network-layer', 'line-opacity', 0.4);
 
-        const vfFilter = ['all',
-            ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0],
-            ['>', ['get', 'daily_avg_volume'], 0],
-        ];
-        setFilter(map, ['network-layer', 'click-network-layer'], vfFilter);
+        setFilter(map, ['network-layer', 'click-network-layer'], CLICKABLE_ROAD_FILTER);
 
         if (!clickedCanton) return;
 

@@ -12,6 +12,103 @@
 export const parsePipeList = (str) =>
   (str || '').split('|').filter(Boolean);
 
+/** Flatten a feature's geometry to a [[lng,lat], ...] list, or null. */
+const featureCoords = (f) => {
+  const g = f?.geometry;
+  if (g?.type === 'LineString') return g.coordinates;
+  if (g?.type === 'MultiLineString') return g.coordinates.flat();
+  return null;
+};
+
+/**
+ * Direction glyph for one link from its own coordinates, matching the old
+ * `_arrow_for_segment` preprocessing: westward (start lon > end lon) → "←",
+ * otherwise "→". Lets offset rendering split a merged segment into its two
+ * opposing directions.
+ */
+const arrowForCoords = (coords) => {
+  if (!coords || coords.length < 2) return '→';
+  const [sLon, sLat] = coords[0];
+  const [eLon, eLat] = coords[coords.length - 1];
+  // East/west by longitude, matching the old `_arrow_for_segment`; fall back to
+  // latitude for (near-)vertical links so a reversed pair still gets opposite
+  // glyphs (otherwise both land in the same offset bucket and overlap).
+  if (sLon !== eLon) return sLon > eLon ? '←' : '→';
+  return sLat > eLat ? '←' : '→';
+};
+
+/**
+ * Direction-independent geometry key, matching the old `_norm_key`: the smaller
+ * of the forward and reversed coordinate sequences, so a link and its
+ * reversed-coordinate twin hash to the same bucket. Reverse links share the
+ * exact same vertex values (same network export), so a raw join is faithful.
+ */
+const geometryKey = (coords) => {
+  const parts = new Array(coords.length);
+  for (let i = 0; i < coords.length; i++) parts[i] = coords[i][0] + ',' + coords[i][1];
+  const fwd = parts.join(';');
+  const rev = parts.slice().reverse().join(';');
+  return fwd <= rev ? fwd : rev;
+};
+
+/**
+ * Merge the new per-link `merged_segments` format (one feature per directed
+ * MATSim link with a singular `link_id`, served from the duckdb `static_assets`
+ * BLOB) back into one visual segment per shared 2D geometry — the contract every
+ * map hook expects. Forward + reverse links collapse into a single clickable
+ * segment so VolumeFlow can query both directions at once, the link dropdown
+ * returns, and offset rendering can draw the two directions as parallel lines.
+ *
+ * Each merged feature carries (index-aligned, one entry per underlying link):
+ *   per_id_keys       — '|'-joined link ids on the segment
+ *   per_id_arrows     — '|'-joined direction glyphs, computed on the fly
+ *   per_id_freespeeds — '|'-joined freespeeds (drives freespeed_min/max)
+ *
+ * Format-agnostic: if features already carry `per_id_keys` (old merged asset or
+ * CDN fallback) the input is returned unchanged. Returns a (possibly new)
+ * features array — callers should assign it back. Call before
+ * decorateLineVolumesFromPerId / decoratePerIdMinMax.
+ */
+export const mergeSegmentsByGeometry = (features) => {
+  if (!Array.isArray(features) || features.length === 0) return features;
+  if (features[0]?.properties?.per_id_keys) return features; // already merged format
+
+  const groups = new Map();
+  const singletons = [];
+  for (const f of features) {
+    const coords = featureCoords(f);
+    const linkId = f?.properties?.link_id;
+    if (!coords || coords.length < 2 || linkId === undefined || linkId === null) {
+      singletons.push(f);
+      continue;
+    }
+    const key = geometryKey(coords);
+    let grp = groups.get(key);
+    if (!grp) {
+      grp = { feature: f, keys: [], arrows: [], freespeeds: [] };
+      groups.set(key, grp);
+    }
+    grp.keys.push(String(linkId));
+    grp.arrows.push(arrowForCoords(coords));
+    grp.freespeeds.push(f.properties.freespeed ?? '');
+  }
+
+  const merged = [];
+  for (const grp of groups.values()) {
+    merged.push({
+      type: 'Feature',
+      geometry: grp.feature.geometry,
+      properties: {
+        ...grp.feature.properties,
+        per_id_keys: grp.keys.join('|'),
+        per_id_arrows: grp.arrows.join('|'),
+        per_id_freespeeds: grp.freespeeds.join('|'),
+      },
+    });
+  }
+  return singletons.length ? merged.concat(singletons) : merged;
+};
+
 /**
  * Parse pipe-delimited numbers and return the smallest/largest values, or
  * `{min: null, max: null}` when the string is empty / unparseable.

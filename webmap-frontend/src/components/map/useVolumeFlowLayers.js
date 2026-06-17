@@ -6,6 +6,7 @@ import { useFilters } from '../../context/FilterContext';
 import { handle401 } from '../../utils/auth';
 import { safeRemoveLayer, safeRemoveSource, setFilter } from './_lib/mapbox';
 import { parsePipeList } from './_lib/pipeProps';
+import { CLICKABLE_ROAD_FILTER } from './_lib/mapboxFilters';
 
 // Spider overlay source + layers (separate from the shared network-source)
 const SPIDER_SOURCE_ID = 'volume-flow-spider';
@@ -33,6 +34,39 @@ export function resetVolumeFlowOverlay(map) {
     if (map.getLayer('network-layer')) {
         map.setPaintProperty('network-layer', 'line-opacity', 0.4);
     }
+}
+
+// Per-link daily volumes, keyed by `${datasetId}:${canton}`. Value is a
+// Promise<Map<linkId, volume>|null> so concurrent callers dedupe. The new v2
+// per-link geometry asset has no baked volume attribute, so VolumeFlow derives
+// it from the link_volumes endpoint to hide links that carry no trips.
+const linkVolumesCache = new Map();
+
+function fetchLinkVolumes(datasetId, canton) {
+    const key = `${datasetId}:${canton}`;
+    if (linkVolumesCache.has(key)) return linkVolumesCache.get(key);
+    const url = `/backend/data/${datasetId}/link_volumes.json?canton=${encodeURIComponent(canton)}`;
+    const p = (async () => {
+        try {
+            let res = await fetch(url);
+            if (res.status === 401) {
+                const ok = await handle401();
+                if (!ok) return null;
+                res = await fetch(url);
+            }
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            if (data.error) { console.warn('link_volumes error:', data.error); return null; }
+            const links = data.links || {};
+            return new Map(Object.entries(links).map(([k, v]) => [String(k), Number(v)]));
+        } catch (err) {
+            console.warn('Failed to fetch link volumes:', err);
+            linkVolumesCache.delete(key);
+            return null;
+        }
+    })();
+    linkVolumesCache.set(key, p);
+    return p;
 }
 
 export default function useVolumeFlowLayers({ mapRef, mapReady }) {
@@ -97,19 +131,24 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
             const fKeys = parsePipeList(f.properties.per_id_keys);
             const isTarget = fKeys.some(k => targetKeys.includes(k));
 
-            let maxFlow = 0;
+            // Sum flow across every link on this segment (e.g. forward + reverse)
+            // so a merged segment's label is the total of its directions. When
+            // the target is "All", each direction's contribution comes from a
+            // different target link, so summing yields 4 + 3 = 7 rather than
+            // max(4, 3) = 4.
+            let segFlow = 0;
             for (const k of fKeys) {
                 const vol = spiderMap.get(k);
-                if (vol !== undefined && vol > maxFlow) maxFlow = vol;
+                if (vol !== undefined) segFlow += vol;
             }
 
-            if (maxFlow > 0 || isTarget) {
+            if (segFlow > 0 || isTarget) {
                 spiderFeatures.push({
                     ...f,
                     id: idx,
                     properties: {
                         ...f.properties,
-                        spider_flow: maxFlow,
+                        spider_flow: segFlow,
                         isTarget: isTarget || undefined,
                         targetLinkId: isTarget ? displayLinkId : undefined,
                         featureIndex: idx,
@@ -387,12 +426,9 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
             map.setPaintProperty('network-layer', 'line-opacity', 0.4);
         }
 
-        // Apply VolumeFlow filter (car roads with >0 volume)
-        const vfFilter = ['all',
-            ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0],
-            ['>', ['get', 'daily_avg_volume'], 0]
-        ];
-        setFilter(map, ['network-layer', NETWORK_CLICK_LAYER], vfFilter);
+        // The clickable-road filter is owned by the dedicated volume effect
+        // below (which hides links with no trips once volumes load); useNetworkLayers
+        // sets a show-all filter on entry so links are clickable meanwhile.
 
         // Network not loaded yet
         if (!featureGeoJSON?.features || !map.getLayer(NETWORK_CLICK_LAYER)) return;
@@ -456,6 +492,48 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
 
         return () => removeClickHandler(map);
     }, [mapReady, isGraphExpanded, clickedCanton, featureGeoJSON, mapRef, setVolumeFlowSegment, volumeFlowDirection, fetchAndCacheSpiders, renderForSelection, setVolumeFlowSelectedLink]);
+
+    // --- Volume filter: hide links with no trips ---
+    // The v2 per-link geometry asset carries no baked volume, so fetch per-link
+    // daily volumes, bake daily_avg_volume onto the shared network features (same
+    // object useNetworkLayers holds, so its own setData calls preserve it), and
+    // filter the network to volume > 0. Falls back to the show-all clickable
+    // filter if volumes are unavailable so the module still works.
+    useEffect(() => {
+        if (!mapReady || !mapRef.current) return;
+        if (isGraphExpanded !== 'VolumeFlow') return;
+        if (!clickedCanton || !datasetId || !featureGeoJSON?.features) return;
+        const map = mapRef.current;
+
+        let cancelled = false;
+        (async () => {
+            const volMap = await fetchLinkVolumes(datasetId, clickedCanton);
+            if (cancelled || isGraphExpanded !== 'VolumeFlow') return;
+            if (!map.getLayer(NETWORK_CLICK_LAYER)) return;
+
+            if (!volMap || volMap.size === 0) {
+                setFilter(map, ['network-layer', NETWORK_CLICK_LAYER], CLICKABLE_ROAD_FILTER);
+                return;
+            }
+
+            const fc = featureGeoJSONRef.current;
+            if (fc?.features) {
+                for (const f of fc.features) {
+                    const keys = parsePipeList(f.properties.per_id_keys);
+                    let total = 0;
+                    for (const k of keys) total += volMap.get(k) || 0;
+                    f.properties.daily_avg_volume = total;
+                }
+                const src = map.getSource('network-source');
+                if (src) src.setData(fc);
+            }
+
+            setFilter(map, ['network-layer', NETWORK_CLICK_LAYER],
+                ['>', ['get', 'daily_avg_volume'], 0]);
+        })();
+
+        return () => { cancelled = true; };
+    }, [mapReady, mapRef, isGraphExpanded, clickedCanton, datasetId, featureGeoJSON]);
 
     // --- Effect 2: re-render when selected link changes (from sidebar) ---
     useEffect(() => {

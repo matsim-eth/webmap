@@ -48,7 +48,7 @@ from .zone_flows import ZoneFlowsProvider
 from .polygon_trips import PolygonTripsProvider
 
 # --- Link speeds ---
-from .link_speeds import LinkSpeedsProvider, SpeedDashboardProvider
+from .link_speeds import LinkSpeedsProvider, LinkVolumesProvider, SpeedDashboardProvider
 
 ALL_PROVIDERS = [
     # Demographics
@@ -99,5 +99,6 @@ ALL_PROVIDERS = [
     PolygonTripsProvider(),
     # Link speeds
     LinkSpeedsProvider(),
+    LinkVolumesProvider(),
     SpeedDashboardProvider(),
 ]
