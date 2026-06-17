@@ -196,6 +196,13 @@
           <input type="checkbox" id="editDsPublic" />
           <label for="editDsPublic">Public</label>
         </div>
+
+        <hr class="form-divider" />
+        <div class="form-group">
+          <label class="form-label">Data Files (DuckDB)</label>
+          <div id="dsFilesManager" class="ds-files"></div>
+          <input type="file" id="dsHiddenFileInput" accept=".duckdb" hidden />
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline btn-sm" data-dismiss="modal">Cancel</button>

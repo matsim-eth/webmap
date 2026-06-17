@@ -30,6 +30,10 @@ ALLOWED_EXTENSIONS = {
     "microcensus": {".parquet"},
 }
 
+# v2 layout: each source is a single DuckDB file at the dataset root
+# (<root>/synthetic.duckdb, <root>/microcensus.duckdb).
+DUCKDB_CATEGORIES = ("synthetic", "microcensus")
+
 
 def slugify(name: str) -> str:
     """Convert a dataset name to a filesystem-safe slug."""
@@ -51,11 +55,20 @@ def dataset_root(owner_id: int, dataset_id: int, is_public: bool = False) -> Pat
 
 
 def create_dataset_dirs(owner_id: int, dataset_id: int, is_public: bool = False) -> Path:
-    """Create the directory structure for a new dataset. Returns root path."""
+    """Create an empty root directory for a new dataset. Returns root path.
+
+    The per-source DuckDB files (``synthetic.duckdb`` / ``microcensus.duckdb``)
+    are uploaded into this directory afterwards — we no longer pre-create the
+    legacy ``synthetic/`` and ``microcensus/`` subfolders.
+    """
     root = dataset_root(owner_id, dataset_id, is_public)
-    (root / "synthetic").mkdir(parents=True, exist_ok=True)
-    (root / "microcensus").mkdir(parents=True, exist_ok=True)
+    root.mkdir(parents=True, exist_ok=True)
     return root
+
+
+def duckdb_path(owner_id: int, dataset_id: int, category: str, is_public: bool = False) -> Path:
+    """Return the destination path for a source's DuckDB file at the dataset root."""
+    return dataset_root(owner_id, dataset_id, is_public) / f"{category}.duckdb"
 
 
 def delete_dataset_dirs(owner_id: int, dataset_id: int, is_public: bool = False) -> None:
@@ -86,19 +99,29 @@ def validate_filename(filename: str, category: str) -> bool:
 
 
 def check_dataset_completeness(owner_id: int, dataset_id: int, is_public: bool = False) -> dict[str, bool]:
-    """Check which data categories are populated."""
+    """Check which data categories are populated.
+
+    Recognises both layouts: the v2 per-source DuckDB files at the root
+    (``synthetic.duckdb`` / ``microcensus.duckdb``) and the legacy v1
+    subdirectories (``synthetic/`` / ``microcensus/``).
+    """
     root = dataset_root(owner_id, dataset_id, is_public)
+    syn_db = root / "synthetic.duckdb"
+    mc_db = root / "microcensus.duckdb"
     syn_dir = root / "synthetic"
     mc_dir = root / "microcensus"
+    jp_dir = root / "json_preview"
 
-    has_synthetic = syn_dir.exists() and any(syn_dir.iterdir())
-    has_microcensus = mc_dir.exists() and any(mc_dir.iterdir())
-    has_spider_db = (syn_dir / "spider.duckdb").exists()
+    has_synthetic = syn_db.exists() or (syn_dir.exists() and any(syn_dir.iterdir()))
+    has_microcensus = mc_db.exists() or (mc_dir.exists() and any(mc_dir.iterdir()))
+    has_spider_db = syn_db.exists() or (syn_dir / "spider.duckdb").exists()
+    has_json_preview = jp_dir.exists() and any(jp_dir.iterdir())
 
     return {
         "has_synthetic": has_synthetic,
         "has_microcensus": has_microcensus,
         "has_spider_db": has_spider_db,
+        "has_json_preview": has_json_preview,
     }
 
 
