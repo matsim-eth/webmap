@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import SegmentAttributesTable from "./SegmentAttributesTable";
 import FeatureTable from "../table/FeatureTable";
 import { useTableRowBuilder } from "../../hooks/useTableRowBuilder";
@@ -8,33 +7,40 @@ import { useData } from "../../context/DataContext";
 import { useFilters } from "../../context/FilterContext";
 import { useSelection } from "../../context/SelectionContext";
 import { useModule } from "../../context/ModuleContext";
-import { useFileContext } from "../../FileContext";
-import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
 
-// Modes excluded from the canton mode-filter dropdown — these are aggregate
-// or non-road modes the user can't usefully filter on at the network level.
-const EXCLUDED_MODES = ["car_passenger", "truck", "rail", "other", "pt", "taxi"];
+// Modes hidden from the network filter: car_passenger/train/taxi/truck ride
+// along the same links as their primary mode (car/rail), so filtering on them
+// isn't useful at the network level.
+const EXCLUDED_MODES = new Set([
+  "car_passenger", "train", "taxi", "truck",
+]);
 
 const NetworkModule = ({ featureTableRef }) => {
-  const { dataURL, isFeatureTableOpen, featureGeoJSON, setTableFilterQuery } = useData();
+  const { isFeatureTableOpen, featureGeoJSON, setTableFilterQuery } = useData();
   const { selectedNetworkModes, setSelectedNetworkModes } = useFilters();
   const { clickedCanton: canton, selectedNetworkFeature, setSelectedNetworkFeature, setFeatureSelection } = useSelection();
   const { isGraphExpanded: selectedGraph } = useModule();
-  const { fileMap } = useFileContext();
-  const loadWithFallback = useLoadWithFallback(dataURL);
 
-  // Per-canton mode list — drives the multi-select dropdown.
-  const { data: modesByCanton = {} } = useQuery({
-    queryKey: ['modes-by-canton', dataURL, fileMap.size],
-    queryFn: () => loadWithFallback("modes_by_canton.json"),
-  });
-
+  // Available modes = the distinct transport modes actually present on the
+  // canton's network links. The enriched merged_segments geometry carries the
+  // real per-link `modes` (comma-joined, e.g. "car,car_passenger,taxi,truck"),
+  // so we union them across the loaded features — far more accurate than the
+  // old trip-based modes_by_canton list (which only knew car/pt/walk/bike/
+  // car_passenger, then got further trimmed to car/walk/bike).
   const availableModes = useMemo(() => {
-    if (canton && modesByCanton[canton]) {
-      return modesByCanton[canton].filter((mode) => !EXCLUDED_MODES.includes(mode));
+    const feats = featureGeoJSON?.features;
+    if (!feats || feats.length === 0) return [];
+    const set = new Set();
+    for (const f of feats) {
+      const m = f?.properties?.modes;
+      if (!m) continue;
+      for (const part of String(m).split(",")) {
+        const t = part.trim();
+        if (t && !EXCLUDED_MODES.has(t)) set.add(t);
+      }
     }
-    return [];
-  }, [canton, modesByCanton]);
+    return Array.from(set).sort();
+  }, [featureGeoJSON]);
 
   const handleModeChange = (event) => {
     const selectedOptions = Array.from(event.target.selectedOptions).map((o) => o.value);

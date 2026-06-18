@@ -123,6 +123,11 @@ def _prewarm_caches() -> None:
                 logger.info("prewarmed transit stops for %s", root)
             except Exception as exc:
                 logger.warning("transit prewarm skipped for %s: %s", root, exc)
+            # NB: the per-line transit_routes index (providers/transit_routes.py)
+            # is intentionally NOT prewarmed — it parses the ~76 MB routes asset
+            # and would hold it in RAM for every dataset at startup. It builds
+            # lazily on the first line selection instead (one ~6 s parse per
+            # dataset per worker, then cached).
         finally:
             set_root_override(None)
 
@@ -211,8 +216,10 @@ from providers.paths import set_root_override as _set_root_override
 from providers.helpers import load_static_asset_bytes, resolve_canton_to_polygon_id
 
 _MERGED_SUFFIX = "_merged_segments.geojson"
+_TRAFFIC_SUFFIX = "_link_traffic_volumes.json"
 _COUNTS_RE = _re.compile(r"transit/per_canton_counts/(.+)_counts\.json$")
 _STOPS_RE = _re.compile(r"transit/stops_by_canton/(.+)_stops\.geojson$")
+_ROUTES_BY_LINE_RE = _re.compile(r"transit/routes/by_line/(.+)\.geojson$")
 
 
 def _canton_id_from(name: str) -> int | None:
@@ -241,11 +248,40 @@ async def matsim_asset(dataset_id: int, asset_path: str, request: Request):
             cid = _canton_id_from(asset_path[: -len(_MERGED_SUFFIX)])
             if cid is None:
                 return JSONResponse({"error": "not found"}, status_code=404)
-            payload = await _asyncio.to_thread(
-                load_static_asset_bytes, "synthetic", f"merged_segments:{cid}"
-            )
+            # Build the network from network_links so it carries modes/capacity/
+            # length (the precomputed merged_segments blob is thin — link_id/
+            # road_type/freespeed only — which blanks the Volumes car filter and
+            # breaks capacity line-width). Fall back to the static blob for older
+            # datasets that lack the network_links table.
+            from providers.network_geometry import merged_segments_geojson
+            payload = await _asyncio.to_thread(merged_segments_geojson, cid)
+            if payload is None:
+                payload = await _asyncio.to_thread(
+                    load_static_asset_bytes, "synthetic", f"merged_segments:{cid}"
+                )
             if payload is None:
                 return JSONResponse({"error": "not found"}, status_code=404)
+            return _Response(content=payload, media_type="application/geo+json")
+
+        # Per-link hourly car traffic volumes for the road "Volumes" module —
+        # derived from the link_speeds table (the old preprocessed CDN asset is
+        # gone). Returns [{link_id, hourly_avg_volumes:[24]}].
+        if asset_path.endswith(_TRAFFIC_SUFFIX):
+            cid = _canton_id_from(asset_path[: -len(_TRAFFIC_SUFFIX)])
+            if cid is None:
+                return JSONResponse({"error": "not found"}, status_code=404)
+            from providers.link_speeds import link_traffic_volumes
+            rows = await _asyncio.to_thread(link_traffic_volumes, cid)
+            return JSONResponse(rows)
+
+        # A single transit line's route geometry — a slice of `transit_routes`
+        # by line_id (tens of KB vs the full ~76 MB asset). The map overlay
+        # fetches this when a line is selected so it renders immediately instead
+        # of pulling the whole country's PT geometry into the browser.
+        mr = _ROUTES_BY_LINE_RE.match(asset_path)
+        if mr:
+            from providers.transit_routes import routes_for_line_bytes
+            payload = await _asyncio.to_thread(routes_for_line_bytes, mr.group(1))
             return _Response(content=payload, media_type="application/geo+json")
 
         # Transit line route geometry (one LineString per route) — served straight
@@ -269,6 +305,11 @@ async def matsim_asset(dataset_id: int, asset_path: str, request: Request):
 
         ms = _STOPS_RE.match(asset_path)
         if ms:
+            # A canton's stops just loaded → start building the per-line route
+            # index in the background so the line draws instantly when the user
+            # clicks a stop+line moments later (instead of waiting on the parse).
+            from providers.transit_routes import ensure_warm
+            ensure_warm()
             name = ms.group(1)
             if name == "inter_cantonal":
                 from providers.transit_stops import inter_cantonal_stops

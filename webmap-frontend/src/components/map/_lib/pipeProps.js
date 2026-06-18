@@ -63,6 +63,9 @@ const geometryKey = (coords) => {
  *   per_id_keys       — '|'-joined link ids on the segment
  *   per_id_arrows     — '|'-joined direction glyphs, computed on the fly
  *   per_id_freespeeds — '|'-joined freespeeds (drives freespeed_min/max)
+ *   per_id_capacities — '|'-joined capacities (drives capacity_min/max)
+ *   per_id_lengths    — '|'-joined lengths (drives length_min/max)
+ *   per_id_permlanes  — '|'-joined lane counts (Segment table, per direction)
  *
  * Format-agnostic: if features already carry `per_id_keys` (old merged asset or
  * CDN fallback) the input is returned unchanged. Returns a (possibly new)
@@ -85,12 +88,16 @@ export const mergeSegmentsByGeometry = (features) => {
     const key = geometryKey(coords);
     let grp = groups.get(key);
     if (!grp) {
-      grp = { feature: f, keys: [], arrows: [], freespeeds: [] };
+      grp = { feature: f, keys: [], arrows: [], freespeeds: [], capacities: [], lengths: [], permlanes: [] };
       groups.set(key, grp);
     }
+    const p = f.properties;
     grp.keys.push(String(linkId));
     grp.arrows.push(arrowForCoords(coords));
-    grp.freespeeds.push(f.properties.freespeed ?? '');
+    grp.freespeeds.push(p.freespeed ?? '');
+    grp.capacities.push(p.capacity ?? '');
+    grp.lengths.push(p.length ?? '');
+    grp.permlanes.push(p.permlanes ?? '');
   }
 
   const merged = [];
@@ -103,6 +110,9 @@ export const mergeSegmentsByGeometry = (features) => {
         per_id_keys: grp.keys.join('|'),
         per_id_arrows: grp.arrows.join('|'),
         per_id_freespeeds: grp.freespeeds.join('|'),
+        per_id_capacities: grp.capacities.join('|'),
+        per_id_lengths: grp.lengths.join('|'),
+        per_id_permlanes: grp.permlanes.join('|'),
       },
     });
   }

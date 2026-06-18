@@ -7,6 +7,7 @@ export default function useTransitVolumesLayer({
   mapRef,
   isGraphExpanded,
   searchCanton,
+  datasetId,
   timeRange,
   loadWithFallback,
   selectedTransitModes,
@@ -616,7 +617,7 @@ export default function useTransitVolumesLayer({
     return () => {
       removeLayers();
     };
-  }, [isGraphExpanded, searchCanton]);
+  }, [isGraphExpanded, searchCanton, datasetId]);
 
   // ----- update data on timeRange change -------------------------------------
 

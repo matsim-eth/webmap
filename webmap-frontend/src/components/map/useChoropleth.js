@@ -3,18 +3,21 @@ import { useEffect, useState } from 'react';
 export default function useChoropleth({
   mapRef,
   loadWithFallback,
+  datasetId,
   selectedMode,
   isGraphExpanded,
   selectedDataset,
   aggCol,
 }) {
-  
+
   const [modeShareData, setModeShareData] = useState(null);
   const [maxSharePerMode, setMaxSharePerMode] = useState(null);
-  
+
+  // datasetId in deps: reload the canton choropleth shares from the new dataset
+  // when the user switches datasets.
   useEffect(() => {
     const path = `${aggCol}_share.json`;
-    
+
     loadWithFallback(path)
     .then((data) => {
       setModeShareData(data);
@@ -23,7 +26,7 @@ export default function useChoropleth({
     .catch((error) => {
       console.error("Error loading mode share data:", error);
     });
-  }, [aggCol]);
+  }, [aggCol, datasetId]);
   
   // Set colours for choropleth by mode (matches with plots)
   const COLOR_MAPS = {

@@ -9,6 +9,7 @@ import useTransitSymbologyLayer from "./useTransitSymbologyLayer";
 export default function useTransitLayers({
   mapRef,
   loadWithFallback,
+  datasetId,
   searchCanton,
   selectedTransitModes,
   showStopVolumeSymbology,
@@ -35,6 +36,7 @@ export default function useTransitLayers({
   useTransitStops({
     mapRef,
     searchCanton,
+    datasetId,
     isGraphExpanded,
     loadWithFallback,
     showStopVolumeSymbology,
@@ -72,6 +74,7 @@ export default function useTransitLayers({
     mapRef,
     isGraphExpanded,
     searchCanton,
+    datasetId,
     timeRange,
     loadWithFallback,
     selectedTransitModes,
@@ -86,6 +89,7 @@ export default function useTransitLayers({
   useTransitSymbologyLayer({
     mapRef,
     searchCanton,
+    datasetId,
     isGraphExpanded,
     highlightedLineId,
     loadWithFallback,

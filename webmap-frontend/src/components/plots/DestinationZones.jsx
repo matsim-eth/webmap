@@ -40,14 +40,6 @@ const REVERSE_CANTON = Object.entries(cantonAlias).reduce((acc, [internal, displ
   return acc;
 }, {});
 
-// Most destination_data/*.json files are named with the canton's internal
-// NAME (e.g. "Zurich.json"), but St. Gallen's file is named with its display
-// form "St. Gallen.json". Map any oddballs here.
-const CANTON_TO_FILENAME = {
-  StGallen: "St. Gallen",
-};
-const fileNameFor = (canton) => CANTON_TO_FILENAME[canton] || canton;
-
 // Mirrors the +/- CollapseToggle from LinkSpeedsModule so destination cards
 // expand/collapse the same way as other module cards.
 const CollapseToggle = ({ collapsed, onToggle }) => (
@@ -83,6 +75,7 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
   const [isPlotCollapsed, setIsPlotCollapsed] = useState(false);
 
   const {
+    datasetId,
     destinationHoveredCanton, setDestinationHoveredCanton,
     destinationSelectedCanton, setDestinationSelectedCanton,
   } = useData();
@@ -101,9 +94,12 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
     setDestinationSelectedCanton(null);
   }, [canton, setDestinationSelectedCanton]);
 
+  // Derived from the backend `destination_zones.json` provider (per-hub-canton
+  // outflow/inflow by mode/purpose/15-min bin). datasetId in the key so a
+  // dataset switch refetches instead of serving the previous dataset's cache.
   const { data: plotData } = useQuery({
-    queryKey: ["destination-zones", canton],
-    queryFn: () => loadWithFallback(`destination_data/${fileNameFor(canton)}.json`),
+    queryKey: ["destination-zones", canton, datasetId],
+    queryFn: () => loadWithFallback(`destination_zones.json?canton=${encodeURIComponent(canton)}`),
     enabled: !!canton,
   });
 

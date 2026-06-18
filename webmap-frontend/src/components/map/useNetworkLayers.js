@@ -7,6 +7,7 @@ import { CLICKABLE_ROAD_FILTER } from './_lib/mapboxFilters';
 export default function useNetworkLayers({
   mapRef,
   searchCanton,
+  datasetId,
   loadWithFallback,
   selectedNetworkModes,
   showMajorRoadsOnly,
@@ -543,7 +544,7 @@ export default function useNetworkLayers({
           }
         };
         loadAllLinkVolumes();
-      }, [searchCanton, isGraphExpanded]);
+      }, [searchCanton, isGraphExpanded, datasetId]);
       
       // --- APPLY timeRange to both line data and labels --------------------------
       useEffect(() => {
@@ -596,7 +597,10 @@ export default function useNetworkLayers({
             'network-label-left','network-label-right']);
           safeRemoveSource(map, ['network-source','network-highlight','ant-path']);
           }
-        }, [searchCanton]);
+        // datasetId: on a dataset switch, reload the active network module's
+        // geometry for the current canton from the new dataset (loadNetworkForCanton
+        // always fetches fresh, so the stale cache is replaced).
+        }, [searchCanton, datasetId]);
 
         useEffect(() => {
           const map = mapRef.current;

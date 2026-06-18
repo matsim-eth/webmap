@@ -4,6 +4,7 @@ import { safeRemoveLayer, safeRemoveSource, setFilter } from './_lib/mapbox';
 export default function useTransitStops({
   mapRef,
   searchCanton,
+  datasetId,
   isGraphExpanded,
   loadWithFallback,
   showStopVolumeSymbology,
@@ -451,7 +452,7 @@ export default function useTransitStops({
   .catch(err => {
     console.error("Error loading transit data:", err);
   });
-}, [isGraphExpanded, searchCanton, showStopVolumeSymbology, selectedTransitModes, timeRange, selectedDirection]);
+}, [isGraphExpanded, searchCanton, datasetId, showStopVolumeSymbology, selectedTransitModes, timeRange, selectedDirection]);
 
 
 useEffect(() => {

@@ -45,6 +45,7 @@ from .spider_analysis import SpiderInflowProvider, SpiderOutflowProvider, Spider
 from .node_flows import NodeFlowsProvider
 from .nodes_geojson import NodesGeoJSONProvider
 from .zone_flows import ZoneFlowsProvider
+from .destination_zones import DestinationZonesProvider
 from .polygon_trips import PolygonTripsProvider
 
 # --- Link speeds ---
@@ -95,6 +96,8 @@ ALL_PROVIDERS = [
     NodesGeoJSONProvider(),
     # Zone flows (OD canton flows)
     ZoneFlowsProvider(),
+    # Destination zones (per-hub-canton outflow/inflow by mode/purpose/time)
+    DestinationZonesProvider(),
     # Polygon trips (in/out/within mode summary for a drawn polygon)
     PolygonTripsProvider(),
     # Link speeds

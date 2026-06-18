@@ -127,6 +127,70 @@ def _build_filters(params: dict) -> tuple[str, list]:
     return where, bind
 
 
+# ─── Per-link hourly traffic volumes (road "Volumes" module) ────────────────
+# Backend replacement for the old preprocessed CDN asset
+# `matsim/{canton}_link_traffic_volumes.json`. Derived from the same
+# link_speeds.volume column the speed endpoints use (volume = count of car
+# "entered link" events per directed link per 15-min bin).
+#
+# Result cache keyed by (dataset, canton). Each canton's result is a large
+# Python list (Zurich ~116k links → ~100 MB in memory), so the cache is a
+# small bounded LRU — repeat loads of the same canton are instant without an
+# unbounded leak across all 26 cantons × every dataset a worker touches.
+_TRAFFIC_CACHE: "OrderedDict[tuple, list]" = OrderedDict()
+_TRAFFIC_CACHE_MAX = 6
+
+
+def link_traffic_volumes(canton_id: int) -> list:
+    """Per-link hourly car traffic volumes for a canton.
+
+    Returns ``[{link_id, hourly_avg_volumes}]`` where ``hourly_avg_volumes`` is
+    a 24-element array indexed by hour of day. Matches the shape the road
+    "Volumes" module (``useNetworkLayers``) expects: it looks each directed
+    ``link_id`` up by the segment's ``per_id_keys`` and splits left/right by the
+    per-link arrow. Links with no traffic are simply absent (→ treated as 0).
+    """
+    ckey = (dataset_key(), canton_id)
+    cached = _TRAFFIC_CACHE.get(ckey)
+    if cached is not None:
+        _TRAFFIC_CACHE.move_to_end(ckey)
+        return cached
+
+    con = _get_con()
+    # time_bin is a 15-min bin index (0..95); // 4 → hour (0..23). A flat
+    # GROUP BY + Python dict fill is the fastest build measured — packing the
+    # 24-array in SQL (ordered list_agg) or via numpy.unique on the string
+    # link_ids were both slower.
+    rows = con.execute(
+        """
+        SELECT link_id, time_bin // 4 AS hour, SUM(volume)::INTEGER AS volume
+        FROM link_speeds
+        WHERE canton_id = ?
+        GROUP BY link_id, time_bin // 4
+        """,
+        [canton_id],
+    ).fetchall()
+
+    by_link: dict[str, list[int]] = {}
+    for link_id, hour, volume in rows:
+        arr = by_link.get(link_id)
+        if arr is None:
+            arr = [0] * 24
+            by_link[link_id] = arr
+        if 0 <= hour < 24:
+            arr[hour] = volume
+
+    result = [
+        {"link_id": lid, "hourly_avg_volumes": arr}
+        for lid, arr in by_link.items()
+    ]
+    _TRAFFIC_CACHE[ckey] = result
+    _TRAFFIC_CACHE.move_to_end(ckey)
+    while len(_TRAFFIC_CACHE) > _TRAFFIC_CACHE_MAX:
+        _TRAFFIC_CACHE.popitem(last=False)
+    return result
+
+
 _LINK_SPEED_PARAMS = [
     Param("road_type", "Road type filter (comma-separated, e.g. motorway,primary)"),
     Param("canton", "Canton name or ID (comma-separated)"),

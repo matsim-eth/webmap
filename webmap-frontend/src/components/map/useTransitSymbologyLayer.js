@@ -4,6 +4,7 @@ import { safeRemoveLayer, safeRemoveSource } from './_lib/mapbox';
 export default function useTransitSymbologyLayer({
     mapRef,
     searchCanton,
+    datasetId,
     isGraphExpanded,
     highlightedLineId,
     loadWithFallback,
@@ -138,6 +139,7 @@ export default function useTransitSymbologyLayer({
     }, [
         mapRef,
         searchCanton,
+        datasetId,
         isGraphExpanded,
         showLineSymbology,
         selectedTransitModes,

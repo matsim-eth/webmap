@@ -38,6 +38,7 @@ export default function Map() {
     setMapLoading,
   } = useMap();
   const {
+    datasetId,
     dataURL,
     setIsFeatureTableOpen,
     isFeatureTableOpen,
@@ -86,7 +87,6 @@ export default function Map() {
 
   // for setting loading spinner while loading transit geojson
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingNodes, setIsLoadingNodes] = useState(false);
   const [isLoadingSpeeds, setIsLoadingSpeeds] = useState(false);
   const [isLoadingZoneFlows, setIsLoadingZoneFlows] = useState(false);
 
@@ -140,6 +140,7 @@ export default function Map() {
     mapRef,
     loadWithFallback,
     graphExpandedRef,
+    datasetId: datasetId,
     searchCanton: searchCanton,
     selectedNetworkModes: selectedNetworkModes,
     showMajorRoadsOnly: showMajorRoadsOnly,
@@ -160,6 +161,7 @@ export default function Map() {
   useTransitLayers({
     mapRef,
     loadWithFallback,
+    datasetId: datasetId,
     searchCanton: searchCanton,
     selectedTransitModes: selectedTransitModes,
     showStopVolumeSymbology: showStopVolumeSymbology,
@@ -185,6 +187,7 @@ export default function Map() {
   useChoropleth({
     mapRef,
     loadWithFallback,
+    datasetId: datasetId,
     selectedMode: selectedMode,
     selectedDataset: selectedDataset,
     isGraphExpanded: isGraphExpanded,
@@ -218,7 +221,6 @@ export default function Map() {
   useNodeFlowLayers({
     mapRef,
     mapReady,
-    setIsLoading: setIsLoadingNodes,
   });
 
   // Link Speeds overlay
@@ -279,19 +281,13 @@ export default function Map() {
           </div>
         </div>
       )}
-      {isLoadingNodes && !isLoading && !isLoadingSpeeds && (
-        <div className="map-loading-overlay">
-          <div className="spinner" />
-          <div className="loading-text">Loading node data...</div>
-        </div>
-      )}
-      {isLoadingZoneFlows && !isLoading && !isLoadingSpeeds && !isLoadingNodes && (
+      {isLoadingZoneFlows && !isLoading && !isLoadingSpeeds && (
         <div className="map-loading-overlay">
           <div className="spinner" />
           <div className="loading-text">Loading zone flows...</div>
         </div>
       )}
-      {mapLoading && !isLoading && !isLoadingSpeeds && !isLoadingNodes && !isLoadingZoneFlows && (
+      {mapLoading && !isLoading && !isLoadingSpeeds && !isLoadingZoneFlows && (
         <div className="map-loading-overlay">
           <div className="spinner" />
           <div className="loading-text">Updating map...</div>

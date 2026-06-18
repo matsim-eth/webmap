@@ -120,7 +120,7 @@ function fetchNodesGeoJSON(datasetId, canton) {
     return p;
 }
 
-export default function useNodeFlowLayers({ mapRef, mapReady, setIsLoading }) {
+export default function useNodeFlowLayers({ mapRef, mapReady }) {
     const { isGraphExpanded } = useModule();
     const { clickedCanton, hoveredMatrixCell, setHoveredMatrixCell } = useSelection();
     const { featureGeoJSON, setNodeFlowsData, datasetId } = useData();
@@ -656,13 +656,9 @@ export default function useNodeFlowLayers({ mapRef, mapReady, setIsLoading }) {
                 console.log('[NodeFlows] Clicked node:', nodeId, coords);
                 lastNodeRef.current = { nodeId, coords };
 
-                setIsLoading?.(true);
-                let data;
-                try {
-                    data = await fetchNodeFlows(nodeId);
-                } finally {
-                    setIsLoading?.(false);
-                }
+                // No loading overlay here — node flows resolve in ~tens of ms
+                // from the precomputed node_flow_matrix fast path.
+                const data = await fetchNodeFlows(nodeId);
                 console.log('[NodeFlows] Received data:', data);
                 if (!cancelled && data) {
                     renderOverlay(map, data, coords);

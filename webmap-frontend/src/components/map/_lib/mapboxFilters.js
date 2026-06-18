@@ -9,19 +9,17 @@
  * Filter for "links a user can click / that should render" in the
  * VolumeFlow / NodeFlows / LinkSpeeds modules.
  *
- * - Old "merged visual segment" datasets carry `modes` + `daily_avg_volume`, so
- *   we keep the historical behavior: car roads with non-zero volume.
- * - The new per-link `merged_segments` asset has neither attribute (only
- *   `link_id` / `road_type` / `freespeed`). `['has','modes']` is false there, so
- *   the second branch shows every link — visualization then keys purely off
- *   `link_id`. We deliberately don't synthesize `modes`, so this branch only
- *   triggers for the stripped format.
+ * - When `modes` is present (the enriched per-canton `merged_segments` from the
+ *   backend `network_links`, and old merged-visual-segment datasets), clickable
+ *   = car links. We no longer require `daily_avg_volume > 0`: the enriched
+ *   geometry carries no baked per-link volume (the modules fetch speeds/volumes
+ *   from their own endpoints), so a volume gate would hide everything.
+ * - When `modes` is absent (the thin static_asset blob served as a fallback for
+ *   datasets without `network_links`), the second branch shows every link —
+ *   visualization then keys purely off `link_id`.
  */
 export const CLICKABLE_ROAD_FILTER = ['any',
-  ['all',
-    ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0],
-    ['>', ['get', 'daily_avg_volume'], 0],
-  ],
+  ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0],
   ['!', ['has', 'modes']],
 ];
 

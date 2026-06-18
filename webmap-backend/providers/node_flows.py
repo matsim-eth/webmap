@@ -37,6 +37,61 @@ def _node_links(con, node_id: str):
     return entering, exiting
 
 
+# Person-filter params that force the (slow) live spider scan. If none are set
+# and the time window covers the full day, the precomputed node_flow_matrix —
+# which is a full-day, all-persons aggregate — gives an identical result.
+_PERSON_FILTER_KEYS = (
+    "sex", "age_min", "age_max", "employed", "has_license",
+    "car_availability", "home_canton", "polygon_id", "polygon_ids", "income",
+)
+
+
+def _is_unfiltered(params: dict) -> bool:
+    """True when no person filter is set and the time window is the full day."""
+    if any(params.get(k) not in (None, "") for k in _PERSON_FILTER_KEYS):
+        return False
+    ms = params.get("minute_start")
+    if ms not in (None, ""):
+        try:
+            if int(ms) > 0:
+                return False
+        except ValueError:
+            return False
+    me = params.get("minute_end")
+    if me not in (None, ""):
+        try:
+            if int(me) < 1440:
+                return False
+        except ValueError:
+            return False
+    return True
+
+
+def _matrix_result(con, node_id: str, entering: list, exiting: list) -> dict | None:
+    """Build the node-flow response from the precomputed node_flow_matrix table.
+
+    Returns the full result dict, or None if the table is absent (older
+    datasets) so the caller can fall back to the live spider query. The matrix
+    is full-day / all-persons, so only use it when ``_is_unfiltered`` holds.
+    """
+    try:
+        rows = con.execute(
+            "SELECT from_link, to_link, n_trips FROM node_flow_matrix WHERE node_id = ?",
+            [node_id],
+        ).fetchall()
+    except Exception:
+        return None  # table not present → fall back to the live query
+
+    matrix: dict[str, dict[str, int]] = {e: {x: 0 for x in exiting} for e in entering}
+    total = 0
+    for from_link, to_link, n in rows:
+        if from_link in matrix and to_link in matrix[from_link]:
+            matrix[from_link][to_link] = int(n)
+            total += int(n)
+    return {"node_id": node_id, "entering_links": entering, "exiting_links": exiting,
+            "total_movements": total, "matrix": matrix}
+
+
 _NODE_FLOWS_PARAMS = [
     Param("node_id", "MATSim node ID (required unless link_id given)"),
     Param("link_id", "MATSim link ID — derives the to-node automatically"),
@@ -84,6 +139,15 @@ class NodeFlowsProvider(_SpiderBase):
         if not entering or not exiting:
             return {"node_id": node_id, "entering_links": entering, "exiting_links": exiting,
                     "total_movements": 0, "matrix": {}}
+
+        # Fast path: a full-day, all-persons request is exactly what the
+        # precomputed node_flow_matrix holds — a point lookup (~ms) instead of a
+        # multi-second scan of the 255M-row spider_link_index. Falls back to the
+        # live query below when the table is missing or filters are active.
+        if _is_unfiltered(params):
+            fast = _matrix_result(con, node_id, entering, exiting)
+            if fast is not None:
+                return fast
 
         person_clauses, poly_join, poly_bind, hh_join, time_filter, bind_persons, bind_time = \
             self._build_filters(params)
