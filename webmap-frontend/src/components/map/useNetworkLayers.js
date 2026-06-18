@@ -43,34 +43,44 @@ export default function useNetworkLayers({
     const keys = parsePipeList(props.per_id_keys);
     const arrows = parsePipeList(props.per_id_arrows);
     const daily_avgs = parsePipeList(props.per_id_daily_avgs);
-    
+
     let left = 0, right = 0;
-    
+    // Per-link full-day totals, reconstructed from the backend traffic volumes.
+    // The v2 `merged_segments.geojson` ships no `per_id_daily_avgs`, so without
+    // this the feature table's "Total Daily Volume" column (and the selected-
+    // segment side panel, both keyed off `per_id_daily_avgs`) would be blank.
+    // Full-day totals are time-window-independent, so they're recomputed
+    // identically on every slider change.
+    const fullDayPerId = new Array(keys.length);
+
     keys.forEach((id, index) => {
       const hourly = linkVolumeData?.[id.toString()];
-      let s = 0;
+      let windowed = 0;   // time-windowed → drives left/right + map color
+      let fullDay = 0;    // unfiltered all-day → drives the table's Total column
       if (hourly && Array.isArray(hourly) && hourly.length === 24) {
-        // Sum volumes from startHour to endHour using array indexing
-        for (let h = startHour; h < endHour; h++) {
-          s += hourly[h] ?? 0;
-        }
+        for (let h = startHour; h < endHour; h++) windowed += hourly[h] ?? 0;
+        for (let h = 0; h < 24; h++) fullDay += hourly[h] ?? 0;
       } else {
-        // Fallback to daily average if hourly data not available
-        s = Number(daily_avgs[index] ?? 0);
+        // No backend hourly data → fall back to any daily average that shipped
+        // with the geojson (legacy CDN datasets); 0 for v2.
+        windowed = Number(daily_avgs[index] ?? 0);
+        fullDay = Number(daily_avgs[index] ?? 0);
       }
-      
+      fullDayPerId[index] = fullDay;
+
       const arrow = arrows[index];
-      if (arrow === '←') left += s;
-      else if (arrow === '→') right += s;
+      if (arrow === '←') left += windowed;
+      else if (arrow === '→') right += windowed;
     });
-    
+
     f.properties = {
       ...f.properties,
-      daily_avg_volume: left + right, // total
+      daily_avg_volume: left + right, // time-windowed total
       left_sum: left,
-      right_sum: right
+      right_sum: right,
+      per_id_daily_avgs: fullDayPerId.join('|'),
     };
-    
+
     return { left, right, total: left + right };
   };
   

@@ -411,15 +411,32 @@ export function useDataTableSearch({
  * Mirror the toolbar search to the `tableFilterQuery` context the module
  * map-filter hooks consume. Emits `null` on blank input so downstream
  * filters reset to the full set.
+ *
+ * Besides the legacy `{ column, value }` (still read by the TransitVolumes /
+ * LinkSpeeds map filters), the payload now carries the *set of rows DataTables
+ * actually matched*, reduced to the map's id spaces:
+ *   - `fids`     — unique `tableId`s. The network GeoJSON source uses
+ *                  `generateId`, so `feature.id === row.tableId`; a
+ *                  `["match", ["id"], fids, …]` reproduces the table 1:1 with no
+ *                  re-implementation of the search in Mapbox-expression syntax.
+ *   - `linkIds`  — unique raw link ids (`directionId`), for split-layer modules
+ *                  that build their own per-direction features off `per_id_*`.
+ * Computed from the DT instance *after* the search/draw has been applied (this
+ * hook is invoked after `useDataTableSearch` in FeatureTable, so the instance
+ * already reflects the current search — including the numeric-comparison ext
+ * filter), so the map filter can never drift from what the table shows.
  */
 export function useTableFilterQuerySync({
+  dtRef,
   searchCol,
   debouncedSearch,
   searchText,
   dtColumns,
+  tableRows,
   setTableFilterQuery,
 }) {
-  // effect:audited — syncs DataTables search state to parent map filter query
+  // effect:audited — syncs DataTables search state + matched-row id set to the
+  // map-filter query context.
   useEffect(() => {
     const raw = (searchText || "").trim();
     if (!raw) {
@@ -431,7 +448,31 @@ export function useTableFilterQuerySync({
     if (Number.isInteger(searchCol) && searchCol >= 0) {
       column = dtColumns[searchCol]?.data || null;
     }
-    setTableFilterQuery?.({ column, value: raw });
+
+    // Reduce the matched rows (across all pages, incl. the ext comparison
+    // filter) to the map's feature-id / link-id spaces.
+    let fids = null;
+    let linkIds = null;
+    try {
+      const dt = dtRef?.current;
+      if (dt && dt.settings && dt.settings()[0]) {
+        const data = dt.rows({ search: "applied" }).data();
+        const fidSet = new Set();
+        const linkSet = new Set();
+        for (let i = 0; i < data.length; i++) {
+          const r = data[i];
+          if (r == null) continue;
+          if (Number.isInteger(r.tableId)) fidSet.add(r.tableId);
+          if (r.directionId != null) linkSet.add(String(r.directionId));
+        }
+        fids = Array.from(fidSet);
+        linkIds = Array.from(linkSet);
+      }
+    } catch {
+      // DT instance mid-teardown — fall back to the legacy query-only payload.
+    }
+
+    setTableFilterQuery?.({ column, value: raw, fids, linkIds });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearch, searchCol]);
+  }, [debouncedSearch, searchCol, tableRows]);
 }

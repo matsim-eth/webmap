@@ -283,8 +283,30 @@ export default function useFeatureSelectionFocus({
     
     // --- Build table search filter ---
     let tableFilter = null;
-    
-    if (query) {
+
+    // The FeatureTable already computed exactly which rows match the search, so
+    // mirror that set onto the map instead of re-deriving the search in
+    // Mapbox-expression syntax: every column, numeric comparison, accent and
+    // multi-term rule lives in one place (the table) and the map can't drift
+    // from it. `query.fids` are featureGeoJSON indices and the network source
+    // uses `generateId` (feature.id === index), so `match` on the feature id
+    // reproduces the table 1:1 — and `match` compiles its labels to a hash, so
+    // it stays O(1) per feature no matter how many rows matched.
+    //
+    // Gated to modules whose rows are built 1:1 from `featureGeoJSON` (tableId
+    // === the source's generateId). VolumeFlow is deliberately excluded: its
+    // table is a per-segment flow breakdown whose `tableId` is a flow-row
+    // counter in a different id space, so it keeps the legacy column/value path
+    // (its `directionId` search still filters the network via per_id_keys).
+    const ROW_MEMBERSHIP_MODULES = ['Network', 'Volumes', 'LinkSpeeds'];
+    const useRowMembership =
+      ROW_MEMBERSHIP_MODULES.includes(isGraphExpanded) && Array.isArray(query?.fids);
+
+    if (useRowMembership) {
+      tableFilter = query.fids.length
+        ? ["match", ["id"], query.fids, true, false]
+        : ["==", ["literal", 0], ["literal", 1]]; // searching, zero matches → hide all
+    } else if (query) {
       let { column, value } = query;
       
       if (value) {

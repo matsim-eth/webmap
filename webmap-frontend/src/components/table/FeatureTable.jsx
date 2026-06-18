@@ -127,12 +127,16 @@ const FeatureTable = forwardRef(
       tableRows,
     });
 
-    // Search → tableFilterQuery context (drives the map-side filter)
+    // Search → tableFilterQuery context (drives the map-side filter). Runs
+    // after useDataTableSearch so the DT instance already reflects the applied
+    // search; emits the matched-row id set the map mirrors directly.
     useTableFilterQuerySync({
+      dtRef,
       searchCol,
       debouncedSearch,
       searchText,
       dtColumns,
+      tableRows,
       setTableFilterQuery,
     });
 
