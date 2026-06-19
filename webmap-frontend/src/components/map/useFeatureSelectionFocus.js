@@ -243,7 +243,8 @@ export default function useFeatureSelectionFocus({
          "transit-volumes-label-left", "transit-volumes-label-right", "ant-line"]
       : isTransitStopsMode
       ? ["transit-stops-layer", "transit-stops-label", "transit-stops-hitbox", "transit-highlight-layer"]
-      : ["network-layer", "click-network-layer", "network-highlight", 
+      : ["network-layer", "click-network-layer", "network-highlight",
+         "network-split-layer",
          "network-label-left", "network-label-right", "ant-line"];
     
     // --- Build mode filter ---
@@ -792,6 +793,19 @@ export default function useFeatureSelectionFocus({
     }
 
     setFilter(map, layerIds, combined);
+
+    // Volumes per-direction split labels (useNetworkSplitLayers) must keep their
+    // arrow filter, so they can't go through the uniform setFilter above — AND
+    // the combined car/major/table filter onto each arrow instead (same trick as
+    // useLinkSpeedsMapFilter), so labels hide in lockstep with their offset lines.
+    const ARROW_RIGHT = ['==', ['get', 'ls_arrow'], '→'];
+    const ARROW_LEFT = ['==', ['get', 'ls_arrow'], '←'];
+    if (map.getLayer('network-split-label-right')) {
+      map.setFilter('network-split-label-right', combined ? ['all', ARROW_RIGHT, combined] : ARROW_RIGHT);
+    }
+    if (map.getLayer('network-split-label-left')) {
+      map.setFilter('network-split-label-left', combined ? ['all', ARROW_LEFT, combined] : ARROW_LEFT);
+    }
   }, [mapRef, mapReady, query, selectedNetworkModes, isGraphExpanded, showMajorRoadsOnly]);
   
 }

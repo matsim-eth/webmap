@@ -26,7 +26,16 @@ export default function useNetworkLayers({
   drawRef
 }) {
   const [linkVolumeData, setLinkVolumeData] = useState(null);
+  // Bumped whenever a fresh network-source is loaded, so the Volumes colour
+  // recompute re-runs once geometry is ready even if the (now fast major-only)
+  // volume fetch already finished before it — otherwise colours stay at 0 until
+  // a time-slider nudge re-triggers the recompute.
+  const [networkVersion, setNetworkVersion] = useState(0);
   const originalNetworkGeoJSON = useRef(null);
+  // Per-canton traffic-volume cache: a cheap major-roads-only variant (the
+  // default view) and the full variant (fetched lazily when "major roads only"
+  // is unchecked). Keyed by `${datasetId}:${canton}`.
+  const volCacheRef = useRef({ key: null, major: null, full: null });
   const selectedNetworkModesRef = useRef(selectedNetworkModes);
   
   useEffect(() => {
@@ -221,7 +230,10 @@ export default function useNetworkLayers({
     setFeatureGeoJSON?.(networkGeojson);
     
     map.addSource('network-source', { type: 'geojson', data: networkGeojson, generateId: true });
-    
+    // Signal that the source is ready so the Volumes colour recompute re-runs
+    // (covers the case where volume data arrived before the geometry).
+    setNetworkVersion(v => v + 1);
+
     map.addLayer({
       id: 'click-network-layer',
       type: 'line',
@@ -297,10 +309,11 @@ export default function useNetworkLayers({
       if (!e.features.length) return;
       // VolumeFlow/NodeFlows have their own click handler on this layer
       if (graphExpandedRef.current === 'VolumeFlow' || graphExpandedRef.current === 'NodeFlows') return;
-      // LinkSpeeds: at zoom >= 15 only the split layer's click handler applies.
-      // Merged (per_id_keys) selection would be wrong when the split visual is
-      // on-screen, so suppress this base handler entirely past the threshold.
-      if (graphExpandedRef.current === 'LinkSpeeds' && map.getZoom() >= 15) return;
+      // LinkSpeeds/Network/Volumes: at zoom >= 15 only the split layer's click
+      // handler applies. Merged (per_id_keys) selection would be wrong when the
+      // split visual is on-screen, so suppress this base handler past the threshold.
+      if ((graphExpandedRef.current === 'LinkSpeeds' || graphExpandedRef.current === 'Network'
+           || graphExpandedRef.current === 'Volumes') && map.getZoom() >= 15) return;
 
       // Skip selection when actively drawing or clicking on draw features
       if (drawRef?.current) {
@@ -546,23 +559,49 @@ export default function useNetworkLayers({
         if (map.getLayer('ant-line')) map.removeLayer('ant-line');
       }, [isGraphExpanded]);
       
-      // --- LOAD per-link hourly volumes (unchanged path format you use) ----------
+      // --- LOAD per-link hourly volumes ------------------------------------------
+      // The default Volumes view is "major roads only", and the map filters to the
+      // same capacity > 1200 set, so by default we only fetch major-road volumes
+      // (?min_capacity=1200 → ~10× smaller payload, much faster first colour). The
+      // full set is fetched lazily only when "major roads only" is unchecked
+      // (minor roads then become visible and need their volumes). Both variants
+      // are cached per canton so toggling back is instant.
       useEffect(() => {
-        const loadAllLinkVolumes = async () => {
-          if (!searchCanton || graphExpandedRef.current !== 'Volumes') return;
+        if (!searchCanton || graphExpandedRef.current !== 'Volumes') return;
+
+        const cacheKey = `${datasetId}:${searchCanton}`;
+        if (volCacheRef.current.key !== cacheKey) {
+          volCacheRef.current = { key: cacheKey, major: null, full: null };
+        }
+        const cache = volCacheRef.current;
+        const needFull = !showMajorRoadsOnly;
+
+        // Serve the best already-cached variant (full is a superset of major).
+        if (cache.full) { setLinkVolumeData(cache.full); return; }
+        if (!needFull && cache.major) { setLinkVolumeData(cache.major); return; }
+        // Full needed but only major cached → show major now while full loads.
+        if (needFull && cache.major) setLinkVolumeData(cache.major);
+
+        let cancelled = false;
+        (async () => {
+          const path = needFull
+            ? `matsim/${searchCanton}_link_traffic_volumes.json`
+            : `matsim/${searchCanton}_link_traffic_volumes.json?min_capacity=1200`;
           try {
-            const path = `matsim/${searchCanton}_link_traffic_volumes.json`;
             const raw = await loadWithFallback(path);
+            if (cancelled || volCacheRef.current.key !== cacheKey) return;
             const volumeMap = Object.fromEntries(
               raw.map(e => [e.link_id.toString(), e.hourly_avg_volumes])
             );
-            setLinkVolumeData(volumeMap);
+            if (needFull) volCacheRef.current.full = volumeMap;
+            else volCacheRef.current.major = volumeMap;
+            setLinkVolumeData(volCacheRef.current.full || volumeMap);
           } catch (err) {
             console.warn('Failed to load all link volumes', err);
           }
-        };
-        loadAllLinkVolumes();
-      }, [searchCanton, isGraphExpanded, datasetId]);
+        })();
+        return () => { cancelled = true; };
+      }, [searchCanton, isGraphExpanded, datasetId, showMajorRoadsOnly]);
       
       // --- APPLY timeRange to both line data and labels --------------------------
       useEffect(() => {
@@ -601,8 +640,8 @@ export default function useNetworkLayers({
           map.on('sourcedata', onSourceData);
         }
 
-      }, [timeRange, linkVolumeData, isGraphExpanded, showMajorRoadsOnly]);
-      
+      }, [timeRange, linkVolumeData, isGraphExpanded, showMajorRoadsOnly, networkVersion]);
+
       // --- Canton change / cleanup ----------------------------------------------
       useEffect(() => {
         const map = mapRef.current;

@@ -7,20 +7,36 @@ const fmtNum = (v) => {
 };
 const allEqual = (arr) => (arr.length === 0 ? true : arr.every((x) => x === arr[0]));
 
-const SegmentAttributesTable = ({ propertiesList, selectedGraph, filteredVolume }) => {
+const SegmentAttributesTable = ({ propertiesList, selectedGraph, filteredVolume, linkFilter }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   if (!propertiesList || propertiesList.length === 0) return null;
 
   const top = propertiesList[0] || {};
-  
+
   // Parse pipe-separated strings into arrays
-  const keys = (top.per_id_keys || "").split("|").filter(Boolean);
-  const capacities = (top.per_id_capacities || "").split("|").filter(Boolean);
-  const lengths = (top.per_id_lengths || "").split("|").filter(Boolean);
-  const freespeeds = (top.per_id_freespeeds || "").split("|").filter(Boolean);
-  const daily_avgs = (top.per_id_daily_avgs || "").split("|").filter(Boolean);
-  const permlanes = (top.per_id_permlanes || "").split("|").filter(Boolean);
-  
+  let keys = (top.per_id_keys || "").split("|").filter(Boolean);
+  let capacities = (top.per_id_capacities || "").split("|").filter(Boolean);
+  let lengths = (top.per_id_lengths || "").split("|").filter(Boolean);
+  let freespeeds = (top.per_id_freespeeds || "").split("|").filter(Boolean);
+  let daily_avgs = (top.per_id_daily_avgs || "").split("|").filter(Boolean);
+  let permlanes = (top.per_id_permlanes || "").split("|").filter(Boolean);
+
+  // Narrow the per-link arrays to a chosen subset (the Link ID dropdown or a
+  // per-direction split selection). null/empty → show every link on the segment.
+  if (Array.isArray(linkFilter) && linkFilter.length) {
+    const keep = new Set(linkFilter.map(String));
+    const idxs = keys.map((k, i) => (keep.has(String(k)) ? i : -1)).filter((i) => i >= 0);
+    if (idxs.length) {
+      const pick = (arr) => idxs.map((i) => arr[i]);
+      keys = pick(keys);
+      capacities = pick(capacities);
+      lengths = pick(lengths);
+      freespeeds = pick(freespeeds);
+      daily_avgs = pick(daily_avgs);
+      permlanes = pick(permlanes);
+    }
+  }
+
   // Build array of objects for easier processing (similar to old per_id entries)
   const perIdEntries = keys.map((id, index) => [
     id,
@@ -105,6 +121,24 @@ const SegmentAttributesTable = ({ propertiesList, selectedGraph, filteredVolume 
     {!isCollapsed && (
     <table>
     <tbody>
+    {/* Link id(s) on the segment (respects the dropdown / split filter) */}
+    <tr>
+    <td><strong>{keys.length > 1 ? "Link IDs" : "Link ID"}</strong></td>
+    <td style={{ wordBreak: "break-all" }}>{keys.length ? keys.join(", ") : "-"}</td>
+    </tr>
+
+    {/* Road volume (total) — highlighted second row in Volumes */}
+    {selectedGraph === "Volumes" && (
+      <tr>
+      <td><strong>Road Volume</strong></td>
+      <td>
+      {hasFiltered
+        ? `${fmtNum(filteredTotal)} vehicles`
+        : `${fmtNum(top.daily_avg_volume)} vehicles/day`}
+      </td>
+      </tr>
+    )}
+
     {/* Per-direction fields first (deduped) */}
     {renderDedupRow("Length", "length", { unit: "m" })}
     {renderDedupRow("Free Speed", "freespeed", { unit: "km/h" })}
@@ -117,24 +151,11 @@ const SegmentAttributesTable = ({ propertiesList, selectedGraph, filteredVolume 
     <td>{fmtNum(top.capacity)}</td>
     </tr>
     
-    {selectedGraph === "Volumes" && (
-      <>
-      {perIdEntries.length > 1 &&
-        renderDedupRow("Volume (per direction)", "daily_avg_volume", {
-          useFilteredVolume: hasFiltered,
-        })
-      }
-      
-      <tr>
-      <td><strong>Avg Daily Volume (total)</strong></td>
-      <td>
-      {hasFiltered
-        ? `${fmtNum(filteredTotal)} vehicles`
-        : `${fmtNum(top.daily_avg_volume)} vehicles/day`}
-        </td>
-        </tr>
-        </>
-      )}
+    {selectedGraph === "Volumes" && perIdEntries.length > 1 &&
+      renderDedupRow("Volume (per direction)", "daily_avg_volume", {
+        useFilteredVolume: hasFiltered,
+      })
+    }
       
       <tr>
       <td><strong>Modes</strong></td>

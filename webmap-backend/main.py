@@ -271,7 +271,16 @@ async def matsim_asset(dataset_id: int, asset_path: str, request: Request):
             if cid is None:
                 return JSONResponse({"error": "not found"}, status_code=404)
             from providers.link_speeds import link_traffic_volumes
-            rows = await _asyncio.to_thread(link_traffic_volumes, cid)
+            # Optional ?min_capacity= restricts to major roads (matches the Volumes
+            # "major roads only" map filter) so the default view transfers ~10× less.
+            mc_raw = request.query_params.get("min_capacity")
+            min_capacity = None
+            if mc_raw:
+                try:
+                    min_capacity = float(mc_raw)
+                except ValueError:
+                    min_capacity = None
+            rows = await _asyncio.to_thread(link_traffic_volumes, cid, min_capacity)
             return JSONResponse(rows)
 
         # A single transit line's route geometry — a slice of `transit_routes`

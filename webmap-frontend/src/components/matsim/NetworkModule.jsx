@@ -3,10 +3,12 @@ import SegmentAttributesTable from "./SegmentAttributesTable";
 import FeatureTable from "../table/FeatureTable";
 import { useTableRowBuilder } from "../../hooks/useTableRowBuilder";
 import { buildSelectionPayload } from "../table/_lib/rowSearch";
+import { parsePipeList } from "../map/_lib/pipeProps";
 import { useData } from "../../context/DataContext";
 import { useFilters } from "../../context/FilterContext";
 import { useSelection } from "../../context/SelectionContext";
 import { useModule } from "../../context/ModuleContext";
+import "./VolumeFlowModule.css";
 
 // Modes hidden from the network filter: car_passenger/train/taxi/truck ride
 // along the same links as their primary mode (car/rail), so filtering on them
@@ -18,8 +20,25 @@ const EXCLUDED_MODES = new Set([
 const NetworkModule = ({ featureTableRef }) => {
   const { isFeatureTableOpen, featureGeoJSON, setTableFilterQuery } = useData();
   const { selectedNetworkModes, setSelectedNetworkModes } = useFilters();
-  const { clickedCanton: canton, selectedNetworkFeature, setSelectedNetworkFeature, setFeatureSelection } = useSelection();
+  const {
+    clickedCanton: canton,
+    selectedNetworkFeature, setSelectedNetworkFeature, setFeatureSelection,
+    networkSelectedLink, setNetworkSelectedLink,
+  } = useSelection();
   const { isGraphExpanded: selectedGraph } = useModule();
+
+  // Per-link selection state derived from the current selection.
+  //   isSplit       — a per-direction (zoomed-in) selection; no dropdown, the
+  //                   attribute table shows just that direction's link(s).
+  //   allKeys       — every link on the merged segment (drives the dropdown).
+  //   linkFilter    — which links the attribute table shows: the split direction,
+  //                   the dropdown pick, or null (= all links / "All").
+  const selProps = selectedNetworkFeature?.[0];
+  const isSplit = !!selProps?.ls_arrow;
+  const allKeys = useMemo(() => parsePipeList(selProps?.per_id_keys), [selProps]);
+  const linkFilter = isSplit
+    ? parsePipeList(selProps?.ls_link_ids)
+    : (networkSelectedLink ? [networkSelectedLink] : null);
 
   // Available modes = the distinct transport modes actually present on the
   // canton's network links. The enriched merged_segments geometry carries the
@@ -125,8 +144,26 @@ const NetworkModule = ({ featureTableRef }) => {
         </p>
       )}
 
+      {/* Per-link selector — only for a merged (single-line, low-zoom) selection
+          bundling more than one link. Split (zoomed-in, per-direction) selections
+          already isolate one direction, so no dropdown there. */}
+      {selectedNetworkFeature && !isSplit && allKeys.length > 1 && (
+        <div className="link-selector">
+          <label>Link ID:</label>
+          <select
+            value={networkSelectedLink || ''}
+            onChange={(e) => setNetworkSelectedLink(e.target.value || null)}
+          >
+            <option value="">All ({allKeys.length} links)</option>
+            {allKeys.map((key) => (
+              <option key={key} value={key}>{key}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {selectedNetworkFeature && (
-        <SegmentAttributesTable propertiesList={selectedNetworkFeature} />
+        <SegmentAttributesTable propertiesList={selectedNetworkFeature} linkFilter={linkFilter} />
       )}
       </>
     )}
