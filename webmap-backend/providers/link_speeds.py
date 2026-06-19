@@ -127,6 +127,96 @@ def _build_filters(params: dict) -> tuple[str, list]:
     return where, bind
 
 
+# ─── Per-link hourly traffic volumes (road "Volumes" module) ────────────────
+# Backend replacement for the old preprocessed CDN asset
+# `matsim/{canton}_link_traffic_volumes.json`. Derived from the same
+# link_speeds.volume column the speed endpoints use (volume = count of car
+# "entered link" events per directed link per 15-min bin).
+#
+# Result cache keyed by (dataset, canton). Each canton's result is a large
+# Python list (Zurich ~116k links → ~100 MB in memory), so the cache is a
+# small bounded LRU — repeat loads of the same canton are instant without an
+# unbounded leak across all 26 cantons × every dataset a worker touches.
+_TRAFFIC_CACHE: "OrderedDict[tuple, list]" = OrderedDict()
+_TRAFFIC_CACHE_MAX = 6
+
+
+def link_traffic_volumes(canton_id: int, min_capacity: float | None = None) -> list:
+    """Per-link hourly car traffic volumes for a canton.
+
+    Returns ``[{link_id, hourly_avg_volumes}]`` where ``hourly_avg_volumes`` is
+    a 24-element array indexed by hour of day. Matches the shape the road
+    "Volumes" module (``useNetworkLayers``) expects: it looks each directed
+    ``link_id`` up by the segment's ``per_id_keys`` and splits left/right by the
+    per-link arrow. Links with no traffic are simply absent (→ treated as 0).
+
+    ``min_capacity`` restricts the result to links whose ``network_links.capacity``
+    exceeds the threshold — the same ``capacity > 1200`` test the frontend's
+    "major roads only" map filter uses. The default Volumes view is major-only,
+    so requesting just those links cuts the payload ~10× (the rest is fetched
+    lazily when the table opens or the toggle is switched off). Cached per
+    (dataset, canton, threshold).
+    """
+    ckey = (dataset_key(), canton_id, min_capacity)
+    cached = _TRAFFIC_CACHE.get(ckey)
+    if cached is not None:
+        _TRAFFIC_CACHE.move_to_end(ckey)
+        return cached
+
+    con = _get_con()
+    # time_bin is a 15-min bin index (0..95); // 4 → hour (0..23). A flat
+    # GROUP BY + Python dict fill is the fastest build measured — packing the
+    # 24-array in SQL (ordered list_agg) or via numpy.unique on the string
+    # link_ids were both slower.
+    rows = None
+    if min_capacity is not None:
+        try:
+            rows = con.execute(
+                """
+                SELECT ls.link_id, ls.time_bin // 4 AS hour, SUM(ls.volume)::INTEGER AS volume
+                FROM link_speeds ls
+                JOIN network_links nl
+                  ON CAST(nl.link_id AS VARCHAR) = CAST(ls.link_id AS VARCHAR)
+                WHERE ls.canton_id = ? AND nl.capacity > ?
+                GROUP BY ls.link_id, ls.time_bin // 4
+                """,
+                [canton_id, min_capacity],
+            ).fetchall()
+        except Exception:
+            # Older dataset without a network_links table → fall back to the full
+            # (unfiltered) scan; the frontend still filters the map to major roads.
+            rows = None
+    if rows is None:
+        rows = con.execute(
+            """
+            SELECT link_id, time_bin // 4 AS hour, SUM(volume)::INTEGER AS volume
+            FROM link_speeds
+            WHERE canton_id = ?
+            GROUP BY link_id, time_bin // 4
+            """,
+            [canton_id],
+        ).fetchall()
+
+    by_link: dict[str, list[int]] = {}
+    for link_id, hour, volume in rows:
+        arr = by_link.get(link_id)
+        if arr is None:
+            arr = [0] * 24
+            by_link[link_id] = arr
+        if 0 <= hour < 24:
+            arr[hour] = volume
+
+    result = [
+        {"link_id": lid, "hourly_avg_volumes": arr}
+        for lid, arr in by_link.items()
+    ]
+    _TRAFFIC_CACHE[ckey] = result
+    _TRAFFIC_CACHE.move_to_end(ckey)
+    while len(_TRAFFIC_CACHE) > _TRAFFIC_CACHE_MAX:
+        _TRAFFIC_CACHE.popitem(last=False)
+    return result
+
+
 _LINK_SPEED_PARAMS = [
     Param("road_type", "Road type filter (comma-separated, e.g. motorway,primary)"),
     Param("canton", "Canton name or ID (comma-separated)"),
@@ -188,6 +278,43 @@ class LinkSpeedsProvider(DataProvider):
             "total_links": len(links),
             "links": links,
         }
+        _cache_put(ckey, result)
+        return result
+
+
+class LinkVolumesProvider(DataProvider):
+    """Per-link total daily volume (vehicles) for a canton, summed across time
+    bins from the link_speeds table. Used by the VolumeFlow module to hide links
+    that carry no traffic — the old merged-network asset baked a `daily_avg_volume`
+    attribute per link, but the v2 per-link geometry asset doesn't, so the
+    frontend computes it from this endpoint instead. Only links with volume > 0
+    are returned (absent link → 0 trips → hidden).
+
+    Example: /data/{id}/link_volumes.json?canton=Zurich
+    """
+
+    ROUTE = "link_volumes.json"
+    PARAMS = _LINK_SPEED_PARAMS
+
+    def deliver(self, params: dict) -> dict:
+        ckey, hit = _cache_get(self.ROUTE, params)
+        if hit is not None:
+            return hit
+        where, bind = _build_filters(params)
+
+        try:
+            con = _get_con()
+            rows = con.execute(f"""
+                SELECT link_id, SUM(volume)::INTEGER AS volume
+                FROM link_speeds
+                WHERE {where}
+                GROUP BY link_id
+                HAVING SUM(volume) > 0
+            """, bind).fetchall()
+        except Exception as e:
+            return {"error": str(e)}
+
+        result = {"total_links": len(rows), "links": {r[0]: r[1] for r in rows}}
         _cache_put(ckey, result)
         return result
 

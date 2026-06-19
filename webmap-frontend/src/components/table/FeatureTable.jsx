@@ -78,11 +78,15 @@ const FeatureTable = forwardRef(
 
     const tableRows = useMemo(() => {
       let filtered = baseRows.filter((r) => modeMatches(r.modes, selectedModes));
-      // Major-roads filter: totalCapacity > 1200 (sum across directions)
+      // Major-roads filter: match the map's predicate exactly. The map tests the
+      // segment's representative `capacity` (['>', ['get','capacity'], 1200]),
+      // NOT the summed-across-directions totalCapacity — the sum let sub-1200
+      // segments (e.g. 700+700) through that the map hides, so the table showed
+      // links the map had filtered out.
       if (showMajorRoadsOnly) {
         filtered = filtered.filter((r) => {
-          const totalCap = Number(r.totalCapacity);
-          return Number.isFinite(totalCap) && totalCap > 1200;
+          const cap = Number(r.featureProps?.capacity ?? r.capacity);
+          return Number.isFinite(cap) && cap > 1200;
         });
       }
       return filtered.slice(0, maxRows);
@@ -127,12 +131,16 @@ const FeatureTable = forwardRef(
       tableRows,
     });
 
-    // Search → tableFilterQuery context (drives the map-side filter)
+    // Search → tableFilterQuery context (drives the map-side filter). Runs
+    // after useDataTableSearch so the DT instance already reflects the applied
+    // search; emits the matched-row id set the map mirrors directly.
     useTableFilterQuerySync({
+      dtRef,
       searchCol,
       debouncedSearch,
       searchText,
       dtColumns,
+      tableRows,
       setTableFilterQuery,
     });
 

@@ -375,8 +375,14 @@ function _renderDatasetRows(tbody, datasets, ownerFilter, ownerName) {
   // Delete buttons
   tbody.querySelectorAll("button[data-action=delete-ds]").forEach((btn) => {
     btn.addEventListener("click", async () => {
-      if (!confirm("Permanently delete this dataset and all its files?")) return;
       const dsid = btn.dataset.dsid;
+      const ds = _allDatasets.find((d) => String(d.id) === String(dsid));
+      const dsName = ds?.name ? `"${ds.name}"` : "this dataset";
+      if (!confirm(
+        `Permanently delete ${dsName}?\n\n` +
+        `This removes the dataset's entire folder on disk, including any ` +
+        `synthetic.duckdb / microcensus.duckdb files within it. This cannot be undone.`
+      )) return;
       const res = await datasetApi(`/admin/datasets/${dsid}`, { method: "DELETE" });
       if (res.ok || res.status === 204) {
         await loadDatasets(_currentOwnerFilter, _currentOwnerName);
@@ -500,6 +506,46 @@ async function createDataset() {
 
 // ── Edit Dataset Modal ───────────────────────────────────────────
 
+const DUCKDB_SOURCES = [
+  { key: "synthetic", label: "Synthetic" },
+  { key: "microcensus", label: "Microcensus" },
+];
+
+let _pendingUploadCategory = null;
+
+function renderDatasetFiles(ds) {
+  const mgr = el("dsFilesManager");
+  if (!mgr) return;
+  mgr.innerHTML = "";
+
+  // data_categories is computed live from disk by the backend
+  // (synthetic.duckdb -> "synthetic"), so it reflects what's actually present.
+  const categories = ds.data_categories || [];
+  for (const s of DUCKDB_SOURCES) {
+    const present = categories.includes(s.key);
+    const row = document.createElement("div");
+    row.className = "ds-file-row" + (present ? " is-present" : "");
+    row.innerHTML = present
+      ? `<span class="ds-file-name"><span class="ds-file-check">✓</span> ${s.label} <code>${s.key}.duckdb</code></span>
+         <button type="button" class="ds-file-action" data-cat="${s.key}" data-action="pick-duckdb">Replace</button>`
+      : `<span class="ds-file-name ds-file-missing">${s.label}</span>
+         <button type="button" class="ds-file-action" data-cat="${s.key}" data-action="pick-duckdb">Browse…</button>`;
+    mgr.appendChild(row);
+  }
+
+  mgr.querySelectorAll("button[data-action=pick-duckdb]").forEach((b) => {
+    b.addEventListener("click", () => triggerDuckdbPicker(b.dataset.cat));
+  });
+}
+
+function triggerDuckdbPicker(category) {
+  _pendingUploadCategory = category;
+  const input = el("dsHiddenFileInput");
+  if (!input) return;
+  input.value = "";
+  input.click();
+}
+
 function openEditDatasetModal(ds) {
   el("editDsOriginalId").value = ds.id;
   el("editDsId").value = ds.id;
@@ -508,7 +554,53 @@ function openEditDatasetModal(ds) {
   el("editDsStatus").value = ds.status || "inactive";
   el("editDsPublic").checked = !!ds.is_public;
 
+  renderDatasetFiles(ds);
+
   openModal("editDatasetModal");
+}
+
+async function uploadDuckdbFile(category, file) {
+  const dsid = el("editDsOriginalId").value;
+  if (!file.name.toLowerCase().endsWith(".duckdb")) {
+    showToast("Only .duckdb files are accepted");
+    return;
+  }
+
+  const mgr = el("dsFilesManager");
+  const btn = mgr?.querySelector(`button[data-cat="${category}"]`);
+  const origText = btn?.textContent;
+  if (btn) { btn.disabled = true; btn.textContent = "Uploading…"; }
+
+  const form = new FormData();
+  form.append("file", file);
+  // Multipart upload — must NOT set Content-Type so the browser adds the boundary.
+  const url = `${CONFIG.DATASET_API_BASE}/admin/datasets/${dsid}/upload/${category}`;
+  const doFetch = () =>
+    fetch(url, { method: "POST", credentials: "include", body: form });
+
+  try {
+    let res = await doFetch();
+    if (res.status === 401) {
+      const ok = await refresh().catch(() => false);
+      if (ok) res = await doFetch();
+    }
+    if (res.ok) {
+      const label = DUCKDB_SOURCES.find((s) => s.key === category)?.label || category;
+      showToast(`${label} DuckDB uploaded ✓`, "success");
+      await loadDatasets(_currentOwnerFilter, _currentOwnerName);
+      // Re-render the manager from the refreshed flags (restores button state)
+      const updated = _allDatasets.find((d) => String(d.id) === String(dsid));
+      if (updated) renderDatasetFiles(updated);
+    } else {
+      const err = await readJsonOrText(res);
+      showToast(err?.detail || "Upload failed");
+      if (btn) { btn.disabled = false; btn.textContent = origText; }
+    }
+  } catch (err) {
+    console.warn("uploadDuckdb error:", err);
+    showToast("Upload failed");
+    if (btn) { btn.disabled = false; btn.textContent = origText; }
+  }
 }
 
 async function saveDataset() {
@@ -653,5 +745,16 @@ function attachLogout() {
   const saveDsBtn = el("saveDatasetBtn");
   if (saveDsBtn) {
     saveDsBtn.addEventListener("click", saveDataset);
+  }
+
+  const hiddenFile = el("dsHiddenFileInput");
+  if (hiddenFile) {
+    hiddenFile.addEventListener("change", () => {
+      const file = hiddenFile.files?.[0];
+      if (file && _pendingUploadCategory) {
+        uploadDuckdbFile(_pendingUploadCategory, file);
+      }
+      _pendingUploadCategory = null;
+    });
   }
 })();

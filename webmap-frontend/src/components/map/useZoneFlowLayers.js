@@ -6,7 +6,7 @@ import { useFilters } from '../../context/FilterContext';
 import { handle401 } from '../../utils/auth';
 import bboxCache from '../../utils/bboxCanton.json';
 import { safeRemoveLayer, safeRemoveSource } from './_lib/mapbox';
-import { parsePipeList } from './_lib/pipeProps';
+import { parsePipeList, mergeSegmentsByGeometry } from './_lib/pipeProps';
 
 const NETWORK_SOURCE_ID = 'zone-flows-network';
 const FLOW_LAYER_ID = 'zone-flows-flow';
@@ -94,6 +94,11 @@ export default function useZoneFlowLayers({ mapRef, mapReady, loadWithFallback, 
         try {
             const geo = await loadRef.current(`matsim/${canton}_merged_segments.geojson`);
             if (!geo?.features) return null;
+            // Backend serves these already merged; this only re-merges the
+            // stripped per-link format from the CDN/legacy fallback so
+            // applyFlowsToSource's per_id_keys matching works. No-op when the
+            // features already carry per_id_keys.
+            geo.features = mergeSegmentsByGeometry(geo.features);
             networkCacheRef.current[canton] = geo;
             return geo;
         } catch (err) {

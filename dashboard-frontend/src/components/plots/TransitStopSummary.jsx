@@ -135,36 +135,32 @@ const TransitStopSummary = () => {
   const fmt = (n) => n.toLocaleString();
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
-  const StatCard = ({ label, value, bg, border, labelColor, valueColor }) => (
+  // Full-width stat row (label left, value right) — stacked vertically like the
+  // Speed page's "Network Summary" rows, so large totals never overflow.
+  const StatRow = ({ label, value, accent }) => (
     <div
       style={{
-        background: bg,
-        border: `1px solid ${border}`,
-        borderRadius: "12px",
-        padding: "20px 16px",
-        textAlign: "center",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "12px",
+        padding: "12px 16px",
+        borderRadius: "10px",
+        background: "var(--color-bg, #f3f4f6)",
       }}
     >
       <div
         style={{
-          fontSize: "11px",
+          fontSize: "12px",
           fontWeight: 600,
-          color: labelColor,
+          color: "#64748b",
           textTransform: "uppercase",
-          letterSpacing: "0.05em",
-          marginBottom: "8px",
+          letterSpacing: "0.04em",
         }}
       >
         {label}
       </div>
-      <div
-        style={{
-          fontSize: "2rem",
-          fontWeight: 700,
-          color: valueColor,
-          lineHeight: 1.1,
-        }}
-      >
+      <div style={{ fontSize: "1.6rem", fontWeight: 700, color: accent, lineHeight: 1.1 }}>
         {value}
       </div>
     </div>
@@ -241,27 +237,19 @@ const TransitStopSummary = () => {
         </div>
       )}
 
-      {/* ── Volume cards ── */}
+      {/* ── Volume stats (Network-Summary style, stacked rows) ── */}
       <div
         style={{
           display: "flex",
+          flexDirection: "column",
           flex: 1,
-          alignItems: "center",
           justifyContent: "center",
+          gap: "10px",
         }}
       >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "12px",
-            width: "100%",
-          }}
-        >
-          <StatCard label="Total Boardings"  value={fmt(totals.boardings)}                     bg="linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)" border="#93c5fd" labelColor="#1d4ed8" valueColor="#1e40af" />
-          <StatCard label="Total Alightings" value={fmt(totals.alightings)}                    bg="linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%)" border="#fdba74" labelColor="#c2410c" valueColor="#9a3412" />
-          <StatCard label="Total Volume"     value={fmt(totals.boardings + totals.alightings)} bg="linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)" border="#86efac" labelColor="#15803d" valueColor="#166534" />
-        </div>
+        <StatRow label="Total Boardings"  value={fmt(totals.boardings)}                     accent="#1d4ed8" />
+        <StatRow label="Total Alightings" value={fmt(totals.alightings)}                    accent="#c2410c" />
+        <StatRow label="Total Volume"     value={fmt(totals.boardings + totals.alightings)} accent="#15803d" />
       </div>
     </div>
   );

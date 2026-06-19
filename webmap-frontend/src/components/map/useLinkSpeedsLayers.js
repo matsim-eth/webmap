@@ -146,6 +146,8 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
         setLinkSpeedsSelected,
         setSelectedNetworkFeature,
         setFeatureSelection,
+        linkSpeedsSelectedLink,
+        setLinkSpeedsSelectedLink,
     } = useSelection();
     const {
         featureGeoJSON,
@@ -160,6 +162,9 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
     const cacheRef = useRef({ key: null, links: null });
     // Filtered linksMap available to the selection effect.
     const filteredLinksRef = useRef({});
+    // Last selected segment's id key — used to reset the per-link dropdown to
+    // "All" whenever a different segment is selected.
+    const prevSelKeyRef = useRef(null);
     // Version bump so the selection effect re-runs after data arrives.
     const [dataVersion, setDataVersion] = useState(0);
     // Fetched links (stateful so the build effect can depend on it). Keyed by
@@ -198,7 +203,7 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
                 source: SPEEDS_AGG_SOURCE_ID,
                 maxzoom: SPLIT_ZOOM,
                 paint: {
-                    'line-width': ['interpolate', ['linear'], ['get', 'capacity'], 300, 2, 4000, 9],
+                    'line-width': ['interpolate', ['linear'], ['coalesce', ['get', 'capacity'], 1000], 300, 2, 4000, 9],
                     'line-color': ramp,
                     'line-opacity': 0.9,
                 },
@@ -211,7 +216,7 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
                 source: SPEEDS_SOURCE_ID,
                 minzoom: SPLIT_ZOOM,
                 paint: {
-                    'line-width': ['interpolate', ['linear'], ['get', 'capacity'], 300, 2, 4000, 9],
+                    'line-width': ['interpolate', ['linear'], ['coalesce', ['get', 'capacity'], 1000], 300, 2, 4000, 9],
                     'line-color': ramp,
                     'line-opacity': 0.9,
                     'line-offset': LINE_OFFSET_EXPR,
@@ -280,11 +285,14 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
         removeOverlay(map);
         setLinkSpeedsSummary(null);
         setLinkSpeedsSelected(null);
+        setLinkSpeedsSelectedLink(null);
         setLinkSpeedsLinksMap(null);
         filteredLinksRef.current = {};
+        prevSelKeyRef.current = null;
         setIsLoading?.(false);
     }, [isGraphExpanded, mapReady, mapRef, removeOverlay,
-        setLinkSpeedsSummary, setLinkSpeedsSelected, setLinkSpeedsLinksMap, setIsLoading]);
+        setLinkSpeedsSummary, setLinkSpeedsSelected, setLinkSpeedsSelectedLink,
+        setLinkSpeedsLinksMap, setIsLoading]);
 
     // Per-direction click on the split layer (zoom >= SPLIT_ZOOM). Sets
     // featureSelection with only that direction's link ids so downstream
@@ -345,7 +353,7 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
                 source: 'network-highlight',
                 paint: {
                     // Narrow highlight — we're only selecting one direction.
-                    'line-width': ['interpolate', ['linear'], ['get', 'capacity'], 300, 6, 4000, 15],
+                    'line-width': ['interpolate', ['linear'], ['coalesce', ['get', 'capacity'], 1000], 300, 6, 4000, 15],
                     'line-color': '#00a2ff',
                     'line-opacity': 1,
                     'line-offset': LINE_OFFSET_EXPR,
@@ -531,7 +539,7 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
         const map = mapRef.current;
         if (!map.getLayer('network-highlight')) return;
 
-        const defaultWidth = ['interpolate', ['linear'], ['get', 'capacity'], 300, 6, 4000, 15];
+        const defaultWidth = ['interpolate', ['linear'], ['coalesce', ['get', 'capacity'], 1000], 300, 6, 4000, 15];
         // Only widen for merged (non-split) selections — per-direction clicks
         // highlight a single offset line and should stay narrow.
         const isSplitSelection = !!featureSelection?.feature?.properties?.ls_arrow;
@@ -546,7 +554,7 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
             map.setPaintProperty('network-highlight', 'line-width', ['step', ['zoom'],
                 defaultWidth,
                 SPLIT_ZOOM,
-                ['interpolate', ['linear'], ['get', 'capacity'], 300, 18, 4000, 28],
+                ['interpolate', ['linear'], ['coalesce', ['get', 'capacity'], 1000], 300, 18, 4000, 28],
             ]);
         } else {
             map.setPaintProperty('network-highlight', 'line-width', defaultWidth);
@@ -564,42 +572,91 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
         // selection visually disappears when filtered out by road type.
         const setHighlightVisible = (visible) => setVisibility(map, 'network-highlight', visible);
         if (!props) {
+            prevSelKeyRef.current = null;
             setLinkSpeedsSelected(null);
             setHighlightVisible(false);
             return;
         }
+
+        // A split-layer (per-direction) selection carries ls_arrow; merged
+        // (low-zoom / base-network) selections don't. The per-link dropdown is
+        // only offered for the merged case.
+        const isSplit = !!props.ls_arrow;
+
+        // Reset the per-link dropdown to "All" whenever a different segment is
+        // selected. Keyed on the selection's id (ls_link_ids for a split click,
+        // per_id_keys for a merged one).
+        const selKey = props.ls_link_ids || props.per_id_keys || '';
+        if (selKey !== prevSelKeyRef.current) {
+            prevSelKeyRef.current = selKey;
+            if (linkSpeedsSelectedLink !== null) {
+                setLinkSpeedsSelectedLink(null);
+                return; // re-runs with the dropdown cleared
+            }
+        }
+
         // Prefer ls_link_ids (direction-specific) over per_id_keys (full segment)
         // so split-layer clicks produce direction-specific metrics.
         const keys = parsePipeList(props.ls_link_ids || props.per_id_keys);
         const linksMap = filteredLinksRef.current || {};
-        let vsum = 0, fsum = 0, volsum = 0;
-        const matchedIds = [];
+        const matched = []; // { id, d } for each underlying link with traffic
         for (const k of keys) {
             const d = linksMap[k];
-            if (d && d.volume && d.avg_speed != null && d.freespeed) {
-                vsum += d.avg_speed * d.volume;
-                fsum += d.freespeed * d.volume;
-                volsum += d.volume;
-                matchedIds.push(k);
-            }
+            if (d && d.volume && d.avg_speed != null && d.freespeed) matched.push({ id: k, d });
         }
-        if (!volsum) {
+        if (!matched.length) {
             setLinkSpeedsSelected(null);
             setHighlightVisible(false);
             return;
         }
         setHighlightVisible(true);
-        const avg = vsum / volsum;
-        const free = fsum / volsum;
+
+        const matchedIds = matched.map(m => m.id);
+        // Single-link view: only for a merged selection when the dropdown points
+        // at a link that still has traffic. If the chosen link was filtered out
+        // (e.g. road-type change), fall back to "All".
+        const single = (!isSplit && linkSpeedsSelectedLink)
+            ? matched.find(m => m.id === linkSpeedsSelectedLink)
+            : null;
+        if (!isSplit && linkSpeedsSelectedLink && !single) {
+            setLinkSpeedsSelectedLink(null);
+            return; // re-runs as "All"
+        }
+
+        let avg, free, dailyVolume, linkId;
+        if (single) {
+            avg = single.d.avg_speed;
+            free = single.d.freespeed;
+            dailyVolume = Math.round(single.d.volume);
+            linkId = single.id;
+        } else {
+            // Volume-weighted mean across every matched link (the existing
+            // behaviour — the "mean" shown for a merged double link).
+            let vsum = 0, fsum = 0, volsum = 0;
+            for (const { d } of matched) {
+                vsum += d.avg_speed * d.volume;
+                fsum += d.freespeed * d.volume;
+                volsum += d.volume;
+            }
+            avg = vsum / volsum;
+            free = fsum / volsum;
+            dailyVolume = Number(props.daily_avg_volume) || 0;
+            linkId = matchedIds.join('|');
+        }
+
         setLinkSpeedsSelected({
-            linkId: matchedIds.join('|'),
+            linkId,
             avgSpeed: Number(avg.toFixed(2)),
             freespeed: Number(free.toFixed(2)),
             congestionIndex: free ? Number((avg / free).toFixed(4)) : null,
-            dailyVolume: Number(props.daily_avg_volume) || 0,
+            dailyVolume,
             modes: props.modes || '',
+            // Underlying link ids with traffic — drives the per-link dropdown.
+            allKeys: matchedIds,
+            isSplit,
         });
-    }, [featureSelection, isGraphExpanded, setLinkSpeedsSelected, dataVersion]);
+    }, [featureSelection, isGraphExpanded, setLinkSpeedsSelected, dataVersion,
+        linkSpeedsSelectedLink, setLinkSpeedsSelectedLink]);
 
     return null;
 }

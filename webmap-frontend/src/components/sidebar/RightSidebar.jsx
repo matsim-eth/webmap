@@ -46,6 +46,9 @@ import PolygonTripsModule from "../matsim/PolygonTripsModule";
 import { resetNodeFlowsOverlay } from "../map/useNodeFlowLayers";
 import { resetVolumeFlowOverlay } from "../map/useVolumeFlowLayers";
 
+// Reactive accessor for the current drawn polygons (shared draw tool)
+import useDrawPolygons from "../../hooks/useDrawPolygons";
+
 // Module labels for the header
 const MODULE_LABELS = {
   Choropleth: "Choropleth",
@@ -87,6 +90,10 @@ const RightSidebar = () => {
 
   const featureTableRef = useRef(null);
   const transitFeatureTableRef = useRef(null);
+
+  // Track drawn polygons so the clear button only appears when there's something to clear
+  const drawnPolygons = useDrawPolygons({ mapRef, drawRef, isGraphExpanded, activeModule: isGraphExpanded });
+  const hasPolygons = drawnPolygons.length > 0;
 
   const handleTotalOutflowChange = (outflowData) => {
     setDestinationOutflowData(outflowData);
@@ -189,16 +196,18 @@ const RightSidebar = () => {
                     <FontAwesomeIcon icon={faDrawPolygon} />
                     <span>New Polygon</span>
                   </button>
-                  <button
-                    className="panel-toolbar-btn"
-                    onClick={() => {
-                      drawRef.current?.deleteAll();
-                      mapRef.current?.fire('draw.delete', { features: [] });
-                    }}
-                  >
-                    <FontAwesomeIcon icon={faRotateLeft} />
-                    <span>Clear All</span>
-                  </button>
+                  {hasPolygons && (
+                    <button
+                      className="panel-toolbar-btn"
+                      onClick={() => {
+                        drawRef.current?.deleteAll();
+                        mapRef.current?.fire('draw.delete', { features: [] });
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faRotateLeft} />
+                      <span>Clear Polygons</span>
+                    </button>
+                  )}
                 </>
               )}
 

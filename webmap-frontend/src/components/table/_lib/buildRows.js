@@ -162,9 +162,10 @@ export const buildRowsFromGeojson = (geojson, selectedGraph = null) => {
       const arrow       = arrows[index] || null;
       const direction   = directions[index] || null;
 
-      // For TransitVolumes, use directional total volumes; otherwise use daily_avgs
+      // Total Daily Volume column.
       let totalVol;
       if (selectedGraph === 'TransitVolumes') {
+        // TransitVolumes: directional total volumes baked by useTransitVolumesLayer.
         if (arrow === '←') {
           totalVol = props.total_left;
         } else if (arrow === '→') {
@@ -172,7 +173,21 @@ export const buildRowsFromGeojson = (geojson, selectedGraph = null) => {
         } else {
           totalVol = props.total_volume;
         }
+      } else if (selectedGraph === 'Volumes') {
+        // Volumes: full-day directional total (left_total/right_total), derived
+        // from the backend traffic volumes by useNetworkLayers. Mirrors the
+        // directional Filtered Volume (left_sum/right_sum) so the two columns
+        // stay consistent (Total ≥ Filtered, equal at full window) instead of
+        // mixing a per-link total against a directional filtered value.
+        if (arrow === '←') {
+          totalVol = num(props.left_total);
+        } else if (arrow === '→') {
+          totalVol = num(props.right_total);
+        } else {
+          totalVol = num(daily_avgs[index]);
+        }
       } else {
+        // Network (no time-windowed volumes): per-link daily average.
         totalVol = num(daily_avgs[index]);
       }
 

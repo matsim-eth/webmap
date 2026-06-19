@@ -5,6 +5,24 @@
  * can reuse the same column ↔ property mapping.
  */
 
+/**
+ * Filter for "links a user can click / that should render" in the
+ * VolumeFlow / NodeFlows / LinkSpeeds modules.
+ *
+ * - When `modes` is present (the enriched per-canton `merged_segments` from the
+ *   backend `network_links`, and old merged-visual-segment datasets), clickable
+ *   = car links. We no longer require `daily_avg_volume > 0`: the enriched
+ *   geometry carries no baked per-link volume (the modules fetch speeds/volumes
+ *   from their own endpoints), so a volume gate would hide everything.
+ * - When `modes` is absent (the thin static_asset blob served as a fallback for
+ *   datasets without `network_links`), the second branch shows every link —
+ *   visualization then keys purely off `link_id`.
+ */
+export const CLICKABLE_ROAD_FILTER = ['any',
+  ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0],
+  ['!', ['has', 'modes']],
+];
+
 /** Operator + value + getter expression → Mapbox comparison filter. */
 export const buildComparisonFilter = (operator, value, expression) => {
   switch (operator) {

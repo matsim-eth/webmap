@@ -54,22 +54,32 @@ export default function useTransitLines(
                 return;
             }
             
-            // If we have a line ID but no route IDs yet, skip rendering (waiting for route IDs to be set)
-            if (!highlightedRouteIds || highlightedRouteIds.length === 0) {
-                return;
-            }
+            // No route-id gating: selection is keyed purely off line_id.
             
             // load current selected transit line and create layer on map
             const loadRoutes = async () => {
-                const geojson = await loadWithFallback("matsim/transit/routes/transit_routes.geojson");
-                const routeIdsToShow = hoveredRouteId ? [hoveredRouteId] : highlightedRouteIds;
-                
-                const matched = geojson.features.filter(
-                    (f) =>
-                        f.properties.line_id === highlightedLineId &&
-                    routeIdsToShow.includes(f.properties.route_id)
+                // Fetch only the selected line's geometry (tens of KB) instead of
+                // the whole ~76 MB transit_routes asset — the backend slices it by
+                // line_id. Fall back to the full asset (uploaded files / CDN) if
+                // the per-line endpoint isn't available, then filter client-side.
+                const encodedLine = encodeURIComponent(highlightedLineId);
+                let features;
+                try {
+                    const fc = await loadWithFallback(`matsim/transit/routes/by_line/${encodedLine}.geojson`);
+                    features = fc?.features || [];
+                } catch {
+                    const fc = await loadWithFallback("matsim/transit/routes/transit_routes.geojson");
+                    features = fc?.features || [];
+                }
+
+                // Draw every route geometry belonging to the selected line. The
+                // duckdb boarding data has no per-stop route_id, so selection is
+                // keyed purely off line_id — we show the whole line (all its
+                // routes), which is what visually connects the stops.
+                const matched = features.filter(
+                    (f) => f.properties.line_id === highlightedLineId
                 );
-                
+
                 if (matched.length === 0) return;
                 
                 
@@ -114,10 +124,6 @@ export default function useTransitLines(
                 const interCantonalStopsGeo = await loadWithFallback("matsim/transit/stops_by_canton/inter_cantonal_stops.geojson");
                 
                 if (interCantonalStopsGeo && searchCanton) {
-                    const relevantRouteIds = hoveredRouteId
-                    ? [hoveredRouteId]
-                    : highlightedRouteIds;
-                    
                     // calculate stops that are outside the current canton but on the transit line
                     const outOfCantonStops = interCantonalStopsGeo.features.filter(f => {
                         const stopCanton = f.properties.assigned_canton;
@@ -129,12 +135,10 @@ export default function useTransitLines(
                         } catch (e) {
                             linesList = f.properties.lines || [];
                         }
-                        
-                        const servesRelevantRoute = linesList.some(l =>
-                            l.line_id === highlightedLineId && relevantRouteIds.includes(l.route_id)
-                        );
-                        
-                        return servesRelevantRoute && stopCanton !== searchCanton;
+
+                        const servesLine = linesList.some(l => l.line_id === highlightedLineId);
+
+                        return servesLine && stopCanton !== searchCanton;
                     });
                     
                     
@@ -233,14 +237,9 @@ export default function useTransitLines(
                             setClickedCanton(assigned_canton);
                             
                             // delay re-selecting until the canton is loaded
-                            setTimeout(() => {         
-                                const updatedRouteIds = JSON.parse(lines)
-                                .filter(l => l.line_id === highlightedLineId)
-                                .map(l => l.route_id);
-                                
+                            setTimeout(() => {
                                 setHighlightedLineId(highlightedLineId);
-                                setHighlightedRouteIds(updatedRouteIds);
-                                
+
                                 setSelectedTransitStop({
                                     name,
                                     stop_id,
@@ -285,7 +284,7 @@ export default function useTransitLines(
             };
             
             loadRoutes();
-        }, [highlightedRouteIds, showStopVolumeSymbology, highlightedLineId, hoveredRouteId, isGraphExpanded]);
+        }, [showStopVolumeSymbology, highlightedLineId, isGraphExpanded]);
 
         // Clear highlighted line if the current mode filter excludes its mode
         useEffect(() => {
@@ -296,7 +295,7 @@ export default function useTransitLines(
 
             const ensure = async () => {
                 try {
-                    const routes = await loadWithFallback('matsim/transit/routes/transit_routes.geojson');
+                    const routes = await loadWithFallback(`matsim/transit/routes/by_line/${encodeURIComponent(highlightedLineId)}.geojson`);
                     const f = routes?.features?.find(r => r?.properties?.line_id === highlightedLineId);
                     const lineMode = f?.properties?.mode && String(f.properties.mode);
                     if (lineMode && !selectedTransitModes.includes(lineMode)) {

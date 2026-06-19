@@ -31,6 +31,12 @@ export const SelectionProvider = ({ children }) => {
   const [volumeFlowSelectedLink, setVolumeFlowSelectedLink] = useState(null);
 
   const [linkSpeedsSelected, setLinkSpeedsSelected] = useState(null);
+  const [linkSpeedsSelectedLink, setLinkSpeedsSelectedLink] = useState(null);
+
+  // Per-link dropdown selection for the Network / Volumes modules (shared — only
+  // one of those modules is active at a time). Reset on new segment / module
+  // switch by useNetworkSplitLayers, mirroring linkSpeedsSelectedLink.
+  const [networkSelectedLink, setNetworkSelectedLink] = useState(null);
 
   const [zoneFlowDestCanton, setZoneFlowDestCanton] = useState(null);
 
@@ -46,6 +52,8 @@ export const SelectionProvider = ({ children }) => {
     volumeFlowSegment, setVolumeFlowSegment,
     volumeFlowSelectedLink, setVolumeFlowSelectedLink,
     linkSpeedsSelected, setLinkSpeedsSelected,
+    linkSpeedsSelectedLink, setLinkSpeedsSelectedLink,
+    networkSelectedLink, setNetworkSelectedLink,
     zoneFlowDestCanton, setZoneFlowDestCanton,
   }), [
     clickedCanton,
@@ -53,7 +61,8 @@ export const SelectionProvider = ({ children }) => {
     selectedTransitLink, selectedTransitStop,
     visualizeLinkId, visualizeNonce, hoveredMatrixCell,
     volumeFlowSegment, volumeFlowSelectedLink,
-    linkSpeedsSelected,
+    linkSpeedsSelected, linkSpeedsSelectedLink,
+    networkSelectedLink,
     zoneFlowDestCanton,
   ]);
 

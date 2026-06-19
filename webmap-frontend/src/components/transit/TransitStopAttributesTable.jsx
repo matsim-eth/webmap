@@ -7,32 +7,29 @@ const DIRECTION_OPTIONS = [
   { value: 'return', label: 'Return' }
 ];
 
-const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId, onRouteHover, selectedDirection, setSelectedDirection }) => {
+const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId, selectedDirection, setSelectedDirection }) => {
   if (!properties) return null;
-  
+
   const { name, modes_list, lines, boardings, alightings, total } = properties;
-  
-  const [hoveredRoute, setHoveredRoute] = useState(null);
-  const [showRoutes, setShowRoutes] = useState(false);
+
   const [isCollapsed, setIsCollapsed] = useState(false);
-  
+
   const groupedLines = lines.reduce((acc, line) => {
     if (!acc[line.line_id]) acc[line.line_id] = [];
     acc[line.line_id].push(line);
     return acc;
   }, {});
-  
-  const numRoutes = lines?.length || 0;
+
   const numLines = Object.keys(groupedLines).length;
-  
+
   const activeBadge = highlightedLineId;
-  
+
+  // Selection is keyed purely off line_id — the duckdb boarding data has no
+  // per-stop route_id, so clicking a line badge highlights the whole line.
   const handleBadgeClick = (line_id) => {
     const isActive = highlightedLineId === line_id;
-    const routeIds = groupedLines[line_id].map(route => route.route_id);
-    
     if (onLineClick) {
-      onLineClick(isActive ? null : line_id, isActive ? [] : routeIds);
+      onLineClick(isActive ? null : line_id);
     }
   };
   
@@ -63,8 +60,7 @@ const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId
     <tbody>
     <tr><td>Mode</td><td>{modes_list?.join(", ")}</td></tr>
     <tr><td>Lines</td><td>{numLines}</td></tr>
-    <tr><td>Routes</td><td>{numRoutes}</td></tr>
-    <tr><td>Volumes</td><td>    
+    <tr><td>Volumes</td><td>
     <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
     <div className="metric-card">
     <div className="metric-label">Boardings</div>
@@ -93,42 +89,6 @@ const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId
       </span>
     ))}
     </div>
-    
-    {/* Toggle button to show/hide routes */}
-    {activeBadge && (
-      <button
-        type="button"
-        className={`route-toggle ${showRoutes ? "is-open" : ""}`}
-        onClick={() => setShowRoutes(!showRoutes)}
-      >
-        <span className="route-toggle-chevron" aria-hidden="true">▸</span>
-        {showRoutes ? "Hide routes" : "Show routes"}
-        <span className="route-toggle-count">{groupedLines[activeBadge]?.length ?? 0}</span>
-      </button>
-    )}
-
-    {/* Conditional route list */}
-    {showRoutes && activeBadge && Array.isArray(groupedLines[activeBadge]) && (
-      <ul className="route-list">
-        {groupedLines[activeBadge].map((route, i) => (
-          <li
-            key={i}
-            className={`route-row ${hoveredRoute === route.route_id ? "is-hovered" : ""}`}
-            onMouseEnter={() => {
-              setHoveredRoute(route.route_id);
-              onRouteHover?.(route.route_id);
-            }}
-            onMouseLeave={() => {
-              setHoveredRoute(null);
-              onRouteHover?.(null);
-            }}
-          >
-            <span className="route-row-dot" aria-hidden="true" />
-            <span className="route-row-id">{route.route_id}</span>
-          </li>
-        ))}
-      </ul>
-    )}
     </td>
     </tr>
     {/* <tr>

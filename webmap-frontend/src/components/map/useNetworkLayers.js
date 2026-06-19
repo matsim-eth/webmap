@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import useAntPath from './useAntPath';
 import { safeRemoveLayer, safeRemoveSource, setVisibility, setFilter } from './_lib/mapbox';
-import { parsePipeList, decoratePerIdMinMax, decorateLineVolumesFromPerId } from './_lib/pipeProps';
+import { parsePipeList, decoratePerIdMinMax, decorateLineVolumesFromPerId, mergeSegmentsByGeometry } from './_lib/pipeProps';
+import { CLICKABLE_ROAD_FILTER } from './_lib/mapboxFilters';
 
 export default function useNetworkLayers({
   mapRef,
   searchCanton,
+  datasetId,
   loadWithFallback,
   selectedNetworkModes,
   showMajorRoadsOnly,
@@ -24,7 +26,16 @@ export default function useNetworkLayers({
   drawRef
 }) {
   const [linkVolumeData, setLinkVolumeData] = useState(null);
+  // Bumped whenever a fresh network-source is loaded, so the Volumes colour
+  // recompute re-runs once geometry is ready even if the (now fast major-only)
+  // volume fetch already finished before it — otherwise colours stay at 0 until
+  // a time-slider nudge re-triggers the recompute.
+  const [networkVersion, setNetworkVersion] = useState(0);
   const originalNetworkGeoJSON = useRef(null);
+  // Per-canton traffic-volume cache: a cheap major-roads-only variant (the
+  // default view) and the full variant (fetched lazily when "major roads only"
+  // is unchecked). Keyed by `${datasetId}:${canton}`.
+  const volCacheRef = useRef({ key: null, major: null, full: null });
   const selectedNetworkModesRef = useRef(selectedNetworkModes);
   
   useEffect(() => {
@@ -41,34 +52,50 @@ export default function useNetworkLayers({
     const keys = parsePipeList(props.per_id_keys);
     const arrows = parsePipeList(props.per_id_arrows);
     const daily_avgs = parsePipeList(props.per_id_daily_avgs);
-    
-    let left = 0, right = 0;
-    
+
+    let left = 0, right = 0;             // time-windowed directional sums
+    let leftTotal = 0, rightTotal = 0;   // full-day directional sums
+    // Per-link full-day totals, reconstructed from the backend traffic volumes.
+    // The v2 `merged_segments.geojson` ships no `per_id_daily_avgs`, so without
+    // this the selected-segment side panel (keyed off `per_id_daily_avgs`) and
+    // the table column's map-side numeric filter would be blank/broken.
+    // Full-day totals are time-window-independent, so they're recomputed
+    // identically on every slider change.
+    const fullDayPerId = new Array(keys.length);
+
     keys.forEach((id, index) => {
       const hourly = linkVolumeData?.[id.toString()];
-      let s = 0;
+      let windowed = 0;   // time-windowed → drives left/right + map color
+      let fullDay = 0;    // unfiltered all-day → drives the table's Total column
       if (hourly && Array.isArray(hourly) && hourly.length === 24) {
-        // Sum volumes from startHour to endHour using array indexing
-        for (let h = startHour; h < endHour; h++) {
-          s += hourly[h] ?? 0;
-        }
+        for (let h = startHour; h < endHour; h++) windowed += hourly[h] ?? 0;
+        for (let h = 0; h < 24; h++) fullDay += hourly[h] ?? 0;
       } else {
-        // Fallback to daily average if hourly data not available
-        s = Number(daily_avgs[index] ?? 0);
+        // No backend hourly data → fall back to any daily average that shipped
+        // with the geojson (legacy CDN datasets); 0 for v2.
+        windowed = Number(daily_avgs[index] ?? 0);
+        fullDay = Number(daily_avgs[index] ?? 0);
       }
-      
+      fullDayPerId[index] = fullDay;
+
       const arrow = arrows[index];
-      if (arrow === '←') left += s;
-      else if (arrow === '→') right += s;
+      if (arrow === '←') { left += windowed; leftTotal += fullDay; }
+      else if (arrow === '→') { right += windowed; rightTotal += fullDay; }
     });
-    
+
     f.properties = {
       ...f.properties,
-      daily_avg_volume: left + right, // total
+      daily_avg_volume: left + right, // time-windowed total
       left_sum: left,
-      right_sum: right
+      right_sum: right,
+      // Full-day directional totals: the table's "Total Daily Volume" column
+      // reads these so it stays consistent with the directional "Filtered
+      // Volume" (left_sum/right_sum) — Total ≥ Filtered, equal at full window.
+      left_total: leftTotal,
+      right_total: rightTotal,
+      per_id_daily_avgs: fullDayPerId.join('|'),
     };
-    
+
     return { left, right, total: left + right };
   };
   
@@ -186,6 +213,15 @@ export default function useNetworkLayers({
       return;
     }
     
+    // The webmap backend now serves merged_segments already merged (one feature
+    // per visual segment carrying per_id_keys/per_id_arrows), so this is a no-op
+    // on the authoritative path. It still merges the *stripped* per-link format
+    // (one feature per directed link, singular `link_id`, no per_id_*) that the
+    // GitHub-CDN fallback / legacy datasets ship, so the downstream hooks
+    // (VolumeFlow dropdown, LinkSpeeds/NodeFlows offset) work regardless of
+    // source. No-op whenever features already carry per_id_keys.
+    networkGeojson.features = mergeSegmentsByGeometry(networkGeojson.features);
+
     originalNetworkGeoJSON.current = networkGeojson;
 
     decorateLineVolumesFromPerId(networkGeojson.features);
@@ -194,7 +230,10 @@ export default function useNetworkLayers({
     setFeatureGeoJSON?.(networkGeojson);
     
     map.addSource('network-source', { type: 'geojson', data: networkGeojson, generateId: true });
-    
+    // Signal that the source is ready so the Volumes colour recompute re-runs
+    // (covers the case where volume data arrived before the geometry).
+    setNetworkVersion(v => v + 1);
+
     map.addLayer({
       id: 'click-network-layer',
       type: 'line',
@@ -243,13 +282,10 @@ export default function useNetworkLayers({
     updateNetworkFilter(selectedNetworkModesRef.current);
     
     if (graphExpandedRef.current === 'VolumeFlow' || graphExpandedRef.current === 'NodeFlows' || graphExpandedRef.current === 'LinkSpeeds') {
-      // VolumeFlow/NodeFlows: car roads with >0 volume only (no major roads restriction), no labels
-      const vfFilter = ['all',
-        ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']] , 0],
-        ['>', ['get', 'daily_avg_volume'], 0]
-      ];
-      map.setFilter('click-network-layer', vfFilter);
-      map.setFilter('network-layer', vfFilter);
+      // VolumeFlow/NodeFlows: clickable road links (car+volume for rich datasets,
+      // all links for the stripped per-link merged_segments format), no labels
+      map.setFilter('click-network-layer', CLICKABLE_ROAD_FILTER);
+      map.setFilter('network-layer', CLICKABLE_ROAD_FILTER);
     } else if (graphExpandedRef.current === 'Volumes') {
       // Volumes: car roads + optional major roads filter
       const carFilter = ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0];
@@ -273,10 +309,11 @@ export default function useNetworkLayers({
       if (!e.features.length) return;
       // VolumeFlow/NodeFlows have their own click handler on this layer
       if (graphExpandedRef.current === 'VolumeFlow' || graphExpandedRef.current === 'NodeFlows') return;
-      // LinkSpeeds: at zoom >= 15 only the split layer's click handler applies.
-      // Merged (per_id_keys) selection would be wrong when the split visual is
-      // on-screen, so suppress this base handler entirely past the threshold.
-      if (graphExpandedRef.current === 'LinkSpeeds' && map.getZoom() >= 15) return;
+      // LinkSpeeds/Network/Volumes: at zoom >= 15 only the split layer's click
+      // handler applies. Merged (per_id_keys) selection would be wrong when the
+      // split visual is on-screen, so suppress this base handler past the threshold.
+      if ((graphExpandedRef.current === 'LinkSpeeds' || graphExpandedRef.current === 'Network'
+           || graphExpandedRef.current === 'Volumes') && map.getZoom() >= 15) return;
 
       // Skip selection when actively drawing or clicking on draw features
       if (drawRef?.current) {
@@ -341,12 +378,8 @@ export default function useNetworkLayers({
     // If "all" modes selected, remove filter (or apply car filter for VolumeFlow)
     if (!modes || modes.includes('all')) {
       if (graphExpandedRef.current === 'VolumeFlow' || graphExpandedRef.current === 'NodeFlows' || graphExpandedRef.current === 'LinkSpeeds') {
-        // VolumeFlow/NodeFlows: car roads with >0 volume only
-        const vfFilter = ['all',
-          ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0],
-          ['>', ['get', 'daily_avg_volume'], 0]
-        ];
-        setFilter(map, ['network-layer', 'click-network-layer'], vfFilter);
+        // VolumeFlow/NodeFlows: clickable road links (tolerates stripped format)
+        setFilter(map, ['network-layer', 'click-network-layer'], CLICKABLE_ROAD_FILTER);
       } else {
         setFilter(map, ['network-layer', 'click-network-layer', 'network-highlight'], null);
       }
@@ -405,8 +438,9 @@ export default function useNetworkLayers({
     const carFilter = ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0];
     let fullFilter;
     if (isGraphExpanded === 'VolumeFlow' || isGraphExpanded === 'NodeFlows' || isGraphExpanded === 'LinkSpeeds') {
-      // VolumeFlow/NodeFlows: car roads with >0 volume (never major-only)
-      fullFilter = ['all', carFilter, ['>', ['get', 'daily_avg_volume'], 0]];
+      // VolumeFlow/NodeFlows: clickable road links (never major-only; tolerates
+      // the stripped per-link merged_segments format that lacks modes/volume)
+      fullFilter = CLICKABLE_ROAD_FILTER;
     } else if (showMajorRoadsOnly) {
       fullFilter = ['all', carFilter, ['>', ['get', 'capacity'], 1200]];
     } else {
@@ -505,12 +539,8 @@ export default function useNetworkLayers({
           map.setPaintProperty('network-layer', 'line-opacity', 0.4);
           map.setPaintProperty('click-network-layer', 'line-width', 10);
           setLabelVisibility(map, false);
-          // Apply car-mode + volume>0 filter (all car roads, not just major)
-          const vfFilter = ['all',
-            ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0],
-            ['>', ['get', 'daily_avg_volume'], 0]
-          ];
-          setFilter(map, ['network-layer', 'click-network-layer'], vfFilter);
+          // Clickable road links (tolerates stripped per-link merged_segments format)
+          setFilter(map, ['network-layer', 'click-network-layer'], CLICKABLE_ROAD_FILTER);
         } else {
           // Network / Volumes: full color ramp
           const colorRamp = isGraphExpanded === 'Volumes'
@@ -529,23 +559,49 @@ export default function useNetworkLayers({
         if (map.getLayer('ant-line')) map.removeLayer('ant-line');
       }, [isGraphExpanded]);
       
-      // --- LOAD per-link hourly volumes (unchanged path format you use) ----------
+      // --- LOAD per-link hourly volumes ------------------------------------------
+      // The default Volumes view is "major roads only", and the map filters to the
+      // same capacity > 1200 set, so by default we only fetch major-road volumes
+      // (?min_capacity=1200 → ~10× smaller payload, much faster first colour). The
+      // full set is fetched lazily only when "major roads only" is unchecked
+      // (minor roads then become visible and need their volumes). Both variants
+      // are cached per canton so toggling back is instant.
       useEffect(() => {
-        const loadAllLinkVolumes = async () => {
-          if (!searchCanton || graphExpandedRef.current !== 'Volumes') return;
+        if (!searchCanton || graphExpandedRef.current !== 'Volumes') return;
+
+        const cacheKey = `${datasetId}:${searchCanton}`;
+        if (volCacheRef.current.key !== cacheKey) {
+          volCacheRef.current = { key: cacheKey, major: null, full: null };
+        }
+        const cache = volCacheRef.current;
+        const needFull = !showMajorRoadsOnly;
+
+        // Serve the best already-cached variant (full is a superset of major).
+        if (cache.full) { setLinkVolumeData(cache.full); return; }
+        if (!needFull && cache.major) { setLinkVolumeData(cache.major); return; }
+        // Full needed but only major cached → show major now while full loads.
+        if (needFull && cache.major) setLinkVolumeData(cache.major);
+
+        let cancelled = false;
+        (async () => {
+          const path = needFull
+            ? `matsim/${searchCanton}_link_traffic_volumes.json`
+            : `matsim/${searchCanton}_link_traffic_volumes.json?min_capacity=1200`;
           try {
-            const path = `matsim/${searchCanton}_link_traffic_volumes.json`;
             const raw = await loadWithFallback(path);
+            if (cancelled || volCacheRef.current.key !== cacheKey) return;
             const volumeMap = Object.fromEntries(
               raw.map(e => [e.link_id.toString(), e.hourly_avg_volumes])
             );
-            setLinkVolumeData(volumeMap);
+            if (needFull) volCacheRef.current.full = volumeMap;
+            else volCacheRef.current.major = volumeMap;
+            setLinkVolumeData(volCacheRef.current.full || volumeMap);
           } catch (err) {
             console.warn('Failed to load all link volumes', err);
           }
-        };
-        loadAllLinkVolumes();
-      }, [searchCanton, isGraphExpanded]);
+        })();
+        return () => { cancelled = true; };
+      }, [searchCanton, isGraphExpanded, datasetId, showMajorRoadsOnly]);
       
       // --- APPLY timeRange to both line data and labels --------------------------
       useEffect(() => {
@@ -584,8 +640,8 @@ export default function useNetworkLayers({
           map.on('sourcedata', onSourceData);
         }
 
-      }, [timeRange, linkVolumeData, isGraphExpanded, showMajorRoadsOnly]);
-      
+      }, [timeRange, linkVolumeData, isGraphExpanded, showMajorRoadsOnly, networkVersion]);
+
       // --- Canton change / cleanup ----------------------------------------------
       useEffect(() => {
         const map = mapRef.current;
@@ -598,7 +654,10 @@ export default function useNetworkLayers({
             'network-label-left','network-label-right']);
           safeRemoveSource(map, ['network-source','network-highlight','ant-path']);
           }
-        }, [searchCanton]);
+        // datasetId: on a dataset switch, reload the active network module's
+        // geometry for the current canton from the new dataset (loadNetworkForCanton
+        // always fetches fresh, so the stale cache is replaced).
+        }, [searchCanton, datasetId]);
 
         useEffect(() => {
           const map = mapRef.current;

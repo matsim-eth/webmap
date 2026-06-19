@@ -33,7 +33,7 @@ const TransitModule = ({ featureTableRef }) => {
     } = useSelection();
     const {
         highlightedLineId, setHighlightedLineId,
-        setHighlightedRouteIds, setHoveredRouteId,
+        setHighlightedRouteIds,
     } = useChoropleth();
     const { isGraphExpanded } = useModule();
     const { mapRef, drawRef } = useMap();
@@ -185,22 +185,18 @@ const TransitModule = ({ featureTableRef }) => {
         [handleTableRowSelect]
     );
 
-    // Prefetch transit routes for mode checking
-    const { data: transitRoutes } = useQuery({
-        queryKey: ['transit-routes-geojson'],
-        queryFn: () => loadWithFallback("matsim/transit/routes/transit_routes.geojson"),
-        staleTime: Infinity,
-    });
-
-    // If a new line is selected and its mode is not in the filter, reset to "all" (was useEffect)
+    // If a new line is selected and its mode is not in the filter, reset to "all" (was useEffect).
+    // The line's mode comes from the selected stop's `lines` (each carries `mode`),
+    // so there's no need to load the full transit_routes asset here.
     const prevHighlightedLineRef = useRef(highlightedLineId);
     if (prevHighlightedLineRef.current !== highlightedLineId) {
         prevHighlightedLineRef.current = highlightedLineId;
-        if (highlightedLineId && Array.isArray(selectedTransitModes) && !selectedTransitModes.includes("all") && transitRoutes) {
-            const feat = transitRoutes?.features?.find(
-                (f) => String(f?.properties?.line_id) === String(highlightedLineId)
-            );
-            const mode = feat?.properties?.mode && String(feat.properties.mode);
+        if (highlightedLineId && Array.isArray(selectedTransitModes) && !selectedTransitModes.includes("all")) {
+            const activeLines = polygonSelection?.lines ?? selectedTransitStop?.lines;
+            const match = Array.isArray(activeLines)
+                ? activeLines.find((l) => String(l?.line_id) === String(highlightedLineId))
+                : null;
+            const mode = match?.mode && String(match.mode);
             if (mode && !selectedTransitModes.includes(mode)) {
                 setSelectedTransitModes(["all"]);
             }
@@ -314,7 +310,7 @@ const TransitModule = ({ featureTableRef }) => {
                 ...(filteredStopVolumes ?? {})
             }}
             highlightedLineId={highlightedLineId}
-            onLineClick={(lineId, routeIds) => {
+            onLineClick={(lineId) => {
                 if (lineId) {
                   // Determine mode of the clicked line from the current stop's lines
                   const allLines = Array.isArray(selectedTransitStop?.lines) ? selectedTransitStop.lines : [];
@@ -326,9 +322,8 @@ const TransitModule = ({ featureTableRef }) => {
                   }
                 }
                 setHighlightedLineId(lineId);
-                setHighlightedRouteIds(filterRoutesByDirection(routeIds, selectedDirection));
+                setHighlightedRouteIds(lineId ? [lineId] : []);
             }}
-            onRouteHover={setHoveredRouteId}
             selectedDirection={selectedDirection}
             setSelectedDirection={setSelectedDirection}
             />
@@ -354,7 +349,7 @@ const TransitModule = ({ featureTableRef }) => {
                 ...(polygonFilteredVolumes ?? {})
             }}
             highlightedLineId={highlightedLineId}
-            onLineClick={(lineId, routeIds) => {
+            onLineClick={(lineId) => {
                 if (lineId) {
                   const allLines = Array.isArray(polygonSelection?.lines) ? polygonSelection.lines : [];
                   const match = allLines.find(l => String(l?.line_id) === String(lineId));
@@ -364,9 +359,8 @@ const TransitModule = ({ featureTableRef }) => {
                   }
                 }
                 setHighlightedLineId(lineId);
-                setHighlightedRouteIds(filterRoutesByDirection(routeIds, selectedDirection));
+                setHighlightedRouteIds(lineId ? [lineId] : []);
             }}
-            onRouteHover={setHoveredRouteId}
             selectedDirection={selectedDirection}
             setSelectedDirection={setSelectedDirection}
             />

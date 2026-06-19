@@ -243,7 +243,8 @@ export default function useFeatureSelectionFocus({
          "transit-volumes-label-left", "transit-volumes-label-right", "ant-line"]
       : isTransitStopsMode
       ? ["transit-stops-layer", "transit-stops-label", "transit-stops-hitbox", "transit-highlight-layer"]
-      : ["network-layer", "click-network-layer", "network-highlight", 
+      : ["network-layer", "click-network-layer", "network-highlight",
+         "network-split-layer",
          "network-label-left", "network-label-right", "ant-line"];
     
     // --- Build mode filter ---
@@ -283,8 +284,30 @@ export default function useFeatureSelectionFocus({
     
     // --- Build table search filter ---
     let tableFilter = null;
-    
-    if (query) {
+
+    // The FeatureTable already computed exactly which rows match the search, so
+    // mirror that set onto the map instead of re-deriving the search in
+    // Mapbox-expression syntax: every column, numeric comparison, accent and
+    // multi-term rule lives in one place (the table) and the map can't drift
+    // from it. `query.fids` are featureGeoJSON indices and the network source
+    // uses `generateId` (feature.id === index), so `match` on the feature id
+    // reproduces the table 1:1 — and `match` compiles its labels to a hash, so
+    // it stays O(1) per feature no matter how many rows matched.
+    //
+    // Gated to modules whose rows are built 1:1 from `featureGeoJSON` (tableId
+    // === the source's generateId). VolumeFlow is deliberately excluded: its
+    // table is a per-segment flow breakdown whose `tableId` is a flow-row
+    // counter in a different id space, so it keeps the legacy column/value path
+    // (its `directionId` search still filters the network via per_id_keys).
+    const ROW_MEMBERSHIP_MODULES = ['Network', 'Volumes', 'LinkSpeeds'];
+    const useRowMembership =
+      ROW_MEMBERSHIP_MODULES.includes(isGraphExpanded) && Array.isArray(query?.fids);
+
+    if (useRowMembership) {
+      tableFilter = query.fids.length
+        ? ["match", ["id"], query.fids, true, false]
+        : ["==", ["literal", 0], ["literal", 1]]; // searching, zero matches → hide all
+    } else if (query) {
       let { column, value } = query;
       
       if (value) {
@@ -770,6 +793,19 @@ export default function useFeatureSelectionFocus({
     }
 
     setFilter(map, layerIds, combined);
+
+    // Volumes per-direction split labels (useNetworkSplitLayers) must keep their
+    // arrow filter, so they can't go through the uniform setFilter above — AND
+    // the combined car/major/table filter onto each arrow instead (same trick as
+    // useLinkSpeedsMapFilter), so labels hide in lockstep with their offset lines.
+    const ARROW_RIGHT = ['==', ['get', 'ls_arrow'], '→'];
+    const ARROW_LEFT = ['==', ['get', 'ls_arrow'], '←'];
+    if (map.getLayer('network-split-label-right')) {
+      map.setFilter('network-split-label-right', combined ? ['all', ARROW_RIGHT, combined] : ARROW_RIGHT);
+    }
+    if (map.getLayer('network-split-label-left')) {
+      map.setFilter('network-split-label-left', combined ? ['all', ARROW_LEFT, combined] : ARROW_LEFT);
+    }
   }, [mapRef, mapReady, query, selectedNetworkModes, isGraphExpanded, showMajorRoadsOnly]);
   
 }

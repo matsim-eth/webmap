@@ -1,40 +1,65 @@
 import React, { useCallback, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import SegmentAttributesTable from "./SegmentAttributesTable";
 import FeatureTable from "../table/FeatureTable";
 import { useTableRowBuilder } from "../../hooks/useTableRowBuilder";
 import { buildSelectionPayload } from "../table/_lib/rowSearch";
+import { parsePipeList } from "../map/_lib/pipeProps";
 import { useData } from "../../context/DataContext";
 import { useFilters } from "../../context/FilterContext";
 import { useSelection } from "../../context/SelectionContext";
 import { useModule } from "../../context/ModuleContext";
-import { useFileContext } from "../../FileContext";
-import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
+import "./VolumeFlowModule.css";
 
-// Modes excluded from the canton mode-filter dropdown — these are aggregate
-// or non-road modes the user can't usefully filter on at the network level.
-const EXCLUDED_MODES = ["car_passenger", "truck", "rail", "other", "pt", "taxi"];
+// Modes hidden from the network filter: car_passenger/train/taxi/truck ride
+// along the same links as their primary mode (car/rail), so filtering on them
+// isn't useful at the network level.
+const EXCLUDED_MODES = new Set([
+  "car_passenger", "train", "taxi", "truck",
+]);
 
 const NetworkModule = ({ featureTableRef }) => {
-  const { dataURL, isFeatureTableOpen, featureGeoJSON, setTableFilterQuery } = useData();
+  const { isFeatureTableOpen, featureGeoJSON, setTableFilterQuery } = useData();
   const { selectedNetworkModes, setSelectedNetworkModes } = useFilters();
-  const { clickedCanton: canton, selectedNetworkFeature, setSelectedNetworkFeature, setFeatureSelection } = useSelection();
+  const {
+    clickedCanton: canton,
+    selectedNetworkFeature, setSelectedNetworkFeature, setFeatureSelection,
+    networkSelectedLink, setNetworkSelectedLink,
+  } = useSelection();
   const { isGraphExpanded: selectedGraph } = useModule();
-  const { fileMap } = useFileContext();
-  const loadWithFallback = useLoadWithFallback(dataURL);
 
-  // Per-canton mode list — drives the multi-select dropdown.
-  const { data: modesByCanton = {} } = useQuery({
-    queryKey: ['modes-by-canton', dataURL, fileMap.size],
-    queryFn: () => loadWithFallback("modes_by_canton.json"),
-  });
+  // Per-link selection state derived from the current selection.
+  //   isSplit       — a per-direction (zoomed-in) selection; no dropdown, the
+  //                   attribute table shows just that direction's link(s).
+  //   allKeys       — every link on the merged segment (drives the dropdown).
+  //   linkFilter    — which links the attribute table shows: the split direction,
+  //                   the dropdown pick, or null (= all links / "All").
+  const selProps = selectedNetworkFeature?.[0];
+  const isSplit = !!selProps?.ls_arrow;
+  const allKeys = useMemo(() => parsePipeList(selProps?.per_id_keys), [selProps]);
+  const linkFilter = isSplit
+    ? parsePipeList(selProps?.ls_link_ids)
+    : (networkSelectedLink ? [networkSelectedLink] : null);
 
+  // Available modes = the distinct transport modes actually present on the
+  // canton's network links. The enriched merged_segments geometry carries the
+  // real per-link `modes` (comma-joined, e.g. "car,car_passenger,taxi,truck"),
+  // so we union them across the loaded features — far more accurate than the
+  // old trip-based modes_by_canton list (which only knew car/pt/walk/bike/
+  // car_passenger, then got further trimmed to car/walk/bike).
   const availableModes = useMemo(() => {
-    if (canton && modesByCanton[canton]) {
-      return modesByCanton[canton].filter((mode) => !EXCLUDED_MODES.includes(mode));
+    const feats = featureGeoJSON?.features;
+    if (!feats || feats.length === 0) return [];
+    const set = new Set();
+    for (const f of feats) {
+      const m = f?.properties?.modes;
+      if (!m) continue;
+      for (const part of String(m).split(",")) {
+        const t = part.trim();
+        if (t && !EXCLUDED_MODES.has(t)) set.add(t);
+      }
     }
-    return [];
-  }, [canton, modesByCanton]);
+    return Array.from(set).sort();
+  }, [featureGeoJSON]);
 
   const handleModeChange = (event) => {
     const selectedOptions = Array.from(event.target.selectedOptions).map((o) => o.value);
@@ -119,8 +144,26 @@ const NetworkModule = ({ featureTableRef }) => {
         </p>
       )}
 
+      {/* Per-link selector — only for a merged (single-line, low-zoom) selection
+          bundling more than one link. Split (zoomed-in, per-direction) selections
+          already isolate one direction, so no dropdown there. */}
+      {selectedNetworkFeature && !isSplit && allKeys.length > 1 && (
+        <div className="link-selector">
+          <label>Link ID:</label>
+          <select
+            value={networkSelectedLink || ''}
+            onChange={(e) => setNetworkSelectedLink(e.target.value || null)}
+          >
+            <option value="">All ({allKeys.length} links)</option>
+            {allKeys.map((key) => (
+              <option key={key} value={key}>{key}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {selectedNetworkFeature && (
-        <SegmentAttributesTable propertiesList={selectedNetworkFeature} />
+        <SegmentAttributesTable propertiesList={selectedNetworkFeature} linkFilter={linkFilter} />
       )}
       </>
     )}

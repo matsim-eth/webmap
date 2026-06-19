@@ -2,6 +2,7 @@
 
 import logging
 import os
+import shutil
 from pathlib import Path
 
 from AuthAPI import RequireUser, RequireAdminUser
@@ -25,11 +26,11 @@ from storage import (
     create_dataset_dirs,
     dataset_root,
     delete_dataset_dirs,
+    duckdb_path,
     list_data_categories,
     list_files,
     slugify,
-    validate_filename,
-    ALLOWED_EXTENSIONS,
+    DUCKDB_CATEGORIES,
 )
 
 logger = logging.getLogger(__name__)
@@ -182,44 +183,27 @@ async def delete_dataset(
     await db.commit()
 
 
-# ── File upload ──────────────────────────────────────────────────
+# ── DuckDB upload ─────────────────────────────────────────────────
 
 
-@router.post("/datasets/{dataset_id}/upload/{category}")
-async def upload_files(
-    dataset_id: int,
-    category: str,
-    files: list[UploadFile] = File(...),
-    user=Depends(RequireUser()),
-    db: AsyncSession = Depends(get_db),
-):
-    if category not in ALLOWED_EXTENSIONS:
+async def _store_duckdb(ds: Dataset, category: str, file: UploadFile, db: AsyncSession) -> dict:
+    """Stream an uploaded DuckDB file to ``<root>/{category}.duckdb`` and refresh flags."""
+    if category not in DUCKDB_CATEGORIES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"invalid category: {category}. Must be one of: {list(ALLOWED_EXTENSIONS.keys())}",
+            detail=f"invalid category: {category}. Must be one of: {list(DUCKDB_CATEGORIES)}",
+        )
+    if Path(file.filename).suffix.lower() != ".duckdb":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="only .duckdb files are accepted",
         )
 
-    ds = await require_dataset_access(dataset_id, db, user)
-    if ds.owner_id != user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="only owner can upload")
+    target = duckdb_path(ds.owner_id, ds.id, category, ds.is_public)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with target.open("wb") as out:
+        shutil.copyfileobj(file.file, out, length=1024 * 1024)
 
-    root = dataset_root(ds.owner_id, ds.id, ds.is_public)
-    cat_dir = root / category
-    cat_dir.mkdir(parents=True, exist_ok=True)
-
-    uploaded = []
-    for f in files:
-        if not validate_filename(f.filename, category):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"invalid filename: {f.filename}",
-            )
-        target = cat_dir / Path(f.filename).name
-        content = await f.read()
-        target.write_bytes(content)
-        uploaded.append(f.filename)
-
-    # Update completeness flags
     completeness = check_dataset_completeness(ds.owner_id, ds.id, ds.is_public)
     ds.has_synthetic = completeness["has_synthetic"]
     ds.has_microcensus = completeness["has_microcensus"]
@@ -227,7 +211,21 @@ async def upload_files(
     ds.has_spider_db = completeness["has_spider_db"]
     await db.commit()
 
-    return {"uploaded": uploaded, "category": category}
+    return {"uploaded": target.name, "category": category}
+
+
+@router.post("/datasets/{dataset_id}/upload/{category}")
+async def upload_duckdb(
+    dataset_id: int,
+    category: str,
+    file: UploadFile = File(...),
+    user=Depends(RequireUser()),
+    db: AsyncSession = Depends(get_db),
+):
+    ds = await require_dataset_access(dataset_id, db, user)
+    if ds.owner_id != user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="only owner can upload")
+    return await _store_duckdb(ds, category, file, db)
 
 
 @router.get("/datasets/{dataset_id}/files", response_model=list[FileListOut])
@@ -319,6 +317,21 @@ async def admin_delete_dataset(
     delete_dataset_dirs(ds.owner_id, ds.id, ds.is_public)
     await db.delete(ds)
     await db.commit()
+
+
+@router.post("/admin/datasets/{dataset_id}/upload/{category}")
+async def admin_upload_duckdb(
+    dataset_id: int,
+    category: str,
+    file: UploadFile = File(...),
+    admin=Depends(RequireAdminUser()),
+    db: AsyncSession = Depends(get_db),
+):
+    """Upload a source DuckDB file to any dataset. Admin only."""
+    ds = await db.get(Dataset, dataset_id)
+    if not ds:
+        raise HTTPException(status_code=404, detail="dataset not found")
+    return await _store_duckdb(ds, category, file, db)
 
 
 @router.post("/admin/datasets", response_model=dict, status_code=status.HTTP_201_CREATED)

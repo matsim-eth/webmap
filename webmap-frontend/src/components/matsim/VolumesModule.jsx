@@ -10,16 +10,23 @@ import useLinePolygon from "../../hooks/useLinePolygon";
 import useDrawPolygons from "../../hooks/useDrawPolygons";
 import { computeBoundaryFlow } from "../../utils/boundaryFlow";
 import { buildSelectionPayload } from "../table/_lib/rowSearch";
+import { parsePipeList } from "../map/_lib/pipeProps";
 import { useData } from "../../context/DataContext";
 import { useFilters } from "../../context/FilterContext";
 import { useSelection } from "../../context/SelectionContext";
 import { useModule } from "../../context/ModuleContext";
 import { useMap } from "../../context/MapContext";
+import "./VolumeFlowModule.css";
+
+// The Volumes map always renders car links only (useNetworkLayers applies a
+// car filter on entry, with major-roads layered on top), so the feature table
+// is car-only too. Module-level constant keeps a stable reference across
+// renders (a fresh `['car']` each render would bust the table's row useMemo).
+const VOLUMES_TABLE_MODES = ['car'];
 
 const VolumesModule = ({ featureTableRef }) => {
   const { isFeatureTableOpen, featureGeoJSON, setTableFilterQuery } = useData();
   const {
-    selectedNetworkModes,
     showMajorRoadsOnly, setShowMajorRoadsOnly,
     timeRange, setTimeRange,
   } = useFilters();
@@ -28,6 +35,7 @@ const VolumesModule = ({ featureTableRef }) => {
     selectedNetworkFeature, setSelectedNetworkFeature,
     triggerVisualize,
     setFeatureSelection,
+    networkSelectedLink, setNetworkSelectedLink,
   } = useSelection();
   const { isGraphExpanded } = useModule();
   const { mapRef, drawRef, labelSize, setLabelSize, setMapLoading } = useMap();
@@ -35,6 +43,23 @@ const VolumesModule = ({ featureTableRef }) => {
   const selectedGraph = isGraphExpanded;
 
   const [filteredVolume, setFilteredVolume] = useState(null);
+
+  // Per-link selection derived from the current selection (mirrors NetworkModule).
+  //   isSplit        — per-direction (zoomed-in) selection; no dropdown.
+  //   allKeys        — every link on the merged segment (drives the dropdown).
+  //   effectiveLinks — links the histogram charts; >1 → summed (aggregate).
+  //   attrLinkFilter — links the attribute table shows (null = all / "All").
+  const selProps = selectedNetworkFeature?.[0];
+  const isSplit = !!selProps?.ls_arrow;
+  const allKeys = useMemo(() => parsePipeList(selProps?.per_id_keys), [selProps]);
+  const effectiveLinks = useMemo(() => {
+    if (isSplit) return parsePipeList(selProps?.ls_link_ids);
+    if (networkSelectedLink) return [networkSelectedLink];
+    return allKeys;
+  }, [isSplit, selProps, networkSelectedLink, allKeys]);
+  const attrLinkFilter = isSplit
+    ? parsePipeList(selProps?.ls_link_ids)
+    : (networkSelectedLink ? [networkSelectedLink] : null);
 
   // Polygon selection
   const handlePolygonChange = useCallback(() => {
@@ -105,9 +130,18 @@ const VolumesModule = ({ featureTableRef }) => {
   });
 
   const activeTableRows = useMemo(() => {
-    if (!polygonFeatures.length || !isFeatureTableOpen) return tableRows;
-    return tableRows.filter(row => polygonFeaturesSet.has(row.feature));
-  }, [tableRows, polygonFeaturesSet, polygonFeatures.length, isFeatureTableOpen]);
+    let rows = tableRows;
+    // Mirror the map: with "major roads only" on, the map shows (and only fetches
+    // volumes for) capacity > 1200 segments, so the table lists just those too —
+    // otherwise minor roads would appear with 0 volume from the major-only fetch.
+    if (showMajorRoadsOnly) {
+      rows = rows.filter(row => Number(row.feature?.properties?.capacity) > 1200);
+    }
+    if (polygonFeatures.length && isFeatureTableOpen) {
+      rows = rows.filter(row => polygonFeaturesSet.has(row.feature));
+    }
+    return rows;
+  }, [tableRows, polygonFeaturesSet, polygonFeatures.length, isFeatureTableOpen, showMajorRoadsOnly]);
 
   const handleTableRowSelect = useCallback(
     (row) => {
@@ -143,7 +177,7 @@ const VolumesModule = ({ featureTableRef }) => {
       tableId="volumes-feature-table"
       rows={activeTableRows}
       geojson={rowsReady ? null : featureGeoJSON}
-      selectedModes={selectedNetworkModes}
+      selectedModes={VOLUMES_TABLE_MODES}
       onRowClick={handleTableRowSelect}
       onSelectCoords={handleSelectCoords}
       height={"55vh"}
@@ -272,26 +306,37 @@ const VolumesModule = ({ featureTableRef }) => {
       </>
     )}
 
+    {/* Per-link selector — only for a merged (single-line, low-zoom) selection
+        bundling more than one link. Split (per-direction) selections isolate one
+        direction already, so no dropdown there. */}
+    {selectedNetworkFeature && !polygonAggregate && !isSplit && allKeys.length > 1 && (
+      <div className="link-selector">
+        <label>Link ID:</label>
+        <select
+          value={networkSelectedLink || ''}
+          onChange={(e) => { setNetworkSelectedLink(e.target.value || null); triggerVisualize(null); }}
+        >
+          <option value="">All ({allKeys.length} links)</option>
+          {allKeys.map((key) => (
+            <option key={key} value={key}>{key}</option>
+          ))}
+        </select>
+      </div>
+    )}
+
     {selectedNetworkFeature && !polygonAggregate && (
       <SegmentAttributesTable
       propertiesList={selectedNetworkFeature}
       selectedGraph={selectedGraph}
       filteredVolume={filteredVolume}
+      linkFilter={attrLinkFilter}
       />
     )}
 
     {selectedNetworkFeature && !polygonAggregate ? (
       <SegmentVolumeHistogram
-      linkId={(() => {
-        // Extract link IDs from pipe-separated per_id_keys
-        const perIdKeys = selectedNetworkFeature[0]?.per_id_keys;
-        if (perIdKeys && typeof perIdKeys === 'string') {
-          const ids = perIdKeys.split("|").filter(Boolean);
-          return ids.length ? ids : [String(selectedNetworkFeature[0]?.id ?? '')];
-        }
-        // Fallback to feature id if per_id_keys not available
-        return [String(selectedNetworkFeature[0]?.id ?? '')];
-      })()}
+      linkId={effectiveLinks}
+      aggregate={effectiveLinks.length > 1}
       triggerVisualize={triggerVisualize}
       canton={canton}
       timeRange={timeRange}

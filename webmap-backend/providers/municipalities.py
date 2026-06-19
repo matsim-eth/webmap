@@ -44,6 +44,14 @@ class MunicipalitiesProvider(DataProvider):
         data = load_static_asset("synthetic", "municipalities")
         if data is None:
             raise FileNotFoundError("municipalities not in static_assets")
+        # Field mapping for the frontend: CantonMap filters the selected line's
+        # municipalities by `bfs_nummer`, but the v2 asset stores the BFS number
+        # under `bfs`. Mirror StopMunicipalityProvider's rename so both transit
+        # assets expose `bfs_nummer` consistently.
+        for feat in data.get("features") or []:
+            props = feat.get("properties")
+            if props is not None and "bfs_nummer" not in props:
+                props["bfs_nummer"] = props.get("bfs")
         _cache[dk] = data
         return data
 

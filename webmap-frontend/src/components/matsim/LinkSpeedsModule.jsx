@@ -140,6 +140,8 @@ const LinkSpeedsModule = ({ featureTableRef }) => {
         linkSpeedsSelected,
         setFeatureSelection,
         setSelectedNetworkFeature,
+        linkSpeedsSelectedLink,
+        setLinkSpeedsSelectedLink,
     } = useSelection();
     const {
         timeRange, setTimeRange,
@@ -427,6 +429,26 @@ const LinkSpeedsModule = ({ featureTableRef }) => {
                             </tbody>
                         </table>
                         )}
+                    </div>
+                )}
+
+                {/* Per-link selector — only for a merged (single-line, low-zoom)
+                    selection bundling more than one link. Split-layer (zoomed-in,
+                    per-direction) selections already isolate one direction, so no
+                    dropdown is offered there. */}
+                {linkSpeedsSelected && !linkSpeedsSelected.isSplit
+                    && linkSpeedsSelected.allKeys?.length > 1 && (
+                    <div className="link-selector">
+                        <label>Link ID:</label>
+                        <select
+                            value={linkSpeedsSelectedLink || ''}
+                            onChange={(e) => setLinkSpeedsSelectedLink(e.target.value || null)}
+                        >
+                            <option value="">All ({linkSpeedsSelected.allKeys.length} links)</option>
+                            {linkSpeedsSelected.allKeys.map(key => (
+                                <option key={key} value={key}>{key}</option>
+                            ))}
+                        </select>
                     </div>
                 )}
 

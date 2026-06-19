@@ -5,6 +5,7 @@ import useMapbox from './map/useMapbox';
 import useCantons from './map/useCantons';
 import usePadding from './map/usePadding';
 import useNetworkLayers from './map/useNetworkLayers';
+import useNetworkSplitLayers from './map/useNetworkSplitLayers';
 import useTransitLayers from './map/useTransitLayers';
 import useChoropleth from './map/useChoropleth';
 import useDestinationZones from './map/useDestinationZones';
@@ -38,6 +39,7 @@ export default function Map() {
     setMapLoading,
   } = useMap();
   const {
+    datasetId,
     dataURL,
     setIsFeatureTableOpen,
     isFeatureTableOpen,
@@ -86,7 +88,6 @@ export default function Map() {
 
   // for setting loading spinner while loading transit geojson
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingNodes, setIsLoadingNodes] = useState(false);
   const [isLoadingSpeeds, setIsLoadingSpeeds] = useState(false);
   const [isLoadingZoneFlows, setIsLoadingZoneFlows] = useState(false);
 
@@ -140,6 +141,7 @@ export default function Map() {
     mapRef,
     loadWithFallback,
     graphExpandedRef,
+    datasetId: datasetId,
     searchCanton: searchCanton,
     selectedNetworkModes: selectedNetworkModes,
     showMajorRoadsOnly: showMajorRoadsOnly,
@@ -157,9 +159,19 @@ export default function Map() {
     drawRef: contextDrawRef,
   });
 
+  // LinkSpeeds-style per-direction split overlay for the Network and Volumes
+  // modules (offset lines + per-direction click at zoom >= 15; Volumes also gets
+  // per-direction volume colour + offset labels). Mounted after useNetworkLayers
+  // so the base network-layer exists when this caps its zoom range.
+  useNetworkSplitLayers({
+    mapRef,
+    mapReady,
+  });
+
   useTransitLayers({
     mapRef,
     loadWithFallback,
+    datasetId: datasetId,
     searchCanton: searchCanton,
     selectedTransitModes: selectedTransitModes,
     showStopVolumeSymbology: showStopVolumeSymbology,
@@ -185,6 +197,7 @@ export default function Map() {
   useChoropleth({
     mapRef,
     loadWithFallback,
+    datasetId: datasetId,
     selectedMode: selectedMode,
     selectedDataset: selectedDataset,
     isGraphExpanded: isGraphExpanded,
@@ -218,7 +231,6 @@ export default function Map() {
   useNodeFlowLayers({
     mapRef,
     mapReady,
-    setIsLoading: setIsLoadingNodes,
   });
 
   // Link Speeds overlay
@@ -279,19 +291,13 @@ export default function Map() {
           </div>
         </div>
       )}
-      {isLoadingNodes && !isLoading && !isLoadingSpeeds && (
-        <div className="map-loading-overlay">
-          <div className="spinner" />
-          <div className="loading-text">Loading node data...</div>
-        </div>
-      )}
-      {isLoadingZoneFlows && !isLoading && !isLoadingSpeeds && !isLoadingNodes && (
+      {isLoadingZoneFlows && !isLoading && !isLoadingSpeeds && (
         <div className="map-loading-overlay">
           <div className="spinner" />
           <div className="loading-text">Loading zone flows...</div>
         </div>
       )}
-      {mapLoading && !isLoading && !isLoadingSpeeds && !isLoadingNodes && !isLoadingZoneFlows && (
+      {mapLoading && !isLoading && !isLoadingSpeeds && !isLoadingZoneFlows && (
         <div className="map-loading-overlay">
           <div className="spinner" />
           <div className="loading-text">Updating map...</div>
