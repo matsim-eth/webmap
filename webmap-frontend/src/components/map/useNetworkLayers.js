@@ -187,7 +187,7 @@ export default function useNetworkLayers({
     if (!map) return;
     
     safeRemoveLayer(map, [
-      'network-layer', 'click-network-layer', 'ant-line', 'network-highlight',
+      'network-layer', 'network-layer-hitbox', 'ant-line', 'network-highlight',
       'network-label-left', 'network-label-right'
     ]);
     safeRemoveSource(map, ['network-source', 'network-highlight', 'ant-path']);
@@ -235,7 +235,7 @@ export default function useNetworkLayers({
     setNetworkVersion(v => v + 1);
 
     map.addLayer({
-      id: 'click-network-layer',
+      id: 'network-layer-hitbox',
       type: 'line',
       source: 'network-source',
       paint: {
@@ -284,7 +284,7 @@ export default function useNetworkLayers({
     if (graphExpandedRef.current === 'VolumeFlow' || graphExpandedRef.current === 'NodeFlows' || graphExpandedRef.current === 'LinkSpeeds') {
       // VolumeFlow/NodeFlows: clickable road links (car+volume for rich datasets,
       // all links for the stripped per-link merged_segments format), no labels
-      map.setFilter('click-network-layer', CLICKABLE_ROAD_FILTER);
+      map.setFilter('network-layer-hitbox', CLICKABLE_ROAD_FILTER);
       map.setFilter('network-layer', CLICKABLE_ROAD_FILTER);
     } else if (graphExpandedRef.current === 'Volumes') {
       // Volumes: car roads + optional major roads filter
@@ -293,7 +293,7 @@ export default function useNetworkLayers({
       if (showMajorRoadsOnly) {
         filter = ['all', carFilter, ['>', ['get', 'capacity'], 1200]];
       }
-      map.setFilter('click-network-layer', filter);
+      map.setFilter('network-layer-hitbox', filter);
       map.setFilter('network-layer', filter);
       if (map.getLayer('network-highlight')) map.setFilter('network-highlight', filter);
       applyLabelCarAndMajorFilter(map, showMajorRoadsOnly);
@@ -305,7 +305,7 @@ export default function useNetworkLayers({
     map.on('idle', handleIdle);
     
     // UPDATED click handler: use clicked feature directly (no single id anymore)
-    map.on('click', 'click-network-layer', (e) => {
+    map.on('click', 'network-layer-hitbox', (e) => {
       if (!e.features.length) return;
       // VolumeFlow/NodeFlows have their own click handler on this layer
       if (graphExpandedRef.current === 'VolumeFlow' || graphExpandedRef.current === 'NodeFlows') return;
@@ -362,10 +362,10 @@ export default function useNetworkLayers({
     });
 
     // Pointer cursor on hover over clickable network links
-    map.on('mouseenter', 'click-network-layer', () => {
+    map.on('mouseenter', 'network-layer-hitbox', () => {
       map.getCanvas().style.cursor = 'pointer';
     });
-    map.on('mouseleave', 'click-network-layer', () => {
+    map.on('mouseleave', 'network-layer-hitbox', () => {
       map.getCanvas().style.cursor = '';
     });
   };
@@ -379,9 +379,9 @@ export default function useNetworkLayers({
     if (!modes || modes.includes('all')) {
       if (graphExpandedRef.current === 'VolumeFlow' || graphExpandedRef.current === 'NodeFlows' || graphExpandedRef.current === 'LinkSpeeds') {
         // VolumeFlow/NodeFlows: clickable road links (tolerates stripped format)
-        setFilter(map, ['network-layer', 'click-network-layer'], CLICKABLE_ROAD_FILTER);
+        setFilter(map, ['network-layer', 'network-layer-hitbox'], CLICKABLE_ROAD_FILTER);
       } else {
-        setFilter(map, ['network-layer', 'click-network-layer', 'network-highlight'], null);
+        setFilter(map, ['network-layer', 'network-layer-hitbox', 'network-highlight'], null);
       }
       // In Volumes, labels stay car-only regardless of sidebar mode filter
       if (graphExpandedRef.current === 'Volumes') {
@@ -397,7 +397,7 @@ export default function useNetworkLayers({
         'any',
         ...modes.map(mode => ['>=', ['index-of', `,${mode},`, wrappedModes], 0])
       ];
-      setFilter(map, ['network-layer', 'click-network-layer', 'network-highlight'], filter);
+      setFilter(map, ['network-layer', 'network-layer-hitbox', 'network-highlight'], filter);
       if ((graphExpandedRef.current === 'Volumes' || graphExpandedRef.current === 'VolumeFlow' || graphExpandedRef.current === 'NodeFlows' || graphExpandedRef.current === 'LinkSpeeds')) {
         // Keep labels car-only in Volumes
         applyLabelCarAndMajorFilter(map, showMajorRoadsOnly);
@@ -452,7 +452,7 @@ export default function useNetworkLayers({
       if (source) source.setData(originalNetworkGeoJSON.current);
     }
     
-    setFilter(map, ['network-layer', 'click-network-layer', 'network-highlight'], fullFilter);
+    setFilter(map, ['network-layer', 'network-layer-hitbox', 'network-highlight'], fullFilter);
 
     // Clear selection if the highlighted feature is filtered out (e.g. non-car link in Volumes)
     if (map.getSource('network-highlight') && map.getLayer('network-highlight')) {
@@ -485,7 +485,7 @@ export default function useNetworkLayers({
     // (e.g. TransitVolumes) that renders its own styling off the same network
     // geometry — leaving hidden network layers around causes z-order issues
     // because other hooks insert their layers below `canton-highlight`.
-    const NETWORK_LAYERS = ['network-layer','click-network-layer','network-highlight',
+    const NETWORK_LAYERS = ['network-layer','network-layer-hitbox','network-highlight',
       'network-label-left','network-label-right'];
 
     const removeAll = () => {
@@ -510,7 +510,7 @@ export default function useNetworkLayers({
               loadNetworkForCanton(canton);
             }
             if (isGraphExpanded === 'Network') {
-              setFilter(map, ['network-layer','click-network-layer','network-highlight'], null);
+              setFilter(map, ['network-layer','network-layer-hitbox','network-highlight'], null);
               setLabelVisibility(map, false);
             }
           } else {
@@ -537,10 +537,10 @@ export default function useNetworkLayers({
           map.setPaintProperty('network-layer', 'line-color', '#aaa');
           map.setPaintProperty('network-layer', 'line-width', 2);
           map.setPaintProperty('network-layer', 'line-opacity', 0.4);
-          map.setPaintProperty('click-network-layer', 'line-width', 10);
+          map.setPaintProperty('network-layer-hitbox', 'line-width', 10);
           setLabelVisibility(map, false);
           // Clickable road links (tolerates stripped per-link merged_segments format)
-          setFilter(map, ['network-layer', 'click-network-layer'], CLICKABLE_ROAD_FILTER);
+          setFilter(map, ['network-layer', 'network-layer-hitbox'], CLICKABLE_ROAD_FILTER);
         } else {
           // Network / Volumes: full color ramp
           const colorRamp = isGraphExpanded === 'Volumes'
@@ -552,7 +552,7 @@ export default function useNetworkLayers({
           map.setPaintProperty('network-layer', 'line-width',
             ['interpolate', ['linear'], ['get', 'capacity'], 300, 1, 4000, 8]);
           map.setPaintProperty('network-layer', 'line-opacity', 1);
-          map.setPaintProperty('click-network-layer', 'line-width',
+          map.setPaintProperty('network-layer-hitbox', 'line-width',
             ['interpolate', ['linear'], ['get', 'capacity'], 300, 10, 4000, 21]);
         }
         
@@ -650,7 +650,7 @@ export default function useNetworkLayers({
         if (searchCanton && (graphExpandedRef.current === 'Network' || graphExpandedRef.current === 'Volumes' || graphExpandedRef.current === 'VolumeFlow' || graphExpandedRef.current === 'NodeFlows' || graphExpandedRef.current === 'LinkSpeeds')) {
           loadNetworkForCanton(searchCanton);
         } else {
-          safeRemoveLayer(map, ['network-layer','click-network-layer','network-highlight',
+          safeRemoveLayer(map, ['network-layer','network-layer-hitbox','network-highlight',
             'network-label-left','network-label-right']);
           safeRemoveSource(map, ['network-source','network-highlight','ant-path']);
           }
@@ -664,7 +664,7 @@ export default function useNetworkLayers({
           if (!map) return;
 
           safeRemoveLayer(map, [
-            'network-layer','click-network-layer','ant-line','network-highlight',
+            'network-layer','network-layer-hitbox','ant-line','network-highlight',
             'network-label-left','network-label-right',
           ]);
           safeRemoveSource(map, ['network-source','ant-path','network-highlight']);

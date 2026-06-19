@@ -5,6 +5,7 @@ import { useSelection } from '../../context/SelectionContext';
 import { useData } from '../../context/DataContext';
 import { useMap } from '../../context/MapContext';
 import { safeRemoveLayer, safeRemoveSource, setVisibility } from './_lib/mapbox';
+import { clearAntLine } from './_lib/featureSelection';
 import { parsePipeList } from './_lib/pipeProps';
 
 // LinkSpeeds-style "double link" rendering for the MATSim Network module: below
@@ -23,6 +24,11 @@ import { parsePipeList } from './_lib/pipeProps';
 const SPLIT_ZOOM = 15;
 const SPLIT_SOURCE_ID = 'network-split-source';
 const SPLIT_LAYER_ID = 'network-split-layer';
+// Invisible wide click/hover target over the thin split lines (mirrors the base
+// network-layer-hitbox). A real layer is used — rather than a click-time box
+// query — so the hover cursor (native mouseenter/mouseleave) covers the whole
+// target without fighting other layers' cursor handling.
+const SPLIT_HITBOX_ID = 'network-split-hitbox';
 const VOL_LABEL_RIGHT = 'network-split-label-right';
 const VOL_LABEL_LEFT = 'network-split-label-left';
 const BASE_LAYER_ID = 'network-layer';
@@ -46,6 +52,11 @@ const VOLUME_RAMP = ['interpolate', ['linear'], ['get', 'ns_volume'],
     0, '#ffffcc', 50, '#c2e699', 100, '#78c679', 250, '#31a354', 500, '#006837'];
 
 const WIDTH_EXPR = ['interpolate', ['linear'], ['coalesce', ['get', 'capacity'], 1000], 300, 1, 4000, 8];
+
+// Hitbox is much wider than the visible line (only ~1..8px) so thin links are
+// easy to hit; the per-direction offset keeps each direction's target centred on
+// its own visible line, and pickByClickSide disambiguates the centre overlap.
+const HITBOX_WIDTH_EXPR = ['interpolate', ['linear'], ['coalesce', ['get', 'capacity'], 1000], 300, 10, 4000, 18];
 
 // Parallel-direction offset, same convention as useLinkSpeedsLayers: line-offset
 // is perpendicular to drawing direction, so normalise by bearing (`angle`) to
@@ -121,7 +132,7 @@ function buildSplitFeatures(features) {
 export default function useNetworkSplitLayers({ mapRef, mapReady }) {
     const { isGraphExpanded } = useModule();
     const { featureGeoJSON } = useData();
-    const { labelSize } = useMap();
+    const { labelSize, drawRef } = useMap();
     const {
         featureSelection,
         setFeatureSelection,
@@ -142,12 +153,17 @@ export default function useNetworkSplitLayers({ mapRef, mapReady }) {
     const builtModuleRef = useRef(null);
 
     const teardown = useCallback((map) => {
-        safeRemoveLayer(map, [SPLIT_LAYER_ID, VOL_LABEL_RIGHT, VOL_LABEL_LEFT]);
+        safeRemoveLayer(map, [SPLIT_HITBOX_ID, SPLIT_LAYER_ID, VOL_LABEL_RIGHT, VOL_LABEL_LEFT]);
         safeRemoveSource(map, [SPLIT_SOURCE_ID]);
         builtModuleRef.current = null;
-        // Restore the base layer to all-zoom rendering + base directional labels.
+        // Restore the base layer to all-zoom rendering. Keep the base directional
+        // labels HIDDEN: they only ever belong to Volumes, and Volumes keeps this
+        // overlay active (no teardown), so on every teardown we're leaving for a
+        // module where they must stay hidden. Showing them here re-surfaced the
+        // Volumes volume labels in VolumeFlow/NodeFlows/LinkSpeeds (this hook runs
+        // after useNetworkLayers, which had just hidden them).
         if (map.getLayer(BASE_LAYER_ID)) map.setLayerZoomRange(BASE_LAYER_ID, 0, 24);
-        setVisibility(map, BASE_LABEL_IDS, true);
+        setVisibility(map, BASE_LABEL_IDS, false);
     }, []);
 
     // Build the Volumes direction-label layers (text rides each offset line).
@@ -205,7 +221,7 @@ export default function useNetworkSplitLayers({ mapRef, mapReady }) {
         if (!featureGeoJSON?.features) {
             // Canton cleared / not loaded yet — drop the overlay so it can't show
             // stale geometry, but keep the module active.
-            safeRemoveLayer(map, [SPLIT_LAYER_ID, VOL_LABEL_RIGHT, VOL_LABEL_LEFT]);
+            safeRemoveLayer(map, [SPLIT_HITBOX_ID, SPLIT_LAYER_ID, VOL_LABEL_RIGHT, VOL_LABEL_LEFT]);
             safeRemoveSource(map, [SPLIT_SOURCE_ID]);
             builtModuleRef.current = null;
             return;
@@ -235,6 +251,25 @@ export default function useNetworkSplitLayers({ mapRef, mapReady }) {
                     'line-width': WIDTH_EXPR,
                     'line-color': isVolumes ? VOLUME_RAMP : FREESPEED_RAMP,
                     'line-opacity': 1,
+                    'line-offset': LINE_OFFSET_EXPR,
+                },
+            });
+        }
+
+        // Invisible wide hitbox over the visible split lines. Module-agnostic (no
+        // colour ramp), so unlike SPLIT_LAYER_ID it survives a Network↔Volumes
+        // switch — only the shared source data changes (setData above). Click +
+        // hover handlers bind to this layer (see the click effect).
+        if (!map.getLayer(SPLIT_HITBOX_ID)) {
+            map.addLayer({
+                id: SPLIT_HITBOX_ID,
+                type: 'line',
+                source: SPLIT_SOURCE_ID,
+                minzoom: SPLIT_ZOOM,
+                paint: {
+                    'line-width': HITBOX_WIDTH_EXPR,
+                    'line-color': '#000',
+                    'line-opacity': 0,
                     'line-offset': LINE_OFFSET_EXPR,
                 },
             });
@@ -296,7 +331,25 @@ export default function useNetworkSplitLayers({ mapRef, mapReady }) {
 
         const onClick = (e) => {
             if (!e.features?.length) return;
+
+            // Don't hijack clicks meant for the polygon draw tool (mirrors the
+            // base network click handler).
+            if (drawRef?.current) {
+                const mode = drawRef.current.getMode?.();
+                if (mode === 'draw_polygon' || mode === 'direct_select') return;
+                const onDraw = map.queryRenderedFeatures(e.point)
+                    .some(fl => fl.layer.id.startsWith('gl-draw'));
+                if (onDraw) return;
+            }
+
             const clicked = pickByClickSide(e.features, e.lngLat);
+
+            // Selecting a different link must drop any ant-path left over from a
+            // previous link's "Visualize". The base network-layer click handler
+            // clears it directly; the split path (this handler) is the one used
+            // for double links at zoom >= 15, so clear it here too instead of
+            // relying solely on the effect-driven triggerVisualize(null).
+            clearAntLine(map);
 
             // Offset highlight for the single clicked direction (created before
             // setFeatureSelection so useFeatureSelectionFocus keeps this paint and
@@ -333,15 +386,17 @@ export default function useNetworkSplitLayers({ mapRef, mapReady }) {
         const onEnter = () => { map.getCanvas().style.cursor = 'pointer'; };
         const onLeave = () => { map.getCanvas().style.cursor = ''; };
 
-        map.on('click', SPLIT_LAYER_ID, onClick);
-        map.on('mouseenter', SPLIT_LAYER_ID, onEnter);
-        map.on('mouseleave', SPLIT_LAYER_ID, onLeave);
+        // Bind to the wide invisible hitbox so both the click target AND the
+        // hover cursor cover the whole link, not just the thin visible line.
+        map.on('click', SPLIT_HITBOX_ID, onClick);
+        map.on('mouseenter', SPLIT_HITBOX_ID, onEnter);
+        map.on('mouseleave', SPLIT_HITBOX_ID, onLeave);
         return () => {
-            map.off('click', SPLIT_LAYER_ID, onClick);
-            map.off('mouseenter', SPLIT_LAYER_ID, onEnter);
-            map.off('mouseleave', SPLIT_LAYER_ID, onLeave);
+            map.off('click', SPLIT_HITBOX_ID, onClick);
+            map.off('mouseenter', SPLIT_HITBOX_ID, onEnter);
+            map.off('mouseleave', SPLIT_HITBOX_ID, onLeave);
         };
-    }, [mapReady, mapRef, active, setFeatureSelection, setSelectedNetworkFeature]);
+    }, [mapReady, mapRef, active, drawRef, setFeatureSelection, setSelectedNetworkFeature]);
 
     // --- Reset the per-link dropdown to "All" whenever the selected segment
     // changes (keyed on ls_link_ids for a split click, per_id_keys for merged),

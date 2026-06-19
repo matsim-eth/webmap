@@ -141,6 +141,7 @@ export default function useAntPath(mapRef, visualizeLinkId, graphExpandedRef, cu
 
     let idx = 0;
     let last = 0;
+    let rafId = 0;
     const frameIntervalMs = 50;
 
     function animate(ts) {
@@ -150,11 +151,15 @@ export default function useAntPath(mapRef, visualizeLinkId, graphExpandedRef, cu
         map.setPaintProperty("ant-line", "line-dasharray", seq[idx]);
         last = ts;
       }
-      requestAnimationFrame(animate);
+      rafId = requestAnimationFrame(animate);
     }
-    requestAnimationFrame(animate);
+    rafId = requestAnimationFrame(animate);
 
     return () => {
+      // Stop this run's animation loop before tearing the layer down, so a
+      // rapid re-selection can't leave an orphaned loop repainting a new
+      // ant-line that happens to reuse the same id.
+      cancelAnimationFrame(rafId);
       safeRemoveLayer(map, "ant-line");
       safeRemoveSource(map, "ant-path");
     };

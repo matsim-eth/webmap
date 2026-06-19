@@ -16,7 +16,7 @@ const TARGET_LAYER_ID = 'volume-flow-target';
 const TARGET_LABEL_ID = 'volume-flow-target-label';
 
 // Layer from useNetworkLayers that we attach our click handler to
-const NETWORK_CLICK_LAYER = 'click-network-layer';
+const NETWORK_HITBOX_LAYER = 'network-layer-hitbox';
 
 // Reset the spider overlay (and any ad-hoc network-highlight from a click) to
 // the empty state. Idempotent. Used by the Reset Link sidebar button; the
@@ -113,7 +113,7 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
 
     const removeClickHandler = (map) => {
         if (clickHandlerRef.current) {
-            map.off('click', NETWORK_CLICK_LAYER, clickHandlerRef.current);
+            map.off('click', NETWORK_HITBOX_LAYER, clickHandlerRef.current);
             clickHandlerRef.current = null;
         }
     };
@@ -431,7 +431,7 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
         // sets a show-all filter on entry so links are clickable meanwhile.
 
         // Network not loaded yet
-        if (!featureGeoJSON?.features || !map.getLayer(NETWORK_CLICK_LAYER)) return;
+        if (!featureGeoJSON?.features || !map.getLayer(NETWORK_HITBOX_LAYER)) return;
 
         // Sync lastClickRef with current featureSelection (user may have clicked a
         // different link in Network/Volumes while VolumeFlow was inactive)
@@ -487,7 +487,7 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
             if (cache) renderForSelection(map, cache, null);
         };
 
-        map.on('click', NETWORK_CLICK_LAYER, handleClick);
+        map.on('click', NETWORK_HITBOX_LAYER, handleClick);
         clickHandlerRef.current = handleClick;
 
         return () => removeClickHandler(map);
@@ -509,10 +509,10 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
         (async () => {
             const volMap = await fetchLinkVolumes(datasetId, clickedCanton);
             if (cancelled || isGraphExpanded !== 'VolumeFlow') return;
-            if (!map.getLayer(NETWORK_CLICK_LAYER)) return;
+            if (!map.getLayer(NETWORK_HITBOX_LAYER)) return;
 
             if (!volMap || volMap.size === 0) {
-                setFilter(map, ['network-layer', NETWORK_CLICK_LAYER], CLICKABLE_ROAD_FILTER);
+                setFilter(map, ['network-layer', NETWORK_HITBOX_LAYER], CLICKABLE_ROAD_FILTER);
                 return;
             }
 
@@ -528,7 +528,7 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
                 if (src) src.setData(fc);
             }
 
-            setFilter(map, ['network-layer', NETWORK_CLICK_LAYER],
+            setFilter(map, ['network-layer', NETWORK_HITBOX_LAYER],
                 ['>', ['get', 'daily_avg_volume'], 0]);
         })();
 

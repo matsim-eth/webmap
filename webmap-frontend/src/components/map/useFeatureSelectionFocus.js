@@ -36,7 +36,12 @@ export default function useFeatureSelectionFocus({
   selectedNetworkModes,
   isGraphExpanded,
   showMajorRoadsOnly,
-  showStopVolumeSymbology
+  showStopVolumeSymbology,
+  // Only used as a dependency: when the network geometry (re)loads, the Volumes
+  // split layers (network-split-layer/hitbox) are rebuilt without a filter by
+  // useNetworkSplitLayers, so this effect must re-run to re-apply the combined
+  // car/major-roads/mode/table filter to the freshly-created layers.
+  featureGeoJSON,
 }) {
   const lastSelectionId = useRef(null);
   
@@ -243,8 +248,8 @@ export default function useFeatureSelectionFocus({
          "transit-volumes-label-left", "transit-volumes-label-right", "ant-line"]
       : isTransitStopsMode
       ? ["transit-stops-layer", "transit-stops-label", "transit-stops-hitbox", "transit-highlight-layer"]
-      : ["network-layer", "click-network-layer", "network-highlight",
-         "network-split-layer",
+      : ["network-layer", "network-layer-hitbox", "network-highlight",
+         "network-split-layer", "network-split-hitbox",
          "network-label-left", "network-label-right", "ant-line"];
     
     // --- Build mode filter ---
@@ -806,6 +811,6 @@ export default function useFeatureSelectionFocus({
     if (map.getLayer('network-split-label-left')) {
       map.setFilter('network-split-label-left', combined ? ['all', ARROW_LEFT, combined] : ARROW_LEFT);
     }
-  }, [mapRef, mapReady, query, selectedNetworkModes, isGraphExpanded, showMajorRoadsOnly]);
+  }, [mapRef, mapReady, query, selectedNetworkModes, isGraphExpanded, showMajorRoadsOnly, featureGeoJSON]);
   
 }

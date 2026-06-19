@@ -21,6 +21,9 @@ minute_end         (int, 0-1440)    : Time window end (minutes from midnight).
 
 from __future__ import annotations
 
+import json
+from collections import OrderedDict
+
 from .base import DataProvider, Param
 from .constants import CANTON_MAP
 from .connection import get_source_cursor
@@ -30,6 +33,44 @@ _cget, _cput = make_cache(maxsize=48)
 
 
 _NAME_TO_ID = {v.lower(): k for k, v in CANTON_MAP.items()}
+
+_COORD_DECIMALS = 6  # ~0.1 m — plenty for the map; keeps the payload small
+
+
+def _round_geom(geom: dict) -> dict:
+    """Round LineString/MultiLineString coords in place to _COORD_DECIMALS.
+
+    Deterministic, so a link and its reversed-coordinate twin round identically
+    and pair into one segment via _geom_key."""
+    t = geom.get("type")
+    c = geom.get("coordinates")
+    if not c:
+        return geom
+    if t == "LineString":
+        geom["coordinates"] = [[round(x, _COORD_DECIMALS), round(y, _COORD_DECIMALS)] for x, y in c]
+    elif t == "MultiLineString":
+        geom["coordinates"] = [
+            [[round(x, _COORD_DECIMALS), round(y, _COORD_DECIMALS)] for x, y in line]
+            for line in c
+        ]
+    return geom
+
+
+def _geom_key(geom: dict) -> str:
+    """Direction-independent geometry key (smaller of forward/reversed coord
+    sequence) so a link and its reversed twin land in one bucket."""
+    t = geom.get("type")
+    c = geom.get("coordinates")
+    if t == "LineString":
+        pts = c
+    elif t == "MultiLineString":
+        pts = [p for line in c for p in line]
+    else:
+        return ""
+    parts = [f"{x},{y}" for x, y in pts]
+    fwd = ";".join(parts)
+    rev = ";".join(reversed(parts))
+    return fwd if fwd <= rev else rev
 
 
 def _resolve_canton(value: str) -> int | None:
@@ -149,7 +190,10 @@ class ZoneFlowsProvider(DataProvider):
                 SELECT link_id, COUNT(*)::INTEGER AS volume
                 FROM route_links GROUP BY link_id
             )
-            SELECT nl.canton_id, lv.link_id, lv.volume
+            SELECT nl.canton_id, lv.link_id, lv.volume,
+                   ST_AsGeoJSON(
+                       ST_Transform(nl.geom, 'EPSG:2056', 'EPSG:4326', always_xy := true)
+                   ) AS gj
             FROM link_volumes lv
             JOIN network_links nl USING (link_id)
             WHERE nl.canton_id IS NOT NULL
@@ -165,11 +209,47 @@ class ZoneFlowsProvider(DataProvider):
             return {"error": str(exc)}
 
         links_by_canton: dict[str, dict] = {}
-        for canton_id, link_id, volume in rows:
+        # One GeoJSON feature per visual segment: forward + reverse links that
+        # share a geometry merge into one line carrying the max of the two
+        # directions' volumes (mirrors the old client-side applyFlowsToSource).
+        # Sending only the flow links' geometry — straight off the network_links
+        # join already in this query — replaces the frontend downloading every
+        # route canton's *full* network just to draw this thin subset.
+        groups: "OrderedDict[str, dict]" = OrderedDict()
+        for canton_id, link_id, volume, gj in rows:
             if canton_id is None:
                 continue
             name = CANTON_MAP.get(canton_id, str(canton_id))
             links_by_canton.setdefault(name, {})[link_id] = volume
+            if not gj:
+                continue
+            geom = _round_geom(json.loads(gj))
+            key = _geom_key(geom) or f"link:{link_id}"
+            grp = groups.get(key)
+            if grp is None:
+                groups[key] = {
+                    "geometry": geom,
+                    "volume": volume,
+                    "canton": name,
+                    "link_ids": [str(link_id)],
+                }
+            else:
+                grp["link_ids"].append(str(link_id))
+                if volume > grp["volume"]:
+                    grp["volume"] = volume
+
+        features = [
+            {
+                "type": "Feature",
+                "properties": {
+                    "volume": grp["volume"],
+                    "canton": grp["canton"],
+                    "link_ids": "|".join(grp["link_ids"]),
+                },
+                "geometry": grp["geometry"],
+            }
+            for grp in groups.values()
+        ]
 
         result = {
             "origin_canton": CANTON_MAP.get(origin_id, str(origin_id)),
@@ -177,6 +257,7 @@ class ZoneFlowsProvider(DataProvider):
             "direction": direction,
             "total_trips": total_trips,
             "links_by_canton": links_by_canton,
+            "flow_geojson": {"type": "FeatureCollection", "features": features},
         }
         _cput(ckey, result)
         return result

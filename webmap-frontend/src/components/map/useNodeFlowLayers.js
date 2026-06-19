@@ -629,7 +629,7 @@ export default function useNodeFlowLayers({ mapRef, mapReady }) {
         if (map.getLayer('network-layer'))
             map.setPaintProperty('network-layer', 'line-opacity', 0.4);
 
-        setFilter(map, ['network-layer', 'click-network-layer'], CLICKABLE_ROAD_FILTER);
+        setFilter(map, ['network-layer', 'network-layer-hitbox'], CLICKABLE_ROAD_FILTER);
 
         if (!clickedCanton) return;
 
