@@ -44,11 +44,12 @@ export default function useNetworkLayers({
     const arrows = parsePipeList(props.per_id_arrows);
     const daily_avgs = parsePipeList(props.per_id_daily_avgs);
 
-    let left = 0, right = 0;
+    let left = 0, right = 0;             // time-windowed directional sums
+    let leftTotal = 0, rightTotal = 0;   // full-day directional sums
     // Per-link full-day totals, reconstructed from the backend traffic volumes.
     // The v2 `merged_segments.geojson` ships no `per_id_daily_avgs`, so without
-    // this the feature table's "Total Daily Volume" column (and the selected-
-    // segment side panel, both keyed off `per_id_daily_avgs`) would be blank.
+    // this the selected-segment side panel (keyed off `per_id_daily_avgs`) and
+    // the table column's map-side numeric filter would be blank/broken.
     // Full-day totals are time-window-independent, so they're recomputed
     // identically on every slider change.
     const fullDayPerId = new Array(keys.length);
@@ -69,8 +70,8 @@ export default function useNetworkLayers({
       fullDayPerId[index] = fullDay;
 
       const arrow = arrows[index];
-      if (arrow === '←') left += windowed;
-      else if (arrow === '→') right += windowed;
+      if (arrow === '←') { left += windowed; leftTotal += fullDay; }
+      else if (arrow === '→') { right += windowed; rightTotal += fullDay; }
     });
 
     f.properties = {
@@ -78,6 +79,11 @@ export default function useNetworkLayers({
       daily_avg_volume: left + right, // time-windowed total
       left_sum: left,
       right_sum: right,
+      // Full-day directional totals: the table's "Total Daily Volume" column
+      // reads these so it stays consistent with the directional "Filtered
+      // Volume" (left_sum/right_sum) — Total ≥ Filtered, equal at full window.
+      left_total: leftTotal,
+      right_total: rightTotal,
       per_id_daily_avgs: fullDayPerId.join('|'),
     };
 
@@ -198,11 +204,13 @@ export default function useNetworkLayers({
       return;
     }
     
-    // New per-link merged_segments format (one feature per directed link,
-    // singular `link_id`, no per_id_*) → merge forward+reverse links sharing a
-    // geometry into one segment carrying per_id_keys/per_id_arrows, so the
-    // downstream hooks (VolumeFlow dropdown, LinkSpeeds/NodeFlows offset) work as
-    // before. No-op on old-format data that already has per_id_keys.
+    // The webmap backend now serves merged_segments already merged (one feature
+    // per visual segment carrying per_id_keys/per_id_arrows), so this is a no-op
+    // on the authoritative path. It still merges the *stripped* per-link format
+    // (one feature per directed link, singular `link_id`, no per_id_*) that the
+    // GitHub-CDN fallback / legacy datasets ship, so the downstream hooks
+    // (VolumeFlow dropdown, LinkSpeeds/NodeFlows offset) work regardless of
+    // source. No-op whenever features already carry per_id_keys.
     networkGeojson.features = mergeSegmentsByGeometry(networkGeojson.features);
 
     originalNetworkGeoJSON.current = networkGeojson;

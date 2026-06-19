@@ -7,11 +7,17 @@ and ``capacity`` (line-width + the major-roads toggle); without them the Volumes
 car filter matches nothing and the map renders blank.
 
 ``network_links`` already has ``modes``/``capacity``/``length`` plus the LV95
-geometry, so we rebuild the same one-feature-per-directed-link FeatureCollection
-the frontend expects (``mergeSegmentsByGeometry`` then merges forward+reverse by
-shared geometry and carries these scalars onto each segment). Geometry is
-reprojected LV95 (EPSG:2056) → WGS84 and coordinates are rounded to ~0.1 m to
-keep the payload reasonable. Cached per (dataset, canton).
+geometry, so we rebuild the FeatureCollection the frontend expects. Forward and
+reverse links that share the same 2D geometry are **merged here** into one
+feature per visual segment carrying the index-aligned ``per_id_*`` pipe arrays
+(this is what the client's ``mergeSegmentsByGeometry`` used to do on every canton
+load — doing it server-side ships each shared geometry once instead of twice, so
+the payload roughly halves, and the work is computed once per (dataset, canton)
+and shared across users instead of re-run in every browser). The client merge
+now no-ops on this output (it sees ``per_id_keys`` already present) and stays
+active only for the GitHub-CDN fallback shape. Geometry is reprojected LV95
+(EPSG:2056) → WGS84 and coordinates are rounded to ~0.1 m. Cached per (dataset,
+canton).
 """
 
 from __future__ import annotations
@@ -51,6 +57,54 @@ def _round_coords(geom: dict) -> dict:
             for line in c
         ]
     return geom
+
+
+def _flat_coords(geom: dict):
+    """Flatten a LineString/MultiLineString geometry to a [[x, y], ...] list."""
+    t = geom.get("type")
+    c = geom.get("coordinates")
+    if t == "LineString":
+        return c
+    if t == "MultiLineString":
+        return [pt for line in c for pt in line]
+    return None
+
+
+def _arrow_for_coords(coords) -> str:
+    """Direction glyph for one link from its own coordinates — the Python twin of
+    the frontend's ``arrowForCoords``. Westward (start lon > end lon) → ``←``,
+    otherwise ``→``; falls back to latitude for (near-)vertical links so a
+    reversed pair still gets opposite glyphs."""
+    if not coords or len(coords) < 2:
+        return "→"
+    s_lon, s_lat = coords[0][0], coords[0][1]
+    e_lon, e_lat = coords[-1][0], coords[-1][1]
+    if s_lon != e_lon:
+        return "←" if s_lon > e_lon else "→"
+    return "←" if s_lat > e_lat else "→"
+
+
+def _geometry_key(coords) -> str:
+    """Direction-independent geometry key — the Python twin of the frontend's
+    ``geometryKey``: the smaller of the forward and reversed coordinate
+    sequences, so a link and its reversed-coordinate twin hash to one bucket.
+    Coords are already rounded deterministically, so the pairing is exact."""
+    parts = [f"{x},{y}" for x, y in coords]
+    fwd = ";".join(parts)
+    rev = ";".join(reversed(parts))
+    return fwd if fwd <= rev else rev
+
+
+def _js_num(v) -> str:
+    """Stringify a per-link scalar the way the old client merge effectively did
+    (JSON number → JS ``toString``): integral floats lose the trailing ``.0`` so
+    the ``per_id_*`` strings and anything reading them stay byte-identical to the
+    previous client-side output. ``None`` → empty string (dropped by the
+    frontend's ``parsePipeList``/``pipeMinMax``)."""
+    if v is None:
+        return ""
+    f = float(v)
+    return str(int(f)) if f == int(f) else repr(f)
 
 
 def merged_segments_geojson(canton_id: int) -> bytes | None:
@@ -96,23 +150,62 @@ def merged_segments_geojson(canton_id: int) -> bytes | None:
     if not rows:
         return None
 
-    features = []
+    # Group directed links by shared 2D geometry (forward + reverse → one
+    # segment). Insertion order is SQL row order, so the per_id_* arrays come out
+    # in the same order the old client merge produced.
+    groups: "OrderedDict[str, dict]" = OrderedDict()
+    singletons = []  # degenerate geometries that can't merge; appended as-is
     for link_id, modes, capacity, freespeed, length, permlanes, road_type, gj in rows:
         if not gj:
             continue
+        geom = _round_coords(json.loads(gj))
+        coords = _flat_coords(geom)
+        rep = {
+            "link_id": link_id,
+            "modes": modes,
+            "capacity": capacity,
+            "freespeed": freespeed,
+            "length": length,
+            "permlanes": permlanes,
+            "road_type": road_type,
+        }
+        if not coords or len(coords) < 2:
+            # Can't form a geometry key — keep as a standalone per-link feature so
+            # it still parses (carries no per_id_*; won't be clickable-merged).
+            singletons.append({"type": "Feature", "properties": rep, "geometry": geom})
+            continue
+        key = _geometry_key(coords)
+        grp = groups.get(key)
+        if grp is None:
+            grp = {"geometry": geom, "rep": rep,
+                   "keys": [], "arrows": [], "freespeeds": [],
+                   "capacities": [], "lengths": [], "permlanes": []}
+            groups[key] = grp
+        grp["keys"].append(str(link_id))
+        grp["arrows"].append(_arrow_for_coords(coords))
+        grp["freespeeds"].append(_js_num(freespeed))
+        grp["capacities"].append(_js_num(capacity))
+        grp["lengths"].append(_js_num(length))
+        grp["permlanes"].append(_js_num(permlanes))
+
+    # Merged segments first so features[0] always carries per_id_keys — the
+    # frontend's no-op guard only inspects the first feature.
+    features = []
+    for grp in groups.values():
         features.append({
             "type": "Feature",
             "properties": {
-                "link_id": link_id,
-                "modes": modes,
-                "capacity": capacity,
-                "freespeed": freespeed,
-                "length": length,
-                "permlanes": permlanes,
-                "road_type": road_type,
+                **grp["rep"],
+                "per_id_keys": "|".join(grp["keys"]),
+                "per_id_arrows": "|".join(grp["arrows"]),
+                "per_id_freespeeds": "|".join(grp["freespeeds"]),
+                "per_id_capacities": "|".join(grp["capacities"]),
+                "per_id_lengths": "|".join(grp["lengths"]),
+                "per_id_permlanes": "|".join(grp["permlanes"]),
             },
-            "geometry": _round_coords(json.loads(gj)),
+            "geometry": grp["geometry"],
         })
+    features.extend(singletons)
 
     payload = json.dumps(
         {"type": "FeatureCollection", "features": features}

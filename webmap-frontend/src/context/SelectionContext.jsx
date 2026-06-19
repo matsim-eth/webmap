@@ -31,6 +31,7 @@ export const SelectionProvider = ({ children }) => {
   const [volumeFlowSelectedLink, setVolumeFlowSelectedLink] = useState(null);
 
   const [linkSpeedsSelected, setLinkSpeedsSelected] = useState(null);
+  const [linkSpeedsSelectedLink, setLinkSpeedsSelectedLink] = useState(null);
 
   const [zoneFlowDestCanton, setZoneFlowDestCanton] = useState(null);
 
@@ -46,6 +47,7 @@ export const SelectionProvider = ({ children }) => {
     volumeFlowSegment, setVolumeFlowSegment,
     volumeFlowSelectedLink, setVolumeFlowSelectedLink,
     linkSpeedsSelected, setLinkSpeedsSelected,
+    linkSpeedsSelectedLink, setLinkSpeedsSelectedLink,
     zoneFlowDestCanton, setZoneFlowDestCanton,
   }), [
     clickedCanton,
@@ -53,7 +55,7 @@ export const SelectionProvider = ({ children }) => {
     selectedTransitLink, selectedTransitStop,
     visualizeLinkId, visualizeNonce, hoveredMatrixCell,
     volumeFlowSegment, volumeFlowSelectedLink,
-    linkSpeedsSelected,
+    linkSpeedsSelected, linkSpeedsSelectedLink,
     zoneFlowDestCanton,
   ]);
 

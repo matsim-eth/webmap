@@ -94,8 +94,10 @@ export default function useZoneFlowLayers({ mapRef, mapReady, loadWithFallback, 
         try {
             const geo = await loadRef.current(`matsim/${canton}_merged_segments.geojson`);
             if (!geo?.features) return null;
-            // Stripped per-link format → merge into per-geometry segments so
-            // applyFlowsToSource's per_id_keys matching works. No-op on old data.
+            // Backend serves these already merged; this only re-merges the
+            // stripped per-link format from the CDN/legacy fallback so
+            // applyFlowsToSource's per_id_keys matching works. No-op when the
+            // features already carry per_id_keys.
             geo.features = mergeSegmentsByGeometry(geo.features);
             networkCacheRef.current[canton] = geo;
             return geo;

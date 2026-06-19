@@ -16,10 +16,15 @@ import { useSelection } from "../../context/SelectionContext";
 import { useModule } from "../../context/ModuleContext";
 import { useMap } from "../../context/MapContext";
 
+// The Volumes map always renders car links only (useNetworkLayers applies a
+// car filter on entry, with major-roads layered on top), so the feature table
+// is car-only too. Module-level constant keeps a stable reference across
+// renders (a fresh `['car']` each render would bust the table's row useMemo).
+const VOLUMES_TABLE_MODES = ['car'];
+
 const VolumesModule = ({ featureTableRef }) => {
   const { isFeatureTableOpen, featureGeoJSON, setTableFilterQuery } = useData();
   const {
-    selectedNetworkModes,
     showMajorRoadsOnly, setShowMajorRoadsOnly,
     timeRange, setTimeRange,
   } = useFilters();
@@ -143,7 +148,7 @@ const VolumesModule = ({ featureTableRef }) => {
       tableId="volumes-feature-table"
       rows={activeTableRows}
       geojson={rowsReady ? null : featureGeoJSON}
-      selectedModes={selectedNetworkModes}
+      selectedModes={VOLUMES_TABLE_MODES}
       onRowClick={handleTableRowSelect}
       onSelectCoords={handleSelectCoords}
       height={"55vh"}
