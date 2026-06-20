@@ -201,8 +201,18 @@ async def _store_duckdb(ds: Dataset, category: str, file: UploadFile, db: AsyncS
 
     target = duckdb_path(ds.owner_id, ds.id, category, ds.is_public)
     target.parent.mkdir(parents=True, exist_ok=True)
-    with target.open("wb") as out:
-        shutil.copyfileobj(file.file, out, length=1024 * 1024)
+    # Stream to a temp file in the same directory, then atomically swap it in.
+    # An in-place truncating write would expose a zero-length/partial file to
+    # the webmap-backend, which keeps this duckdb open read-only on the shared
+    # volume. os.replace is atomic on one filesystem, so a concurrent reader
+    # only ever sees the complete old file or the complete new one.
+    tmp = target.with_name(f"{target.name}.upload-{os.getpid()}.tmp")
+    try:
+        with tmp.open("wb") as out:
+            shutil.copyfileobj(file.file, out, length=1024 * 1024)
+        os.replace(tmp, target)
+    finally:
+        tmp.unlink(missing_ok=True)
 
     completeness = check_dataset_completeness(ds.owner_id, ds.id, ds.is_public)
     ds.has_synthetic = completeness["has_synthetic"]

@@ -19,7 +19,7 @@ import threading
 from collections import defaultdict
 
 from .helpers import load_static_asset
-from .paths import dataset_key
+from .paths import dataset_key, dataset_root_path
 
 _EMPTY = b'{"type":"FeatureCollection","features":[]}'
 
@@ -80,6 +80,7 @@ def ensure_warm() -> None:
     Captures the current dataset root and re-applies it inside the thread (the
     per-request ContextVar override doesn't propagate to a new thread)."""
     dk = dataset_key()
+    root = dataset_root_path()  # raw path for the override (dk is version-tagged)
     with _warm_lock:
         if dk in _ds_cache or dk in _warming:
             return
@@ -98,5 +99,5 @@ def ensure_warm() -> None:
                 _warming.discard(dk)
 
     threading.Thread(
-        target=_run, args=(dk,), daemon=True, name="warm-transit-routes"
+        target=_run, args=(root,), daemon=True, name="warm-transit-routes"
     ).start()

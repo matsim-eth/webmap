@@ -33,11 +33,42 @@ def set_root_override(root: str | None) -> None:
     _root_override.set(root)
 
 
-def dataset_key() -> str:
-    """Stable identifier (the resolved root path) for the dataset currently in
-    scope. Use this to key per-dataset in-memory caches so a worker serving
-    several datasets never returns one dataset's cached assets for another."""
+def dataset_root_path() -> str:
+    """Raw resolved root directory for the dataset currently in scope (no
+    version tag). Use this when you need the actual filesystem path — e.g. to
+    re-apply the root override inside a worker thread. For keying caches use
+    :func:`dataset_key` instead."""
     return _root_override.get() or os.getenv("WEBMAP_ROOT") or ""
+
+
+def _source_signature(root: str) -> str:
+    """Content signature (mtime + size) of a dataset's DuckDB files.
+
+    Folded into :func:`dataset_key` so that *replacing* a duckdb file on disk
+    (an admin re-upload) changes the cache key and invalidates every per-dataset
+    in-memory cache. Cheap: two ``stat`` calls. A missing file contributes ``-``
+    so the signature is still stable."""
+    parts = []
+    for name in ("synthetic.duckdb", "microcensus.duckdb"):
+        try:
+            st = os.stat(os.path.join(root, name))
+            parts.append(f"{st.st_mtime_ns}:{st.st_size}")
+        except OSError:
+            parts.append("-")
+    return "|".join(parts)
+
+
+def dataset_key() -> str:
+    """Content-versioned identifier for the dataset currently in scope. Use this
+    to key per-dataset in-memory caches so a worker serving several datasets
+    never returns one dataset's cached assets for another — and so that
+    replacing a dataset's duckdb file on disk invalidates its caches (the
+    file-content signature is part of the key). For the raw directory path use
+    :func:`dataset_root_path`."""
+    root = dataset_root_path()
+    if not root:
+        return ""
+    return f"{root}\x00{_source_signature(root)}"
 
 
 @dataclass(frozen=True)
