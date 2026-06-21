@@ -7,7 +7,6 @@ import NetworkLegend from "./components/NetworkLegend";
 import { FileProvider } from "./FileContext";
 import { AppProvider } from "./context/AppContext";
 import { useData } from "./context/DataContext";
-import { useMap } from "./context/MapContext";
 import { useSelection } from "./context/SelectionContext";
 
 window.name = 'webmap-tab';
@@ -22,16 +21,12 @@ function App() {
 
 function MainContent() {
   const { dataURL } = useData();
-  const { mapRef } = useMap();
   const { setClickedCanton } = useSelection();
 
   return (
     <FileProvider dataURL={dataURL}>
       <LeftSidebar />
-      <CantonSearch
-        map={mapRef.current}
-        onSearch={setClickedCanton}
-      />
+      <CantonSearch onSearch={setClickedCanton} />
       <Map />
 
       <RightSidebar />

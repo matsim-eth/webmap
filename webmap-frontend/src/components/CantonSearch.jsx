@@ -5,6 +5,7 @@ import { useData } from '../context/DataContext';
 import { useSelection } from '../context/SelectionContext';
 import { useFilters } from '../context/FilterContext';
 import { useModule } from '../context/ModuleContext';
+import { useMap } from '../context/MapContext';
 import './CantonSearch.css';
 
 const DIACRITICS = /[̀-ͯ]/g;
@@ -64,7 +65,7 @@ const parseLV95Coords = (input) => {
     return { x, y };
 };
 
-const CantonSearch = ({ onSearch, map }) => {
+const CantonSearch = ({ onSearch }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedIndex, setSelectedIndex] = useState(-1);
     const [searchMarker, setSearchMarker] = useState(null);
@@ -78,6 +79,7 @@ const CantonSearch = ({ onSearch, map }) => {
     } = useSelection();
     const { selectedTransitModes } = useFilters();
     const { isGraphExpanded } = useModule();
+    const { mapRef } = useMap();
 
     const cantonEntries = useMemo(() => Object.entries(cantonAlias), []);
     const displayNames = useMemo(
@@ -208,6 +210,7 @@ const CantonSearch = ({ onSearch, map }) => {
 
     const handleCoordsSearch = (input) => {
         const coords = parseLV95Coords(input);
+        const map = mapRef.current;
         if (!coords || !map) return false;
         const [lon, lat] = lv95ToWgs84(coords.x, coords.y);
 
