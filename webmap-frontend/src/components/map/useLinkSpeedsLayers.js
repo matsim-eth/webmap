@@ -297,7 +297,7 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
     // Per-direction click on the split layer (zoom >= SPLIT_ZOOM). Sets
     // featureSelection with only that direction's link ids so downstream
     // metric computation and highlight styling can branch on ls_arrow.
-    // The base click-network-layer handler suppresses itself when a split
+    // The base network-layer-hitbox handler suppresses itself when a split
     // feature is under the cursor (see useNetworkLayers.js).
     useEffect(() => {
         if (!mapReady || !mapRef.current) return;
@@ -561,7 +561,7 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
         }
     }, [isGraphExpanded, featureSelection, mapReady, mapRef]);
 
-    // React to shared featureSelection (set by click-network-layer handler in
+    // React to shared featureSelection (set by network-layer-hitbox handler in
     // useNetworkLayers). Compute per-segment speed metrics and push into sidebar.
     useEffect(() => {
         if (isGraphExpanded !== 'LinkSpeeds') return;

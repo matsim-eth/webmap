@@ -20,10 +20,23 @@ from .paths import db_path_for_source, get_data_paths
 # ─── Per-DB-file persistent read-only connection pool ───────────────────
 
 _pool: dict[str, duckdb.DuckDBPyConnection] = {}
+# Signature (mtime_ns, size) the pooled connection for each path was opened
+# with, so we can detect a file being replaced on disk (admin re-upload) and
+# reopen instead of serving the old inode forever.
+_pool_sigs: dict[str, tuple] = {}
 _pool_lock = threading.Lock()
 
 
 import os
+
+
+def _file_sig(db_path: str) -> tuple | None:
+    """(mtime_ns, size) for *db_path*, or None if it can't be stat'd."""
+    try:
+        st = os.stat(db_path)
+        return (st.st_mtime_ns, st.st_size)
+    except OSError:
+        return None
 
 # Spill directory for hash-aggregates/sorts that exceed memory. The dataset
 # directories are mounted read-only, so DuckDB's default (`<db>.tmp` next to
@@ -50,12 +63,22 @@ def _open_readonly(db_path: str) -> duckdb.DuckDBPyConnection:
 
 def get_db_connection(db_path: str) -> duckdb.DuckDBPyConnection:
     """Return the pooled read-only connection for *db_path*. Caller should
-    use ``.cursor()`` to obtain a thread-safe cursor."""
+    use ``.cursor()`` to obtain a thread-safe cursor.
+
+    If the file on disk has been replaced since we opened it (admin re-upload,
+    detected via mtime/size), open a fresh connection. The stale one is dropped
+    from the pool, not force-closed: in-flight cursors keep reading the old
+    (now-unlinked) inode safely and the connection is GC'd once they finish."""
+    sig = _file_sig(db_path)
     with _pool_lock:
         con = _pool.get(db_path)
-        if con is None:
+        # Reopen on a real, observed signature change; if the file briefly can't
+        # be stat'd (sig is None) keep the existing connection rather than churn.
+        stale = con is not None and sig is not None and _pool_sigs.get(db_path) != sig
+        if con is None or stale:
             con = _open_readonly(db_path)
             _pool[db_path] = con
+            _pool_sigs[db_path] = sig
         return con
 
 

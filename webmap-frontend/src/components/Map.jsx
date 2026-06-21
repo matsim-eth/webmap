@@ -23,7 +23,6 @@ import { useData } from '../context/DataContext';
 import { useFilters } from '../context/FilterContext';
 import { useSelection } from '../context/SelectionContext';
 import { useChoropleth as useChoroplethState } from '../context/ChoroplethContext';
-import { useFileContext } from '../FileContext';
 import { useResetMapView } from '../hooks/useResetMapView';
 
 export default function Map() {
@@ -44,9 +43,11 @@ export default function Map() {
     setIsFeatureTableOpen,
     isFeatureTableOpen,
     setFeatureGeoJSON,
+    featureGeoJSON,
     tableFilterQuery,
     destinationData: selectedDestinationData,
     boardingData: selectedBoardingData,
+    zoneFlowLoading,
   } = useData();
   const {
     selectedNetworkModes,
@@ -81,7 +82,6 @@ export default function Map() {
 
   // load util for loading in the data (from link or local upload)
   const loadWithFallback = useLoadWithFallback(dataURL);
-  const { fileMap } = useFileContext();
 
   // for disabling next zoom to canton (ie when click on out-of-canton transit stop)
   const suppressNextSearchZoom = useRef(false);
@@ -240,12 +240,10 @@ export default function Map() {
     setIsLoading: setIsLoadingSpeeds,
   });
 
-  // Zone Flows overlay (inter-canton trip routes)
+  // Zone Flows overlay (inter-canton trip routes — flow_geojson from the backend)
   useZoneFlowLayers({
     mapRef,
     mapReady,
-    loadWithFallback,
-    fileMapSize: fileMap.size,
     setIsLoading: setIsLoadingZoneFlows,
   });
 
@@ -275,11 +273,19 @@ export default function Map() {
     isGraphExpanded: isGraphExpanded,
     showMajorRoadsOnly: showMajorRoadsOnly,
     showStopVolumeSymbology: showStopVolumeSymbology,
+    featureGeoJSON: featureGeoJSON,
   });
 
   // this is placed in here so that it will overtake the other zooming effects to
   // force it to zoom back to the original Switzerland extent
   useResetMapView({ mapRef, mapReady, resetMapTrigger, isLeftSidebarCollapsed });
+
+  // Keep the zone-flows overlay up for the WHOLE pipeline, not just the initial
+  // endpoint-network load: isLoadingZoneFlows covers reconcileSource, while
+  // zoneFlowLoading spans the backend fetch + full-route load until the flows
+  // are painted. Gated to the module so a stray flag can't leak into others.
+  const zoneFlowsBusy = isGraphExpanded === 'ZoneFlows'
+    && (isLoadingZoneFlows || zoneFlowLoading);
 
   return (
     <>
@@ -291,13 +297,13 @@ export default function Map() {
           </div>
         </div>
       )}
-      {isLoadingZoneFlows && !isLoading && !isLoadingSpeeds && (
+      {zoneFlowsBusy && !isLoading && !isLoadingSpeeds && (
         <div className="map-loading-overlay">
           <div className="spinner" />
           <div className="loading-text">Loading zone flows...</div>
         </div>
       )}
-      {mapLoading && !isLoading && !isLoadingSpeeds && !isLoadingZoneFlows && (
+      {mapLoading && !isLoading && !isLoadingSpeeds && !zoneFlowsBusy && (
         <div className="map-loading-overlay">
           <div className="spinner" />
           <div className="loading-text">Updating map...</div>
