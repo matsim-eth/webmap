@@ -67,11 +67,27 @@ class PtSubProvider(DataProvider):
         Param("income_class", "Filter by income class (comma-separated)"),
     ]
 
+    @staticmethod
+    def _has_subscription_data(source: str) -> bool:
+        """True if this source's persons table has ANY non-null subscription.
+        A build that didn't populate subscriptions (e.g. microcensus, whose
+        subscription columns are entirely NULL) would otherwise render as a row
+        of all-zero bars — misleading; we drop the source instead so the chart
+        shows only the sources that actually have the data."""
+        try:
+            con = get_source_cursor(source)
+        except Exception:
+            return False
+        expr = " + ".join(f"COUNT(p.{PARQUET_SUB_COL[s]})" for s in SUBS)
+        n = con.execute(f"SELECT {expr} FROM persons p").fetchone()[0]
+        return bool(n)
+
     def deliver(self, params: dict) -> dict:
         breakdown = (params.get("breakdown") or "overall").lower()
         if breakdown not in ("overall", "age", "gender", "income"):
             breakdown = "overall"
         sources = parse_source_param(params)
+        sources = [s for s in sources if self._has_subscription_data(s)]
         if not sources:
             return {}
         con0 = get_source_cursor(sources[0])

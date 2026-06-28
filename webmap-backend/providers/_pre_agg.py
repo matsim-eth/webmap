@@ -335,6 +335,11 @@ def build_share_response(
             meta = get_hot_polygon_meta(con, list(rows.keys()))
             for pid, vals in rows.items():
                 denom = sum(int(v or 0) for v in vals.values())
+                if denom == 0:
+                    continue   # source has no data here (e.g. a microcensus build
+                               # that didn't populate this column) → omit it instead
+                               # of drawing a misleading all-zero series. Matches the
+                               # custom-polygon path and the "All" rollup below.
                 label = label_for(pid, meta)
                 entry = out.setdefault(label, {}).setdefault(_source_label(source), {})
                 order = bin_order or list(column_to_bin.values())

@@ -84,6 +84,11 @@ class NumActivitiesProvider(DataProvider):
                 all_dict[k] = cnt
                 seen_keys.add(k)
             denom = float(sum(all_dict.values()))
+            if denom == 0:
+                # Source has no n_activities data (e.g. microcensus, whose
+                # persons.n_activities is NULL) → omit it rather than emitting an
+                # empty series the frontend would render as a blank source.
+                continue
             entry = out.setdefault("All", {}).setdefault(_source_label(source), {})
             for k in all_dict.keys():
                 entry[k] = round(all_dict[k] / denom, 16) if denom > 0 else 0.0

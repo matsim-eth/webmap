@@ -144,6 +144,11 @@ class ActivityDurationsProvider(DataProvider):
         for label in list(labels_seen) + ["All"]:
             for source in sources:
                 slabel = _source_label(source)
+                # Omit a source that has no activities for this label rather than
+                # emitting all-zero slots. Hits microcensus per-canton, whose
+                # activities.canton_id is NULL → the canton query returns nothing.
+                if float(totals.get((label, slabel, "All"), 0)) <= 0:
+                    continue
                 for purpose in purposes:
                     denom = float(totals.get((label, slabel, purpose), 0))
                     slot_data = {
