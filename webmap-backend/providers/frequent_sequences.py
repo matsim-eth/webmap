@@ -124,17 +124,39 @@ class FrequentSequencesProvider(DataProvider):
 
         out: dict = {}
         for label in list(labels_seen) + ["All"]:
+            # Full share table per source first …
+            per_source: dict[str, dict[str, float]] = {}
             for source in sources:
                 slabel = _source_label(source)
                 denom = float(totals.get((label, slabel), 0))
                 if denom == 0:
                     continue
-                shares: dict[str, float] = {}
-                for (lbl, src, seq), cnt in counts.items():
-                    if lbl == label and src == slabel:
-                        share = round(cnt / denom, 16)
-                        if share >= min_share:
-                            shares[seq] = share
-                top = sorted(shares.items(), key=lambda x: -x[1])[:top_n]
-                out.setdefault(label, {})[slabel] = dict(top)
+                per_source[slabel] = {
+                    seq: round(cnt / denom, 16)
+                    for (lbl, src, seq), cnt in counts.items()
+                    if lbl == label and src == slabel
+                }
+            if not per_source:
+                continue
+            # … then rank ONCE across sources (mean share) and cut a single
+            # top_n. Every source reports its real share for exactly these
+            # top_n sequences, so the chart always shows the SAME categories
+            # with a bar per source. Ranking per source independently would
+            # leave a sequence in one source's top-N without a bar in the
+            # other (reads as "doesn't exist" when it merely missed that
+            # source's cutoff, e.g. H-L-L-H: MZ 1.8% shown, syn 0.9% absent).
+            all_seqs = {seq for shares in per_source.values() for seq in shares}
+            n_src = len(per_source)
+            scored = sorted(
+                (
+                    (seq, sum(s.get(seq, 0.0) for s in per_source.values()) / n_src)
+                    for seq in all_seqs
+                ),
+                key=lambda x: -x[1],
+            )
+            top_seqs = [seq for seq, score in scored if score >= min_share][:top_n]
+            for slabel, shares in per_source.items():
+                out.setdefault(label, {})[slabel] = {
+                    seq: shares.get(seq, 0.0) for seq in top_seqs
+                }
         return out
