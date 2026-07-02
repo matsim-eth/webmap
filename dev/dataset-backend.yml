@@ -1,3 +1,4 @@
+# NOTE: dev/all.yml contains a copy of this service block — keep both in sync.
 services:
   dataset_backend:
     image: dataset-backend:dev

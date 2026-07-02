@@ -1,3 +1,4 @@
+# NOTE: dev/all.yml contains a copy of the dev_proxy block — keep both in sync.
 # Ersetzt den nginx-Proxy durch den Vite Dev Proxy.
 # Frontends bleiben GHCR images (nginx) — es sei denn man fügt
 # dev/webmap-frontend.yml oder dev/dashboard-frontend.yml hinzu.

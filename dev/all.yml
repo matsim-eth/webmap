@@ -1,3 +1,5 @@
+# NOTE: aggregates every dev/<service>.yml overlay (verbatim copies) — when you
+# change a service here, apply the same change in its dev/<service>.yml.
 
 services:
   # ── nginx-Proxy deaktivieren ───────────────────────────────────

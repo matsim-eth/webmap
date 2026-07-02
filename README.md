@@ -2,6 +2,12 @@
 
 🔗 [matsim-eth.github.io/webmap](https://matsim-eth.github.io/webmap/)
 
+## Documentation
+
+📚 **[Developer wiki → docs/](docs/README.md)** — architecture, Docker & proxy
+setup, backend guide (adding routes), the DuckDB dataset format, deployment &
+troubleshooting.
+
 ## Build Status
 
 | Service | Build | Image |

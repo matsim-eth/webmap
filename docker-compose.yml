@@ -59,6 +59,12 @@ services:
     depends_on:
       authentification_database:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5032/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
     restart: unless-stopped
     expose:
       - "5032"
@@ -81,6 +87,12 @@ services:
     depends_on:
       dataset_database:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5033/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
     restart: unless-stopped
     expose:
       - "5033"
@@ -104,7 +116,13 @@ services:
       - dataset_storage:/data/datasets:ro
     depends_on:
       dataset_backend:
-        condition: service_started
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5031/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
     restart: unless-stopped
     expose:
       - "5031"
@@ -141,13 +159,13 @@ services:
       dashboard_frontend:
         condition: service_started
       webmap_backend:
-        condition: service_started
+        condition: service_healthy
       dataset_backend:
-        condition: service_started
+        condition: service_healthy
       authentification_frontend:
         condition: service_started
       authentification_backend:
-        condition: service_started
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - internal
