@@ -855,3 +855,27 @@ body {
 
 /* Stats cells while phase-2 numbers are loading */
 .stats-pending { color: var(--color-text-muted); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Theme v4 — layout fixes
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* More room on large screens; tables (10 columns on Users) need it */
+.admin-layout { max-width: min(1440px, 96vw); }
+
+/* Tighter table cells so the Actions column stays on screen */
+.data-table td { padding: 8px 8px; }
+.data-table th { padding-left: 8px; padding-right: 8px; }
+.data-table td .actions .btn-sm { padding: 4px 10px; }
+
+/* Buttons in a modal header sit in one row (refresh + close were stacking) */
+.modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.modal-header-actions .modal-close { position: static; }
+
+/* Hard guards for the log viewer: even mid-load nothing may spill out */
+.modal-card { overflow: hidden; }
+.logs-pre { overflow-x: hidden; }

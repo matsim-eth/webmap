@@ -193,7 +193,7 @@ async def _send_verification_email(email: str, first_name: str, token: str) -> N
         return
     html = f"""
     <div style="font-family:system-ui,sans-serif;max-width:480px;margin:0 auto">
-      <h2 style="color:#4f46e5">Webmap — confirm your email</h2>
+      <h2 style="color:#4f46e5">Webmap - confirm your email</h2>
       <p>Hi {first_name or "there"},</p>
       <p>please confirm your email address to activate your Webmap account:</p>
       <p style="margin:24px 0">
@@ -205,7 +205,7 @@ async def _send_verification_email(email: str, first_name: str, token: str) -> N
     </div>
     """
     try:
-        await asyncio.to_thread(_smtp_send, email, "Webmap — verify your email", html)
+        await asyncio.to_thread(_smtp_send, email, "Webmap - verify your email", html)
         logger.info("Verification email sent to %s", email)
     except Exception:
         logger.exception("Verification email to %s failed — link: %s", email, link)
@@ -494,7 +494,7 @@ async def login(data: LoginModel, response: Response, db: AsyncSession = Depends
     )).one()
     if flags.email_verified is False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                            detail="email not verified — check your inbox")
+                            detail="email not verified - check your inbox")
     if flags.approved is False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail="account pending admin approval")
@@ -579,7 +579,7 @@ def _verify_page(title: str, message: str, ok: bool) -> HTMLResponse:
     icon = "✓" if ok else "✕"
     return HTMLResponse(f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{title} — Webmap</title>
+<title>{title} - Webmap</title>
 <style>
   body {{ margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
          font-family:system-ui,-apple-system,sans-serif;

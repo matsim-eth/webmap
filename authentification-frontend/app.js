@@ -355,12 +355,12 @@ if (registerForm) {
       // Message depends on which registration gates are active (backend flags)
       let msg = "Registration successful! Please sign in.";
       if (data?.verification_required && data?.approval_required) {
-        msg = "Almost there! Verify your email via the link we sent you — " +
+        msg = "Almost there! Verify your email via the link we sent you - " +
               "an administrator will then approve your account.";
       } else if (data?.verification_required) {
         msg = "Check your inbox and click the verification link, then sign in.";
       } else if (data?.approval_required) {
-        msg = "Registration received — an administrator has to approve your " +
+        msg = "Registration received - an administrator has to approve your " +
               "account before you can sign in.";
       }
       showToast(msg, "success", 8000);

@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./admin.css" />
+  <link rel="stylesheet" href="./admin.css?v=4" />
 </head>
 <body>
   <div class="admin-layout">
@@ -144,7 +144,7 @@
   <div class="modal-overlay" id="accessModal">
     <div class="modal-card">
       <div class="modal-header">
-        <h3>Manage access — <span id="accessDsName"></span></h3>
+        <h3>Manage access - <span id="accessDsName"></span></h3>
         <button class="modal-close" data-dismiss="modal">&times;</button>
       </div>
       <div class="modal-body">
@@ -172,8 +172,8 @@
   <div class="modal-overlay" id="logsModal">
     <div class="modal-card modal-wide">
       <div class="modal-header">
-        <h3>Logs — <span id="logsServiceName"></span> <span class="live-pill"><span class="live-dot"></span>LIVE</span></h3>
-        <div>
+        <h3>Logs - <span id="logsServiceName"></span> <span class="live-pill"><span class="live-dot"></span>LIVE</span></h3>
+        <div class="modal-header-actions">
           <button class="btn btn-outline btn-sm" id="logsRefreshBtn" type="button">↻</button>
           <button class="modal-close" data-dismiss="modal">&times;</button>
         </div>
@@ -308,6 +308,6 @@
     </div>
   </div>
 
-  <script src="./admin.js"></script>
+  <script src="./admin.js?v=4"></script>
 </body>
 </html>
