@@ -27,49 +27,58 @@ const TransferMatrix = ({ sidebarCollapsed, isExpanded = false }) => {
 
   if (Object.keys(cantonData).length === 0) return null;
 
-    // Find the stop data using multiple ID matching strategies
-    let foundStopData = null;
-
-    const primaryStopId = selectedTransitStop.stop_id;
-    if (primaryStopId && cantonData[primaryStopId]) {
-      foundStopData = cantonData[primaryStopId];
+    // Collect EVERY platform entry of the selected station and merge them.
+    // A station is many platform stop_ids, each with its own transfer record;
+    // using only the first match showed one platform's transfers (e.g. 400)
+    // next to the station-wide boarding totals (e.g. 4,800) on the same card.
+    const candidateIds = [];
+    if (selectedTransitStop.stop_id) {
+      const p = selectedTransitStop.stop_id;
+      candidateIds.push(...(Array.isArray(p) ? p : [p]));
     }
-
-    if (!foundStopData && selectedTransitStop.stop_ids) {
-      const cleanedIds = selectedTransitStop.stop_ids.flatMap((s) => {
+    if (selectedTransitStop.stop_ids) {
+      candidateIds.push(...selectedTransitStop.stop_ids.flatMap((s) => {
         if (Array.isArray(s)) return s;
         try {
           return JSON.parse(s);
         } catch {
           return String(s).split(",").map((id) => id.trim());
         }
-      });
+      }));
+    }
 
-      for (const altId of cleanedIds) {
-        if (cantonData[altId]) {
-          foundStopData = cantonData[altId];
-          break;
-        }
-      }
+    let matchedKeys = [...new Set(candidateIds.filter((id) => id && cantonData[id]))];
 
-      // Partial match fallback
-      if (!foundStopData) {
-        for (const stopId of cleanedIds) {
-          if (!stopId) continue;
-          const matchKey = Object.keys(cantonData).find(
-            (key) => key.includes(stopId) || stopId.includes(key.split(":")[0] + ":")
-          );
-          if (matchKey) {
-            foundStopData = cantonData[matchKey];
-            break;
-          }
+    // Partial match fallback (only when nothing matched exactly)
+    if (matchedKeys.length === 0) {
+      const keys = Object.keys(cantonData);
+      matchedKeys = [...new Set(candidateIds.flatMap((stopId) =>
+        stopId
+          ? keys.filter((key) => key.includes(stopId) || stopId.includes(key.split(":")[0] + ":"))
+          : []
+      ))];
+    }
+
+    const parts = matchedKeys
+      .map((k) => cantonData[k])
+      .filter((d) => d && d.line_transfers);
+    if (parts.length === 0) return null;
+
+    // Merge: sum the from-line → to-line matrices and the in/out totals
+    const lineTransfers = {};
+    let totalIn = 0;
+    let totalOut = 0;
+    for (const part of parts) {
+      totalIn += part.total_transfers_in || 0;
+      totalOut += part.total_transfers_out || 0;
+      for (const [fromLine, row] of Object.entries(part.line_transfers || {})) {
+        const target = lineTransfers[fromLine] || (lineTransfers[fromLine] = {});
+        for (const [toLine, n] of Object.entries(row)) {
+          target[toLine] = (target[toLine] || 0) + n;
         }
       }
     }
 
-    if (!foundStopData || !foundStopData.line_transfers) return null;
-
-    const lineTransfers = foundStopData.line_transfers;
     const allLines = new Set();
 
     Object.keys(lineTransfers).forEach((fromLine) => {

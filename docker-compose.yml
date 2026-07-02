@@ -112,6 +112,10 @@ services:
       ROOT_PATH: /backend
       LOCAL_RUN: "${LOCAL_RUN:-0}"
       CORS_ORIGINS: "${CORS_ORIGINS:-}"
+      # Resource tuning (empty = DuckDB defaults; set in .env on laptops)
+      DUCKDB_MEMORY_LIMIT: "${DUCKDB_MEMORY_LIMIT:-}"
+      DUCKDB_THREADS: "${DUCKDB_THREADS:-}"
+      WEBMAP_PREWARM: "${WEBMAP_PREWARM:-1}"
     volumes:
       - dataset_storage:/data/datasets:ro
     depends_on:

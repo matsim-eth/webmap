@@ -21,9 +21,13 @@ export default function useCantons({
     if (!map) return;
 
     // canton geojson will always stay same, no need to load from loadWithFallback / dataURL
-    fetch(`https://matsim-eth.github.io/webmap/data/TLM_KANTONSGEBIET.geojson`)
+    const abort = new AbortController();
+    fetch(`https://matsim-eth.github.io/webmap/data/TLM_KANTONSGEBIET.geojson`, { signal: abort.signal })
       .then(r => r.json())
       .then(geojson => {
+        // Effect may have re-run (or the map been torn down) while the fetch
+        // was in flight — adding the source twice throws.
+        if (map.getSource('cantons')) return;
 
         // add mapbox canton source
         map.addSource('cantons', { type: 'geojson', data: geojson });
@@ -62,7 +66,10 @@ export default function useCantons({
           filter: ['==', 'NAME', '']
         });
       })
-      .catch(err => console.error('Cantons load error', err));
+      .catch(err => {
+        if (err?.name !== 'AbortError') console.error('Cantons load error', err);
+      });
+    return () => abort.abort();
   }, [mapRef, mapReady]);
 
   // avoid re-running click handler effect on every sidebar toggle —
@@ -169,6 +176,7 @@ export default function useCantons({
     map.on('mousemove', 'canton-fill', move);
     map.on('mouseleave', 'canton-fill', leave);
     return () => {
+      if (frame) cancelAnimationFrame(frame);
       map.off('mousemove', 'canton-fill', move);
       map.off('mouseleave', 'canton-fill', leave);
     };

@@ -104,9 +104,21 @@ def _prewarm_caches() -> None:
     Runs one dataset at a time in a daemon thread; disable with WEBMAP_PREWARM=0.
     Errors are swallowed (incompatible datasets just skip)."""
     import glob
+    import time
     from providers.paths import set_root_override
     from providers.link_speeds import SpeedDashboardProvider
     from providers.transit_stops import inter_cantonal_stops
+
+    # Debounce for dev: uvicorn --reload restarts the process on every file
+    # save, and each restart would immediately kick off full table scans of
+    # every dataset — misery on a laptop. Waiting a bit first means rapid
+    # edit-reload cycles kill the (daemon) thread before it does heavy work;
+    # the cache still warms once the code settles. Prod (ENV != dev) starts
+    # immediately. Override with WEBMAP_PREWARM_DELAY (seconds).
+    delay = os.getenv("WEBMAP_PREWARM_DELAY", "").strip()
+    delay_s = float(delay) if delay else (15.0 if ENV == "dev" else 0.0)
+    if delay_s > 0:
+        time.sleep(delay_s)
 
     base = os.getenv("WEBMAP_ROOT", "/data/datasets/public")
     roots = sorted({os.path.dirname(p) for p in glob.glob(os.path.join(base, "*", "synthetic.duckdb"))})

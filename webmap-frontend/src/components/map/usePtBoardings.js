@@ -17,7 +17,13 @@ export default function usePtBoardings({
   searchCanton,
   setSelectedTransitStop,
 }) {
-  // ------------------------- PT BOARDINGS CHOROPLETH ------------------------- 
+  // The registered stop-click handler. `map.off` only removes a listener when
+  // given the SAME function reference that was passed to `map.on`, so the
+  // handler must be kept here across effect runs — otherwise every canton
+  // switch stacks another live handler onto the hitbox layer.
+  const stopClickHandlerRef = useRef(null);
+
+  // ------------------------- PT BOARDINGS CHOROPLETH -------------------------
   useEffect(() => {
     if (!selectedBoardingData || !mapRef.current || !mapRef.current.getSource('cantons')) return;
     const map = mapRef.current;
@@ -33,8 +39,7 @@ export default function usePtBoardings({
     }
     
     const lineInfo = selectedBoardingData.selectedLineInfo;
-    console.log('PT Boardings choropleth - Processing line info:', lineInfo);
-    
+
     // Calculate boarding totals by canton for the selected line
     const boardingsByCanton = {};
     
@@ -62,10 +67,7 @@ export default function usePtBoardings({
       });
     }
     
-    console.log('PT Boardings choropleth - Boardings by canton:', boardingsByCanton);
-    
     if (Object.keys(boardingsByCanton).length === 0) {
-      console.log('PT Boardings choropleth - No boarding data available for choropleth');
       return;
     }
     
@@ -85,9 +87,7 @@ export default function usePtBoardings({
     // Calculate max boarding value for normalization
     const allBoardingValues = Object.values(boardingsByCanton);
     const maxBoardings = Math.max(...allBoardingValues);
-    
-    console.log('PT Boardings choropleth - Max boardings:', maxBoardings);
-    
+
     // Create color expression for choropleth
     const createBoardingColorExpression = () => {
       if (maxBoardings === 0) return 'rgba(0,0,0,0)';
@@ -227,34 +227,21 @@ export default function usePtBoardings({
 
   // ------------------------- PT BOARDINGS HANDLING -------------------------
   useEffect(() => {
-    console.log('PT Boardings - selectedBoardingData changed:', selectedBoardingData);
-    
     if (!selectedBoardingData) {
-      console.log('PT Boardings - No boarding data, clearing highlights');
       setHighlightedLineId(null);
       setHighlightedRouteIds([]);
       return;
     }
-    
+
     // Handle selected line information from PT Boardings module
     if (selectedBoardingData.selectedLineInfo && selectedBoardingData.selectedLine !== 'all') {
       const lineInfo = selectedBoardingData.selectedLineInfo;
-      console.log('PT Boardings - processing selected line:', {
-        lineId: lineInfo.line_id,
-        lineName: lineInfo.line_name,
-        vehicle: lineInfo.vehicle,
-        cantons: lineInfo.cantons,
-        routeIds: lineInfo.route_ids
-      });
-      
       // Set highlighted line and routes for the main transit line highlighting system
       if (lineInfo.line_id && lineInfo.route_ids && lineInfo.route_ids.length > 0) {
-        console.log('PT Boardings - Setting highlighted line and routes');
         setHighlightedLineId(lineInfo.line_id);
         setHighlightedRouteIds(lineInfo.route_ids);
       }
     } else {
-      console.log('PT Boardings - No specific line selected, clearing highlights');
       setHighlightedLineId(null);
       setHighlightedRouteIds([]);
     }
@@ -349,12 +336,17 @@ export default function usePtBoardings({
         // Add click handler for stop selection (for transfer matrix)
         const handleStopClick = (e) => {
           if (!e.features || e.features.length === 0) return;
-          
+
           const feature = e.features[0];
           const { name, stop_id } = feature.properties;
-          const combinedLines = JSON.parse(feature.properties.lines || '[]');
-          const combinedModes = JSON.parse(feature.properties.modes_list || '[]');
-          
+          // Mapbox stringifies non-scalar properties; guard the parses so one
+          // malformed feature can't kill stop selection for the whole canton.
+          const parseList = (raw) => {
+            try { return JSON.parse(raw || '[]'); } catch { return []; }
+          };
+          const combinedLines = parseList(feature.properties.lines);
+          const combinedModes = parseList(feature.properties.modes_list);
+
           let allStopIds;
           if (Array.isArray(stop_id)) {
             allStopIds = stop_id;
@@ -365,7 +357,7 @@ export default function usePtBoardings({
               allStopIds = String(stop_id).split(",").map(id => id.trim());
             }
           }
-          
+
           // Set selected transit stop for transfer matrix analysis
           setSelectedTransitStop({
             id: feature.id,
@@ -376,16 +368,26 @@ export default function usePtBoardings({
             modes_list: combinedModes
           });
         };
-        
-        // Remove existing click handlers and add new one
-        map.off("click", "pt-boardings-stops-hitbox", handleStopClick);
+
+        // Swap the registered handler: off() only works with the SAME function
+        // reference, so remove the previously stored one, never a fresh one.
+        if (stopClickHandlerRef.current) {
+          map.off("click", "pt-boardings-stops-hitbox", stopClickHandlerRef.current);
+        }
+        stopClickHandlerRef.current = handleStopClick;
         map.on("click", "pt-boardings-stops-hitbox", handleStopClick);
-        
+
       })
       .catch(err => {
         console.error("Error loading PT stops data for PtBoardings:", err);
       });
-      
+
+    return () => {
+      if (stopClickHandlerRef.current) {
+        map.off("click", "pt-boardings-stops-hitbox", stopClickHandlerRef.current);
+        stopClickHandlerRef.current = null;
+      }
+    };
   }, [isGraphExpanded, searchCanton, loadWithFallback, setSelectedTransitStop]);
 
   // ------------------------- HIGHLIGHT STOPS ON SELECTED LINE -------------------------

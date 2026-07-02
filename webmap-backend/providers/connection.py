@@ -43,6 +43,12 @@ def _file_sig(db_path: str) -> tuple | None:
 # the file) fails on a read-only filesystem; point it at a writable temp dir.
 _TEMP_DIR = os.getenv("DUCKDB_TEMP_DIR", "/tmp/duckdb_spill")
 
+# Optional resource caps, unset by default (DuckDB then uses ~80% of RAM and
+# all cores — right for a dedicated server, brutal on a laptop). Set e.g.
+# DUCKDB_MEMORY_LIMIT=4GB / DUCKDB_THREADS=4 in .env for constrained machines.
+_MEMORY_LIMIT = os.getenv("DUCKDB_MEMORY_LIMIT", "").strip()
+_THREADS = os.getenv("DUCKDB_THREADS", "").strip()
+
 
 def _open_readonly(db_path: str) -> duckdb.DuckDBPyConnection:
     """Open a DuckDB read-only with spatial extension loaded."""
@@ -58,6 +64,12 @@ def _open_readonly(db_path: str) -> duckdb.DuckDBPyConnection:
     except Exception:
         # Non-fatal: queries that don't spill still work.
         pass
+    for pragma, value in (("memory_limit", _MEMORY_LIMIT), ("threads", _THREADS)):
+        if value:
+            try:
+                con.execute(f"SET {pragma} = '{value}';")
+            except Exception:
+                pass  # bad value → keep DuckDB defaults rather than fail requests
     return con
 
 

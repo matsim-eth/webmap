@@ -1,11 +1,6 @@
-dummy_data/
 __pycache__/
 **/__pycache__/
 .venv/
-.venv-test/
 *.pyc
-*.duckdb
-*.parquet
 .pytest_cache/
-tests/
 openapi.yaml

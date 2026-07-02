@@ -304,10 +304,13 @@ export default function useTransitStops({
       }
 
       const f = features[0];
-      const combinedLines = JSON.parse(f.properties.lines);
-      const combinedModes = JSON.parse(f.properties.modes_list);
-      
-      console.log(f)
+      // Mapbox stringifies non-scalar properties; guard the parses so one
+      // malformed feature can't make every stop in the canton unclickable.
+      const parseList = (raw) => {
+        try { return JSON.parse(raw || '[]'); } catch { return []; }
+      };
+      const combinedLines = parseList(f.properties.lines);
+      const combinedModes = parseList(f.properties.modes_list);
 
       const { name, stop_id} = features[0].properties;
       let allStopIds;
@@ -424,7 +427,6 @@ export default function useTransitStops({
 
     // If this canton load was triggered by an inter-cantonal stop click and a line is selected,
     // apply CASE-based opacity so only stops on that line are fully opaque.
-    console.log("suppressNextSearchZoom:", suppressNextSearchZoom?.current, "highlightedLineId:", highlightedLineId);
     if (suppressNextSearchZoom?.current && highlightedLineId) {
 
       const hasLineHere = (updatedGeoJSON.features || []).some(
