@@ -1,7 +1,8 @@
 """PT-subscription rates per polygon, with optional breakdown.
 
-Fast path (overall) → ``hot_polygon_demo``. Breakdowns (age/gender/income)
-fall back to a raw scan against ``persons`` (and ``households`` for income).
+Everything runs off a raw scan against ``persons`` (and ``households`` for the
+income breakdown). Rates are per subscription: TRUE-count divided by the number
+of persons who ANSWERED the subscription module (non-NULL) — see ``_SUB_DENOM``.
 """
 
 from __future__ import annotations
@@ -14,22 +15,26 @@ from .connection import get_source_cursor
 from .helpers import (
     age_filter_sql,
     gender_filter_sql,
-    get_hot_polygon_meta,
     parse_source_param,
 )
 from ._pre_agg import (
-    label_for,
     make_label_resolver,
     polygon_filter_clause,
     resolve_polygon_ids,
-    _select_hot_row,
-    _sum_grid,
     _source_label,
 )
 
 
-SUB_COL = {s: f"subs_{s}" for s in SUBS}                    # for hot_polygon_demo
 PARQUET_SUB_COL = {s: f"subscriptions_{s}" for s in SUBS}   # raw persons scan
+
+# Denominator for every subscription rate = persons who ANSWERED the
+# subscription module, i.e. have a non-NULL subscription value — NOT COUNT(*).
+# In microcensus only ~22% of persons are asked the subscription questions;
+# dividing by the full person count dilutes every rate (e.g. Halbtax reads 7%
+# instead of 32%). All subscription columns share the same non-NULL set
+# (all-or-nothing, verified), so any one column's non-null count is the shared
+# denominator. Synthetic has full coverage, so this equals COUNT(*) there.
+_SUB_DENOM = f"COUNT(p.{PARQUET_SUB_COL[SUBS[0]]})"
 
 
 def _parse_age_bins(params: dict):
@@ -93,11 +98,6 @@ class PtSubProvider(DataProvider):
         con0 = get_source_cursor(sources[0])
         polygon_ids = resolve_polygon_ids(con0, params, default_type="canton")
 
-        if breakdown == "overall" and not (
-            params.get("gender") or params.get("age_min") or params.get("age_max")
-            or params.get("income_class")
-        ):
-            return self._overall_fast(sources, polygon_ids)
         if breakdown == "overall":
             return self._overall_raw(sources, polygon_ids, params)
         if breakdown == "age":
@@ -107,34 +107,6 @@ class PtSubProvider(DataProvider):
         return self._by_income(sources, polygon_ids, params)
 
     # ─── Overall ────────────────────────────────────────────────────────
-
-    def _overall_fast(self, sources, polygon_ids):
-        cols = ["n_persons"] + [SUB_COL[s] for s in SUBS]
-        out = {}
-        for source in sources:
-            try:
-                con = get_source_cursor(source)
-            except Exception:
-                continue
-            rows = _select_hot_row(con, "hot_polygon_demo", polygon_ids, cols)
-            meta = get_hot_polygon_meta(con, list(rows.keys()))
-            for pid, vals in rows.items():
-                denom = float(vals.get("n_persons", 0) or 0)
-                label = label_for(pid, meta)
-                entry = out.setdefault(label, {}).setdefault(_source_label(source), {})
-                for s in SUBS:
-                    num = float(vals.get(SUB_COL[s], 0) or 0)
-                    entry[SUB_LABELS[s]] = round(num / denom, 16) if denom > 0 else 0.0
-
-            sums = _sum_grid(con, "demo_hex_res6", cols)
-            denom = float(sums.get("n_persons", 0) or 0)
-            if denom == 0:
-                continue
-            entry = out.setdefault("All", {}).setdefault(_source_label(source), {})
-            for s in SUBS:
-                num = float(sums.get(SUB_COL[s], 0) or 0)
-                entry[SUB_LABELS[s]] = round(num / denom, 16) if denom > 0 else 0.0
-        return out
 
     def _overall_raw(self, sources, polygon_ids, params):
         gf = gender_filter_sql(params, "p.sex")
@@ -154,7 +126,7 @@ class PtSubProvider(DataProvider):
                     con, polygon_ids, all(p.startswith("canton:") for p in polygon_ids)
                 )
                 rows = con.execute(f"""
-                    SELECT {group_expr} AS gkey, COUNT(*) AS total, {_sub_sum_sql('p')}
+                    SELECT {group_expr} AS gkey, {_SUB_DENOM} AS total, {_sub_sum_sql('p')}
                     FROM persons p {join}
                     WHERE 1=1{where}{gf}{af}
                     GROUP BY {group_expr}
@@ -168,7 +140,7 @@ class PtSubProvider(DataProvider):
                         entry[SUB_LABELS[s]] = round(num / total, 6) if total > 0 else 0.0
 
             r = con.execute(f"""
-                SELECT COUNT(*) AS total, {_sub_sum_sql('p')}
+                SELECT {_SUB_DENOM} AS total, {_sub_sum_sql('p')}
                 FROM persons p WHERE 1=1{gf}{af}
             """).fetchone()
             total = float(r[0] or 0)
@@ -252,7 +224,7 @@ class PtSubProvider(DataProvider):
                     con, polygon_ids, all(p.startswith("canton:") for p in polygon_ids)
                 )
                 rows = con.execute(f"""
-                    SELECT {group_expr} AS gkey, {grp_sql} AS grp, COUNT(*) AS total, {_sub_sum_sql('p')}
+                    SELECT {group_expr} AS gkey, {grp_sql} AS grp, {_SUB_DENOM} AS total, {_sub_sum_sql('p')}
                     FROM persons p {pjoin}
                     {join_clause}
                     WHERE 1=1{pwhere}{grp_filter}{extra_where}
@@ -287,7 +259,7 @@ class PtSubProvider(DataProvider):
 
             # "All" rollup
             rows_all = con.execute(f"""
-                SELECT {grp_sql} AS grp, COUNT(*) AS total, {_sub_sum_sql('p')}
+                SELECT {grp_sql} AS grp, {_SUB_DENOM} AS total, {_sub_sum_sql('p')}
                 FROM persons p
                 {join_clause}
                 WHERE 1=1{grp_filter}{extra_where}
