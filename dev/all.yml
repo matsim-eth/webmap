@@ -107,6 +107,19 @@ services:
       CHOKIDAR_INTERVAL: "100"
       VITE_MAPBOX_TOKEN: "${VITE_MAPBOX_TOKEN}"
 
+  # ── Ops Backend: dev target + hot reload ───────────────────────
+  ops_backend:
+    image: ops-backend:dev
+    build:
+      context: ./ops-backend
+      target: dev
+    volumes:
+      - ./ops-backend:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./.env:/project/.env
+    environment:
+      ENV: dev
+
 volumes:
   webmap_node_modules:
   dashboard_node_modules:

@@ -56,6 +56,15 @@ services:
       DEV_PASSWORD: "${DEV_PASSWORD:-dev}"
       DATASET_SERVICE_URL: http://dataset_backend:5033
       ROOT_PATH: /authentification/backend
+      # Registration gates (both optional, default off)
+      REQUIRE_EMAIL_VERIFICATION: "${REQUIRE_EMAIL_VERIFICATION:-0}"
+      REQUIRE_ADMIN_APPROVAL: "${REQUIRE_ADMIN_APPROVAL:-0}"
+      PUBLIC_BASE_URL: "${PUBLIC_BASE_URL:-http://localhost}"
+      SMTP_HOST: "${SMTP_HOST:-}"
+      SMTP_PORT: "${SMTP_PORT:-587}"
+      SMTP_USER: "${SMTP_USER:-}"
+      SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
+      SMTP_FROM: "${SMTP_FROM:-}"
     depends_on:
       authentification_database:
         condition: service_healthy
@@ -130,6 +139,29 @@ services:
     restart: unless-stopped
     expose:
       - "5031"
+    networks:
+      - internal
+
+  # ── Ops Backend (admin control plane) ───────────────────────────
+  ops_backend:
+    build:
+      context: ./ops-backend
+      target: prod
+    image: webmap-ops-backend:local
+    environment:
+      JWT_SECRET: "${JWT_SECRET:-UltraSecretKey}"
+      COMPOSE_PROJECT: "${COMPOSE_PROJECT_NAME:-webmap}"
+      ENV: "${ENV:-prod}"
+      ROOT_PATH: /backend/ops
+    volumes:
+      # Docker control (restart/logs/stats) — root-equivalent; the service is
+      # admin-JWT-gated and only reachable through the proxy.
+      - /var/run/docker.sock:/var/run/docker.sock
+      # The stack's root .env, editable from the admin panel
+      - ./.env:/project/.env
+    restart: unless-stopped
+    expose:
+      - "5034"
     networks:
       - internal
 

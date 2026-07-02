@@ -69,3 +69,15 @@ class DatasetResolveOut(BaseModel):
 class FileListOut(BaseModel):
     category: str
     files: list[str]
+
+
+class GrantIn(BaseModel):
+    user_id: int
+    role: str = "viewer"  # viewer | editor
+
+
+class GrantOut(BaseModel):
+    user_id: int
+    role: str
+    granted_by: int
+    created_at: datetime

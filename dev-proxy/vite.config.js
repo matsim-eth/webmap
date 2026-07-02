@@ -8,6 +8,11 @@ export default defineConfig({
 
     proxy: {
       // ─────────────── Backends ───────────────
+      '/backend/ops': {
+        target: 'http://ops_backend:5034',
+        rewrite: (path) => path.replace(/^\/backend\/ops/, ''),
+      },
+
       '/backend/datasets': {
         target: 'http://dataset_backend:5033',
         rewrite: (path) => path.replace(/^\/backend\/datasets/, ''),

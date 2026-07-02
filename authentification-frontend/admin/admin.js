@@ -1,6 +1,7 @@
 const CONFIG = {
   API_BASE: "/authentification/backend",
   DATASET_API_BASE: "/backend/datasets",
+  OPS_API_BASE: "/backend/ops",
   SYSTEM_EMAILS: ["admin@webmap.local", "dev@local"],
 };
 
@@ -71,12 +72,24 @@ document.addEventListener("keydown", (e) => {
 
 // ── Tab switching ────────────────────────────────────────────────
 
+const _tabLoaded = {};
+
 function switchAdminTab(tabName) {
   $$(".admin-tab").forEach((t) =>
     t.classList.toggle("active", t.dataset.tab === tabName)
   );
-  el("users-pane")?.classList.toggle("active", tabName === "users");
-  el("datasets-pane")?.classList.toggle("active", tabName === "datasets");
+  ["users", "datasets", "services", "environment"].forEach((name) => {
+    el(`${name}-pane`)?.classList.toggle("active", tabName === name);
+  });
+  // Lazy-load the ops tabs on first open
+  if (tabName === "services" && !_tabLoaded.services) {
+    _tabLoaded.services = true;
+    loadServices();
+  }
+  if (tabName === "environment" && !_tabLoaded.environment) {
+    _tabLoaded.environment = true;
+    loadEnv();
+  }
 }
 
 $$(".admin-tab").forEach((tab) => {
@@ -180,17 +193,43 @@ async function loadUsers(currentUser) {
   if (!tbody) return;
   tbody.innerHTML = "";
 
+  const isPending = (u) => u.approved === false || u.email_verified === false;
+
   const users = data.users.sort((a, b) => {
     const aSystem = isSystemUser(a.email) ? 0 : 1;
     const bSystem = isSystemUser(b.email) ? 0 : 1;
     if (aSystem !== bSystem) return aSystem - bSystem;
+    // Pending accounts float to the top — that's what an admin came for.
+    const aPending = isPending(a) ? 0 : 1;
+    const bPending = isPending(b) ? 0 : 1;
+    if (aPending !== bPending) return aPending - bPending;
     return a.id - b.id;
   });
+
+  // Banner: how many accounts wait for approval
+  const pendingCount = users.filter((u) => u.approved === false).length;
+  const banner = el("pendingBanner");
+  if (banner) {
+    banner.classList.toggle("hidden", pendingCount === 0);
+    const txt = el("pendingBannerText");
+    if (txt) txt.textContent =
+      `${pendingCount} account${pendingCount === 1 ? "" : "s"} waiting for approval`;
+  }
+
+  const statusCell = (u) => {
+    if (isSystemUser(u.email)) return '<span class="badge badge-ok">OK</span>';
+    const parts = [];
+    if (u.email_verified === false) parts.push('<span class="badge badge-warn">unverified</span>');
+    if (u.approved === false) parts.push('<span class="badge badge-pending">pending</span>');
+    if (!parts.length) parts.push('<span class="badge badge-ok">OK</span>');
+    return parts.join(" ");
+  };
 
   for (const u of users) {
     const isSys = isSystemUser(u.email);
     const tr = document.createElement("tr");
     if (isSys) tr.classList.add("system-row");
+    if (isPending(u)) tr.classList.add("pending-row");
 
     tr.innerHTML = `
       <td>${u.id}</td>
@@ -213,9 +252,12 @@ async function loadUsers(currentUser) {
         <input type="checkbox" class="toggle-checkbox" data-uid="${u.id}" data-field="is_active"
                ${u.is_active ? "checked" : ""} ${isSys ? "disabled" : ""} />
       </td>
+      <td>${statusCell(u)}</td>
       <td>
         ${!isSys ? `
           <div class="actions">
+            ${u.approved === false ? `<button class="btn btn-approve btn-sm" data-uid="${u.id}" data-action="approve-user">Approve</button>` : ""}
+            ${u.email_verified === false ? `<button class="btn btn-outline btn-sm" data-uid="${u.id}" data-action="mark-verified" title="Skip email verification for this user">Mark verified</button>` : ""}
             <button class="btn btn-outline btn-sm" data-uid="${u.id}" data-action="edit-user">Edit</button>
             <button class="btn btn-outline btn-sm" data-uid="${u.id}" data-uname="${esc(u.username || u.email)}" data-action="view-datasets">Datasets</button>
 
@@ -228,6 +270,41 @@ async function loadUsers(currentUser) {
   }
 
   tbody._users = users;
+
+  // Approve button -> POST /admin/users/{id}/approve
+  tbody.querySelectorAll("button[data-action=approve-user]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      const res = await api(`/admin/users/${btn.dataset.uid}/approve`, { method: "POST" });
+      if (res.ok) {
+        showToast("Account approved", "success");
+        loadUsers(_currentUser);
+      } else {
+        const err = await readJsonOrText(res);
+        showToast(err?.detail || "Approve failed");
+        btn.disabled = false;
+      }
+    });
+  });
+
+  // Mark-verified button -> PATCH email_verified=true (admin override)
+  tbody.querySelectorAll("button[data-action=mark-verified]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      const res = await api(`/admin/users/${btn.dataset.uid}`, {
+        method: "PATCH",
+        body: { email_verified: true },
+      });
+      if (res.ok) {
+        showToast("Marked as verified", "success");
+        loadUsers(_currentUser);
+      } else {
+        const err = await readJsonOrText(res);
+        showToast(err?.detail || "Update failed");
+        btn.disabled = false;
+      }
+    });
+  });
 
   // Checkbox change -> PATCH
   tbody.querySelectorAll("input[type=checkbox]").forEach((cb) => {
@@ -355,6 +432,7 @@ function _renderDatasetRows(tbody, datasets, ownerFilter, ownerName) {
       <td>${ds.created_at ? new Date(ds.created_at).toLocaleDateString() : "-"}</td>
       <td class="text-nowrap">
         <div class="actions">
+          ${!ds.is_public ? `<button class="btn btn-outline btn-sm" data-dsid="${ds.id}" data-action="manage-access">Access</button>` : ""}
           <button class="btn btn-outline btn-sm" data-dsid="${ds.id}" data-action="edit-ds">Edit</button>
           <button class="btn btn-danger btn-sm" data-dsid="${ds.id}" data-action="delete-ds">Delete</button>
         </div>
@@ -362,6 +440,15 @@ function _renderDatasetRows(tbody, datasets, ownerFilter, ownerName) {
     `;
     tbody.appendChild(tr);
   }
+
+  // Access buttons (private datasets only)
+  tbody.querySelectorAll("button[data-action=manage-access]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const dsid = parseInt(btn.dataset.dsid, 10);
+      const ds = _allDatasets.find((d) => d.id === dsid);
+      if (ds) openAccessModal(ds);
+    });
+  });
 
   // Edit buttons
   tbody.querySelectorAll("button[data-action=edit-ds]").forEach((btn) => {
@@ -758,3 +845,347 @@ function attachLogout() {
     });
   }
 })();
+
+// ═══════════════════════════════════════════════════════════════════
+// Ops: services overview, restarts, logs, environment editor
+// ═══════════════════════════════════════════════════════════════════
+
+async function opsApi(path, { method = "GET", body = null } = {}) {
+  const opts = {
+    method,
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : null,
+  };
+  try {
+    let res = await fetch(CONFIG.OPS_API_BASE + path, opts);
+    if (res.status === 401) {
+      const ok = await refresh().catch(() => false);
+      if (ok) res = await fetch(CONFIG.OPS_API_BASE + path, opts);
+    }
+    return res;
+  } catch {
+    return new Response(JSON.stringify({ detail: "Ops service unreachable" }), {
+      status: 503, headers: { "Content-Type": "application/json" },
+    });
+  }
+}
+
+// ── Services tab ─────────────────────────────────────────────────
+
+function _uptime(startedAt) {
+  if (!startedAt) return "-";
+  const secs = Math.max(0, (Date.now() - new Date(startedAt).getTime()) / 1000);
+  if (secs < 90) return `${Math.round(secs)}s`;
+  if (secs < 5400) return `${Math.round(secs / 60)}m`;
+  if (secs < 129600) return `${Math.round(secs / 3600)}h`;
+  return `${Math.round(secs / 86400)}d`;
+}
+
+let _servicesLoadId = 0;
+
+async function loadServices() {
+  const tbody = el("servicesTableBody");
+  if (!tbody) return;
+  const loadId = ++_servicesLoadId;
+  tbody.innerHTML = '<tr><td colspan="7" class="text-muted text-center">Loading…</td></tr>';
+
+  // Phase 1: fast list without stats — renders immediately.
+  const res = await opsApi("/services");
+  if (loadId !== _servicesLoadId) return;
+  if (!res.ok) {
+    const err = await readJsonOrText(res);
+    tbody.innerHTML = `<tr><td colspan="7" class="text-muted text-center">${esc(err?.detail || "Ops service unavailable")}</td></tr>`;
+    return;
+  }
+  const data = await res.json();
+  _renderServiceRows(tbody, data.services);
+
+  // Phase 2: CPU/MEM arrive ~1–2s later (Docker samples CPU) and are
+  // filled into the existing rows without re-rendering.
+  opsApi("/services?stats=1").then(async (res2) => {
+    if (loadId !== _servicesLoadId || !res2.ok) return;
+    const d2 = await res2.json();
+    for (const s of d2.services) {
+      const cpuCell = tbody.querySelector(`[data-svc-cpu="${CSS.escape(s.service)}"]`);
+      const memCell = tbody.querySelector(`[data-svc-mem="${CSS.escape(s.service)}"]`);
+      if (cpuCell) cpuCell.textContent = s.cpu_percent != null ? s.cpu_percent + "%" : "-";
+      if (memCell) memCell.textContent = s.mem_used_mb != null ? Math.round(s.mem_used_mb) + " MB" : "-";
+    }
+  }).catch(() => {});
+}
+
+function _renderServiceRows(tbody, services) {
+  tbody.innerHTML = "";
+  for (const s of services) {
+    const running = s.status === "running";
+    const dot = running
+      ? (s.health === "unhealthy" ? "dot-warn" : "dot-ok")
+      : "dot-down";
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><span class="status-dot ${dot}"></span> <strong>${esc(s.service)}</strong></td>
+      <td>${esc(s.status)}</td>
+      <td>${esc(s.health || "-")}</td>
+      <td data-svc-cpu="${esc(s.service)}"><span class="stats-pending">…</span></td>
+      <td data-svc-mem="${esc(s.service)}"><span class="stats-pending">…</span></td>
+      <td>${running ? _uptime(s.started_at) : "-"}</td>
+      <td>
+        <div class="actions">
+          <button class="btn btn-outline btn-sm" data-svc="${esc(s.service)}" data-action="svc-logs">Logs</button>
+          ${s.restartable ? `<button class="btn btn-outline btn-sm" data-svc="${esc(s.service)}" data-action="svc-restart">Restart</button>` : ""}
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  tbody.querySelectorAll("button[data-action=svc-restart]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const svc = btn.dataset.svc;
+      if (!confirm(`Restart ${svc}?`)) return;
+      btn.disabled = true;
+      btn.textContent = "…";
+      const res = await opsApi(`/services/${svc}/restart`, { method: "POST" });
+      if (res.ok) {
+        showToast(`${svc} restarted`, "success");
+        setTimeout(loadServices, 1200);
+      } else {
+        const err = await readJsonOrText(res);
+        showToast(err?.detail || "Restart failed");
+        btn.disabled = false;
+        btn.textContent = "Restart";
+      }
+    });
+  });
+
+  tbody.querySelectorAll("button[data-action=svc-logs]").forEach((btn) => {
+    btn.addEventListener("click", () => openLogsModal(btn.dataset.svc));
+  });
+}
+
+let _logsService = null;
+let _logsSince = null;     // server timestamp of the last received chunk
+let _logsTimer = null;
+let _logsBusy = false;
+
+function _logsAtBottom(pre) {
+  return pre.scrollHeight - pre.scrollTop - pre.clientHeight < 40;
+}
+
+async function _fetchLogs(reset = false) {
+  const pre = el("logsPre");
+  if (!pre || !_logsService || _logsBusy) return;
+  _logsBusy = true;
+  try {
+    if (reset) {
+      _logsSince = null;
+      pre.textContent = "Loading…";
+    }
+    const q = _logsSince ? `?since=${_logsSince}` : "?tail=300";
+    const res = await opsApi(`/services/${_logsService}/logs${q}`);
+    if (!res.ok) {
+      const err = await readJsonOrText(res);
+      if (!_logsSince) pre.textContent = err?.detail || "Failed to load logs";
+      return;
+    }
+    const data = await res.json();
+    const follow = _logsAtBottom(pre) || !_logsSince;
+    if (_logsSince) {
+      if (data.logs) pre.textContent += data.logs;   // append only the new lines
+    } else {
+      pre.textContent = data.logs || "(no output yet)";
+    }
+    _logsSince = data.now;                            // next poll: only newer lines
+    // Cap the buffer so an hours-open modal doesn't grow unbounded
+    if (pre.textContent.length > 400000) {
+      pre.textContent = pre.textContent.slice(-300000);
+    }
+    if (follow) pre.scrollTop = pre.scrollHeight;     // stick to bottom unless the user scrolled up
+  } finally {
+    _logsBusy = false;
+  }
+}
+
+function _stopLogsFollow() {
+  if (_logsTimer) { clearInterval(_logsTimer); _logsTimer = null; }
+}
+
+function openLogsModal(service) {
+  _logsService = service;
+  const name = el("logsServiceName");
+  if (name) name.textContent = service;
+  openModal("logsModal");
+  _fetchLogs(true);
+  // Live follow: poll for new lines while the modal is open; the interval
+  // shuts itself down as soon as the modal is closed (any close path).
+  _stopLogsFollow();
+  _logsTimer = setInterval(() => {
+    if (!el("logsModal")?.classList.contains("visible")) {
+      _stopLogsFollow();
+      return;
+    }
+    _fetchLogs();
+  }, 2000);
+}
+
+// ── Environment tab ──────────────────────────────────────────────
+
+let _envOriginal = {};
+
+async function loadEnv() {
+  const tbody = el("envTableBody");
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="4" class="text-muted text-center">Loading…</td></tr>';
+
+  const res = await opsApi("/env");
+  if (!res.ok) {
+    const err = await readJsonOrText(res);
+    tbody.innerHTML = `<tr><td colspan="4" class="text-muted text-center">${esc(err?.detail || "Ops service unavailable")}</td></tr>`;
+    return;
+  }
+  const data = await res.json();
+  tbody.innerHTML = "";
+  _envOriginal = {};
+
+  for (const k of data.keys) {
+    _envOriginal[k.key] = k.value;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><code>${esc(k.key)}</code></td>
+      <td><input class="form-input env-input" data-envkey="${esc(k.key)}"
+                 type="${k.secret ? "password" : "text"}"
+                 value="${esc(k.value)}" placeholder="(unset)" /></td>
+      <td class="text-muted">${esc(k.hint)}</td>
+      <td>${(k.restart || []).map((s) => `<span class="badge badge-restart">${esc(s)}</span>`).join(" ")}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+async function saveEnv() {
+  const values = {};
+  $$(".env-input").forEach((inp) => {
+    const key = inp.dataset.envkey;
+    if (inp.value !== _envOriginal[key]) values[key] = inp.value;
+  });
+  if (!Object.keys(values).length) {
+    showToast("Nothing changed", "success");
+    return;
+  }
+  const res = await opsApi("/env", { method: "PUT", body: { values } });
+  if (!res.ok) {
+    const err = await readJsonOrText(res);
+    showToast(err?.detail || "Save failed");
+    return;
+  }
+  const data = await res.json();
+  const restart = data.restart || [];
+  showToast(
+    restart.length
+      ? `Saved. Restart to apply: ${restart.join(", ")} (Services tab)`
+      : "Saved.",
+    "success", 7000
+  );
+  loadEnv();
+}
+
+// ── Dataset access (grants) ──────────────────────────────────────
+
+let _accessDs = null;
+
+async function openAccessModal(ds) {
+  _accessDs = ds;
+  const name = el("accessDsName");
+  if (name) name.textContent = ds.name;
+  openModal("accessModal");
+  await _renderGrants();
+}
+
+function _userLabel(uid) {
+  const users = el("usersTableBody")?._users || [];
+  const u = users.find((x) => x.id === uid);
+  return u ? `${u.username || u.email} (ID ${uid})` : `User ${uid}`;
+}
+
+async function _renderGrants() {
+  const tbody = el("grantsTableBody");
+  const select = el("grantUserSelect");
+  if (!tbody || !_accessDs) return;
+  tbody.innerHTML = '<tr><td colspan="3" class="text-muted text-center">Loading…</td></tr>';
+
+  const res = await datasetApi(`/datasets/${_accessDs.id}/grants`);
+  if (!res.ok) {
+    const err = await readJsonOrText(res);
+    tbody.innerHTML = `<tr><td colspan="3" class="text-muted text-center">${esc(err?.detail || "Failed to load")}</td></tr>`;
+    return;
+  }
+  const grants = await res.json();
+  tbody.innerHTML = grants.length ? "" :
+    '<tr><td colspan="3" class="text-muted text-center">No one else has access yet.</td></tr>';
+
+  for (const g of grants) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${esc(_userLabel(g.user_id))}</td>
+      <td><span class="badge ${g.role === "editor" ? "badge-editor" : "badge-viewer"}">${esc(g.role)}</span></td>
+      <td class="text-nowrap">
+        <button class="btn btn-danger btn-sm" data-guid="${g.user_id}" data-action="revoke-grant">Remove</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  tbody.querySelectorAll("button[data-action=revoke-grant]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const res = await datasetApi(
+        `/datasets/${_accessDs.id}/grants/${btn.dataset.guid}`, { method: "DELETE" });
+      if (res.ok || res.status === 204) {
+        showToast("Access removed", "success");
+        _renderGrants();
+      } else {
+        const err = await readJsonOrText(res);
+        showToast(err?.detail || "Failed to remove");
+      }
+    });
+  });
+
+  // Fill the user picker: everyone except owner + already-granted
+  if (select) {
+    const users = el("usersTableBody")?._users || [];
+    const taken = new Set(grants.map((g) => g.user_id));
+    select.innerHTML = "";
+    users
+      .filter((u) => u.id !== _accessDs.owner_id && !taken.has(u.id))
+      .forEach((u) => {
+        const opt = document.createElement("option");
+        opt.value = u.id;
+        opt.textContent = `${u.username || u.email} (ID ${u.id})`;
+        select.appendChild(opt);
+      });
+  }
+}
+
+// ── Wiring for the new controls ──────────────────────────────────
+
+el("refreshServicesBtn")?.addEventListener("click", loadServices);
+el("saveEnvBtn")?.addEventListener("click", saveEnv);
+el("logsRefreshBtn")?.addEventListener("click", () => _fetchLogs(true));
+el("grantAddBtn")?.addEventListener("click", async () => {
+  const uid = parseInt(el("grantUserSelect")?.value, 10);
+  const role = el("grantRoleSelect")?.value || "viewer";
+  if (!uid || !_accessDs) {
+    showToast("Pick a user first");
+    return;
+  }
+  const res = await datasetApi(`/datasets/${_accessDs.id}/grants`, {
+    method: "POST", body: { user_id: uid, role },
+  });
+  if (res.ok || res.status === 201) {
+    showToast("Access granted", "success");
+    _renderGrants();
+  } else {
+    const err = await readJsonOrText(res);
+    showToast(err?.detail || "Failed to grant access");
+  }
+});

@@ -46,9 +46,15 @@ class AdminUserUpdate(BaseModel):
     admin: Optional[bool] = None
     dev: Optional[bool] = None
     is_active: Optional[bool] = None
+    approved: Optional[bool] = None
+    email_verified: Optional[bool] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     company: Optional[str] = None
     email: Optional[EmailStr] = None
     username: Optional[str] = None
     password: Optional[str] = Field(None, min_length=8)
+
+
+class ResendVerificationIn(BaseModel):
+    email: Optional[str] = None

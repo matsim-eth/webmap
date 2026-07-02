@@ -69,6 +69,31 @@ dev accounts are blocked at login (the flag lives on the user row).
   frontends call `handle401()` → one `POST /refresh` round-trip → retry the
   original request → redirect to the login page if refresh also fails.
 
+## Registration gates (optional)
+
+Two independent, env-switchable gates control what happens after `/register`
+(both **off by default** — registration then behaves exactly as before):
+
+| `.env` flag | Effect |
+|---|---|
+| `REQUIRE_EMAIL_VERIFICATION=1` | New accounts get `email_verified=false` and a mailed verification link (`GET /verify-email?token=…`, valid `VERIFY_TOKEN_HOURS`, default 48 h). Login is blocked with **403 "email not verified"** until clicked. `POST /resend-verification` re-sends (never leaks whether an address exists). Without SMTP config (`SMTP_HOST` etc.) the link is **written to the auth-backend log** instead — the flow stays testable locally. |
+| `REQUIRE_ADMIN_APPROVAL=1` | New accounts get `approved=false`. Login is blocked with **403 "account pending admin approval"** until an admin approves them — admin panel → Users (pending accounts float to the top with a banner and an **Approve** button), or `POST /admin/users/{id}/approve`. |
+
+Implementation notes:
+
+* The flags live on extra `users` columns (`email_verified`, `approved`,
+  `verify_token`, `verify_token_expires`) added via idempotent
+  `ALTER TABLE … ADD COLUMN IF NOT EXISTS` at startup, defaulting to `TRUE` —
+  **existing accounts keep working** when a gate is switched on later.
+* `is_active` keeps its old meaning (admin soft-delete) and is independent.
+* Gates are enforced at **login**, and remain enforced for accounts created
+  while a gate was active even if the flag is later turned off.
+* Seeded accounts (admin, dev) are always verified + approved.
+* The login page distinguishes 403 (gated) from 401 (bad credentials) and
+  offers a one-click "Resend verification email" on unverified accounts.
+* Admins can also override per user: `PATCH /admin/users/{id}` with
+  `{"email_verified": true}` ("Mark verified") or `{"approved": true}`.
+
 ## Dataset authorization
 
 Data-level permissions live in the **dataset service**, not in the webmap
@@ -78,6 +103,14 @@ backend. The rule set (`dependencies.require_dataset_access`):
 2. `status == inactive` → 403
 3. `is_public` → allowed for every authenticated user
 4. otherwise only the **owner** → 403 for everyone else
+
+**Sharing (grants).** A private dataset can be shared with individual users
+via `dataset_grants` (`viewer` = read/map/dashboard, `editor` = additionally
+upload files). Managed by the owner or an admin: admin panel → Datasets →
+**Access**, or `GET/POST /datasets/{id}/grants` +
+`DELETE /datasets/{id}/grants/{user_id}`. Shared datasets appear in the
+recipient's dataset list automatically; admins implicitly have full access to
+every dataset.
 
 The webmap backend enforces this indirectly: every `/data/{dataset_id}/…`
 request first calls `GET /datasets/{id}/resolve` on the dataset service **with

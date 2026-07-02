@@ -14,7 +14,7 @@ from AuthAPI import (
 )
 from fastapi import FastAPI, Request, Depends, HTTPException, status, Response, Header, Cookie
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from pydantic import BaseModel
 
 
@@ -32,6 +32,7 @@ from schemas import (
     LoginModel,
     RefreshIn,
     AdminUserUpdate,
+    ResendVerificationIn,
 )
 
 
@@ -66,6 +67,27 @@ logger = logging.getLogger(APP_NAME)
 
 DEV_MODE = os.getenv("DEV_MODE", "0").strip().lower() in {"1", "true"}
 
+# ── Registration gates (both optional, both default OFF) ─────────
+# REQUIRE_EMAIL_VERIFICATION=1 → new accounts must click a mailed link
+#   before they can log in. Without SMTP config the link is logged instead
+#   of mailed (dev fallback), so the flow stays testable locally.
+# REQUIRE_ADMIN_APPROVAL=1 → new accounts start unapproved; an admin must
+#   activate them in the admin panel before first login.
+REQUIRE_EMAIL_VERIFICATION = os.getenv("REQUIRE_EMAIL_VERIFICATION", "0").strip().lower() in {"1", "true"}
+REQUIRE_ADMIN_APPROVAL = os.getenv("REQUIRE_ADMIN_APPROVAL", "0").strip().lower() in {"1", "true"}
+VERIFY_TOKEN_HOURS = int(os.getenv("VERIFY_TOKEN_HOURS", "48"))
+
+# Base URL used to build the verification link (the proxy origin).
+PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "http://localhost").rstrip("/")
+
+# SMTP — all empty by default; the mailer falls back to logging the link.
+SMTP_HOST = os.getenv("SMTP_HOST", "").strip()
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USER = os.getenv("SMTP_USER", "").strip()
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+SMTP_FROM = os.getenv("SMTP_FROM", SMTP_USER or "webmap@localhost")
+SMTP_STARTTLS = os.getenv("SMTP_STARTTLS", "1").strip().lower() in {"1", "true"}
+
 # ── Default accounts (from .env) ──────────────────────────────
 SYSTEM_ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@webmap.local")
 SYSTEM_ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")
@@ -96,7 +118,10 @@ async def _seed_one(
         user.is_active = True
         await db.commit()
         # Set dev flag via raw SQL (column not in ORM model)
-        await db.execute(text("UPDATE users SET dev = :dev WHERE email = :email"), {"dev": is_dev, "email": email})
+        await db.execute(
+            text("UPDATE users SET dev = :dev, email_verified = TRUE, approved = TRUE WHERE email = :email"),
+            {"dev": is_dev, "email": email},
+        )
         await db.commit()
         logger.info("Refreshed seeded user: %s (admin=%s, dev=%s)", email, is_admin, is_dev)
         return
@@ -123,12 +148,67 @@ async def _seed_one(
     try:
         await db.commit()
         # Set dev flag via raw SQL
-        await db.execute(text("UPDATE users SET dev = :dev WHERE email = :email"), {"dev": is_dev, "email": email})
+        await db.execute(
+            text("UPDATE users SET dev = :dev, email_verified = TRUE, approved = TRUE WHERE email = :email"),
+            {"dev": is_dev, "email": email},
+        )
         await db.commit()
         logger.info("Created seeded user: %s (admin=%s, dev=%s)", email, is_admin, is_dev)
     except IntegrityError:
         await db.rollback()
         logger.error("Could not seed user %s (duplicate key)", email)
+
+
+# ── Mailer ────────────────────────────────────────────────────────
+
+
+def _smtp_send(to: str, subject: str, html: str) -> None:
+    """Blocking SMTP send — run via asyncio.to_thread. Raises on failure."""
+    import smtplib
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"] = SMTP_FROM
+    msg["To"] = to
+    msg.attach(MIMEText(html, "html"))
+
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as s:
+        if SMTP_STARTTLS:
+            s.starttls()
+        if SMTP_USER:
+            s.login(SMTP_USER, SMTP_PASSWORD)
+        s.sendmail(SMTP_FROM, [to], msg.as_string())
+
+
+async def _send_verification_email(email: str, first_name: str, token: str) -> None:
+    """Mail the verification link; without SMTP config, log it (dev fallback).
+    Never raises — a mail hiccup must not fail the registration itself."""
+    import asyncio
+
+    link = f"{PUBLIC_BASE_URL}/authentification/backend/verify-email?token={token}"
+    if not SMTP_HOST:
+        logger.warning("SMTP not configured — verification link for %s: %s", email, link)
+        return
+    html = f"""
+    <div style="font-family:system-ui,sans-serif;max-width:480px;margin:0 auto">
+      <h2 style="color:#4f46e5">Webmap — confirm your email</h2>
+      <p>Hi {first_name or "there"},</p>
+      <p>please confirm your email address to activate your Webmap account:</p>
+      <p style="margin:24px 0">
+        <a href="{link}" style="background:#4f46e5;color:#fff;padding:12px 24px;
+           border-radius:8px;text-decoration:none;display:inline-block">Verify email</a>
+      </p>
+      <p style="color:#666;font-size:13px">The link is valid for {VERIFY_TOKEN_HOURS} hours.
+        If you didn't create this account you can ignore this email.</p>
+    </div>
+    """
+    try:
+        await asyncio.to_thread(_smtp_send, email, "Webmap — verify your email", html)
+        logger.info("Verification email sent to %s", email)
+    except Exception:
+        logger.exception("Verification email to %s failed — link: %s", email, link)
 
 
 async def _init_user_storage(user_id: int):
@@ -186,10 +266,16 @@ async def _seed_default_users():
 async def lifespan(app: FastAPI):
     if os.getenv("DB_CREATE_TABLES", "0") == "1":
         await AuthAPI.create_tables()
-    # Add dev column if it doesn't exist (ORM doesn't know about it)
+    # Add columns the ORM doesn't know about (same pattern as `dev`).
+    # email_verified/approved default TRUE so every EXISTING account keeps
+    # working when the gates are switched on later.
     from AuthAPI import get_engine
     async with get_engine().begin() as conn:
         await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS dev BOOLEAN DEFAULT FALSE"))
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT TRUE"))
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS approved BOOLEAN DEFAULT TRUE"))
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS verify_token TEXT"))
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS verify_token_expires TIMESTAMPTZ"))
     await _seed_default_users()
     yield
     await AuthAPI.close()
@@ -326,6 +412,32 @@ async def register(credentials: RegisterCredentialsModel, db: AsyncSession = Dep
     await db.commit()
     await db.refresh(user)
 
+    # Registration gates: email verification and/or admin approval.
+    verify_token = None
+    if REQUIRE_EMAIL_VERIFICATION or REQUIRE_ADMIN_APPROVAL:
+        import secrets
+        from datetime import timedelta
+        verify_token = secrets.token_urlsafe(32) if REQUIRE_EMAIL_VERIFICATION else None
+        await db.execute(
+            text("""UPDATE users SET
+                        email_verified = :verified,
+                        approved = :approved,
+                        verify_token = :tok,
+                        verify_token_expires = :exp
+                    WHERE id = :id"""),
+            {
+                "verified": not REQUIRE_EMAIL_VERIFICATION,
+                "approved": not REQUIRE_ADMIN_APPROVAL,
+                "tok": verify_token,
+                "exp": (datetime.now(timezone.utc) + timedelta(hours=VERIFY_TOKEN_HOURS))
+                       if verify_token else None,
+                "id": user.id,
+            },
+        )
+        await db.commit()
+    if verify_token:
+        await _send_verification_email(email, credentials.first_name, verify_token)
+
     # Create per-user storage directory via dataset backend (best-effort)
     import httpx
     try:
@@ -334,7 +446,12 @@ async def register(credentials: RegisterCredentialsModel, db: AsyncSession = Dep
     except Exception:
         logger.warning("Could not init user storage for user %s", user.id)
 
-    return {"id": user.id, "email": user.email}
+    return {
+        "id": user.id,
+        "email": user.email,
+        "verification_required": REQUIRE_EMAIL_VERIFICATION,
+        "approval_required": REQUIRE_ADMIN_APPROVAL,
+    }
 
 
 @app.post("/login", response_model=TokenOut)
@@ -367,6 +484,20 @@ async def login(data: LoginModel, response: Response, db: AsyncSession = Depends
     is_dev_user = await db.scalar(text("SELECT dev FROM users WHERE id = :id"), {"id": user.id})
     if is_dev_user and not DEV_MODE:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="dev login disabled")
+
+    # Registration gates. 403 (not 401) so the frontend can distinguish
+    # "wrong credentials" from "account exists but is not unlocked yet".
+    # Checked even when the flags are currently off, so accounts created
+    # while a gate was active stay gated until resolved.
+    flags = (await db.execute(
+        text("SELECT email_verified, approved FROM users WHERE id = :id"), {"id": user.id}
+    )).one()
+    if flags.email_verified is False:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail="email not verified — check your inbox")
+    if flags.approved is False:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail="account pending admin approval")
 
     access = create_access_token(user)
     refresh, jti, exp = create_refresh_token(user)
@@ -443,6 +574,86 @@ async def refresh_access_token(
     return TokenOut(access_token=new_access, refresh_token=new_refresh)
 
 
+def _verify_page(title: str, message: str, ok: bool) -> HTMLResponse:
+    color = "#16a34a" if ok else "#dc2626"
+    icon = "✓" if ok else "✕"
+    return HTMLResponse(f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{title} — Webmap</title>
+<style>
+  body {{ margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+         font-family:system-ui,-apple-system,sans-serif;
+         background:linear-gradient(135deg,#eef2ff 0%,#faf5ff 100%); }}
+  .card {{ background:#fff; border-radius:16px; padding:48px 40px; max-width:420px; text-align:center;
+          box-shadow:0 10px 40px rgba(79,70,229,.12); }}
+  .icon {{ width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+          margin:0 auto 20px; font-size:30px; color:#fff; background:{color}; }}
+  h1 {{ font-size:22px; margin:0 0 10px; color:#1e1b4b; }}
+  p {{ color:#64748b; line-height:1.55; margin:0 0 26px; }}
+  a {{ background:#4f46e5; color:#fff; padding:12px 28px; border-radius:10px; text-decoration:none;
+      font-weight:600; display:inline-block; }}
+  a:hover {{ background:#4338ca; }}
+</style></head>
+<body><div class="card"><div class="icon">{icon}</div><h1>{title}</h1><p>{message}</p>
+<a href="/authentification/">Go to login</a></div></body></html>""")
+
+
+@app.get("/verify-email")
+async def verify_email(token: str = "", db: AsyncSession = Depends(get_db)):
+    """Landing endpoint of the mailed verification link. Returns HTML."""
+    token = (token or "").strip()
+    if not token:
+        return _verify_page("Invalid link", "This verification link is malformed.", ok=False)
+
+    row = (await db.execute(
+        text("SELECT id, email_verified, verify_token_expires FROM users WHERE verify_token = :tok"),
+        {"tok": token},
+    )).first()
+    if not row:
+        return _verify_page("Invalid link", "This verification link is unknown or was already used.", ok=False)
+    if row.verify_token_expires and row.verify_token_expires < datetime.now(timezone.utc):
+        return _verify_page("Link expired",
+                            "This link is no longer valid. Log in to request a new one.", ok=False)
+
+    await db.execute(
+        text("""UPDATE users SET email_verified = TRUE, verify_token = NULL,
+                       verify_token_expires = NULL WHERE id = :id"""),
+        {"id": row.id},
+    )
+    await db.commit()
+
+    if REQUIRE_ADMIN_APPROVAL:
+        approved = await db.scalar(text("SELECT approved FROM users WHERE id = :id"), {"id": row.id})
+        if not approved:
+            return _verify_page("Email verified",
+                                "Your email is confirmed. An administrator still needs to approve "
+                                "your account — you will be able to log in once that happens.", ok=True)
+    return _verify_page("Email verified", "Your account is active — you can log in now.", ok=True)
+
+
+@app.post("/resend-verification", response_model=dict)
+async def resend_verification(payload: ResendVerificationIn, db: AsyncSession = Depends(get_db)):
+    """Re-send the verification email. Always returns ok (no account enumeration)."""
+    email = str(payload.email or "").lower().strip()
+    if email:
+        row = (await db.execute(
+            text("SELECT id, first_name, email_verified FROM users WHERE email = :e"), {"e": email}
+        )).first()
+        if row and row.email_verified is False:
+            import secrets
+            from datetime import timedelta
+            tok = secrets.token_urlsafe(32)
+            await db.execute(
+                text("UPDATE users SET verify_token = :tok, verify_token_expires = :exp WHERE id = :id"),
+                {"tok": tok,
+                 "exp": datetime.now(timezone.utc) + timedelta(hours=VERIFY_TOKEN_HOURS),
+                 "id": row.id},
+            )
+            await db.commit()
+            await _send_verification_email(email, row.first_name, tok)
+    return {"ok": True}
+
+
 @app.get("/me", response_model=dict)
 async def me(user: User = Depends(RequireUser(data=True)), db: AsyncSession = Depends(get_db)):
     is_dev = await db.scalar(text("SELECT dev FROM users WHERE id = :id"), {"id": user.id})
@@ -494,9 +705,9 @@ async def admin_list_users(
 ):
     """List all users. Admin only."""
     users = (await db.scalars(select(User).order_by(User.created_at.desc()))).all()
-    # Fetch dev flags via raw SQL (column not in ORM model)
-    dev_rows = await db.execute(text("SELECT id, dev FROM users"))
-    dev_map = {row.id: bool(row.dev) for row in dev_rows}
+    # Fetch extra flags via raw SQL (columns not in the ORM model)
+    flag_rows = await db.execute(text("SELECT id, dev, email_verified, approved FROM users"))
+    flag_map = {row.id: row for row in flag_rows}
     return {
         "users": [
             {
@@ -507,8 +718,10 @@ async def admin_list_users(
                 "last_name": u.last_name,
                 "company": getattr(u, "company", None),
                 "admin": u.admin,
-                "dev": dev_map.get(u.id, False),
+                "dev": bool(getattr(flag_map.get(u.id), "dev", False)),
                 "is_active": u.is_active,
+                "email_verified": getattr(flag_map.get(u.id), "email_verified", True) is not False,
+                "approved": getattr(flag_map.get(u.id), "approved", True) is not False,
                 "newsletter": getattr(u, "newsletter", False),
                 "created_at": u.created_at.isoformat() if u.created_at else None,
             }
@@ -588,14 +801,41 @@ async def admin_update_user(
 
     await db.commit()
 
-    # Handle dev flag via raw SQL (column not in ORM model)
+    # Handle raw-SQL flags (columns not in the ORM model)
     if body.dev is not None:
         await db.execute(text("UPDATE users SET dev = :dev WHERE id = :id"), {"dev": body.dev, "id": user_id})
         await db.commit()
+    if body.approved is not None:
+        await db.execute(text("UPDATE users SET approved = :v WHERE id = :id"), {"v": body.approved, "id": user_id})
+        await db.commit()
+    if body.email_verified is not None:
+        await db.execute(
+            text("UPDATE users SET email_verified = :v, verify_token = NULL, verify_token_expires = NULL WHERE id = :id"),
+            {"v": body.email_verified, "id": user_id})
+        await db.commit()
 
     await db.refresh(user)
-    dev_flag = await db.scalar(text("SELECT dev FROM users WHERE id = :id"), {"id": user_id})
-    return {"id": user.id, "email": user.email, "admin": user.admin, "dev": bool(dev_flag), "is_active": user.is_active}
+    row = (await db.execute(
+        text("SELECT dev, email_verified, approved FROM users WHERE id = :id"), {"id": user_id}
+    )).one()
+    return {"id": user.id, "email": user.email, "admin": user.admin, "dev": bool(row.dev),
+            "is_active": user.is_active, "email_verified": row.email_verified is not False,
+            "approved": row.approved is not False}
+
+
+@app.post("/admin/users/{user_id}/approve", response_model=dict)
+async def admin_approve_user(
+    user_id: int,
+    admin: User = Depends(RequireAdminUser(data=True)),
+    db: AsyncSession = Depends(get_db),
+):
+    """One-click approval for a pending account. Admin only."""
+    user = await db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="user not found")
+    await db.execute(text("UPDATE users SET approved = TRUE WHERE id = :id"), {"id": user_id})
+    await db.commit()
+    return {"ok": True, "id": user_id, "approved": True}
 
 
 @app.delete("/admin/users/{user_id}", response_model=dict)

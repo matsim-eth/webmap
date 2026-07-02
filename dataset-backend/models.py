@@ -58,3 +58,27 @@ class Dataset(Base):
     __table_args__ = (
         UniqueConstraint("owner_id", "slug", name="uq_owner_slug"),
     )
+
+
+class DatasetGrant(Base):
+    """Per-user access to a private dataset.
+
+    Roles:
+      viewer — may resolve/read the dataset (maps + dashboard)
+      editor — may additionally upload/replace the dataset's files
+    Owners implicitly hold every right; public datasets need no grants.
+    """
+
+    __tablename__ = "dataset_grants"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    dataset_id = Column(BigInteger, ForeignKey("datasets.id", ondelete="CASCADE"),
+                        nullable=False, index=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    role = Column(String(20), default="viewer", nullable=False)  # viewer | editor
+    granted_by = Column(Integer, nullable=False)                  # admin/owner user id
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        UniqueConstraint("dataset_id", "user_id", name="uq_dataset_user_grant"),
+    )

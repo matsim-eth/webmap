@@ -27,6 +27,7 @@ flowchart LR
 | **webmap_backend** | FastAPI, DuckDB | All data endpoints for both frontends; reads dataset DuckDBs read-only |
 | **dataset_backend** | FastAPI, Postgres | Dataset registry (metadata, ownership, permissions), upload/storage, `resolve` |
 | **authentification_backend** | FastAPI, Postgres | Accounts, JWT issuing/refresh, admin API |
+| **ops_backend** | FastAPI, Docker SDK | Admin control plane: service status/restart/logs, root-`.env` editor (`/backend/ops/…`, admin-JWT only) |
 | **authentification_frontend** | static nginx | Login page + admin panel (user & dataset management) |
 | **auth/dataset databases** | Postgres 16 | Persistence for the two services above |
 

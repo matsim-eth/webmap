@@ -10,8 +10,13 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from dependencies import get_db, require_dataset_access
-from models import Dataset, DatasetStatus
+from dependencies import (
+    get_db,
+    require_dataset_access,
+    require_dataset_manage,
+    require_dataset_write,
+)
+from models import Dataset, DatasetGrant, DatasetStatus
 from schemas import (
     AdminDatasetCreate,
     AdminDatasetUpdate,
@@ -20,6 +25,8 @@ from schemas import (
     DatasetOut,
     DatasetUpdate,
     FileListOut,
+    GrantIn,
+    GrantOut,
 )
 from storage import (
     check_dataset_completeness,
@@ -78,6 +85,18 @@ async def list_datasets(
         )
     ).all()
 
+    # Shared with me (grants on other users' private datasets)
+    shared = (
+        await db.scalars(
+            select(Dataset)
+            .join(DatasetGrant, DatasetGrant.dataset_id == Dataset.id)
+            .where(DatasetGrant.user_id == uid,
+                   Dataset.owner_id != uid,
+                   Dataset.is_public == False)
+            .order_by(Dataset.created_at.desc())
+        )
+    ).all()
+
     # Public
     public = (
         await db.scalars(
@@ -86,6 +105,7 @@ async def list_datasets(
     ).all()
 
     result = [_dataset_to_out(ds) for ds in own]
+    result += [_dataset_to_out(ds) for ds in shared]
     result += [_dataset_to_out(ds) for ds in public]
 
     return DatasetListOut(datasets=result)
@@ -232,9 +252,8 @@ async def upload_duckdb(
     user=Depends(RequireUser()),
     db: AsyncSession = Depends(get_db),
 ):
-    ds = await require_dataset_access(dataset_id, db, user)
-    if ds.owner_id != user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="only owner can upload")
+    # Owner, admin, or an 'editor' grant may upload/replace files.
+    ds = await require_dataset_write(dataset_id, db, user)
     return await _store_duckdb(ds, category, file, db)
 
 
@@ -274,6 +293,78 @@ async def validate_dataset(
     await db.commit()
     await db.refresh(ds)
     return _dataset_to_out(ds)
+
+
+# ── Sharing / grants ─────────────────────────────────────────────
+#
+# Owner or admin manages who may access a PRIVATE dataset:
+#   viewer — read (map + dashboard), editor — read + upload.
+# Public datasets need no grants (readable by everyone).
+
+
+@router.get("/datasets/{dataset_id}/grants", response_model=list[GrantOut])
+async def list_grants(
+    dataset_id: int,
+    user=Depends(RequireUser()),
+    db: AsyncSession = Depends(get_db),
+):
+    await require_dataset_manage(dataset_id, db, user)
+    grants = (await db.scalars(
+        select(DatasetGrant).where(DatasetGrant.dataset_id == dataset_id)
+        .order_by(DatasetGrant.created_at)
+    )).all()
+    return [GrantOut(user_id=g.user_id, role=g.role, granted_by=g.granted_by,
+                     created_at=g.created_at) for g in grants]
+
+
+@router.post("/datasets/{dataset_id}/grants", response_model=GrantOut,
+             status_code=status.HTTP_201_CREATED)
+async def add_grant(
+    dataset_id: int,
+    body: GrantIn,
+    user=Depends(RequireUser()),
+    db: AsyncSession = Depends(get_db),
+):
+    ds = await require_dataset_manage(dataset_id, db, user)
+    if ds.is_public:
+        raise HTTPException(status_code=400, detail="public datasets are accessible to everyone already")
+    if body.user_id == ds.owner_id:
+        raise HTTPException(status_code=400, detail="the owner already has full access")
+    if body.role not in ("viewer", "editor"):
+        raise HTTPException(status_code=422, detail="role must be 'viewer' or 'editor'")
+
+    existing = await db.scalar(select(DatasetGrant).where(
+        DatasetGrant.dataset_id == dataset_id, DatasetGrant.user_id == body.user_id))
+    if existing:
+        existing.role = body.role      # idempotent upsert: adjust the role
+        await db.commit()
+        await db.refresh(existing)
+        g = existing
+    else:
+        g = DatasetGrant(dataset_id=dataset_id, user_id=body.user_id,
+                         role=body.role, granted_by=user.id)
+        db.add(g)
+        await db.commit()
+        await db.refresh(g)
+    return GrantOut(user_id=g.user_id, role=g.role, granted_by=g.granted_by,
+                    created_at=g.created_at)
+
+
+@router.delete("/datasets/{dataset_id}/grants/{grant_user_id}",
+               status_code=status.HTTP_204_NO_CONTENT)
+async def remove_grant(
+    dataset_id: int,
+    grant_user_id: int,
+    user=Depends(RequireUser()),
+    db: AsyncSession = Depends(get_db),
+):
+    await require_dataset_manage(dataset_id, db, user)
+    g = await db.scalar(select(DatasetGrant).where(
+        DatasetGrant.dataset_id == dataset_id, DatasetGrant.user_id == grant_user_id))
+    if not g:
+        raise HTTPException(status_code=404, detail="grant not found")
+    await db.delete(g)
+    await db.commit()
 
 
 # ── Admin endpoints ─────────────────────────────────────────────

@@ -474,3 +474,83 @@ body {
     max-width: 100%;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Theme v2 — refreshed look. Appended layer: overrides the tokens and
+   polishes the core components; the structural rules above stay as-is.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  --color-primary: #6366f1;
+  --color-primary-dark: #4f46e5;
+  --color-bg: #eef1f8;
+  --card-radius: 16px;
+  --input-radius: 10px;
+  --btn-radius: 10px;
+  --shadow-soft: 0 18px 60px rgba(79, 70, 229, .12);
+}
+
+body {
+  background-color: var(--color-bg);
+  background-image:
+    radial-gradient(900px 620px at 12% 8%, rgba(99, 102, 241, .10), transparent 60%),
+    radial-gradient(760px 560px at 88% 16%, rgba(168, 85, 247, .07), transparent 55%),
+    radial-gradient(820px 620px at 50% 96%, rgba(56, 189, 248, .06), transparent 55%),
+    linear-gradient(rgba(99, 102, 241, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.035) 1px, transparent 1px);
+  background-size: auto, auto, auto, 48px 48px, 48px 48px;
+}
+
+/* Glassy auth card */
+.auth-card,
+.admin-card {
+  background: rgba(255, 255, 255, .88);
+  backdrop-filter: blur(14px) saturate(1.15);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  border: 1px solid rgba(255, 255, 255, .65);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .8) inset,
+    0 24px 70px rgba(79, 70, 229, .14);
+}
+
+/* Primary buttons: gradient + lift */
+button[type="submit"],
+.btn-primary {
+  background-image: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
+  border: none;
+  transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+  box-shadow: 0 6px 18px rgba(99, 102, 241, .35);
+}
+button[type="submit"]:hover,
+.btn-primary:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(99, 102, 241, .42);
+}
+button[type="submit"]:active,
+.btn-primary:active { transform: translateY(0); }
+
+/* Inputs: soft focus ring */
+.form-input:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, .14);
+}
+
+/* Resend-verification affordance under the login form */
+.resend-box { margin-top: 14px; text-align: center; }
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--color-primary-dark);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.link-btn:hover { color: var(--color-primary); }
+.link-btn:disabled { color: var(--color-text-muted); cursor: default; text-decoration: none; }

@@ -49,7 +49,7 @@ const toastEl = el("toast");
 const toastBody = el("toastBody");
 let toastTimeout = null;
 
-function showToast(msg, type = "error") {
+function showToast(msg, type = "error", durationMs = 3000) {
   if (!toastEl || !toastBody) return;
   toastBody.textContent = String(msg || "Error");
   toastEl.className = "toast " + type;
@@ -60,7 +60,7 @@ function showToast(msg, type = "error") {
   clearTimeout(toastTimeout);
   toastTimeout = setTimeout(() => {
     toastEl.classList.remove("visible");
-  }, 3000);
+  }, durationMs);
 }
 
 // ── Loading state ───────────────────────────────────────────
@@ -257,7 +257,13 @@ if (loginForm) {
       const data = await readJsonOrText(res);
 
       if (!res.ok) {
-        showToast(data?.detail || data || `Login failed (${res.status})`);
+        const detail = String(data?.detail || data || "");
+        showToast(detail || `Login failed (${res.status})`, "error",
+                  res.status === 403 ? 6000 : 3000);
+        // 403 + unverified email → offer a one-click resend
+        if (res.status === 403 && detail.includes("not verified")) {
+          offerResendVerification(payload.email || payload.identifier || f.identifier);
+        }
         return;
       }
 
@@ -268,6 +274,37 @@ if (loginForm) {
       setLoading(loginSubmit, loginSpinner, false);
     }
   });
+}
+
+// ── Resend verification (shown after a 403 "email not verified") ──
+
+function offerResendVerification(identifier) {
+  const form = el("loginForm");
+  if (!form) return;
+  let btn = el("resendVerifyBtn");
+  if (!btn) {
+    const box = document.createElement("div");
+    box.className = "resend-box";
+    box.innerHTML =
+      '<button type="button" id="resendVerifyBtn" class="link-btn">Resend verification email</button>';
+    form.appendChild(box);
+    btn = el("resendVerifyBtn");
+  }
+  btn.disabled = false;
+  btn.onclick = async () => {
+    btn.disabled = true;
+    try {
+      await fetch(CONFIG.API_BASE + "/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: String(identifier || "").trim().toLowerCase() }),
+      });
+      showToast("If the address is registered, a new verification email is on its way.", "success", 6000);
+    } catch {
+      showToast("Network error");
+      btn.disabled = false;
+    }
+  };
 }
 
 // ── Register form ───────────────────────────────────────────
@@ -315,7 +352,18 @@ if (registerForm) {
         return;
       }
 
-      showToast("Registration successful! Please sign in.", "success");
+      // Message depends on which registration gates are active (backend flags)
+      let msg = "Registration successful! Please sign in.";
+      if (data?.verification_required && data?.approval_required) {
+        msg = "Almost there! Verify your email via the link we sent you — " +
+              "an administrator will then approve your account.";
+      } else if (data?.verification_required) {
+        msg = "Check your inbox and click the verification link, then sign in.";
+      } else if (data?.approval_required) {
+        msg = "Registration received — an administrator has to approve your " +
+              "account before you can sign in.";
+      }
+      showToast(msg, "success", 8000);
       registerForm.reset();
       registerForm
         .querySelectorAll(".form-input")

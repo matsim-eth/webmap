@@ -29,6 +29,8 @@
       <div class="admin-tabs" id="adminTabs">
         <button class="admin-tab active" data-tab="users" type="button">Users</button>
         <button class="admin-tab" data-tab="datasets" type="button">Datasets</button>
+        <button class="admin-tab" data-tab="services" type="button">Services</button>
+        <button class="admin-tab" data-tab="environment" type="button">Environment</button>
       </div>
 
       <!-- Tab content -->
@@ -36,12 +38,16 @@
 
         <!-- Users Tab -->
         <div class="tab-pane active" id="users-pane">
+          <div id="pendingBanner" class="pending-banner hidden">
+            <span class="pending-banner-icon">⏳</span>
+            <span id="pendingBannerText"></span>
+          </div>
           <div style="overflow-x: auto;">
             <table class="data-table">
               <thead>
                 <tr>
                   <th>ID</th><th>Email</th><th>Username</th><th>Name</th>
-                  <th>Company</th><th>Admin</th><th>Dev</th><th>Active</th><th>Actions</th>
+                  <th>Company</th><th>Admin</th><th>Dev</th><th>Active</th><th>Status</th><th>Actions</th>
                 </tr>
               </thead>
               <tbody id="usersTableBody"></tbody>
@@ -90,6 +96,90 @@
           </div>
         </div>
 
+        <!-- Services Tab -->
+        <div class="tab-pane" id="services-pane">
+          <div class="pane-toolbar">
+            <span class="text-muted" id="servicesInfo">Live view of every stack service.</span>
+            <button class="btn btn-outline btn-sm" id="refreshServicesBtn" type="button">↻ Refresh</button>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Service</th><th>Status</th><th>Health</th><th>CPU</th>
+                  <th>Memory</th><th>Started</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="servicesTableBody">
+                <tr><td colspan="7" class="text-muted text-center">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Environment Tab -->
+        <div class="tab-pane" id="environment-pane">
+          <div class="pane-toolbar">
+            <span class="text-muted">Runtime configuration (root <code>.env</code>).
+              Changes apply after restarting the listed services.</span>
+            <button class="btn btn-primary btn-sm" id="saveEnvBtn" type="button">Save changes</button>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="data-table env-table">
+              <thead>
+                <tr><th>Variable</th><th>Value</th><th style="width:38%">Hint</th><th>Applies after restart of</th></tr>
+              </thead>
+              <tbody id="envTableBody">
+                <tr><td colspan="4" class="text-muted text-center">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Dataset Access Modal -->
+  <div class="modal-overlay" id="accessModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Manage access — <span id="accessDsName"></span></h3>
+        <button class="modal-close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted" style="margin-bottom:12px">
+          Private dataset: only the owner, admins and the users below can use it.
+          <strong>Viewer</strong> = map &amp; dashboard, <strong>Editor</strong> = may also upload files.
+        </p>
+        <table class="data-table">
+          <thead><tr><th>User</th><th>Role</th><th></th></tr></thead>
+          <tbody id="grantsTableBody"></tbody>
+        </table>
+        <div class="grant-add-row">
+          <select class="form-select" id="grantUserSelect"></select>
+          <select class="form-select" id="grantRoleSelect" style="max-width:120px">
+            <option value="viewer">Viewer</option>
+            <option value="editor">Editor</option>
+          </select>
+          <button class="btn btn-primary btn-sm" id="grantAddBtn" type="button">Grant</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Service Logs Modal -->
+  <div class="modal-overlay" id="logsModal">
+    <div class="modal-card modal-wide">
+      <div class="modal-header">
+        <h3>Logs — <span id="logsServiceName"></span> <span class="live-pill"><span class="live-dot"></span>LIVE</span></h3>
+        <div>
+          <button class="btn btn-outline btn-sm" id="logsRefreshBtn" type="button">↻</button>
+          <button class="modal-close" data-dismiss="modal">&times;</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <pre class="logs-pre" id="logsPre">Loading…</pre>
       </div>
     </div>
   </div>
