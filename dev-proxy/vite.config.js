@@ -60,6 +60,15 @@ export default defineConfig({
             res.end()
             return
           }
+          // Service-to-service endpoints (/internal/*) are unauthenticated by
+          // design and must never be reachable from the edge. This runs before
+          // Vite's proxy middleware, so it blocks the /internal/ subtree while
+          // the access-checked /backend/datasets/{id}/resolve stays reachable.
+          if (req.url && req.url.startsWith('/backend/datasets/internal')) {
+            res.statusCode = 404
+            res.end('Not Found')
+            return
+          }
           next()
         })
       },

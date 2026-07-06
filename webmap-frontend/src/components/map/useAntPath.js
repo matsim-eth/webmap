@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { safeRemoveLayer, safeRemoveSource } from './_lib/mapbox';
 import { parsePipeList } from './_lib/pipeProps';
+import { measureMapPadding } from '../sidebar/sidebarLayout';
 
 // Modules that own a Visualize button + the ant-path overlay. The ant-line
 // is sourced off either `network-source` (most modules) or
@@ -81,23 +82,13 @@ export default function useAntPath(mapRef, visualizeLinkId, graphExpandedRef, cu
     if (Number.isFinite(minLng) && Number.isFinite(minLat)) {
       // The right sidebar covers part of the map's visible area, so a
       // symmetric padding makes the link center under the sidebar rather
-      // than in the actual visible viewport. Read the live widths and
-      // pass them as asymmetric padding so the link lands centered in the
-      // map area the user can actually see.
-      const rightSidebarEl = document.querySelector('.right-sidebar');
-      const leftSidebarEl = document.querySelector('.left-sidebar');
-      const rightWidth = rightSidebarEl ? rightSidebarEl.getBoundingClientRect().width : 0;
-      const leftWidth = leftSidebarEl ? leftSidebarEl.getBoundingClientRect().width : 0;
+      // than in the actual visible viewport. Measure the live widths so the
+      // link lands centered in the map area the user can actually see.
       try {
         map.fitBounds(
           [[minLng, minLat], [maxLng, maxLat]],
           {
-            padding: {
-              top: 80,
-              bottom: 80,
-              left: leftWidth + 60,
-              right: rightWidth + 60,
-            },
+            padding: { ...measureMapPadding(60), top: 80, bottom: 80 },
             maxZoom: 16,
             duration: 700,
           }

@@ -8,6 +8,7 @@ import { useSelection } from "../../context/SelectionContext";
 import { useChoropleth } from "../../context/ChoroplethContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTableList, faFileCsv, faXmark, faChevronLeft, faRotateLeft, faDrawPolygon } from "@fortawesome/free-solid-svg-icons";
+import { getRightSidebarClass } from "./sidebarLayout";
 
 // ======================= IMPORT MODULES / GRAPHS =======================
 
@@ -107,19 +108,9 @@ const RightSidebar = () => {
   // Does this module have a feature table?
   const hasTable = TABLE_MODULES.has(isGraphExpanded);
 
-  // Determine width class
-  let sidebarClass = "hidden";
-  if (isGraphExpanded) {
-    if (!isSidebarOpen) {
-      sidebarClass = "collapsed";
-    } else if (isFeatureTableOpen) {
-      sidebarClass = "feature-table-open";
-    } else if (isGraphExpanded === "Choropleth" || isGraphExpanded === "Network") {
-      sidebarClass = "open";
-    } else {
-      sidebarClass = "expanded";
-    }
-  }
+  // Determine width class (shared with the map-padding computation so the
+  // camera compensation always matches the rendered sidebar width)
+  const sidebarClass = getRightSidebarClass({ isGraphExpanded, isSidebarOpen, isFeatureTableOpen });
 
   return (
     <aside className={`right-sidebar ${sidebarClass}`}>

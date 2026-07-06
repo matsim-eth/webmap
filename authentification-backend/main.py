@@ -95,6 +95,16 @@ DEV_EMAIL = os.getenv("DEV_EMAIL", "dev@local")
 DEV_PASSWORD = os.getenv("DEV_PASSWORD", "dev")
 DATASET_SERVICE_URL = os.getenv("DATASET_SERVICE_URL", "http://dataset_backend:5033")
 
+# Shared secret sent to the dataset service's unauthenticated /internal/*
+# endpoints (init/delete user storage). Must match INTERNAL_SERVICE_SECRET in
+# the dataset service. Empty → header omitted (dataset service then relies on
+# proxy/network isolation only).
+INTERNAL_SERVICE_SECRET = os.getenv("INTERNAL_SERVICE_SECRET", "").strip()
+
+
+def _internal_headers() -> dict:
+    return {"X-Internal-Secret": INTERNAL_SERVICE_SECRET} if INTERNAL_SERVICE_SECRET else {}
+
 
 async def _seed_one(
     db: AsyncSession,
@@ -216,7 +226,8 @@ async def _init_user_storage(user_id: int):
     import httpx
     try:
         async with httpx.AsyncClient() as client:
-            await client.post(f"{DATASET_SERVICE_URL}/internal/init-user/{user_id}", timeout=5.0)
+            await client.post(f"{DATASET_SERVICE_URL}/internal/init-user/{user_id}",
+                              headers=_internal_headers(), timeout=5.0)
         logger.info("Init storage for user %s", user_id)
     except Exception:
         logger.warning("Could not init storage for user %s (dataset service may not be ready)", user_id)
@@ -442,7 +453,8 @@ async def register(credentials: RegisterCredentialsModel, db: AsyncSession = Dep
     import httpx
     try:
         async with httpx.AsyncClient() as client:
-            await client.post(f"{DATASET_SERVICE_URL}/internal/init-user/{user.id}", timeout=5.0)
+            await client.post(f"{DATASET_SERVICE_URL}/internal/init-user/{user.id}",
+                              headers=_internal_headers(), timeout=5.0)
     except Exception:
         logger.warning("Could not init user storage for user %s", user.id)
 
@@ -861,7 +873,8 @@ async def admin_delete_user(
         import httpx
         try:
             async with httpx.AsyncClient() as client:
-                await client.delete(f"{DATASET_SERVICE_URL}/internal/delete-user/{user.id}", timeout=10.0)
+                await client.delete(f"{DATASET_SERVICE_URL}/internal/delete-user/{user.id}",
+                                    headers=_internal_headers(), timeout=10.0)
         except Exception:
             logger.warning("Could not delete storage for user %s", user.id)
 

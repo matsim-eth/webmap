@@ -6,6 +6,7 @@ import { useFilters } from '../../context/FilterContext';
 import { handle401 } from '../../utils/auth';
 import bboxCache from '../../utils/bboxCanton.json';
 import { safeRemoveLayer, safeRemoveSource } from './_lib/mapbox';
+import { measureMapPadding } from '../sidebar/sidebarLayout';
 
 // The backend (zone_flows.json) now returns `flow_geojson` — a FeatureCollection
 // of just the flow links (geometry pulled off the network_links join the query
@@ -104,7 +105,9 @@ export default function useZoneFlowLayers({ mapRef, mapReady, setIsLoading }) {
         let bbox = null;
         for (const c of cantons) bbox = unionBbox(bbox, bboxCache[c]);
         if (!bbox) return;
-        map.fitBounds(bbox, { padding: { top: 60, bottom: 60, left: 200, right: 700 }, duration: 800, maxZoom: 11 });
+        // Fires after the flow data fetch, so the sidebar widths have settled —
+        // measure them live to keep both cantons centred in the visible map.
+        map.fitBounds(bbox, { padding: { ...measureMapPadding(), top: 60, bottom: 60 }, duration: 800, maxZoom: 11 });
     }, []);
 
     const setFlowData = useCallback((map, fc) => {

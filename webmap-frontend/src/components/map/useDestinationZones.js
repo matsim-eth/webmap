@@ -13,6 +13,7 @@ import {
 // the canton GeoJSON if the polygon set ever changes.
 import cantonCentroids from '../../utils/cantonCentroids.json';
 import bboxCanton from '../../utils/bboxCanton.json';
+import { computeMapPadding } from '../sidebar/sidebarLayout';
 
 // Union of every canton's bbox — used to fit-bounds back out to the whole
 // country after the initial zoom-into-canton animation.
@@ -381,13 +382,21 @@ export default function useDestinationZones({ mapRef, selectedDestinationData, i
         const HOLD_MS = 250;         // brief pause at the canton before pulling back
         const ZOOM_OUT_MS = 1400;    // gentle pull-back
 
-        // Mirror useCantons.js right/left padding for the Destination module.
-        const rightPadding = isSidebarOpen ? 650 : 50;
-        const leftPadding = isLeftSidebarCollapsed ? 50 : 185;
+        // Same sidebar-compensated padding useCantons/usePadding apply, with
+        // a slightly larger vertical margin for the arc spread.
+        const padding = {
+            ...computeMapPadding({
+                isGraphExpanded: 'Destination',
+                isSidebarOpen,
+                isLeftSidebarOpen: !isLeftSidebarCollapsed,
+            }),
+            top: 60,
+            bottom: 60,
+        };
 
         const timer = setTimeout(() => {
             map.fitBounds(SWITZERLAND_BBOX, {
-                padding: { top: 60, bottom: 60, left: leftPadding, right: rightPadding },
+                padding,
                 duration: ZOOM_OUT_MS,
                 essential: true,
             });

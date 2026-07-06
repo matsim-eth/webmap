@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import bboxCache from '../../utils/bboxCanton.json';
+import { computeMapPadding } from '../sidebar/sidebarLayout';
 
 export default function useCantons({
   mapRef,
@@ -10,6 +11,7 @@ export default function useCantons({
   suppressNextSearchZoom,
   graphExpandedRef,
   setIsFeatureTableOpen,
+  isSidebarOpen,
   isLeftSidebarOpen,
   drawRef
 }) {
@@ -73,9 +75,11 @@ export default function useCantons({
   }, [mapRef, mapReady]);
 
   // avoid re-running click handler effect on every sidebar toggle —
-  // use a ref so handleMapClick always reads the latest value
+  // use refs so handleMapClick always reads the latest values
   const isLeftSidebarOpenRef = useRef(isLeftSidebarOpen);
   useEffect(() => { isLeftSidebarOpenRef.current = isLeftSidebarOpen; }, [isLeftSidebarOpen]);
+  const isSidebarOpenRef = useRef(isSidebarOpen);
+  useEffect(() => { isSidebarOpenRef.current = isSidebarOpen; }, [isSidebarOpen]);
 
   // 2) zoom to canton on click on layer (with correct padding)
   useEffect(() => {
@@ -122,21 +126,15 @@ export default function useCantons({
           return; // if clicked on out of canton stop, dont zoom to it.
         }
 
-        // Determine the right padding based on which graph is selected
-        let rightPadding = 50;
-        const leftPadding = isLeftSidebarOpenRef.current ? 185 : 50;
-
-        if (graphExpandedRef.current) {
-          const mediumGraphs = ['Volumes', 'Transit', 'TransitVolumes', 'Destination', 'PtBoardings', 'VolumeFlow', 'NodeFlows', 'LinkSpeeds', 'ZoneFlows'];
-          if (mediumGraphs.includes(graphExpandedRef.current)) {
-            rightPadding = 650;
-          } else {
-            rightPadding = 350;
-          }
-        }
-
         map.fitBounds(cantonBbox, {
-          padding: { top: 50, bottom: 50, left: leftPadding, right: rightPadding },
+          // isFeatureTableOpen: false — the table was closed just above, so
+          // pad for the sidebar width it is animating to.
+          padding: computeMapPadding({
+            isGraphExpanded: graphExpandedRef.current,
+            isSidebarOpen: isSidebarOpenRef.current,
+            isFeatureTableOpen: false,
+            isLeftSidebarOpen: isLeftSidebarOpenRef.current,
+          }),
           maxZoom: 10,
           duration: 1000
         });

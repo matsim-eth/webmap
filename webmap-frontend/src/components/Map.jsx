@@ -24,6 +24,7 @@ import { useFilters } from '../context/FilterContext';
 import { useSelection } from '../context/SelectionContext';
 import { useChoropleth as useChoroplethState } from '../context/ChoroplethContext';
 import { useResetMapView } from '../hooks/useResetMapView';
+import { computeMapPadding } from './sidebar/sidebarLayout';
 
 export default function Map() {
   const { isGraphExpanded } = useModule();
@@ -95,12 +96,23 @@ export default function Map() {
   const graphExpandedRef = useRef(isGraphExpanded);
   graphExpandedRef.current = isGraphExpanded;
 
-  // initialize mapbox map instance
+  // initialize mapbox map instance — with the sidebar-compensated padding
+  // applied from the first frame, so Switzerland loads already centred in
+  // the visible map area (only used at construction; later sidebar/module
+  // changes animate via usePadding)
   const {
     mapRef,
     mapContainerRef,
     mapReady
-  } = useMapbox(import.meta.env.VITE_MAPBOX_TOKEN);
+  } = useMapbox(
+    import.meta.env.VITE_MAPBOX_TOKEN,
+    computeMapPadding({
+      isGraphExpanded,
+      isSidebarOpen,
+      isFeatureTableOpen,
+      isLeftSidebarOpen: !isLeftSidebarCollapsed,
+    })
+  );
 
   // Sync map instance to context ref (derived assignment, not an effect)
   if (contextMapRef && mapReady) {
@@ -118,6 +130,7 @@ export default function Map() {
     graphExpandedRef,
     setIsFeatureTableOpen: setIsFeatureTableOpen,
     isFeatureTableOpen: isFeatureTableOpen,
+    isSidebarOpen: isSidebarOpen,
     isLeftSidebarOpen: !isLeftSidebarCollapsed,
     drawRef: contextDrawRef
   });

@@ -22,6 +22,7 @@ import { useChoropleth } from '../../context/ChoroplethContext';
 import { redirectToLogin, checkIsAdmin } from '../../utils/auth';
 import { useQuery } from '@tanstack/react-query';
 import DatasetSelector from '../DatasetSelector';
+import { LEFT_SIDEBAR_WIDTH, LEFT_SIDEBAR_COLLAPSED_WIDTH } from './sidebarLayout';
 
 const SectionTitle = ({ label, isOpen, onToggle }) => (
   <button className="left-sidebar-section-title" onClick={onToggle}>
@@ -62,7 +63,8 @@ const LeftSidebar = () => {
   // Expose sidebar width as CSS variable for search bar positioning
   // effect:audited — DOM side-effect syncing CSS custom property to React state
   document.documentElement.style.setProperty(
-    '--left-sidebar-width', isCollapsed ? '60px' : '215px'
+    '--left-sidebar-width',
+    `${isCollapsed ? LEFT_SIDEBAR_COLLAPSED_WIDTH : LEFT_SIDEBAR_WIDTH}px`
   );
 
   const menuItems = [

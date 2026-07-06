@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { computeMapPadding } from '../components/sidebar/sidebarLayout';
 
 /**
  * Hook to reset the map view when the resetMapTrigger changes.
@@ -8,14 +9,17 @@ export function useResetMapView({ mapRef, mapReady, resetMapTrigger, isLeftSideb
   useEffect(() => {
     if (!mapReady || !mapRef.current) return;
 
-    const leftPadding = isLeftSidebarCollapsed ? 50 : 185;
-
-    // If user clicked reset, go back to full country view
+    // If user clicked reset, go back to full country view. Reset also closes
+    // the active module, so the right sidebar is hidden.
     mapRef.current.easeTo({
       center: [8.1642, 46.7592],
       zoom: 7,
       duration: 1000,
-      padding: { top: 50, bottom: 50, left: leftPadding, right: 50 },
+      padding: computeMapPadding({
+        isGraphExpanded: null,
+        isSidebarOpen: false,
+        isLeftSidebarOpen: !isLeftSidebarCollapsed,
+      }),
     });
   }, [resetMapTrigger, mapReady]);
 }

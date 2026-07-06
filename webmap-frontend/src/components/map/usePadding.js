@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import bboxCache from '../../utils/bboxCanton.json';
+import { computeMapPadding } from '../sidebar/sidebarLayout';
 
-export default function useCantons({
+export default function usePadding({
   mapRef,
   mapReady,
   setClickedCanton,
@@ -14,14 +15,16 @@ export default function useCantons({
   setIsFeatureTableOpen,
   isLeftSidebarOpen
 }) {
-  
+
   // avoid changing padding when we select new canton
   const suppressPaddingRef = useRef(false);
 
   // avoid re-running search-zoom effect on every sidebar toggle —
-  // use a ref so fitBounds always reads the latest value without re-triggering
+  // use refs so fitBounds always reads the latest values without re-triggering
   const isLeftSidebarOpenRef = useRef(isLeftSidebarOpen);
   useEffect(() => { isLeftSidebarOpenRef.current = isLeftSidebarOpen; }, [isLeftSidebarOpen]);
+  const isSidebarOpenRef = useRef(isSidebarOpen);
+  useEffect(() => { isSidebarOpenRef.current = isSidebarOpen; }, [isSidebarOpen]);
 
   // 1) padding on sidebar resize
   useEffect(() => {
@@ -31,80 +34,50 @@ export default function useCantons({
     const map = mapRef.current;
     if (!map) return;
 
-    let rightPadding = 50;
-    const leftPadding = isLeftSidebarOpen ? 185 : 50;
-
-    // Right sidebar is only visible when both open AND a module is active
-    if (isSidebarOpen && isGraphExpanded) {
-      const mediumGraphs = [
-        'Destination', 'PtBoardings'
-      ];
-
-      if (isGraphExpanded === 'Volumes' || isGraphExpanded === 'TransitVolumes' || isGraphExpanded === 'Transit'
-        || isGraphExpanded === 'VolumeFlow' || isGraphExpanded === 'NodeFlows' || isGraphExpanded === 'LinkSpeeds'
-        || isGraphExpanded === 'ZoneFlows' || isGraphExpanded === 'PolygonTrips') {
-        rightPadding = isFeatureTableOpen ? 950 : 650;
-      } else if (mediumGraphs.includes(isGraphExpanded)) {
-        rightPadding = 650;
-      } else {
-        // Default (Network/Choropleth): 950px when table open, 350px otherwise
-        rightPadding = isFeatureTableOpen ? 950 : 350;
-      }
-    }
-    
     map.easeTo({
-      padding: { top: 50, bottom: 50, left: leftPadding, right: rightPadding },
+      padding: computeMapPadding({ isGraphExpanded, isSidebarOpen, isFeatureTableOpen, isLeftSidebarOpen }),
       duration: 600,
     });
   }, [mapRef, mapReady, isSidebarOpen, isGraphExpanded, isFeatureTableOpen, isLeftSidebarOpen]);
-  
+
   // 2) zoom to canton on search (with correct padding)
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !searchCanton) return;
-    
+
     // if we suppress next zoom, dont do anything
     if (suppressNextSearchZoom.current) {
       console.log('suppressing search zoom');
-      
+
       // note we reset supressnextSearchZoom in useTransitStops after we apply the opacity filter to stops
       // not corresponding to the currently selected transit line
       return;
     }
-    
+
     setIsFeatureTableOpen(false);
     suppressPaddingRef.current = true
-    
+
     const bbox = bboxCache[searchCanton];
     if (!bbox) return;
     setClickedCanton(searchCanton);
     map.setFilter('selected-canton-border',['==','NAME',searchCanton]);
-    
-    // Determine right padding based on sidebar and graph
-    let rightPadding = 50;
-    const leftPadding = isLeftSidebarOpenRef.current ? 185 : 50;
 
-    if (isSidebarOpen && graphExpandedRef.current) {
-      const mediumGraphs = [
-        'Volumes', 'Transit', 'TransitVolumes', 'Destination', 'PtBoardings', 'VolumeFlow', 'NodeFlows', 'LinkSpeeds', 'ZoneFlows', 'PolygonTrips'
-      ];
-
-      if (mediumGraphs.includes(graphExpandedRef.current)) {
-        rightPadding = 650;
-      } else {
-        rightPadding = 350;
-      }
-    }
-    
     map.fitBounds(bbox, {
-      padding: { top: 50, bottom: 50, left: leftPadding, right: rightPadding },
+      // isFeatureTableOpen: false — the table was closed just above, so pad
+      // for the sidebar width it is animating to, not the one it had.
+      padding: computeMapPadding({
+        isGraphExpanded: graphExpandedRef.current,
+        isSidebarOpen: isSidebarOpenRef.current,
+        isFeatureTableOpen: false,
+        isLeftSidebarOpen: isLeftSidebarOpenRef.current,
+      }),
       maxZoom: 10,
       duration: 1000,
     });
-    
+
     map.once('moveend', () => {                  // re-enable after animation
       suppressPaddingRef.current = false;
     });
-    
+
   }, [mapRef, searchCanton, setClickedCanton, suppressNextSearchZoom]);
 }

@@ -55,6 +55,7 @@ services:
       DEV_EMAIL: "${DEV_EMAIL:-dev@local}"
       DEV_PASSWORD: "${DEV_PASSWORD:-dev}"
       DATASET_SERVICE_URL: http://dataset_backend:5033
+      INTERNAL_SERVICE_SECRET: "${INTERNAL_SERVICE_SECRET:-}"
       ROOT_PATH: /authentification/backend
       # Registration gates (both optional, default off)
       REQUIRE_EMAIL_VERIFICATION: "${REQUIRE_EMAIL_VERIFICATION:-0}"
@@ -90,6 +91,7 @@ services:
       ACCESS_TOKEN_MINUTES: "${ACCESS_TOKEN_MINUTES:-15}"
       REFRESH_TOKEN_DAYS: "${REFRESH_TOKEN_DAYS:-14}"
       DATASET_STORAGE_ROOT: /data/datasets
+      INTERNAL_SERVICE_SECRET: "${INTERNAL_SERVICE_SECRET:-}"
       ROOT_PATH: /backend/datasets
     volumes:
       - dataset_storage:/data/datasets
