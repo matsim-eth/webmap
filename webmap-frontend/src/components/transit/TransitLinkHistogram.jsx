@@ -1,6 +1,7 @@
 import React from "react";
 import Plot from "react-plotly.js";
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
+import { useData } from "../../context/DataContext";
 import { useQuery } from "@tanstack/react-query";
 
 const TransitLinkHistogram = ({
@@ -11,6 +12,7 @@ const TransitLinkHistogram = ({
   triggerVisualize
 }) => {
   const loadWithFallback = useLoadWithFallback();
+  const { datasetId } = useData();
 
   const startTick = timeRange?.[0] ?? 0;
   const endTick   = timeRange?.[1] ?? 96;
@@ -18,8 +20,10 @@ const TransitLinkHistogram = ({
   const cleanLinkId = (id) =>
     String(id).split("_").map(p => p.split(":")[0]).join("_");
 
+  // datasetId in the key: refetch when the dataset switches instead of
+  // serving the previous dataset's cached volumes.
   const { data: volumeData } = useQuery({
-    queryKey: ['transit-link-volume', canton, String(linkId)],
+    queryKey: ['transit-link-volume', datasetId, canton, String(linkId)],
     queryFn: () => {
       const key = String(linkId);
       return loadWithFallback(

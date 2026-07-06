@@ -12,8 +12,10 @@ in the duckdb `trips` table are already stored as GEOMETRY in CH1903+/LV95
 
 Query params
 ------------
-polygon       (str, required) : Polygon ring as "lng,lat;lng,lat;..." (closed
-                                or open — the ring is auto-closed).
+polygon       (str, required) : One or more polygon rings as
+                                "lng,lat;lng,lat;...", multiple rings joined
+                                with "|". Rings are auto-closed and unioned
+                                into a single study area.
 minute_start  (int, 0-1440)   : Departure time window start (minutes from midnight).
 minute_end    (int, 0-1440)   : Departure time window end (minutes from midnight).
 source        (str)           : "synthetic" (default) or "microcensus".
@@ -29,31 +31,46 @@ _cget, _cput = make_cache(maxsize=48)
 
 
 def _parse_polygon(raw: str) -> str | None:
-    """Convert "lng,lat;lng,lat;..." into a WGS84 POLYGON WKT, or None on bad input."""
+    """Convert one or more rings into a WGS84 MULTIPOLYGON WKT, or None on bad input.
+
+    Rings are separated by "|", points within a ring by ";", coords by ",".
+    A single ring (no "|") yields a one-part multipolygon so the format stays
+    backward compatible with the old single-polygon wire encoding. All drawn
+    polygons are unioned into one study area, so a trip whose endpoints fall in
+    two different rings counts as "internal".
+    """
     if not raw:
         return None
-    pts: list[tuple[float, float]] = []
-    for chunk in raw.split(";"):
-        chunk = chunk.strip()
-        if not chunk:
+    rings_wkt: list[str] = []
+    for ring_raw in raw.split("|"):
+        pts: list[tuple[float, float]] = []
+        for chunk in ring_raw.split(";"):
+            chunk = chunk.strip()
+            if not chunk:
+                continue
+            try:
+                lng_s, lat_s = chunk.split(",", 1)
+                lng = float(lng_s)
+                lat = float(lat_s)
+            except (ValueError, IndexError):
+                return None
+            pts.append((lng, lat))
+        if not pts:
+            # empty segment (e.g. a trailing "|") — skip
             continue
-        try:
-            lng_s, lat_s = chunk.split(",", 1)
-            lng = float(lng_s)
-            lat = float(lat_s)
-        except (ValueError, IndexError):
+        if len(pts) < 3:
             return None
-        pts.append((lng, lat))
-    if len(pts) < 3:
+        if pts[0] != pts[-1]:
+            pts.append(pts[0])
+        inner = ", ".join(f"{lng} {lat}" for lng, lat in pts)
+        rings_wkt.append(f"(({inner}))")
+    if not rings_wkt:
         return None
-    if pts[0] != pts[-1]:
-        pts.append(pts[0])
-    inner = ", ".join(f"{lng} {lat}" for lng, lat in pts)
-    return f"POLYGON(({inner}))"
+    return f"MULTIPOLYGON({', '.join(rings_wkt)})"
 
 
 _PARAMS = [
-    Param("polygon", "Polygon ring as 'lng,lat;lng,lat;...' (WGS84)", required=True),
+    Param("polygon", "One or more rings 'lng,lat;lng,lat;...' joined by '|' (WGS84); rings are unioned", required=True),
     Param("minute_start", "Departure window start (minutes from midnight)", param_type="integer"),
     Param("minute_end", "Departure window end (minutes from midnight)", param_type="integer"),
     Param("source", "'synthetic' (default) or 'microcensus'"),

@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import Plot from 'react-plotly.js';
 import { useDashboard } from '../../context/DashboardContext';
 import { useResizeOnSidebarChange } from '../../hooks/useResizeOnSidebarChange';
-import { useLinePolygonCounts } from '../../hooks/useLinePolygonCounts';
+import { useLinePolygonCountsMulti } from '../../hooks/useLinePolygonCounts';
 import { lineMatchesFilter } from '../../utils/transitLineFilter';
 import PlotLoader from './PlotLoader';
 
@@ -10,6 +10,8 @@ const METRICS = {
   boardings: { label: 'Boardings', color: '#1f77b4' },
   alightings: { label: 'Alightings', color: '#ff7f0e' },
 };
+
+const HIGHLIGHT = '#22c55e';
 
 const PassengersByMunicipality = ({ sidebarCollapsed, isExpanded = false, metric = 'boardings' }) => {
   const {
@@ -24,16 +26,34 @@ const PassengersByMunicipality = ({ sidebarCollapsed, isExpanded = false, metric
 
   useResizeOnSidebarChange(sidebarCollapsed);
 
-  const { data, isLoading } = useLinePolygonCounts(selectedLineMeta, polygonSet);
+  const perDataset = useLinePolygonCountsMulti(selectedLineMeta, polygonSet);
+  const withRows = perDataset.filter((d) => d.rows);
+  const isComparison = perDataset.length > 1;
 
-  // Sort by the active metric, top 30 (avoids a 200-bar plot for nationwide
-  // lines). Zero-metric rows are kept so polygons with no boardings still
-  // render bars (just empty).
-  const rows = useMemo(() => {
-    const all = data?.rows ?? [];
-    const sorted = [...all].sort((a, b) => b[metric] - a[metric]);
-    return sorted.slice(0, 30);
-  }, [data, metric]);
+  // Join datasets on polygon_id, sort by the active metric summed across
+  // datasets, top 30 (avoids a 200-bar plot for nationwide lines).
+  // Zero-metric rows are kept so polygons with no boardings still render
+  // bars (just empty). Single mode reduces to the legacy sort.
+  const joined = useMemo(() => {
+    const byPoly = new Map();
+    for (const { dataset, rows } of perDataset) {
+      if (!rows) continue;
+      for (const r of rows) {
+        let entry = byPoly.get(r.polygon_id);
+        if (!entry) {
+          entry = { polygon_id: r.polygon_id, name: r.name, kanton: r.kanton, values: {} };
+          byPoly.set(r.polygon_id, entry);
+        }
+        if (entry.kanton == null && r.kanton != null) entry.kanton = r.kanton;
+        entry.values[dataset.datasetId] = r;
+      }
+    }
+    const all = [...byPoly.values()];
+    const metricSum = (e) =>
+      Object.values(e.values).reduce((acc, r) => acc + (r[metric] ?? 0), 0);
+    all.sort((a, b) => metricSum(b) - metricSum(a));
+    return all.slice(0, 30);
+  }, [perDataset, metric]);
 
   if (!selectedLineMeta) {
     return <div className="plot-loading">Search for a transit line above</div>;
@@ -41,30 +61,40 @@ const PassengersByMunicipality = ({ sidebarCollapsed, isExpanded = false, metric
   if (hiddenByFilter) {
     return <div className="plot-loading">Selected line hidden by mode filter</div>;
   }
-  if (isLoading) {
+  // Wait for the primary; the secondary's bars appear when its fetch lands.
+  if (perDataset.length === 0 || perDataset[0].isLoading) {
     return <PlotLoader />;
   }
 
-  const x = rows.map((r) => r.name);
-  const y = rows.map((r) => r[metric]);
-  const colors = rows.map((r) =>
-    selectedMunicipality && String(selectedMunicipality) === String(r.polygon_id)
-      ? '#22c55e'
-      : color
-  );
+  const x = joined.map((r) => r.name);
+  const customdata = joined.map((r) => [r.polygon_id, r.kanton ?? '']);
+  const hasKanton = joined.some((r) => r.kanton);
+  const isSelected = (r) =>
+    selectedMunicipality && String(selectedMunicipality) === String(r.polygon_id);
 
-  // Hover line for kanton (muni path only — custom polygons don't carry it).
-  const hasKanton = rows.some((r) => r.kanton);
-  const trace = {
+  const hovertemplate = hasKanton
+    ? `<b>%{x}</b><br>${label}: %{y:,}<br>Canton: %{customdata[1]}<extra>${isComparison ? '%{fullData.name}' : ''}</extra>`
+    : `<b>%{x}</b><br>${label}: %{y:,}<extra>${isComparison ? '%{fullData.name}' : ''}</extra>`;
+
+  const traces = withRows.map(({ dataset }) => ({
     type: 'bar',
+    name: dataset.name,
     x,
-    y,
-    marker: { color: colors },
-    customdata: rows.map((r) => [r.polygon_id, r.kanton ?? '']),
-    hovertemplate: hasKanton
-      ? `<b>%{x}</b><br>${label}: %{y:,}<br>Canton: %{customdata[1]}<extra></extra>`
-      : `<b>%{x}</b><br>${label}: %{y:,}<extra></extra>`,
-  };
+    y: joined.map((r) => r.values[dataset.datasetId]?.[metric] ?? 0),
+    marker: isComparison
+      ? {
+          color: dataset.color,
+          // Outline the selected polygon's bars so the highlight doesn't
+          // erase the per-dataset colors.
+          line: {
+            color: joined.map((r) => (isSelected(r) ? HIGHLIGHT : 'rgba(0,0,0,0)')),
+            width: joined.map((r) => (isSelected(r) ? 2.5 : 0)),
+          },
+        }
+      : { color: joined.map((r) => (isSelected(r) ? HIGHLIGHT : color)) },
+    customdata,
+    hovertemplate,
+  }));
 
   // X-axis label depends on polygon set kind. Custom uses the chosen property
   // name when available so the user knows what each bar represents.
@@ -88,7 +118,11 @@ const PassengersByMunicipality = ({ sidebarCollapsed, isExpanded = false, metric
       rangemode: 'nonnegative',
     },
     hovermode: 'closest',
-    showlegend: false,
+    showlegend: isComparison,
+    ...(isComparison && {
+      barmode: 'group',
+      legend: { orientation: 'h', y: 1.05, x: 0.5, xanchor: 'center', font: { size: 10 } },
+    }),
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: 'rgba(0,0,0,0)',
   };
@@ -118,14 +152,14 @@ const PassengersByMunicipality = ({ sidebarCollapsed, isExpanded = false, metric
 
   const lineLabel = selectedLineMeta.line_name || selectedLineMeta.line_id;
   const title = `${label} by ${polygonKind} (Line ${lineLabel})${
-    rows.length === 30 ? ' — top 30' : ''
+    joined.length === 30 ? ' — top 30' : ''
   }`;
 
   return (
     <div className="plot-wrapper">
       <h4 className="plot-title">{title}</h4>
       <Plot
-        data={[trace]}
+        data={traces}
         layout={layout}
         config={config}
         style={{ width: '100%', height: '100%' }}

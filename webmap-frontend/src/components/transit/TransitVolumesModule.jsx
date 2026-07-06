@@ -23,7 +23,7 @@ import { useFileContext } from "../../FileContext";
 import { useQuery } from "@tanstack/react-query";
 
 const TransitVolumesModule = ({ transitFeatureTableRef }) => {
-  const { dataURL, isFeatureTableOpen, featureGeoJSON, setTableFilterQuery } = useData();
+  const { dataURL, datasetId, isFeatureTableOpen, featureGeoJSON, setTableFilterQuery } = useData();
   const {
     selectedTransitModes, setSelectedTransitModes,
     showLineSymbology, setShowLineSymbology,
@@ -44,8 +44,9 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
   const selectedGraph = isGraphExpanded;
 
   // Per-canton transit mode list — drives the multi-select dropdown.
+  // datasetId in the key: refetch when the dataset switches.
   const { data: transitModesByCanton = {} } = useQuery({
-    queryKey: ['transit-modes-by-canton', dataURL, fileMap.size],
+    queryKey: ['transit-modes-by-canton', datasetId, dataURL, fileMap.size],
     queryFn: () => loadWithFallback("matsim/transit/transit_modes_by_canton.json"),
   });
   const availableTransitModes = useMemo(() => {

@@ -8,11 +8,16 @@ import useDrawPolygons from '../../hooks/useDrawPolygons';
 import { handle401 } from '../../utils/auth';
 
 const polygonsToParam = (polygons) => {
-    // Use the first polygon's outer ring; multi-polygon support can come later.
-    const f = polygons?.[0];
-    const ring = f?.geometry?.coordinates?.[0];
-    if (!ring || ring.length < 3) return null;
-    return ring.map(([lng, lat]) => `${lng.toFixed(6)},${lat.toFixed(6)}`).join(';');
+    // Encode every drawn polygon's outer ring. The backend unions them into a
+    // single study area (MULTIPOLYGON): rings are joined with "|", points with
+    // ";", coords with ",". A single polygon has no "|" and stays backward
+    // compatible with the old single-ring wire format.
+    if (!polygons?.length) return null;
+    const rings = polygons
+        .map((f) => f?.geometry?.coordinates?.[0])
+        .filter((ring) => ring && ring.length >= 3)
+        .map((ring) => ring.map(([lng, lat]) => `${lng.toFixed(6)},${lat.toFixed(6)}`).join(';'));
+    return rings.length ? rings.join('|') : null;
 };
 
 /**

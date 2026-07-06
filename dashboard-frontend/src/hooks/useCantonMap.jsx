@@ -705,23 +705,38 @@ export function useCantonMap({
     let cancelled = false;
 
     const run = async () => {
-      const routesGeo = await getCantonData('matsim/transit/routes/transit_routes.geojson');
+      // Prefer the per-line backend slice (tens of KB) over downloading the
+      // whole ~76 MB transit_routes.geojson. On 404 the loader returns null;
+      // fall back to the full file + client-side line_id filter so legacy /
+      // CDN-only datasets that lack the by_line asset keep working.
+      let matchedRoutes = null;
+      const byLine = await getCantonData(
+        `matsim/transit/routes/by_line/${encodeURIComponent(line_id)}.geojson`
+      );
       if (cancelled) return;
-      if (!routesGeo?.features) {
-        console.warn('[transit-lines] transit_routes.geojson failed to load or has no features');
-        return;
+      if (byLine?.features?.length) {
+        matchedRoutes = byLine.features;
       }
 
-      // Match by line_id only. boarding_data_by_line route_ids don't match
-      // transit_routes.geojson route_ids (dataset-specific namespaces), so
-      // we don't restrict on route_id.
-      const matchedRoutes = routesGeo.features.filter(
-        (f) => String(f.properties?.line_id) === String(line_id)
-      );
-      if (matchedRoutes.length === 0) {
-        console.warn(
-          `[transit-lines] no routes matched in transit_routes.geojson for line_id="${line_id}".`
+      if (!matchedRoutes) {
+        const routesGeo = await getCantonData('matsim/transit/routes/transit_routes.geojson');
+        if (cancelled) return;
+        if (!routesGeo?.features) {
+          console.warn('[transit-lines] transit_routes.geojson failed to load or has no features');
+          return;
+        }
+
+        // Match by line_id only. boarding_data_by_line route_ids don't match
+        // transit_routes.geojson route_ids (dataset-specific namespaces), so
+        // we don't restrict on route_id.
+        matchedRoutes = routesGeo.features.filter(
+          (f) => String(f.properties?.line_id) === String(line_id)
         );
+        if (matchedRoutes.length === 0) {
+          console.warn(
+            `[transit-lines] no routes matched in transit_routes.geojson for line_id="${line_id}".`
+          );
+        }
       }
 
       await awaitStyleLoaded(m);

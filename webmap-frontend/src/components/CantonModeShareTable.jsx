@@ -2,6 +2,7 @@ import React from "react";
 import "./Table.css";
 import cantonAlias from "../utils/canton_alias.json";
 import { useLoadWithFallback } from "../utils/useLoadWithFallback";
+import { useData } from "../context/DataContext";
 import { useQuery } from "@tanstack/react-query";
 
 // --- Color & label maps ---
@@ -48,12 +49,15 @@ const CantonModeShareTable = ({
   aggCol = "mode", // "mode" or "purpose"
 }) => {
   const loadWithFallback = useLoadWithFallback();
+  const { datasetId } = useData();
 
   const COLORS = COLOR_MAPS[aggCol] || {};
   const LABELS = LABEL_MAPS[aggCol] || {};
 
+  // datasetId in the key: refetch the share table when the dataset switches
+  // instead of serving the previous dataset's cached response.
   const { data: shareData } = useQuery({
-    queryKey: ['share-data', aggCol],
+    queryKey: ['share-data', aggCol, datasetId],
     queryFn: () => loadWithFallback(`${aggCol}_share.json`),
   });
 

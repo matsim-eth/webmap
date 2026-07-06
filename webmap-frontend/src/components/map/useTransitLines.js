@@ -29,7 +29,8 @@ export default function useTransitLines(
     setHighlightedLineId,
     setHighlightedRouteIds,
     setSelectedTransitStop,
-    suppressNextSearchZoom
+    suppressNextSearchZoom,
+    datasetId
 ) {
     
     useEffect(() => {
@@ -284,7 +285,9 @@ export default function useTransitLines(
             };
             
             loadRoutes();
-        }, [showStopVolumeSymbology, highlightedLineId, isGraphExpanded]);
+        // datasetId: on a dataset switch, reload the highlighted line's route
+        // geometry and inter-cantonal stops from the new dataset.
+        }, [showStopVolumeSymbology, highlightedLineId, isGraphExpanded, datasetId]);
 
         // Clear highlighted line if the current mode filter excludes its mode
         useEffect(() => {
@@ -312,7 +315,7 @@ export default function useTransitLines(
                 }
             };
             ensure();
-        }, [selectedTransitModes, highlightedLineId, isGraphExpanded]);
+        }, [selectedTransitModes, highlightedLineId, isGraphExpanded, datasetId]);
         
         // reset transit line and inter-cantonal stops when canton changes
         useEffect(() => {

@@ -4,8 +4,16 @@ import { useData } from '../context/DataContext';
 import { useDashboard } from '../context/DashboardContext';
 import { useLineCantonCounts } from './useLineCantonCounts';
 import { useEffectiveLineCantons } from './useEffectiveLineCantons';
-import { parseStopFeatureLines } from '../utils/transitLineFilter';
-import { findContainingFeature } from '../utils/pointInPolygon';
+import {
+  useTransitDatasets,
+  useLineCantonCountsMulti,
+  resolveLineIdFromStopGeos,
+} from './useTransitComparison';
+import {
+  collectStopsOnLine,
+  buildStopToPolygon,
+  aggregatePolygonRows,
+} from '../utils/linePolygonAggregation';
 
 /**
  * Aggregate per-stop boardings/alightings to per-polygon totals for the
@@ -26,7 +34,9 @@ import { findContainingFeature } from '../utils/pointInPolygon';
  *
  * Strategy: muni *list* and custom *list* are both seeded from the line's
  * stops so polygons with all-zero boardings still render bars at zero height.
- * Counts then fill in metric values where available.
+ * Counts then fill in metric values where available. The pure pipeline steps
+ * live in utils/linePolygonAggregation.js, shared with the secondary-dataset
+ * path in useLinePolygonCountsMulti.
  */
 export function useLinePolygonCounts(selectedLineMeta, polygonSet) {
   const { getCantonData } = useData();
@@ -53,25 +63,7 @@ export function useLinePolygonCounts(selectedLineMeta, polygonSet) {
           getCantonData(`matsim/transit/stops_by_canton/${c}_stops.geojson`).catch(() => null)
         )
       );
-      const seen = new Set();
-      const stops = [];
-      for (const geo of stopGeos) {
-        if (!geo?.features) continue;
-        for (const f of geo.features) {
-          const parsed = parseStopFeatureLines(f.properties?.lines);
-          if (!parsed.some((l) => String(l.line_id) === String(lineId))) continue;
-          const sid = f.properties?.stop_id;
-          const ids = Array.isArray(sid) ? sid : sid != null ? [sid] : [];
-          const coords = f.geometry?.coordinates;
-          for (const id of ids) {
-            const key = String(id);
-            if (seen.has(key)) continue;
-            seen.add(key);
-            stops.push({ stop_id: key, coords });
-          }
-        }
-      }
-      return stops;
+      return collectStopsOnLine(stopGeos, lineId);
     },
   });
 
@@ -93,84 +85,14 @@ export function useLinePolygonCounts(selectedLineMeta, polygonSet) {
 
   // Stop → { id, name, kanton? } in a unified shape. The two paths produce
   // the same shape so the aggregation below stays single-purpose.
-  const stopToPolygon = useMemo(() => {
-    if (isCustom) {
-      if (!stopsOnLine || !polygonSet?.features?.length || !polygonSet?.nameProperty) return null;
-      const out = {};
-      for (const stop of stopsOnLine) {
-        const poly = findContainingFeature(stop.coords, polygonSet.features);
-        if (!poly) continue;
-        // Stable polygon id: prefer feature.id, fall back to nameProperty value.
-        const idCandidate =
-          poly.id ?? poly.properties?.id ?? poly.properties?.[polygonSet.nameProperty];
-        if (idCandidate == null) continue;
-        out[stop.stop_id] = {
-          id: String(idCandidate),
-          name: String(poly.properties?.[polygonSet.nameProperty] ?? idCandidate),
-        };
-      }
-      return out;
-    }
-    // Municipality path
-    if (!muniLookup) return null;
-    const out = {};
-    for (const [sid, m] of Object.entries(muniLookup)) {
-      if (m?.bfs_nummer == null) continue;
-      out[sid] = {
-        id: String(m.bfs_nummer),
-        name: m.municipality,
-        kanton: m.kanton,
-      };
-    }
-    return out;
-  }, [isCustom, stopsOnLine, polygonSet, muniLookup]);
+  const stopToPolygon = useMemo(
+    () => buildStopToPolygon({ isCustom, stopsOnLine, polygonSet, muniLookup }),
+    [isCustom, stopsOnLine, polygonSet, muniLookup]
+  );
 
   const data = useMemo(() => {
     if (!countsData?.rows || !stopToPolygon || !stopsOnLine) return null;
-
-    const byPoly = new Map();
-
-    // Seed entries from the line's stop set so zero-count polygons render
-    // bars at height zero (matches the legacy "show munis on x-axis" feel).
-    for (const stop of stopsOnLine) {
-      const entry = stopToPolygon[stop.stop_id];
-      if (!entry || byPoly.has(entry.id)) continue;
-      byPoly.set(entry.id, {
-        polygon_id: entry.id,
-        name: entry.name,
-        kanton: entry.kanton,
-        boardings: 0,
-        alightings: 0,
-      });
-    }
-
-    // Fill in counts. Counts files may reference stop_ids missing from the
-    // stops geojson (different MATSim variants); tolerate that by adding
-    // entries on the fly.
-    for (const row of countsData.rows) {
-      const entry = stopToPolygon[String(row.stop_id)];
-      if (!entry) continue;
-      let agg = byPoly.get(entry.id);
-      if (!agg) {
-        agg = {
-          polygon_id: entry.id,
-          name: entry.name,
-          kanton: entry.kanton,
-          boardings: 0,
-          alightings: 0,
-        };
-        byPoly.set(entry.id, agg);
-      }
-      const bins = Array.isArray(row.data) ? row.data : [];
-      for (const t of bins) {
-        agg.boardings += Number(t.boardings) || 0;
-        agg.alightings += Number(t.alightings) || 0;
-      }
-    }
-
-    const rows = [...byPoly.values()].map((r) => ({ ...r, total: r.boardings + r.alightings }));
-    rows.sort((a, b) => b.total - a.total);
-    return { rows };
+    return { rows: aggregatePolygonRows(countsData.rows, stopToPolygon, stopsOnLine) };
   }, [countsData, stopToPolygon, stopsOnLine]);
 
   return {
@@ -182,4 +104,107 @@ export function useLinePolygonCounts(selectedLineMeta, polygonSet) {
       (!isCustom && muniLookupLoading),
     isError: countsError || stopsError || (!isCustom && muniLookupError),
   };
+}
+
+/**
+ * Comparison variant: runs the polygon aggregation pipeline once per unique
+ * dataset in the comparison slots. Primary delegates to useLinePolygonCounts
+ * above (cache shared with single-dataset consumers); the secondary dataset
+ * gets its own stops-on-line (with line id→name fallback), its own
+ * stop→municipality lookup, and its own counts, all fetched from
+ * `/backend/data/{id}/...`.
+ *
+ * Returns [{ dataset, rows, isLoading, isError }] aligned with
+ * useTransitDatasets().
+ */
+export function useLinePolygonCountsMulti(selectedLineMeta, polygonSet) {
+  const datasets = useTransitDatasets();
+  const { getUrlData } = useData();
+  const ds0 = datasets[0] ?? null;
+  const ds1 = datasets[1] ?? null;
+
+  const lineId = selectedLineMeta?.line_id ?? null;
+  const lineName = selectedLineMeta?.line_name ?? null;
+  const { cantons } = useEffectiveLineCantons(selectedLineMeta);
+  const cantonsKey = [...cantons].sort().join('|');
+  const isCustom = polygonSet?.kind === 'custom';
+  const enabled = !!ds1 && !!lineId && cantons.length > 0;
+
+  const primary = useLinePolygonCounts(selectedLineMeta, polygonSet);
+  const countsPerDataset = useLineCantonCountsMulti(selectedLineMeta);
+  const secondaryCounts = countsPerDataset[1] ?? null;
+
+  const { data: stopsOnLine1, isLoading: stopsLoading1, isError: stopsError1 } = useQuery({
+    queryKey: ['line-stops-with-coords-secondary', ds1?.datasetId, lineId, cantonsKey],
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const stopGeos = await Promise.all(
+        cantons.map((c) =>
+          getUrlData(`/backend/data/${ds1.datasetId}/matsim/transit/stops_by_canton/${c}_stops.geojson`)
+            .catch(() => null)
+        )
+      );
+      // The secondary run may label the same line with a different id.
+      const effectiveId = resolveLineIdFromStopGeos(stopGeos, lineId, lineName);
+      return collectStopsOnLine(stopGeos, effectiveId);
+    },
+  });
+
+  const {
+    data: muniLookup1,
+    isLoading: muniLookupLoading1,
+    isError: muniLookupError1,
+  } = useQuery({
+    queryKey: ['stop-municipality-lookup', ds1?.datasetId, cantonsKey],
+    enabled: enabled && !isCustom,
+    staleTime: 5 * 60 * 1000,
+    queryFn: () => {
+      const cantonsQs = `?cantons=${cantons.map(encodeURIComponent).join(',')}`;
+      return getUrlData(`/backend/data/${ds1.datasetId}/stop_municipality.json${cantonsQs}`)
+        .catch(() => null);
+    },
+  });
+
+  const secondaryRows = useMemo(() => {
+    if (!secondaryCounts?.rows || !stopsOnLine1) return null;
+    const stopToPolygon = buildStopToPolygon({
+      isCustom,
+      stopsOnLine: stopsOnLine1,
+      polygonSet,
+      muniLookup: muniLookup1,
+    });
+    if (!stopToPolygon) return null;
+    return aggregatePolygonRows(secondaryCounts.rows, stopToPolygon, stopsOnLine1);
+  }, [secondaryCounts, stopsOnLine1, isCustom, polygonSet, muniLookup1]);
+
+  return useMemo(() => {
+    const out = [];
+    if (ds0) {
+      out.push({
+        dataset: ds0,
+        rows: primary.data?.rows ?? null,
+        isLoading: primary.isLoading,
+        isError: primary.isError,
+      });
+    }
+    if (ds1) {
+      out.push({
+        dataset: ds1,
+        rows: secondaryRows,
+        isLoading:
+          (secondaryCounts?.isLoading ?? false) ||
+          stopsLoading1 ||
+          (!isCustom && muniLookupLoading1),
+        isError: stopsError1 || (!isCustom && muniLookupError1),
+      });
+    }
+    return out;
+  }, [
+    ds0, ds1,
+    primary.data, primary.isLoading, primary.isError,
+    secondaryRows, secondaryCounts,
+    stopsLoading1, stopsError1,
+    isCustom, muniLookupLoading1, muniLookupError1,
+  ]);
 }

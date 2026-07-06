@@ -151,15 +151,29 @@ export const DataProvider = ({ children }) => {
     const cached = getCached(relativePath);
     if (cached !== undefined) return cached;
 
-    try {
-      const data = await loaderRef.current(relativePath);
-      setCached(relativePath, data);
-      return data;
-    } catch (err) {
-      console.warn(`Failed to load: ${relativePath}`, err);
-      setCached(relativePath, null);
-      return null;
+    // Dedup concurrent callers for the same path — several map hooks request
+    // the same stops_by_canton geojson at once, and without this each fired
+    // its own fetch. Reuse the inflight map keyed by the relative path.
+    if (inflightRef.current.has(relativePath)) {
+      return inflightRef.current.get(relativePath);
     }
+
+    const promise = loaderRef.current(relativePath)
+      .then((data) => {
+        setCached(relativePath, data);
+        return data;
+      })
+      .catch((err) => {
+        console.warn(`Failed to load: ${relativePath}`, err);
+        setCached(relativePath, null);
+        return null;
+      })
+      .finally(() => {
+        inflightRef.current.delete(relativePath);
+      });
+
+    inflightRef.current.set(relativePath, promise);
+    return promise;
   }, [getCached, setCached]);
 
   const getUrlData = useCallback(async (url) => {

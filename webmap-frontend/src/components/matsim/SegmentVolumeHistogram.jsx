@@ -1,6 +1,7 @@
 import React, { useMemo, useRef } from "react";
 import Plot from "react-plotly.js";
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
+import { useData } from "../../context/DataContext";
 import { useQuery } from "@tanstack/react-query";
 
 const SegmentVolumeHistogram = ({
@@ -12,14 +13,17 @@ const SegmentVolumeHistogram = ({
   aggregate = false            // when true, sum all links into one chart
 }) => {
   const loadWithFallback = useLoadWithFallback();
+  const { datasetId } = useData();
 
   // always treat as array
   const linkIdKey = Array.isArray(linkId) ? linkId.sort().join(",") : linkId?.toString();
   const linkIds = linkIdKey.split(",");
 
-  /* ---------- LOAD VOLUME JSON (once per canton / link set) ---------- */
+  /* ---------- LOAD VOLUME JSON (once per canton / link set) ----------
+     datasetId in the key: refetch when the dataset switches instead of
+     serving the previous dataset's cached volumes. */
   const { data: volumeData } = useQuery({
-    queryKey: ['link-traffic-volumes', canton, linkIdKey],
+    queryKey: ['link-traffic-volumes', datasetId, canton, linkIdKey],
     queryFn: () => loadWithFallback(`matsim/${canton}_link_traffic_volumes.json`)
       .then((raw) => {
         const mapped = Object.fromEntries(

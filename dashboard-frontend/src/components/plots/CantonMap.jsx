@@ -59,11 +59,16 @@ const CantonMap = ({ sidebarCollapsed, isExpanded = false, activeTab }) => {
   // The custom path uses polygonSet.features in memory — no network request.
   const cantonsForLine = Array.isArray(effectiveLineMeta?.cantons) ? effectiveLineMeta.cantons : [];
   const cantonsKey = [...cantonsForLine].sort().join('|');
+  // Enabled off the cantons list (known as soon as the line is picked) rather
+  // than off linePolygonIds — so this ~54 MB fetch runs in parallel with the
+  // counts/stops/muni-lookup pipeline that resolves linePolygonIds, instead of
+  // waiting behind it. linePolygonsFC still returns null until the ids land, so
+  // rendering timing is unchanged; only the network fetch is parallelized.
   const muniEnabled =
     polygonSet?.kind !== 'custom'
     && !!effectiveLineMeta?.line_id
     && !hideLineByFilter
-    && !!linePolygonIds?.size;
+    && cantonsForLine.length > 0;
   const { data: muniGeo } = useQuery({
     queryKey: ['municipalities-geojson', datasetId, cantonsKey],
     enabled: muniEnabled,

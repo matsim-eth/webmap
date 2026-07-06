@@ -478,7 +478,7 @@ async def login(data: LoginModel, response: Response, db: AsyncSession = Depends
         user = await db.scalar(select(User).where(User.username == login_username))
 
     if not user or not user.is_active or not verify_password(data.password, user.hashed_password):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid credentials")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
     # Dev-account gate: dev users can only log in when DEV_MODE is enabled
     is_dev_user = await db.scalar(text("SELECT dev FROM users WHERE id = :id"), {"id": user.id})

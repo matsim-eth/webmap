@@ -5,6 +5,7 @@ import cantonAlias from "../../utils/canton_alias.json";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
+import { useData } from "../../context/DataContext";
 import { basePlotLayout, basePlotConfig } from "../../utils/plotTheme";
 import { useQuery } from "@tanstack/react-query";
 
@@ -22,6 +23,7 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
   const [selectedLine, setSelectedLine] = useState('all');
   const [showStopAnalysis, setShowStopAnalysis] = useState(false);
   const loadWithFallback = useLoadWithFallback();
+  const { datasetId } = useData();
   
   const vehicles = [
     { value: 'all', label: 'All Vehicles' },
@@ -37,8 +39,10 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
     return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
   };
 
+  // datasetId in the key: refetch when the dataset switches instead of
+  // serving the previous dataset's cached boarding/transfer data.
   const { data: ptDataBundle } = useQuery({
-    queryKey: ['pt-boardings-data'],
+    queryKey: ['pt-boardings-data', datasetId],
     queryFn: () => Promise.all([
       loadWithFallback('boarding_data_by_line.json'),
       loadWithFallback('stop_transfer_data_by_canton.json')

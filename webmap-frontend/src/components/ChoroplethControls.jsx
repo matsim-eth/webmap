@@ -1,6 +1,7 @@
 import React from "react";
 import "./ChoroplethControls.css";
 import { useLoadWithFallback } from "../utils/useLoadWithFallback";
+import { useData } from "../context/DataContext";
 import { useQuery } from "@tanstack/react-query";
 
 const COLOR_MAPS = {
@@ -49,12 +50,15 @@ const ChoroplethControls = ({
   setAggCol,
 }) => {
   const loadWithFallback = useLoadWithFallback();
+  const { datasetId } = useData();
 
   const COLORS = COLOR_MAPS[aggCol] || {};
   const LABELS = LABEL_MAPS[aggCol] || {};
 
+  // datasetId in the key: refetch the max-share scaling when the dataset
+  // switches instead of serving the previous dataset's cached response.
   const { data: maxSharePerMode = null } = useQuery({
-    queryKey: ['max-share-per-mode', aggCol],
+    queryKey: ['max-share-per-mode', aggCol, datasetId],
     queryFn: () => loadWithFallback(`${aggCol}_share.json`).then((data) => {
       const maxKey = `max_share_per_${aggCol}`;
       return data[maxKey] ?? null;

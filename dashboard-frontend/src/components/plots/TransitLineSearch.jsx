@@ -27,6 +27,7 @@ const TransitLineSearch = () => {
     setSelectedMunicipality,
     setLineWithCanton,
     selectedLineModes,
+    selectedCanton,
   } = useDashboard();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -59,6 +60,8 @@ const TransitLineSearch = () => {
   // Filter against a given query. Extracted so the Enter handler can compute
   // on the live `searchTerm` if the debounce hasn't caught up yet (otherwise
   // a fast typer pressing Enter would drop into a stale list).
+  const cantonActive = selectedCanton && selectedCanton !== 'All';
+
   const computeFiltered = useCallback((query) => {
     if (!query.trim()) return [];
     const q = normalize(query);
@@ -68,6 +71,13 @@ const TransitLineSearch = () => {
     const contains = [];
     for (const entry of indexedLines) {
       if (modesActive && !selectedLineModes.includes(String(entry.line.vehicle))) continue;
+      // Canton filter: restrict to lines that serve the selected canton. Lines
+      // with an empty/unknown `cantons` array are non-catalog (near-zero
+      // volume) — exclude them so the list only shows lines actually in view.
+      if (cantonActive) {
+        const cantons = Array.isArray(entry.line.cantons) ? entry.line.cantons : [];
+        if (!cantons.includes(selectedCanton)) continue;
+      }
       if (entry.name.startsWith(q) || entry.id.startsWith(q)) {
         startsWith.push(entry.line);
       } else if (entry.name.includes(q) || entry.id.includes(q)) {
@@ -75,7 +85,7 @@ const TransitLineSearch = () => {
       }
     }
     return [...startsWith.sort(cmpByLineName), ...contains.sort(cmpByLineName)].slice(0, 10);
-  }, [indexedLines, selectedLineModes]);
+  }, [indexedLines, selectedLineModes, cantonActive, selectedCanton]);
 
   const filteredLines = useMemo(
     () => computeFiltered(debouncedSearchTerm),
@@ -87,13 +97,22 @@ const TransitLineSearch = () => {
     // Sync canton selection to the line's geography:
     //   - single-canton line → switch to that canton (so the user sees its
     //     stops on transit-stops-layer instead of as inter-cantonal stops)
-    //   - multi-canton line → reset to "All" so the whole route is in view
+    //   - multi-canton line → keep the current canton when the line serves it
+    //     (preserves the canton filter context the user just searched within);
+    //     otherwise reset to "All" so the whole route is in view
     // setLineWithCanton sets both atomically — using setSelectedCanton +
     // setSelectedLineMeta separately would race because the canton's
     // cascading setSelectedLineMeta(null) gets queued for the next render
     // and clobbers the line we just set.
     const cantonsForLine = Array.isArray(line.cantons) ? line.cantons : [];
-    const targetCanton = cantonsForLine.length === 1 ? cantonsForLine[0] : 'All';
+    let targetCanton;
+    if (cantonsForLine.length === 1) {
+      targetCanton = cantonsForLine[0];
+    } else if (cantonActive && cantonsForLine.includes(selectedCanton)) {
+      targetCanton = selectedCanton;
+    } else {
+      targetCanton = 'All';
+    }
     setLineWithCanton(buildSelectedLineMeta(line), targetCanton);
     setSearchTerm('');
     setHighlightIdx(-1);
@@ -152,6 +171,18 @@ const TransitLineSearch = () => {
 
         {isOpen && filteredLines.length > 0 && (
           <ul className="transit-stop-dropdown">
+            {cantonActive && (
+              <li
+                style={{
+                  fontSize: '0.72rem',
+                  color: 'var(--color-text-secondary)',
+                  cursor: 'default',
+                  fontStyle: 'italic',
+                }}
+              >
+                Showing lines in {selectedCanton}
+              </li>
+            )}
             {filteredLines.map((line, i) => (
               <li
                 key={`${line.line_id}_${line.line_name}_${i}`}

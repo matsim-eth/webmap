@@ -1,17 +1,20 @@
 import React, { useMemo, useRef } from "react";
 import Plot from "react-plotly.js";
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
+import { useData } from "../../context/DataContext";
 import { useQuery } from "@tanstack/react-query";
 
 const TransitStopHistogram = ({ stopIds, canton, lineId, onVolumeUpdate, timeRange, selectedDirection, stopLines }) => {
   const loadWithFallback = useLoadWithFallback();
+  const { datasetId } = useData();
 
   // Stable key for stopIds
   const stopIdsKey = Array.isArray(stopIds) ? stopIds.join(',') : '';
 
-  // Fetch and process passenger data
+  // Fetch and process passenger data. datasetId in the key: refetch when the
+  // dataset switches instead of serving the previous dataset's cached counts.
   const { data: hourlyCounts } = useQuery({
-    queryKey: ['transit-stop-histogram', canton, stopIdsKey, lineId, selectedDirection],
+    queryKey: ['transit-stop-histogram', datasetId, canton, stopIdsKey, lineId, selectedDirection],
     queryFn: () => {
       return loadWithFallback(`matsim/transit/per_canton_counts/${canton}_counts.json`)
         .then(data => {

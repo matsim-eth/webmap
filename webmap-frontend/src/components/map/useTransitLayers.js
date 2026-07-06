@@ -67,7 +67,8 @@ export default function useTransitLayers({
     setHighlightedLineId,
     setHighlightedRouteIds,
     setSelectedTransitStop,
-    suppressNextSearchZoom
+    suppressNextSearchZoom,
+    datasetId
   )
   
   useTransitVolumesLayer({
