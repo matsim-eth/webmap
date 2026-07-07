@@ -1,8 +1,8 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import './LeftSidebar.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faCircleNodes, faRotateLeft, faFolder, faXmark,
+  faCircleNodes, faRotateLeft,
   faChevronLeft, faChevronRight, faChevronDown, faChevronUp,
   faRoad, faPersonWalkingLuggage, faLocationDot, faBus,
   faArrowsSplitUpAndLeft, faChartSimple, faMap, faRoute,
@@ -13,7 +13,6 @@ import {
   faRightLeft,
   faDrawPolygon,
 } from '@fortawesome/free-solid-svg-icons';
-import { useFileContext } from '../../FileContext';
 import { useModule } from '../../context/ModuleContext';
 import { useMap } from '../../context/MapContext';
 import { useData } from '../../context/DataContext';
@@ -32,8 +31,6 @@ const SectionTitle = ({ label, isOpen, onToggle }) => (
 );
 
 const LeftSidebar = () => {
-  const fileInputRef = useRef(null);
-
   const [modulesOpen, setModulesOpen] = useState(true);
   const [dataOpen, setDataOpen] = useState(true);
 
@@ -52,8 +49,6 @@ const LeftSidebar = () => {
     setSelectedDataset, setSelectedMode,
     updateMapChoropleth,
   } = useChoropleth();
-
-  const { handleFolderUpload, fileMap, clearFileMap } = useFileContext();
 
   const { data: isAdmin = false } = useQuery({
     queryKey: ['admin-check'],
@@ -117,21 +112,9 @@ const LeftSidebar = () => {
 
     setIsGraphExpanded(null);
 
-    clearFileMap();
     setDataURL('https://matsim-eth.github.io/webmap/data/');
 
     setIsSidebarOpen(false);
-  };
-
-  const handleUploadClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      handleFolderUpload(files);
-    }
   };
 
   const handleLogout = async () => {
@@ -145,8 +128,6 @@ const LeftSidebar = () => {
     } catch { /* ignore */ }
     redirectToLogin();
   };
-
-  const hasUploadedFiles = fileMap.size > 0;
 
   return (
     <aside className={`left-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
@@ -206,44 +187,11 @@ const LeftSidebar = () => {
           )}
         </div>
 
-        {/* DATA Section (dataset + upload) */}
+        {/* DATA Section (dataset selector) */}
         <div className="left-sidebar-section">
           {!isCollapsed && <SectionTitle label="DATA" isOpen={dataOpen} onToggle={() => setDataOpen(v => !v)} />}
           {(dataOpen || isCollapsed) && (
-          <>
-          <DatasetSelector isCollapsed={isCollapsed} />
-          <nav className="left-sidebar-nav">
-            <button
-              className={`left-sidebar-item ${hasUploadedFiles ? 'uploaded' : ''}`}
-              onClick={handleUploadClick}
-              title={isCollapsed ? 'Local Folder' : ''}
-            >
-              <span className="left-sidebar-icon"><FontAwesomeIcon icon={faFolder} /></span>
-              {!isCollapsed && <span className="left-sidebar-label">Local Folder</span>}
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              webkitdirectory=""
-              directory=""
-              multiple
-              style={{ display: 'none' }}
-              onChange={handleFileChange}
-            />
-          </nav>
-          {!isCollapsed && hasUploadedFiles && (
-            <div className="left-sidebar-file-count-container">
-              <span className="left-sidebar-file-count">{fileMap.size} files uploaded</span>
-              <button
-                className="left-sidebar-file-reset"
-                onClick={clearFileMap}
-                title="Reset to default data"
-              >
-                <FontAwesomeIcon icon={faXmark} />
-              </button>
-            </div>
-          )}
-          </>
+            <DatasetSelector isCollapsed={isCollapsed} />
           )}
         </div>
 

@@ -144,52 +144,6 @@
   overflow: hidden;
 }
 
-.left-sidebar-item.uploaded {
-  background-color: var(--color-success-light);
-}
-
-.left-sidebar-item.uploaded .left-sidebar-icon {
-  color: var(--color-success);
-}
-
-.left-sidebar-item.uploaded .left-sidebar-label {
-  color: var(--color-success);
-  font-weight: 500;
-}
-
-.left-sidebar-file-count-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 8px;
-  margin-left: 12px;
-  margin-right: 12px;
-}
-
-.left-sidebar-file-count {
-  font-size: 10px;
-  color: var(--color-text-secondary);
-}
-
-.left-sidebar-file-reset {
-  background: transparent;
-  border: none;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: var(--radius-xs);
-  font-size: 12px;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.left-sidebar-file-reset:hover {
-  color: var(--color-error);
-  background-color: var(--color-error-light);
-}
-
 .left-sidebar-item.logout-item .left-sidebar-icon {
   color: var(--color-text-secondary);
 }

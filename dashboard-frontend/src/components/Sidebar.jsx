@@ -1,8 +1,7 @@
-    import React, { useRef, useState } from 'react';
+    import React, { useState } from 'react';
     import './Sidebar.css';
     import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-    import { faHouse, faIdCard, faCar, faTrain, faTrainSubway, faRoad, faBriefcase, faClipboardList, faLocationDot, faImage, faFilePdf, faChevronLeft, faChevronRight, faChevronDown, faChevronUp, faFolder, faXmark, faSpinner, faCheck, faMap, faRightFromBracket, faUserShield, faGaugeHigh } from '@fortawesome/free-solid-svg-icons';
-    import { useFileContext } from '../context/FileContext';
+    import { faHouse, faIdCard, faCar, faTrain, faTrainSubway, faRoad, faBriefcase, faClipboardList, faLocationDot, faImage, faFilePdf, faChevronLeft, faChevronRight, faChevronDown, faChevronUp, faSpinner, faCheck, faMap, faRightFromBracket, faUserShield, faGaugeHigh } from '@fortawesome/free-solid-svg-icons';
     import { redirectToLogin, checkIsAdmin } from '../utils/auth';
     import { useQuery } from '@tanstack/react-query';
     import DatasetSelector from './DatasetSelector';
@@ -18,8 +17,6 @@
     };
 
     const Sidebar = ({ activeTab, setActiveTab, isCollapsed, setIsCollapsed, onExportImage, onExportPDF }) => {
-    const fileInputRef = useRef(null);
-
     const [menuOpen, setMenuOpen] = useState(true);
     const [dataOpen, setDataOpen] = useState(true);
     const [exportOpen, setExportOpen] = useState(true);
@@ -27,9 +24,6 @@
     // state for export status
     const [exportingType, setExportingType] = useState(null);
     const [exportSuccess, setExportSuccess] = useState(null);
-
-    // get functions and state from FileContext
-    const { handleFolderUpload, fileMap, clearFileMap } = useFileContext();
 
     const { data: isAdmin = false } = useQuery({
       queryKey: ['isAdmin'],
@@ -74,17 +68,6 @@
         }
     };
 
-    const handleUploadClick = () => {
-        fileInputRef.current?.click();
-    };
-
-    const handleFileChange = (e) => {
-        const files = e.target.files;
-        if (files && files.length > 0) {
-        handleFolderUpload(files);
-        }
-    };
-
     const handleLogout = async () => {
         try {
             await fetch('/authentification/backend/logout', {
@@ -96,8 +79,6 @@
         } catch { /* ignore */ }
         redirectToLogin();
     };
-
-    const hasUploadedFiles = fileMap.size > 0;
 
     return (
         <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
@@ -147,44 +128,11 @@
             )}
         </div>
 
-        {/* Data Section (dataset + upload) */}
+        {/* Data Section (dataset selector) */}
         <div className="sidebar-section">
             <SectionTitle label="DATA" isOpen={dataOpen} onToggle={() => setDataOpen(v => !v)} isCollapsed={isCollapsed} />
             {(dataOpen || isCollapsed) && (
-            <>
             <DatasetSelector isCollapsed={isCollapsed} />
-            <nav className="sidebar-nav">
-            <button
-                className={`sidebar-item ${hasUploadedFiles ? 'uploaded' : ''}`}
-                onClick={handleUploadClick}
-                title={isCollapsed ? 'Local Folder' : ''}
-            >
-                <span className="sidebar-icon"><FontAwesomeIcon icon={faFolder} /></span>
-                <span className="sidebar-label">Local Folder</span>
-            </button>
-            <input
-                ref={fileInputRef}
-                type="file"
-                webkitdirectory=""
-                directory=""
-                multiple
-                style={{ display: 'none' }}
-                onChange={handleFileChange}
-            />
-            </nav>
-            {!isCollapsed && hasUploadedFiles && (
-            <div className="sidebar-file-count-container">
-                <span className="sidebar-file-count">{fileMap.size} files uploaded</span>
-                <button
-                className="sidebar-file-reset"
-                onClick={clearFileMap}
-                title="Reset to default data"
-                >
-                <FontAwesomeIcon icon={faXmark} />
-                </button>
-            </div>
-            )}
-            </>
             )}
         </div>
 

@@ -1,29 +1,14 @@
-import { useFileContext } from "../FileContext";
 import { useData } from "../context/DataContext";
 import { handle401 } from "./auth";
 
 export const useLoadWithFallback = (explicitDataURL) => {
-  const { fileMap, readJSONFile, dataURL: contextDataURL } = useFileContext();
-  const { datasetId } = useData();
+  const { datasetId, dataURL: contextDataURL } = useData();
 
   const BACKEND_DATA_URL = `/backend/data/${datasetId}/`;
   const DEFAULT_DATA_URL = "https://matsim-eth.github.io/webmap/data/";
 
   const loadWithFallback = async (relativePath) => {
-    const localPath = `data/${relativePath}`;
-
-    // 1. Try from uploaded files
-    if (fileMap.has(localPath)) {
-      try {
-        const json = await readJSONFile(localPath);
-        console.log(`Loaded from uploaded files: ${localPath}`);
-        return json;
-      } catch (err) {
-        console.warn(`Failed parsing uploaded file: ${localPath}`, err);
-      }
-    }
-
-    // 2. Try from remote sources. The dataset-versioned backend is AUTHORITATIVE
+    // Try remote sources in order. The dataset-versioned backend is AUTHORITATIVE
     // and must come first: explicitDataURL/contextDataURL both default to the
     // fixed GitHub CDN, which serves dataset-independent reference data — if it
     // is tried first it wins for dataset-specific assets (e.g.

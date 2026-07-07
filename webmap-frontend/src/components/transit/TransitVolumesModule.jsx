@@ -19,7 +19,6 @@ import { useChoropleth } from "../../context/ChoroplethContext";
 import { useModule } from "../../context/ModuleContext";
 import { useMap } from "../../context/MapContext";
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
-import { useFileContext } from "../../FileContext";
 import { useQuery } from "@tanstack/react-query";
 
 const TransitVolumesModule = ({ transitFeatureTableRef }) => {
@@ -38,7 +37,6 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
   const { highlightedLineId, setHighlightedLineId } = useChoropleth();
   const { isGraphExpanded } = useModule();
   const { mapRef, drawRef } = useMap();
-  const { fileMap } = useFileContext();
   const loadWithFallback = useLoadWithFallback(dataURL);
 
   const selectedGraph = isGraphExpanded;
@@ -46,7 +44,7 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
   // Per-canton transit mode list — drives the multi-select dropdown.
   // datasetId in the key: refetch when the dataset switches.
   const { data: transitModesByCanton = {} } = useQuery({
-    queryKey: ['transit-modes-by-canton', datasetId, dataURL, fileMap.size],
+    queryKey: ['transit-modes-by-canton', datasetId, dataURL],
     queryFn: () => loadWithFallback("matsim/transit/transit_modes_by_canton.json"),
   });
   const availableTransitModes = useMemo(() => {

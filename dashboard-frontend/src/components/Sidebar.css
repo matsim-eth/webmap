@@ -165,52 +165,6 @@
   pointer-events: none;
 }
 
-.sidebar-item.uploaded {
-  background-color: var(--color-success-light);
-}
-
-.sidebar-item.uploaded .sidebar-icon {
-  color: var(--color-success);
-}
-
-.sidebar-item.uploaded .sidebar-label {
-  color: var(--color-success);
-  font-weight: 500;
-}
-
-.sidebar-file-count-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 8px;
-  margin-left: 12px;
-  margin-right: 12px;
-}
-
-.sidebar-file-count {
-  font-size: 10px;
-  color: var(--color-text-secondary);
-}
-
-.sidebar-file-reset {
-  background: transparent;
-  border: none;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: var(--radius-xs);
-  font-size: 12px;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.sidebar-file-reset:hover {
-  color: var(--color-error);
-  background-color: var(--color-error-light);
-}
-
 .sidebar-item.export-success {
   background-color: var(--color-success-light);
 }

@@ -1,28 +1,13 @@
-import { useFileContext } from "../context/FileContext";
 import { useDashboard } from "../context/DashboardContext";
 import { handle401 } from "./auth";
 
 export const useLoadWithFallback = (explicitDataURL) => {
-  const { fileMap, readJSONFile, dataURL: contextDataURL } = useFileContext();
   const { datasetId } = useDashboard();
 
   const BACKEND_DATA_URL = `/backend/data/${datasetId}/`;
 
   const loadWithFallback = async (relativePath) => {
-    const localPath = `data/${relativePath}`;
-
-    // 1. Try from uploaded files
-    if (fileMap.has(localPath)) {
-      try {
-        const json = await readJSONFile(localPath);
-        console.log(`Loaded from uploaded files: ${localPath}`);
-        return json;
-      } catch (err) {
-        console.warn(`Failed parsing uploaded file: ${localPath}`, err);
-      }
-    }
-
-    // 2. Try remote sources. The dataset-versioned backend is authoritative and
+    // Try remote sources in order. The dataset-versioned backend is authoritative and
     // comes FIRST. We deliberately do NOT fall back to the fixed GitHub CDN:
     // that served dataset-independent reference data, so when a dataset's asset
     // failed to load every dataset silently showed the SAME numbers (e.g. the
@@ -31,7 +16,6 @@ export const useLoadWithFallback = (explicitDataURL) => {
     const candidates = [
       BACKEND_DATA_URL,
       explicitDataURL,
-      contextDataURL,
     ].filter(Boolean);
 
     for (const base of candidates) {
