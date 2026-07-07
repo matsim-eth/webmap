@@ -38,6 +38,7 @@ export default function useFeatureSelectionFocus({
   isGraphExpanded,
   showMajorRoadsOnly,
   showStopVolumeSymbology,
+  highlightedLineId,
   // Only used as a dependency: when the network geometry (re)loads, the Volumes
   // split layers (network-split-layer/hitbox) are rebuilt without a filter by
   // useNetworkSplitLayers, so this effect must re-run to re-apply the combined
@@ -250,9 +251,15 @@ export default function useFeatureSelectionFocus({
     
     // Define layer IDs based on what's actually visible
     // Note: network-highlight is now shared between network and transit modes
-    const layerIds = isTransitVolumesMode 
-      ? ["transit-volumes-layer", "transit-volumes-hitbox", "network-highlight", 
-         "transit-volumes-label-left", "transit-volumes-label-right", "ant-line"]
+    // TransitVolumes labels are NOT in this uniform list: they live on the split
+    // source with a per-direction ls_arrow filter that a plain setFilter would
+    // wipe (both labels then render on every split feature — stacked). They get
+    // the combined filter AND-ed onto their arrow filter at the bottom instead,
+    // exactly like the network split labels.
+    const layerIds = isTransitVolumesMode
+      ? ["transit-volumes-layer", "transit-volumes-hitbox",
+         "transit-volumes-split-layer", "transit-volumes-split-hitbox",
+         "network-highlight", "ant-line"]
       : isTransitStopsMode
       ? ["transit-stops-layer", "transit-stops-label", "transit-stops-hitbox", "transit-highlight-layer"]
       : ["network-layer", "network-layer-hitbox", "network-highlight",
@@ -785,6 +792,16 @@ export default function useFeatureSelectionFocus({
       combined = tableFilter;
     }
 
+    // TransitVolumes: keep the "only this line" filter in lockstep with
+    // useTransitVolumesLayer. Selecting a line recomputes featureGeoJSON, which
+    // re-runs THIS effect after the layer hook applied its line filter — without
+    // the same clause here, this last write would wipe it and every non-line
+    // link would stay visible.
+    if (isTransitVolumesMode && highlightedLineId) {
+      const lineFilter = ["in", highlightedLineId, ["get", "line_ids"]];
+      combined = combined ? ["all", lineFilter, combined] : lineFilter;
+    }
+
     // Volumes mode: enforce car-only (+ optional major roads)
     if (isGraphExpanded === 'Volumes') {
       const carFilter = [">=", ["index-of", ",car,", ["concat", ",", ["get", "modes"], ","]], 0];
@@ -818,6 +835,17 @@ export default function useFeatureSelectionFocus({
     if (map.getLayer('network-split-label-left')) {
       map.setFilter('network-split-label-left', combined ? ['all', ARROW_LEFT, combined] : ARROW_LEFT);
     }
-  }, [mapRef, mapReady, query, selectedNetworkModes, isGraphExpanded, showMajorRoadsOnly, featureGeoJSON]);
+    // Same for the TransitVolumes direction labels (split source, arrow-pinned).
+    // NB the historical naming swap: `label-left` shows the RIGHT-going "NNN →"
+    // numbers, `label-right` the LEFT-going "← NNN".
+    if (isTransitVolumesMode) {
+      if (map.getLayer('transit-volumes-label-left')) {
+        map.setFilter('transit-volumes-label-left', combined ? ['all', ARROW_RIGHT, combined] : ARROW_RIGHT);
+      }
+      if (map.getLayer('transit-volumes-label-right')) {
+        map.setFilter('transit-volumes-label-right', combined ? ['all', ARROW_LEFT, combined] : ARROW_LEFT);
+      }
+    }
+  }, [mapRef, mapReady, query, selectedNetworkModes, isGraphExpanded, showMajorRoadsOnly, highlightedLineId, featureGeoJSON]);
   
 }

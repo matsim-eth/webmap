@@ -204,6 +204,7 @@ export default function Map() {
     setFeatureGeoJSON: setFeatureGeoJSON,
     tableFilterQuery: tableFilterQuery,
     selectedDirection: selectedDirection,
+    labelSize: labelSize,
     drawRef: contextDrawRef
   });
 
@@ -286,6 +287,7 @@ export default function Map() {
     isGraphExpanded: isGraphExpanded,
     showMajorRoadsOnly: showMajorRoadsOnly,
     showStopVolumeSymbology: showStopVolumeSymbology,
+    highlightedLineId: highlightedLineId,
     featureGeoJSON: featureGeoJSON,
   });
 

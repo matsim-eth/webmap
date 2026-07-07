@@ -10,8 +10,10 @@ import { useTableRowBuilder } from "../../hooks/useTableRowBuilder";
 import useLinePolygon from "../../hooks/useLinePolygon";
 import useDrawPolygons from "../../hooks/useDrawPolygons";
 import { useTransitVolumeHighlightSync } from "../../hooks/useTransitVolumeHighlightSync";
+import { useTransitVolumeLinkReset } from "../../hooks/useTransitVolumeLinkReset";
 import { computeBoundaryFlow } from "../../utils/boundaryFlow";
 import { buildSelectionPayload } from "../table/_lib/rowSearch";
+import { parsePipeList } from "../map/_lib/pipeProps";
 import { useData } from "../../context/DataContext";
 import { useFilters } from "../../context/FilterContext";
 import { useSelection } from "../../context/SelectionContext";
@@ -21,8 +23,14 @@ import { useMap } from "../../context/MapContext";
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
 import { useQuery } from "@tanstack/react-query";
 
+// Split-overlay source whose feature ids equal the parent feature's index in
+// featureGeoJSON — useLinePolygon mirrors its inPolygon feature-states there so
+// the zoom>=15 split lines/labels fade per-feature like the merged layer.
+// Module-level constant keeps a stable reference across renders.
+const TRANSIT_EXTRA_STATE_SOURCES = ['transit-volumes-split-source'];
+
 const TransitVolumesModule = ({ transitFeatureTableRef }) => {
-  const { dataURL, datasetId, isFeatureTableOpen, featureGeoJSON, setTableFilterQuery } = useData();
+  const { dataURL, datasetId, isFeatureTableOpen, featureGeoJSON, setTableFilterQuery, transitVolumesByLink } = useData();
   const {
     selectedTransitModes, setSelectedTransitModes,
     showLineSymbology, setShowLineSymbology,
@@ -31,15 +39,50 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
   const {
     clickedCanton: canton,
     selectedTransitLink, setSelectedTransitLink,
+    transitSelectedLink, setTransitSelectedLink,
     triggerVisualize,
     setFeatureSelection,
   } = useSelection();
   const { highlightedLineId, setHighlightedLineId } = useChoropleth();
   const { isGraphExpanded } = useModule();
-  const { mapRef, drawRef } = useMap();
+  const { mapRef, drawRef, labelSize, setLabelSize } = useMap();
   const loadWithFallback = useLoadWithFallback(dataURL);
 
   const selectedGraph = isGraphExpanded;
+
+  // Per-link selection derived from the current selection (mirrors VolumesModule).
+  //   isSplit          — per-direction (zoomed-in) selection; no dropdown.
+  //   allKeys          — every link across the selection (drives the dropdown).
+  //   effectiveLinkIds — link ids charted by the histograms.
+  //   attrLinkFilter   — links the attribute table shows (null = all / "All").
+  const selProps = Array.isArray(selectedTransitLink) ? selectedTransitLink[0] : null;
+  const isSplit = !!selProps?.ls_arrow;
+  const allKeys = useMemo(() => {
+    const s = new Set();
+    (selectedTransitLink || []).forEach((p) => {
+      const ids = Array.isArray(p.link_ids) && p.link_ids.length
+        ? p.link_ids
+        : parsePipeList(p.per_id_keys);
+      ids.forEach((id) => s.add(String(id)));
+    });
+    return Array.from(s);
+  }, [selectedTransitLink]);
+  const effectiveLinkIds = useMemo(() => {
+    if (isSplit) {
+      const dir = parsePipeList(selProps?.ls_link_ids).map(String);
+      const matched = new Set(allKeys);
+      const inter = dir.filter((id) => matched.has(id));
+      return inter.length ? inter : dir;
+    }
+    if (transitSelectedLink) return [String(transitSelectedLink)];
+    return allKeys;
+  }, [isSplit, selProps, transitSelectedLink, allKeys]);
+  const attrLinkFilter = isSplit
+    ? parsePipeList(selProps?.ls_link_ids)
+    : (transitSelectedLink ? [transitSelectedLink] : null);
+
+  // Reset the dropdown to "All" (and drop any stale ant-path) on a new selection.
+  useTransitVolumeLinkReset({ selectedTransitLink, setTransitSelectedLink, triggerVisualize });
 
   // Per-canton transit mode list — drives the multi-select dropdown.
   // datasetId in the key: refetch when the dataset switches.
@@ -71,10 +114,15 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
     isGraphExpanded,
     activeModule: 'TransitVolumes',
     sourceId: 'transit-volumes-source',
-    layerIds: ['transit-volumes-layer'],
+    // Include the split overlay so the polygon fade also dims it at zoom >= 15;
+    // its per-feature states come from extraStateSourceIds (split feature ids
+    // equal the parent index, so the mirrored states line up 1:1). The labels
+    // ride the split source too.
+    layerIds: ['transit-volumes-layer', 'transit-volumes-split-layer'],
     labelLayerIds: ['transit-volumes-label-left', 'transit-volumes-label-right'],
     onPolygonChange: handlePolygonChange,
     fadeOpacity: 0.05,
+    extraStateSourceIds: TRANSIT_EXTRA_STATE_SOURCES,
   });
 
   const drawnPolygons = useDrawPolygons({
@@ -314,6 +362,21 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
     />
     </div>
 
+    {/* Label size slider (mirrors the road Volumes module) */}
+    <div style={{ padding: "0 16px 12px 12px" }}>
+    <label className="right-sidebar-label">
+    Label size: {labelSize}px
+    </label>
+    <Slider
+    min={8}
+    max={24}
+    step={1}
+    value={labelSize}
+    onChange={setLabelSize}
+    style={{ width: "50%" }}
+    />
+    </div>
+
     {/* Checkbox */}
     <label className="right-sidebar-checkbox">
     <input
@@ -469,6 +532,24 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
       </>
     )}
 
+    {/* Per-link selector — only for a merged (low-zoom) selection bundling more
+        than one link. Split (per-direction) selections isolate one direction
+        already, so no dropdown there. */}
+    {Array.isArray(selectedTransitLink) && selectedTransitLink.length > 0 && !polygonAggregate && !isSplit && allKeys.length > 1 && (
+      <div className="link-selector">
+        <label>Link ID:</label>
+        <select
+          value={transitSelectedLink || ''}
+          onChange={(e) => { setTransitSelectedLink(e.target.value || null); triggerVisualize(null); }}
+        >
+          <option value="">All ({allKeys.length} links)</option>
+          {allKeys.map((key) => (
+            <option key={key} value={key}>{key}</option>
+          ))}
+        </select>
+      </div>
+    )}
+
     {/* Link Attributes Table and Histograms — single selection */}
     {Array.isArray(selectedTransitLink) && selectedTransitLink.length > 0 && !polygonAggregate && (
       <>
@@ -477,32 +558,24 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
       onLineClick={setHighlightedLineId}
       highlightedLineId={highlightedLineId}
       timeRange={timeRange}
+      linkFilter={attrLinkFilter}
+      volumesByLink={transitVolumesByLink}
       />
 
       <div style={{ height: 12 }} />
 
-      {(() => {
-        // Collect all unique link IDs across all selected segments
-        const allLinkIds = new Set();
-        selectedTransitLink.forEach(props => {
-          const ids = Array.isArray(props.link_ids) && props.link_ids.length
-            ? props.link_ids
-            : (props.per_id_keys ? props.per_id_keys.split("|").filter(Boolean) : []);
-          ids.forEach(id => allLinkIds.add(String(id)));
-        });
-
-        // Create one histogram per unique link ID
-        return Array.from(allLinkIds).map(id => (
-          <TransitLinkHistogram
-          key={`transit-hist-${id}`}
-          linkId={id}
-          highlightedLineId={highlightedLineId}
-          timeRange={timeRange}
-          canton={canton}
-          triggerVisualize={triggerVisualize}
-          />
-        ));
-      })()}
+      {/* One histogram per effective link id (split direction / dropdown-narrowed
+          / all links). */}
+      {effectiveLinkIds.map(id => (
+        <TransitLinkHistogram
+        key={`transit-hist-${id}`}
+        linkId={id}
+        highlightedLineId={highlightedLineId}
+        timeRange={timeRange}
+        canton={canton}
+        triggerVisualize={triggerVisualize}
+        />
+      ))}
 
       </>
     )}

@@ -1,7 +1,181 @@
 import { useEffect, useRef } from "react";
+import { nearestPointOnLine, lineString, point } from "@turf/turf";
 import { safeRemoveLayer, safeRemoveSource, setFilter } from './_lib/mapbox';
-import { parsePipeList, pipeMinMax } from './_lib/pipeProps';
-import { clearNetworkHighlightData } from './_lib/featureSelection';
+import { parsePipeList, pipeMinMax, mergeSegmentsByGeometry } from './_lib/pipeProps';
+import { clearNetworkHighlightData, clearAntLine } from './_lib/featureSelection';
+import { useData } from '../../context/DataContext';
+
+// ---------------------------------------------------------------------------
+// Split-link rendering constants (mirrors useNetworkSplitLayers for the road
+// Volumes module). Below SPLIT_ZOOM the merged `transit-volumes-layer` draws one
+// line per segment; at/above it that layer is capped out and this overlay draws
+// one offset line per direction so a forward+reverse pair becomes two parallel
+// clickable lines. The merged features' per_id_keys/per_id_arrows arrays already
+// carry everything we need, so no extra fetch — we just regroup them by
+// direction and reuse right_sum/left_sum as each direction's windowed volume.
+// ---------------------------------------------------------------------------
+const SPLIT_ZOOM = 15;
+const RIGHT = "→"; // →
+const LEFT = "←";  // ←
+
+const SPLIT_SOURCE_ID = "transit-volumes-split-source";
+const SPLIT_LAYER_ID = "transit-volumes-split-layer";
+// Invisible wide click/hover target over the thin split lines (mirrors the base
+// transit-volumes-hitbox). A real layer is used so the hover cursor covers the
+// whole target and pickByClickSide can disambiguate the two overlapping lines.
+const SPLIT_HITBOX_ID = "transit-volumes-split-hitbox";
+// Dedicated offset highlight for a single clicked direction — kept separate from
+// the shared network-highlight (used by merged clicks) so a leftover line-offset
+// can't pollute the merged highlight paint. Its offset/width are zoom-stepped:
+// at/above SPLIT_ZOOM it rides the clicked direction's offset line; below it the
+// split lines collapse back into the single merged line, so the highlight snaps
+// onto it (offset 0, merged-highlight width) instead of floating offset next to
+// it. A top-level ["step", ["zoom"], ...] switches discretely at SPLIT_ZOOM —
+// step zoom-curves don't interpolate — so the snap lands exactly on the same
+// boundary as the line handoff.
+const SPLIT_HIGHLIGHT_ID = "transit-volumes-split-highlight";
+// Direction-label ids are preserved from the pre-split implementation so the
+// polygon-fade (useLinePolygon labelLayerIds) and the mode/table filter arrays
+// keep referencing them. `label-left` shows the right-going "NNN →" number,
+// `label-right` the left-going "← NNN" — the historical naming.
+const LABEL_RIGHT_ID = "transit-volumes-label-left";
+const LABEL_LEFT_ID = "transit-volumes-label-right";
+const MERGED_LAYER_ID = "transit-volumes-layer";
+const MERGED_HITBOX_ID = "transit-volumes-hitbox";
+
+// Green transit ramp/width on the per-direction windowed volume (`ns_volume`) —
+// identical stops to the merged transit-volumes-layer (which colours by
+// daily_avg_volume) so a segment's two split lines read on the same scale.
+const VOLUME_RAMP = ["interpolate", ["linear"], ["get", "ns_volume"],
+  0, "#a1d99b", 10, "#74c476", 50, "#41ab5d", 100, "#238b45", 250, "#005a32"];
+const WIDTH_EXPR = ["interpolate", ["linear"], ["get", "ns_volume"],
+  0, 3, 10, 5, 50, 7, 100, 9, 250, 11];
+// Hitbox is much wider than the visible line so thin links are easy to hit; the
+// per-direction offset keeps each direction's target centred on its own line.
+const HITBOX_WIDTH_EXPR = ["interpolate", ["linear"], ["get", "ns_volume"],
+  0, 8, 10, 10, 50, 12, 100, 14, 250, 16];
+
+// Parallel-direction offset, same convention as useNetworkSplitLayers: line-offset
+// is perpendicular to drawing direction, so normalise by bearing (`angle`) to keep
+// → visually on the right when the map is north-up. `angle` is coerced to a
+// number (0 = east-ish) — the backend merged_segments ships no angle and loop
+// links compute to null; an un-coerced null makes the whole offset expression
+// error per feature, collapsing both direction lines AND both labels onto the
+// centreline (the "stacked labels" bug).
+const NUM_ANGLE = ["number", ["get", "angle"], 0];
+const isWestish = ["any", [">", NUM_ANGLE, 90], ["<=", NUM_ANGLE, -90]];
+// Offset magnitude tracks the volume-driven line width (WIDTH_EXPR: 3..11px) so
+// the two parallel direction lines stay separated instead of overlapping when a
+// high-volume pair renders fat — a bit more than half the width plus a gap.
+const OFFSET_MAG = ["interpolate", ["linear"], ["get", "ns_volume"],
+  0, 2.5, 10, 3.5, 50, 4.5, 100, 5.5, 250, 7];
+const OFFSET_NEG = ["*", -1, OFFSET_MAG];
+const LINE_OFFSET_EXPR = ["case",
+  ["!", ["get", "ls_needs_offset"]], 0,
+  ["==", ["get", "ls_arrow"], RIGHT],
+    ["case", isWestish, OFFSET_NEG, OFFSET_MAG],
+  ["case", isWestish, OFFSET_MAG, OFFSET_NEG],
+];
+
+// Direction-label text offset — wider gap when both directions are present so the
+// number rides its own offset line (same scheme as useNetworkSplitLayers).
+const LABEL_OFFSET_NORMAL = 1;
+const LABEL_OFFSET_WIDE = 1.6;
+const LABEL_OFFSET_RIGHT = [0, ["case",
+  ["get", "ls_needs_offset"], ["case", isWestish, -LABEL_OFFSET_WIDE, LABEL_OFFSET_WIDE],
+  ["case", isWestish, -LABEL_OFFSET_NORMAL, LABEL_OFFSET_NORMAL],
+]];
+const LABEL_OFFSET_LEFT = [0, ["case",
+  ["get", "ls_needs_offset"], ["case", isWestish, LABEL_OFFSET_WIDE, -LABEL_OFFSET_WIDE],
+  ["case", isWestish, LABEL_OFFSET_NORMAL, -LABEL_OFFSET_NORMAL],
+]];
+
+// Regroup each merged transit segment's links by direction into per-direction
+// features. Each split feature spreads the parent props (so modes/line_ids/
+// per_id_* / the min-max scalars all carry over and the existing filter
+// expressions work unchanged) and sets ns_volume from the parent's windowed
+// right_sum/left_sum for the colour ramp + labels. Directions use the MATCHED
+// pt ids (right_ids/left_ids from computeFilteredFeatures) when present — the
+// backend merges ALL links sharing a geometry, so regrouping raw per_id_keys
+// would drag car link ids into a transit selection; the per_id_keys regroup
+// remains as a fallback for features computed before those props existed.
+function buildSplitFeatures(features) {
+  const out = [];
+  for (let idx = 0; idx < features.length; idx++) {
+    const f = features[idx];
+    const props = f.properties || {};
+    let right, left;
+    if (props.right_ids !== undefined || props.left_ids !== undefined) {
+      right = parsePipeList(props.right_ids);
+      left = parsePipeList(props.left_ids);
+    } else {
+      const keys = parsePipeList(props.per_id_keys);
+      if (!keys.length) continue;
+      const arrows = parsePipeList(props.per_id_arrows);
+      right = [];
+      left = [];
+      for (let i = 0; i < keys.length; i++) {
+        (arrows[i] === LEFT ? left : right).push(keys[i]);
+      }
+    }
+    const needsOffset = right.length > 0 && left.length > 0;
+    const rightVol = Number(props.right_sum) || 0;
+    const leftVol = Number(props.left_sum) || 0;
+    const mk = (ids, arrow, vol) => ({
+      type: "Feature",
+      id: idx,
+      geometry: f.geometry,
+      properties: {
+        ...props,
+        ls_arrow: arrow,
+        ls_needs_offset: needsOffset,
+        ls_link_ids: ids.join("|"),
+        ns_volume: vol,
+      },
+    });
+    if (right.length) out.push(mk(right, RIGHT, rightVol));
+    if (left.length) out.push(mk(left, LEFT, leftVol));
+  }
+  return out;
+}
+
+// Both split features of a segment share one geometry, so queryRenderedFeatures
+// returns both on a click — disambiguate by comparing the click's side (cross
+// product against the nearest segment) to each feature's paint-offset sign
+// (same approach as useNetworkSplitLayers.pickByClickSide).
+function pickByClickSide(hits, clickLngLat) {
+  if (hits.length === 1) return hits[0];
+  const ref = hits[0];
+  if (!ref.properties.ls_needs_offset) return ref;
+  const geom = ref.geometry;
+  const coords = geom.type === "LineString" ? geom.coordinates : geom.coordinates[0];
+  if (!coords || coords.length < 2) return ref;
+  const snap = nearestPointOnLine(lineString(coords), point([clickLngLat.lng, clickLngLat.lat]));
+  const i = Math.min(snap.properties.index ?? 0, coords.length - 2);
+  const a = coords[i], b = coords[i + 1];
+  const vx = b[0] - a[0], vy = b[1] - a[1];
+  const wx = clickLngLat.lng - a[0], wy = clickLngLat.lat - a[1];
+  const clickIsRight = (vx * wy - vy * wx) < 0;
+  const offsetSign = (arrow, angle) => {
+    const isWest = angle > 90 || angle <= -90;
+    if (arrow === RIGHT) return isWest ? -1 : 1;
+    return isWest ? 1 : -1;
+  };
+  const want = clickIsRight ? 1 : -1;
+  return hits.find(h => offsetSign(h.properties.ls_arrow, h.properties.angle) === want) || ref;
+}
+
+// Apply the combined mode/line/table filter to every line + hitbox layer, and to
+// the two direction-label layers with their ls_arrow constraint AND-ed in (the
+// labels live on the split source now, so each must stay pinned to its own
+// direction rather than rendering on both).
+function applyLayerFilters(map, combinedFilter) {
+  setFilter(map, [MERGED_LAYER_ID, MERGED_HITBOX_ID, SPLIT_LAYER_ID, SPLIT_HITBOX_ID, "ant-line"], combinedFilter);
+  const rightArrow = ["==", ["get", "ls_arrow"], RIGHT];
+  const leftArrow = ["==", ["get", "ls_arrow"], LEFT];
+  setFilter(map, LABEL_RIGHT_ID, combinedFilter ? ["all", rightArrow, combinedFilter] : rightArrow);
+  setFilter(map, LABEL_LEFT_ID, combinedFilter ? ["all", leftArrow, combinedFilter] : leftArrow);
+}
 
 export default function useTransitVolumesLayer({
   mapRef,
@@ -16,9 +190,13 @@ export default function useTransitVolumesLayer({
   highlightedLineId,
   setFeatureGeoJSON,
   tableFilterQuery,
+  labelSize,
   drawRef
 }) {
   const originalGeoJSON = useRef(null);
+  // Per-link volume lookup for the sidebar (see DataContext) — published here
+  // because this hook is the only place the raw volume JSON is available.
+  const { setTransitVolumesByLink } = useData();
 
   // ----- helpers -------------------------------------------------------------
 
@@ -125,6 +303,37 @@ export default function useTransitVolumesLayer({
       modes.split(",").forEach((m) => m && acc.add(m.trim()));
   };
 
+  // Normalize the raw volume JSON into { link_id: { lines, linkTotal,
+  // modes_list } } with linesToObject-shaped lines (timeBins/total always
+  // present) — the DataContext bucket the attributes table narrows by link.
+  const buildVolumesByLink = (rawVolumeJSON) => {
+    const byId = toVolumeById(rawVolumeJSON);
+    const out = Object.create(null);
+    for (const [id, entry] of Object.entries(byId)) {
+      const lines = linesToObject(entry);
+      const linkTotal = Number(entry.linkTotal)
+        || Object.values(lines).reduce((s, l) => s + (Number(l.total) || 0), 0);
+      out[id] = { lines, linkTotal, modes_list: entry.modes_list || [] };
+    }
+    return out;
+  };
+
+  // Bearing of first→last coord in degrees, range (-180, 180], mirroring
+  // decorateLineVolumesFromPerId. The split offset + labels key off `angle`, and
+  // the transit merged_segments geometry isn't run through that decorator, so
+  // derive it here when the loaded feature doesn't already carry one.
+  function computeAngle(f) {
+    const existing = Number(f?.properties?.angle);
+    if (Number.isFinite(existing)) return existing;
+    const g = f?.geometry;
+    if (g?.type !== "LineString" || !(g.coordinates?.length > 1)) return null;
+    const c = g.coordinates;
+    const [x0, y0] = c[0];
+    const [x1, y1] = c[c.length - 1];
+    if (x1 === x0 && y1 === y0) return null;
+    return (Math.atan2(y1 - y0, x1 - x0) * 180) / Math.PI;
+  }
+
   // NEW: compute left/right like roads, and also keep your filtered_volume
   function computeFilteredFeatures(networkGeo, rawVolumeJSON, timeRange, filterLineId) {
     const volumeJSON = toVolumeById(rawVolumeJSON);
@@ -165,6 +374,7 @@ export default function useTransitVolumesLayer({
       let windowSum = 0;          // sum across window (used for filtered_volume)
       let left = 0, right = 0;    // directional window sums
       let totalLeft = 0, totalRight = 0; // directional full-day sums
+      const leftIds = [], rightIds = []; // matched pt ids per direction (split overlay)
 
       const mergedLines = {};     // { lineId: { timeBins: { 'HH:MM': sum } } }
       const modesUnion = new Set();
@@ -187,6 +397,10 @@ export default function useTransitVolumesLayer({
           arrowMap[id] ??
           arrowMap[cleanLinkId(id)] ??
           null;
+
+        // Direction id buckets for the split overlay (unknown arrow → right,
+        // matching buildSplitFeatures' regroup bias).
+        (arrow === "←" ? leftIds : rightIds).push(id);
 
         // Sum full-day total
         const linkTotal = Number(entry.linkTotal ?? 0);
@@ -250,6 +464,8 @@ export default function useTransitVolumesLayer({
         ...f,
         properties: {
           ...f.properties,
+          // Bearing for the split offset + direction labels (derive if absent).
+          angle: computeAngle(f),
           // like the road module: color/width use "daily_avg_volume" of the current window
           daily_avg_volume: left + right,
           left_sum: left,
@@ -262,6 +478,11 @@ export default function useTransitVolumesLayer({
           // Add directional total volumes for table
           total_left: totalLeft,
           total_right: totalRight,
+
+          // Matched pt ids per direction — consumed by buildSplitFeatures so the
+          // split overlay's ls_link_ids only ever carry transit links.
+          right_ids: rightIds.join("|"),
+          left_ids: leftIds.join("|"),
 
           // Add min/max properties for filtering (default to 0 when empty,
           // matching the previous behavior that fell through to Math.min/max
@@ -295,108 +516,107 @@ export default function useTransitVolumesLayer({
     if (!map || isGraphExpanded !== "TransitVolumes" || !searchCanton) return;
 
     const removeLayers = () => {
-      // Remove click handler first
-      if (map.getLayer("transit-volumes-hitbox")) {
-        map.off("click", "transit-volumes-hitbox", handleTransitVolumeClick);
+      // Remove event handlers first
+      if (map.getLayer(MERGED_HITBOX_ID)) {
+        map.off("click", MERGED_HITBOX_ID, handleTransitVolumeClick);
+      }
+      if (map.getLayer(SPLIT_HITBOX_ID)) {
+        map.off("click", SPLIT_HITBOX_ID, handleSplitClick);
+        map.off("mouseenter", SPLIT_HITBOX_ID, onSplitEnter);
+        map.off("mouseleave", SPLIT_HITBOX_ID, onSplitLeave);
       }
 
       safeRemoveLayer(map, [
-        "transit-volumes-layer",
-        "transit-volumes-hitbox",
+        MERGED_LAYER_ID,
+        MERGED_HITBOX_ID,
         "transit-symbology-line",
-        "transit-volumes-label-left",
-        "transit-volumes-label-right",
+        LABEL_RIGHT_ID,
+        LABEL_LEFT_ID,
+        SPLIT_LAYER_ID,
+        SPLIT_HITBOX_ID,
+        SPLIT_HIGHLIGHT_ID,
         "ant-line",
       ]);
-      safeRemoveSource(map, ["transit-volumes-source", "ant-path"]);
+      safeRemoveSource(map, ["transit-volumes-source", SPLIT_SOURCE_ID, SPLIT_HIGHLIGHT_ID, "ant-path"]);
 
       // Clear network-highlight instead of removing it (shared with network)
       clearNetworkHighlightData(map);
 
       setSelectedTransitLink(null);
+      setTransitVolumesByLink(null);
       originalGeoJSON.current = null;
     };
 
+    // Direction labels now ride the split source with the per-direction offset,
+    // and are inserted with NO beforeId so they paint ON TOP of every line layer
+    // (fixes the old z-order bug where labels sat under transit-volumes-layer).
     const addLabelLayersIfMissing = () => {
-      if (!map.getSource("transit-volumes-source")) return;
+      if (!map.getSource(SPLIT_SOURCE_ID)) return;
 
-      const offsetEm = 1;
-      const offsetPos = [
-        "any",
-        [">", ["get", "angle"], 90],
-        ["<=", ["get", "angle"], -90],
-      ];
+      const size = Number(labelSize) || 11;
+      const common = {
+        "symbol-placement": "line-center",
+        "symbol-spacing": 9999999,
+        "text-keep-upright": true,
+        "text-size": size,
+        "text-allow-overlap": true,
+        "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+      };
+      const paint = { "text-halo-width": 1, "text-halo-color": "#ffffff" };
 
-      // RIGHT-going numbers (above): "NNN →"
-      if (!map.getLayer("transit-volumes-label-left")) {
-        map.addLayer(
-          {
-            id: "transit-volumes-label-left",
-            type: "symbol",
-            source: "transit-volumes-source",
-            minzoom: 15,
-            layout: {
-              "symbol-placement": "line-center",
-              "symbol-spacing": 9999999,
-              "text-keep-upright": true,
-              "text-field": [
-                "case",
-                ["==", ["round", ["number", ["get", "right_sum"], 0]], 0],
-                "",
-                [
-                  "concat",
-                  ["to-string", ["round", ["number", ["get", "right_sum"], 0]]],
-                  " \u2192",
-                ],
-              ],
-              "text-size": 11,
-              "text-offset": [0, ["case", offsetPos, -offsetEm, offsetEm]],
-              "text-allow-overlap": true,
-              "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
-            },
-            paint: { "text-halo-width": 1, "text-halo-color": "#ffffff" },
+      // RIGHT-going numbers: "NNN →"  (id kept as transit-volumes-label-left)
+      if (!map.getLayer(LABEL_RIGHT_ID)) {
+        map.addLayer({
+          id: LABEL_RIGHT_ID,
+          type: "symbol",
+          source: SPLIT_SOURCE_ID,
+          minzoom: SPLIT_ZOOM,
+          filter: ["==", ["get", "ls_arrow"], RIGHT],
+          layout: {
+            ...common,
+            "text-field": [
+              "case",
+              ["==", ["round", ["get", "ns_volume"]], 0],
+              "",
+              ["concat", ["to-string", ["round", ["get", "ns_volume"]]], " →"],
+            ],
+            "text-offset": LABEL_OFFSET_RIGHT,
           },
-          "transit-volumes-layer"
-        );
+          paint,
+        });
       }
 
-      // LEFT-going numbers (below): "← NNN"
-      if (!map.getLayer("transit-volumes-label-right")) {
-        map.addLayer(
-          {
-            id: "transit-volumes-label-right",
-            type: "symbol",
-            source: "transit-volumes-source",
-            minzoom: 15,
-            layout: {
-              "symbol-placement": "line-center",
-              "symbol-spacing": 9999999,
-              "text-keep-upright": true,
-              "text-field": [
-                "case",
-                ["==", ["round", ["number", ["get", "left_sum"], 0]], 0],
-                "",
-                [
-                  "concat",
-                  "\u2190 ",
-                  ["to-string", ["round", ["number", ["get", "left_sum"], 0]]],
-                ],
-              ],
-              "text-size": 11,
-              "text-offset": [0, ["case", offsetPos, offsetEm, -offsetEm]],
-              "text-allow-overlap": true,
-              "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
-            },
-            paint: { "text-halo-width": 1, "text-halo-color": "#ffffff" },
+      // LEFT-going numbers: "← NNN"  (id kept as transit-volumes-label-right)
+      if (!map.getLayer(LABEL_LEFT_ID)) {
+        map.addLayer({
+          id: LABEL_LEFT_ID,
+          type: "symbol",
+          source: SPLIT_SOURCE_ID,
+          minzoom: SPLIT_ZOOM,
+          filter: ["==", ["get", "ls_arrow"], LEFT],
+          layout: {
+            ...common,
+            "text-field": [
+              "case",
+              ["==", ["round", ["get", "ns_volume"]], 0],
+              "",
+              ["concat", "← ", ["to-string", ["round", ["get", "ns_volume"]]]],
+            ],
+            "text-offset": LABEL_OFFSET_LEFT,
           },
-          "transit-volumes-layer"
-        );
+          paint,
+        });
       }
     };
 
-    // Define click handler function so it can be properly removed
+    // Merged-segment click (zoom < SPLIT_ZOOM): select the whole segment (all
+    // directions) via the shared network-highlight, exactly as before.
     const handleTransitVolumeClick = (e) => {
       if (!e.features?.length) return;
+
+      // At/above SPLIT_ZOOM only the split hitbox handles clicks — a merged
+      // (all-direction) selection would be wrong while the offset pair is shown.
+      if (map.getZoom() >= SPLIT_ZOOM) return;
 
       // Skip selection when actively drawing or clicking on draw features
       if (drawRef?.current) {
@@ -410,6 +630,11 @@ export default function useTransitVolumesLayer({
           mapRef.current.fire('draw.delete', { features: [] });
         }
       }
+
+      // A merged click supersedes any split-direction highlight.
+      safeRemoveLayer(map, SPLIT_HIGHLIGHT_ID);
+      safeRemoveSource(map, SPLIT_HIGHLIGHT_ID);
+      clearAntLine(map);
 
       // Identify by our stable key
       const clickedKeys = new Set(
@@ -442,7 +667,7 @@ export default function useTransitVolumesLayer({
       if (!map.getLayer("network-highlight")) {
         // Position before transit-volumes-layer
         let beforeLayer = null;
-        if (map.getLayer('transit-volumes-layer')) beforeLayer = 'transit-volumes-layer';
+        if (map.getLayer(MERGED_LAYER_ID)) beforeLayer = MERGED_LAYER_ID;
         else if (map.getLayer('network-layer')) beforeLayer = 'network-layer';
 
         map.addLayer(
@@ -469,8 +694,11 @@ export default function useTransitVolumesLayer({
       } else {
         // Layer exists - make sure it's visible and has correct paint
         map.setLayoutProperty("network-highlight", "visibility", "visible");
-        // Update paint to work with transit data
+        // Update paint to work with transit data. Reset line-offset in case a
+        // previous split highlight (which reuses no shared layer now, but be safe)
+        // left one behind.
         map.setPaintProperty("network-highlight", "line-color", "#00a2ff");
+        map.setPaintProperty("network-highlight", "line-offset", 0);
         map.setPaintProperty("network-highlight", "line-width", [
           "interpolate",
           ["linear"],
@@ -484,9 +712,85 @@ export default function useTransitVolumesLayer({
       }
 
       // Sidebar: pass properties array
-      console.log("Transit link clicked:", fullFeatures.map((f) => f.properties));
       setSelectedTransitLink(fullFeatures.map((f) => f.properties));
     };
+
+    // Split-line click (zoom >= SPLIT_ZOOM): select ONLY the clicked direction.
+    const handleSplitClick = (e) => {
+      if (!e.features?.length) return;
+
+      // Skip selection when actively drawing or clicking on draw features
+      if (drawRef?.current) {
+        const mode = drawRef.current.getMode?.();
+        if (mode === 'draw_polygon' || mode === 'direct_select') return;
+        const clickedLayers = map.queryRenderedFeatures(e.point).map(fl => fl.layer.id);
+        if (clickedLayers.some(id => id.startsWith('gl-draw'))) return;
+        // Clear drawn polygons on single-click selection
+        if (drawRef.current.getAll?.()?.features?.length > 0) {
+          drawRef.current.deleteAll();
+          map.fire('draw.delete', { features: [] });
+        }
+      }
+
+      const rendered = pickByClickSide(e.features, e.lngLat);
+
+      // queryRenderedFeatures JSON-stringifies nested properties (lines /
+      // link_ids / modes become strings) and clips geometry to the tile, so
+      // resolve the real split feature from the source — the sidebar needs the
+      // object props and the highlight the full untruncated line. Same trick as
+      // the merged handler's link_key_join lookup.
+      const splitFeatures = map.getSource(SPLIT_SOURCE_ID)?._data?.features || [];
+      const clicked = splitFeatures.find(
+        (f) =>
+          f?.properties?.link_key_join === rendered?.properties?.link_key_join &&
+          f?.properties?.ls_arrow === rendered?.properties?.ls_arrow
+      ) || rendered;
+
+      // Drop any ant-path left over from a previous link's "Visualize", and empty
+      // the shared merged highlight so both selections aren't shown at once.
+      clearAntLine(map);
+      clearNetworkHighlightData(map);
+
+      // Offset highlight for the single clicked direction (zoom-stepped — see
+      // the SPLIT_HIGHLIGHT_ID comment at the const declarations). The sidebar
+      // selection is untouched by the zoom handoff; only the visual anchor
+      // shifts between the merged line and the direction's offset line.
+      safeRemoveLayer(map, SPLIT_HIGHLIGHT_ID);
+      safeRemoveSource(map, SPLIT_HIGHLIGHT_ID);
+      map.addSource(SPLIT_HIGHLIGHT_ID, {
+        type: "geojson",
+        data: { type: "FeatureCollection", features: [clicked] },
+      });
+      map.addLayer({
+        id: SPLIT_HIGHLIGHT_ID,
+        type: "line",
+        source: SPLIT_HIGHLIGHT_ID,
+        paint: {
+          // >= SPLIT_ZOOM: keyed on ns_volume (NOT capacity — often NULL on pt
+          // links) with the hitbox's stops, so the highlight always renders
+          // wider than the split line. Below: the merged network-highlight's
+          // ramp so it hugs the single merged line.
+          "line-width": ["step", ["zoom"],
+            ["interpolate", ["linear"], ["get", "daily_avg_volume"],
+              0, 8, 10, 10, 50, 12, 100, 14, 250, 16],
+            SPLIT_ZOOM, HITBOX_WIDTH_EXPR],
+          "line-color": "#00a2ff",
+          "line-opacity": 1,
+          "line-offset": ["step", ["zoom"], 0, SPLIT_ZOOM, LINE_OFFSET_EXPR],
+        },
+        // Under the merged layer (and thus under the split layers stacked above
+        // it) so the highlight reads as an outline ring below the link at every
+        // zoom, mirroring the merged network-highlight insertion.
+      }, map.getLayer(MERGED_LAYER_ID) ? MERGED_LAYER_ID
+        : map.getLayer(SPLIT_LAYER_ID) ? SPLIT_LAYER_ID : undefined);
+
+      // Sidebar: single direction. props carry ls_arrow / ls_needs_offset /
+      // ls_link_ids so the module can isolate this direction (no dropdown).
+      setSelectedTransitLink([clicked.properties]);
+    };
+
+    const onSplitEnter = () => { map.getCanvas().style.cursor = "pointer"; };
+    const onSplitLeave = () => { map.getCanvas().style.cursor = ""; };
 
     const init = async () => {
       removeLayers();
@@ -500,7 +804,16 @@ export default function useTransitVolumesLayer({
         const networkGeo = await loadWithFallback(networkPath);
         const volumeJSON = await loadWithFallback(volumePath);
 
+        // The backend serves merged_segments pre-merged (per_id_keys present →
+        // no-op), but the GitHub-CDN fallback ships one feature per directed
+        // link with a singular `link_id` and NO per_id_* arrays. Without this
+        // merge (which useNetworkLayers already does for the road modules) every
+        // CDN feature is skipped by computeFilteredFeatures (no per_id_keys) or,
+        // worse, direction pairs render as two unmerged overlapping features.
+        networkGeo.features = mergeSegmentsByGeometry(networkGeo.features);
+
         originalGeoJSON.current = { geo: networkGeo, volumes: volumeJSON };
+        setTransitVolumesByLink(buildVolumesByLink(volumeJSON));
 
         // Always pass null for filterLineId on init — highlightedLineId is reset
         // on canton change by TransitVolumesModule, but this async closure captures
@@ -524,10 +837,11 @@ export default function useTransitVolumesLayer({
           },
         });
 
-        // Visible line layer — mirror the road “Volumes” color ramp (daily_avg_volume)
+        // Visible merged line layer — mirror the road “Volumes” color ramp
+        // (daily_avg_volume). Shown only below SPLIT_ZOOM (capped further down).
         map.addLayer(
           {
-            id: "transit-volumes-layer",
+            id: MERGED_LAYER_ID,
             type: "line",
             source: "transit-volumes-source",
             layout: { "line-join": "round", "line-cap": "round" },
@@ -557,10 +871,10 @@ export default function useTransitVolumesLayer({
           "canton-highlight"
         );
 
-        // Hitbox
+        // Merged hitbox
         map.addLayer(
           {
-            id: "transit-volumes-hitbox",
+            id: MERGED_HITBOX_ID,
             type: "line",
             source: "transit-volumes-source",
             paint: {
@@ -577,22 +891,59 @@ export default function useTransitVolumesLayer({
               ],
             },
           },
-          "transit-volumes-layer"
+          MERGED_LAYER_ID
         );
 
-        // Labels like roads
+        // Per-direction split overlay (offset lines) for zoom >= SPLIT_ZOOM,
+        // built from the same features regrouped by direction.
+        map.addSource(SPLIT_SOURCE_ID, {
+          type: "geojson",
+          data: { type: "FeatureCollection", features: buildSplitFeatures(updatedFeatures) },
+        });
+
+        map.addLayer({
+          id: SPLIT_LAYER_ID,
+          type: "line",
+          source: SPLIT_SOURCE_ID,
+          minzoom: SPLIT_ZOOM,
+          layout: { "line-join": "round", "line-cap": "round" },
+          paint: {
+            "line-color": VOLUME_RAMP,
+            "line-width": WIDTH_EXPR,
+            "line-opacity": 1,
+            "line-offset": LINE_OFFSET_EXPR,
+          },
+        });
+
+        // Invisible wide hitbox over the split lines — click + hover bind here.
+        map.addLayer({
+          id: SPLIT_HITBOX_ID,
+          type: "line",
+          source: SPLIT_SOURCE_ID,
+          minzoom: SPLIT_ZOOM,
+          paint: {
+            "line-width": HITBOX_WIDTH_EXPR,
+            "line-color": "#000",
+            "line-opacity": 0,
+            "line-offset": LINE_OFFSET_EXPR,
+          },
+        });
+
+        // Direction labels (on the split source, on top of every line layer).
         addLabelLayersIfMissing();
 
-        // Mode filter applies to both lines and labels
+        // Hand off merged ↔ split: merged only below SPLIT_ZOOM, split overlay
+        // only at/above it (its minzoom). Prevents the merged line drawing under
+        // the offset pair.
+        if (map.getLayer(MERGED_LAYER_ID)) map.setLayerZoomRange(MERGED_LAYER_ID, 0, SPLIT_ZOOM);
+
+        // Mode filter applies to every line/hitbox/label layer.
         if (selectedTransitModes && !selectedTransitModes.includes("all")) {
           const filter = [
             "any",
             ...selectedTransitModes.map((mode) => ["in", mode, ["get", "modes"]]),
           ];
-          setFilter(map, [
-            "transit-volumes-layer", "transit-volumes-hitbox",
-            "transit-volumes-label-left", "transit-volumes-label-right",
-          ], filter);
+          applyLayerFilters(map, filter);
         }
 
         const handleIdle = () => {
@@ -601,13 +952,13 @@ export default function useTransitVolumesLayer({
         };
         map.on("idle", handleIdle);
 
-        // Remove any existing click handler first
-        if (map.getLayer("transit-volumes-hitbox")) {
-          map.off("click", "transit-volumes-hitbox", handleTransitVolumeClick);
-        }
-
-        // Add click handler
-        map.on("click", "transit-volumes-hitbox", handleTransitVolumeClick);
+        // Bind click/hover handlers (idempotent — remove any stale binding first).
+        map.off("click", MERGED_HITBOX_ID, handleTransitVolumeClick);
+        map.on("click", MERGED_HITBOX_ID, handleTransitVolumeClick);
+        map.off("click", SPLIT_HITBOX_ID, handleSplitClick);
+        map.on("click", SPLIT_HITBOX_ID, handleSplitClick);
+        map.on("mouseenter", SPLIT_HITBOX_ID, onSplitEnter);
+        map.on("mouseleave", SPLIT_HITBOX_ID, onSplitLeave);
       } catch (err) {
         console.warn("Failed to load transit volumes layer", err);
       }
@@ -633,6 +984,29 @@ export default function useTransitVolumesLayer({
       source.setData({ type: "FeatureCollection", features: updatedFeatures });
     }
 
+    // Rebuild the per-direction split source so the offset lines + labels track
+    // the new time window / highlighted line.
+    const splitSource = map.getSource(SPLIT_SOURCE_ID);
+    const splitFeatures = buildSplitFeatures(updatedFeatures);
+    if (splitSource) {
+      splitSource.setData({ type: "FeatureCollection", features: splitFeatures });
+    }
+
+    // Keep a split-direction highlight in sync too (same link_key_join refresh
+    // the shared network-highlight gets below, plus the ls_arrow match).
+    const splitHighlight = map.getSource(SPLIT_HIGHLIGHT_ID);
+    if (splitHighlight) {
+      const prev = splitHighlight._data?.features || [];
+      const updatedHl = splitFeatures.filter((f) =>
+        prev.some(
+          (p) =>
+            p?.properties?.link_key_join === f?.properties?.link_key_join &&
+            p?.properties?.ls_arrow === f?.properties?.ls_arrow
+        )
+      );
+      splitHighlight.setData({ type: "FeatureCollection", features: updatedHl });
+    }
+
     // Also update the table GeoJSON so filteredVolume shows correct values
     setFeatureGeoJSON?.({ type: "FeatureCollection", features: updatedFeatures });
 
@@ -652,6 +1026,16 @@ export default function useTransitVolumesLayer({
       });
     }
   }, [timeRange, highlightedLineId]);
+
+  // ----- label size slider → update split label text-size in place -----------
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || isGraphExpanded !== "TransitVolumes") return;
+    const size = Number(labelSize) || 11;
+    [LABEL_RIGHT_ID, LABEL_LEFT_ID].forEach((id) => {
+      if (map.getLayer(id)) map.setLayoutProperty(id, "text-size", size);
+    });
+  }, [labelSize, isGraphExpanded]);
 
   // ----- respond to mode filter changes (also labels) ------------------------
   useEffect(() => {
@@ -678,15 +1062,8 @@ export default function useTransitVolumesLayer({
         ? ["all", lineFilter, modeFilter]
         : lineFilter || modeFilter || null;
 
-    // Apply to base, hitbox, highlight, and labels
-    setFilter(map, [
-      "transit-volumes-layer",
-      "transit-volumes-hitbox",
-      "transit-volumes-highlight",
-      "transit-volumes-label-left",
-      "transit-volumes-label-right",
-      "ant-line",
-    ], combinedFilter);
+    // Apply to merged + split line/hitbox layers and the direction labels.
+    applyLayerFilters(map, combinedFilter);
   }, [selectedTransitModes, highlightedLineId, isGraphExpanded]);
 
   // ----- respond to table filter changes --------------------------------------
@@ -874,15 +1251,8 @@ export default function useTransitVolumesLayer({
     const filters = [modeFilter, lineFilter, tableFilter].filter(Boolean);
     const combinedFilter = filters.length > 1 ? ["all", ...filters] : filters[0] || null;
 
-    // Apply to all layers
-    setFilter(map, [
-      "transit-volumes-layer",
-      "transit-volumes-hitbox",
-      "transit-volumes-highlight",
-      "transit-volumes-label-left",
-      "transit-volumes-label-right",
-      "ant-line",
-    ], combinedFilter);
+    // Apply to merged + split line/hitbox layers and the direction labels.
+    applyLayerFilters(map, combinedFilter);
   }, [selectedTransitModes, highlightedLineId, isGraphExpanded, tableFilterQuery]);
 
 }

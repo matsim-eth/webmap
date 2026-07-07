@@ -1,13 +1,19 @@
 import React, { useState } from "react";
 import "../Table.css";
 
-const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLineId, timeRange }) => {
+const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLineId, timeRange, linkFilter, volumesByLink }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   if (!propertiesList || !Array.isArray(propertiesList) || propertiesList.length === 0) return null;
-  
+
   const startTick = timeRange?.[0] ?? 0;
   const endTick = timeRange?.[1] ?? 96;
-  
+
+  // Narrow the displayed links to a chosen subset (the "Link ID" dropdown or a
+  // per-direction split selection). null/empty → show every link on the segment.
+  const keep = Array.isArray(linkFilter) && linkFilter.length
+    ? new Set(linkFilter.map(String))
+    : null;
+
   // Collect common info (assuming all links share same metadata structure)
   const linkIds = Array.from(
     new Set(
@@ -19,7 +25,7 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
         return p.id ? [String(p.id)] : [];
       })
     )
-  ).join(", ");
+  ).filter(id => !keep || keep.has(id)).join(", ");
   
   // Helpers for dedup rows like the MATSim network table
   const fmtNum = (v) => {
@@ -46,6 +52,7 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
       const values = valuesRaw.split("|").filter(Boolean);
       
       keys.forEach((id, index) => {
+        if (keep && !keep.has(String(id))) return;
         const num = Number(values[index]);
         if (Number.isFinite(num) && !seen.has(String(id))) {
           seen.set(String(id), num);
@@ -62,16 +69,25 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
     }
     return undefined;
   };
-  const allModes = Array.from(new Set(propertiesList.flatMap((p) => p.modes || [])));
+  // With a link filter active, rebuild lines/volumes from the per-link lookup
+  // (volumesByLink, published by useTransitVolumesLayer via DataContext) — the
+  // feature props only carry segment-level merges, so summing those would keep
+  // showing BOTH directions' volumes no matter which link is chosen. Falls
+  // back to the segment-level merge when no filter is set or the lookup can't
+  // resolve the ids (e.g. legacy props carrying raw per_id_keys).
+  const cleanId = (id) => String(id).split("_").map((p) => p.split(":")[0]).join("_");
+  const keptEntries = keep && volumesByLink
+    ? Array.from(keep, (id) => volumesByLink[id] ?? volumesByLink[cleanId(id)]).filter(Boolean)
+    : null;
+  const useByLink = !!(keptEntries && keptEntries.length);
+
   // Build merged lines dict, preserving name + mode if present
   const allLines = {};
-  
-  for (const p of propertiesList) {
-    const lines = p.lines || {};
-    for (const [lineId, line] of Object.entries(lines)) {
+  const mergeLinesInto = (lines) => {
+    for (const [lineId, line] of Object.entries(lines || {})) {
       const lineName = line.line_name ?? line.lineName ?? line.name ?? null; // handle snake/camel
       const mode = line.mode ?? null;
-      
+
       if (!allLines[lineId]) {
         allLines[lineId] = {
           total: 0,
@@ -83,18 +99,30 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
         if (!allLines[lineId].line_name && lineName) allLines[lineId].line_name = lineName;
         if (!allLines[lineId].mode && mode) allLines[lineId].mode = mode;
       }
-      
+
       // Merge total
       if (typeof line.total === "number") allLines[lineId].total += line.total ?? 0;
-      
+
       // Merge timeBins
       const dest = allLines[lineId].timeBins;
       const src = line.timeBins || {};
       for (const key in src) dest[key] = (dest[key] ?? 0) + (src[key] ?? 0);
     }
+  };
+  if (useByLink) {
+    for (const e of keptEntries) mergeLinesInto(e.lines);
+  } else {
+    for (const p of propertiesList) mergeLinesInto(p.lines);
   }
-  // Total volumes
-  const totalVolume = propertiesList.reduce((sum, p) => sum + (p.total_volume ?? 0), 0);
+
+  const allModes = useByLink
+    ? Array.from(new Set(keptEntries.flatMap((e) => e.modes_list || [])))
+    : Array.from(new Set(propertiesList.flatMap((p) => p.modes || [])));
+
+  // Total volumes — per-link full-day totals when filtered, segment totals otherwise
+  const totalVolume = useByLink
+    ? keptEntries.reduce((sum, e) => sum + (Number(e.linkTotal) || 0), 0)
+    : propertiesList.reduce((sum, p) => sum + (p.total_volume ?? 0), 0);
   
   let filteredVolume = 0;
   

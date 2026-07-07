@@ -35,6 +35,14 @@ export const DataProvider = ({ children }) => {
   const [zoneFlowData, setZoneFlowData] = useState(null);
   const [zoneFlowLoading, setZoneFlowLoading] = useState(false);
 
+  // TransitVolumes: per-link volume lookup ({ link_id: { lines, linkTotal,
+  // modes_list } }) published by useTransitVolumesLayer. The merged segment
+  // features only carry segment-level line merges, so narrowing the sidebar
+  // attributes table to one link needs this per-link breakdown — kept out of
+  // the geojson sources because it would roughly double them (Zurich's volume
+  // file is ~24 MB, and the split overlay spreads feature props twice).
+  const [transitVolumesByLink, setTransitVolumesByLink] = useState(null);
+
   const [polygonTripsData, setPolygonTripsData] = useState(null);
   const [polygonTripsLoading, setPolygonTripsLoading] = useState(false);
 
@@ -55,6 +63,7 @@ export const DataProvider = ({ children }) => {
     linkSpeedsSummary, setLinkSpeedsSummary,
     zoneFlowData, setZoneFlowData,
     zoneFlowLoading, setZoneFlowLoading,
+    transitVolumesByLink, setTransitVolumesByLink,
     polygonTripsData, setPolygonTripsData,
     polygonTripsLoading, setPolygonTripsLoading,
   }), [
@@ -64,6 +73,7 @@ export const DataProvider = ({ children }) => {
     nodeFlowsData,
     linkSpeedsLinksMap, linkSpeedsSummary,
     zoneFlowData, zoneFlowLoading,
+    transitVolumesByLink,
     polygonTripsData, polygonTripsLoading,
   ]);
 

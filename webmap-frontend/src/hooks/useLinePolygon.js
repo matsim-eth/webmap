@@ -11,8 +11,11 @@ function applyFading(map, layerIds, labelLayerIds, fadeOpacity) {
   }
 }
 
-function clearFading(map, sourceId, layerIds, labelLayerIds) {
+function clearFading(map, sourceId, layerIds, labelLayerIds, extraStateSourceIds = []) {
   if (map.getSource(sourceId)) map.removeFeatureState({ source: sourceId });
+  for (const sid of extraStateSourceIds) {
+    if (map.getSource(sid)) map.removeFeatureState({ source: sid });
+  }
   for (const id of layerIds) {
     if (map.getLayer(id)) map.setPaintProperty(id, 'line-opacity', 1);
   }
@@ -29,6 +32,11 @@ function clearFading(map, sourceId, layerIds, labelLayerIds) {
  *
  * Requires `generateId: true` on the Mapbox source so that
  * setFeatureState can address features by their array index.
+ *
+ * `extraStateSourceIds`: sources whose features carry an explicit `id` equal to
+ * the parent feature's index in `featureGeoJSON` (e.g. the transit-volumes split
+ * source) — the same inPolygon states are mirrored onto them so layers drawn
+ * from those sources fade consistently with the main source's layers.
  */
 export default function useLinePolygon({
   mapRef,
@@ -42,6 +50,7 @@ export default function useLinePolygon({
   showMajorRoadsOnly = false,
   onPolygonChange,
   fadeOpacity = 0.2,
+  extraStateSourceIds = [],
 }) {
   const [polygonFeatures, setPolygonFeatures] = useState([]);
 
@@ -50,7 +59,7 @@ export default function useLinePolygon({
     const map = mapRef?.current;
     if (!map || isGraphExpanded !== activeModule) {
       if (map && map.getSource(sourceId)) {
-        clearFading(map, sourceId, layerIds, labelLayerIds);
+        clearFading(map, sourceId, layerIds, labelLayerIds, extraStateSourceIds);
       }
       setPolygonFeatures([]);
       return;
@@ -59,14 +68,14 @@ export default function useLinePolygon({
     const computeSelection = () => {
       const draw = drawRef?.current;
       if (!draw || !featureGeoJSON?.features?.length) {
-        clearFading(map, sourceId, layerIds, labelLayerIds);
+        clearFading(map, sourceId, layerIds, labelLayerIds, extraStateSourceIds);
         setPolygonFeatures([]);
         return;
       }
 
       const polygons = draw.getAll?.()?.features || [];
       if (!polygons.length) {
-        clearFading(map, sourceId, layerIds, labelLayerIds);
+        clearFading(map, sourceId, layerIds, labelLayerIds, extraStateSourceIds);
         setPolygonFeatures([]);
         return;
       }
@@ -92,11 +101,18 @@ export default function useLinePolygon({
       // Apply feature-state fading
       if (map.getSource(sourceId) && filtered.length > 0) {
         map.removeFeatureState({ source: sourceId });
+        // Mirror onto sources whose feature ids equal the parent feature index
+        // (e.g. the transit split source), so their layers fade consistently.
+        const extraSources = extraStateSourceIds.filter((sid) => map.getSource(sid));
+        for (const sid of extraSources) map.removeFeatureState({ source: sid });
 
         const filteredSet = new Set(filtered);
         featureGeoJSON.features.forEach((f, i) => {
           if (filteredSet.has(f)) {
             map.setFeatureState({ source: sourceId, id: i }, { inPolygon: true });
+            for (const sid of extraSources) {
+              map.setFeatureState({ source: sid, id: i }, { inPolygon: true });
+            }
           }
         });
 

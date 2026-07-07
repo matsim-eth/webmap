@@ -353,7 +353,14 @@ export default function useNetworkSplitLayers({ mapRef, mapReady }) {
 
             // Offset highlight for the single clicked direction (created before
             // setFeatureSelection so useFeatureSelectionFocus keeps this paint and
-            // only refreshes the source).
+            // only refreshes the source). The offset is zoom-stepped: at/above
+            // SPLIT_ZOOM it rides the clicked direction's offset line; below it
+            // the split pair collapses into the single merged line, so the
+            // highlight snaps back onto it (offset 0) instead of floating offset
+            // next to it. ["step", ["zoom"], ...] switches discretely at
+            // SPLIT_ZOOM — the same boundary as the base↔split line handoff.
+            // Merged selections reusing this layer are unaffected: their
+            // features carry no ls_needs_offset, so the offset resolves to 0.
             safeRemoveLayer(map, HIGHLIGHT_ID);
             safeRemoveSource(map, HIGHLIGHT_ID);
             map.addSource(HIGHLIGHT_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [clicked] } });
@@ -365,9 +372,12 @@ export default function useNetworkSplitLayers({ mapRef, mapReady }) {
                     'line-width': ['interpolate', ['linear'], ['coalesce', ['get', 'capacity'], 1000], 300, 6, 4000, 15],
                     'line-color': '#00a2ff',
                     'line-opacity': 1,
-                    'line-offset': LINE_OFFSET_EXPR,
+                    'line-offset': ['step', ['zoom'], 0, SPLIT_ZOOM, LINE_OFFSET_EXPR],
                 },
-            }, map.getLayer(SPLIT_LAYER_ID) ? SPLIT_LAYER_ID : BASE_LAYER_ID);
+                // Under the base layer (and thus under the split layers stacked
+                // above it) so the highlight stays an outline ring below the
+                // link at every zoom.
+            }, map.getLayer(BASE_LAYER_ID) ? BASE_LAYER_ID : SPLIT_LAYER_ID);
 
             setSelectedNetworkFeature([clicked.properties]);
             const g = clicked.geometry;

@@ -356,7 +356,12 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
                     'line-width': ['interpolate', ['linear'], ['coalesce', ['get', 'capacity'], 1000], 300, 6, 4000, 15],
                     'line-color': '#00a2ff',
                     'line-opacity': 1,
-                    'line-offset': LINE_OFFSET_EXPR,
+                    // Zoom-stepped: rides the direction's offset line at/above
+                    // SPLIT_ZOOM, snaps back onto the merged agg line below it
+                    // (the split pair collapses into one line there). Discrete
+                    // switch at SPLIT_ZOOM, same boundary as the agg↔split
+                    // layer handoff.
+                    'line-offset': ['step', ['zoom'], 0, SPLIT_ZOOM, LINE_OFFSET_EXPR],
                 },
             }, map.getLayer(SPEEDS_AGG_LAYER_ID) ? SPEEDS_AGG_LAYER_ID : 'network-layer');
 

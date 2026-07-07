@@ -29,6 +29,7 @@ export default function useTransitLayers({
   setFeatureGeoJSON,
   tableFilterQuery,
   selectedDirection,
+  labelSize,
   drawRef
 }) {
 
@@ -84,9 +85,10 @@ export default function useTransitLayers({
     highlightedLineId,
     setFeatureGeoJSON,
     tableFilterQuery,
+    labelSize,
     drawRef
   });
-  
+
   useTransitSymbologyLayer({
     mapRef,
     searchCanton,
