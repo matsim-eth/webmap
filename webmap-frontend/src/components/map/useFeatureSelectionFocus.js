@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { buildComparisonFilter, getPropertyName, buildPipeDelimitedComparison } from './_lib/mapboxFilters';
 import { safeRemoveLayer, safeRemoveSource, setOrAddSource, setFilter } from './_lib/mapbox';
 import { clearNetworkHighlightData, clearTransitStopHighlight, NETWORK_HIGHLIGHT_PAINT } from './_lib/featureSelection';
-import { measureMapPadding } from '../sidebar/sidebarLayout';
+import { measureMapPadding, clampHorizontalPadding } from '../sidebar/sidebarLayout';
 
 const HIGHLIGHT_SOURCE_ID = 'network-highlight';
 const HIGHLIGHT_LAYER_ID = 'network-highlight';
@@ -130,8 +130,9 @@ export default function useFeatureSelectionFocus({
             if (map.stop) map.stop();
             // Selection comes from the sidebar/table, so its width has
             // settled — measure it live and add generous vertical margins.
+            const width = map.getContainer().clientWidth;
             map.fitBounds(bounds, {
-              padding: { ...measureMapPadding(60), top: 150, bottom: 150 },
+              padding: clampHorizontalPadding({ ...measureMapPadding(60), top: 150, bottom: 150 }, width),
               duration: 1000,
               maxZoom: 16,
             });
@@ -184,8 +185,9 @@ export default function useFeatureSelectionFocus({
         if (map.stop) map.stop();
         // Same as the stop branch: sidebar width is settled (selection is
         // never fromMap here), measure it live.
+        const width = map.getContainer().clientWidth;
         map.fitBounds(bounds, {
-          padding: { ...measureMapPadding(60), top: 250, bottom: 250 },
+          padding: clampHorizontalPadding({ ...measureMapPadding(60), top: 250, bottom: 250 }, width),
           duration: 1000,
         });
       }

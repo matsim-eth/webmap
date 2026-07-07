@@ -25,6 +25,9 @@ DATASET_STORAGE_ROOT = os.getenv("DATASET_STORAGE_ROOT", "/data/datasets")
 # misconfiguration can't silently re-expose destructive operations (init/delete
 # user storage). Callers (auth-backend) send it in the X-Internal-Secret header.
 INTERNAL_SERVICE_SECRET = os.getenv("INTERNAL_SERVICE_SECRET", "").strip()
+if not INTERNAL_SERVICE_SECRET:
+    logger.warning("INTERNAL_SERVICE_SECRET is unset — /internal/* relies on "
+                   "proxy/network isolation only. Set it in .env.")
 
 
 async def require_internal_secret(
@@ -33,15 +36,17 @@ async def require_internal_secret(
     """Reject internal calls that don't carry the shared secret.
 
     When ``INTERNAL_SERVICE_SECRET`` is unset we fall back to relying on the
-    proxy/network isolation (and log a warning), so existing deployments keep
-    working; set it in the shared .env to enable the check on every service.
-    Responds 404 (not 403) so the endpoints don't confirm they exist.
+    proxy/network isolation (warned once at import), so existing deployments
+    keep working; set it in the shared .env to enable the check on every
+    service. Responds 404 (not 403) so the endpoints don't confirm they exist.
     """
     if not INTERNAL_SERVICE_SECRET:
-        logger.warning("INTERNAL_SERVICE_SECRET is unset — /internal/* relies on "
-                       "proxy/network isolation only. Set it in .env.")
         return
-    if not x_internal_secret or not hmac.compare_digest(x_internal_secret, INTERNAL_SERVICE_SECRET):
+    # Compare as bytes: Starlette decodes headers as latin-1, and
+    # hmac.compare_digest raises TypeError on non-ASCII str input.
+    supplied = (x_internal_secret or "").encode("utf-8", "ignore")
+    expected = INTERNAL_SERVICE_SECRET.encode("utf-8")
+    if not hmac.compare_digest(supplied, expected):
         raise HTTPException(status_code=404, detail="not found")
 
 

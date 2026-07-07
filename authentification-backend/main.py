@@ -226,8 +226,9 @@ async def _init_user_storage(user_id: int):
     import httpx
     try:
         async with httpx.AsyncClient() as client:
-            await client.post(f"{DATASET_SERVICE_URL}/internal/init-user/{user_id}",
-                              headers=_internal_headers(), timeout=5.0)
+            resp = await client.post(f"{DATASET_SERVICE_URL}/internal/init-user/{user_id}",
+                                     headers=_internal_headers(), timeout=5.0)
+            resp.raise_for_status()
         logger.info("Init storage for user %s", user_id)
     except Exception:
         logger.warning("Could not init storage for user %s (dataset service may not be ready)", user_id)
@@ -450,13 +451,7 @@ async def register(credentials: RegisterCredentialsModel, db: AsyncSession = Dep
         await _send_verification_email(email, credentials.first_name, verify_token)
 
     # Create per-user storage directory via dataset backend (best-effort)
-    import httpx
-    try:
-        async with httpx.AsyncClient() as client:
-            await client.post(f"{DATASET_SERVICE_URL}/internal/init-user/{user.id}",
-                              headers=_internal_headers(), timeout=5.0)
-    except Exception:
-        logger.warning("Could not init user storage for user %s", user.id)
+    await _init_user_storage(user.id)
 
     return {
         "id": user.id,
@@ -873,8 +868,9 @@ async def admin_delete_user(
         import httpx
         try:
             async with httpx.AsyncClient() as client:
-                await client.delete(f"{DATASET_SERVICE_URL}/internal/delete-user/{user.id}",
-                                    headers=_internal_headers(), timeout=10.0)
+                resp = await client.delete(f"{DATASET_SERVICE_URL}/internal/delete-user/{user.id}",
+                                           headers=_internal_headers(), timeout=10.0)
+                resp.raise_for_status()
         except Exception:
             logger.warning("Could not delete storage for user %s", user.id)
 

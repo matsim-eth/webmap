@@ -64,3 +64,15 @@ export function measureMapPadding(base = MAP_PADDING_BASE) {
   const right = document.querySelector('.right-sidebar')?.getBoundingClientRect().width ?? 0;
   return { top: base, bottom: base, left: left + base, right: right + base };
 }
+
+// Mapbox fitBounds silently refuses to move when padding exceeds the canvas
+// (e.g. left sidebar + feature table on a 1280px laptop). Scale left/right
+// down so at least `minVisibleFrac` of the container stays visible.
+export function clampHorizontalPadding(padding, containerWidth, minVisibleFrac = 0.35) {
+  if (!containerWidth) return padding;
+  const maxTotal = containerWidth * (1 - minVisibleFrac);
+  const total = padding.left + padding.right;
+  if (total <= maxTotal) return padding;
+  const scale = maxTotal / total;
+  return { ...padding, left: padding.left * scale, right: padding.right * scale };
+}
