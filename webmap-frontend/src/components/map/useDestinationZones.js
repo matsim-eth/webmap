@@ -12,21 +12,13 @@ import {
 // Precomputed inside-polygon centroids (turf.pointOnFeature). Regenerate from
 // the canton GeoJSON if the polygon set ever changes.
 import cantonCentroids from '../../utils/cantonCentroids.json';
-import bboxCanton from '../../utils/bboxCanton.json';
 import { computeMapPadding } from '../sidebar/sidebarLayout';
 
-// Union of every canton's bbox — used to fit-bounds back out to the whole
-// country after the initial zoom-into-canton animation.
-const SWITZERLAND_BBOX = (() => {
-    let minLon = Infinity, minLat = Infinity, maxLon = -Infinity, maxLat = -Infinity;
-    for (const b of Object.values(bboxCanton)) {
-        if (b[0] < minLon) minLon = b[0];
-        if (b[1] < minLat) minLat = b[1];
-        if (b[2] > maxLon) maxLon = b[2];
-        if (b[3] > maxLat) maxLat = b[3];
-    }
-    return [[minLon, minLat], [maxLon, maxLat]];
-})();
+// Convert a flat study-area bbox [minLon,minLat,maxLon,maxLat] into the
+// [[sw],[ne]] form mapbox fitBounds expects — used to fit-bounds back out to
+// the whole study area after the initial zoom-into-canton animation.
+const toBoundsPair = (b) =>
+    (Array.isArray(b) && b.length === 4) ? [[b[0], b[1]], [b[2], b[3]]] : null;
 
 // Each palette entry: solid hex for dots, plus the rgba() pair used for the
 // along-line gradient (faint at origin → vivid at destination).
@@ -81,7 +73,11 @@ const gradientStops = (faint, vivid) => [
     1,    vivid,
 ];
 
-const centroidOf = (canton) => cantonCentroids[canton] || null;
+// Zone centers come from the study area (backend ships an inside-the-polygon
+// point per zone, so this works for any zone set — e.g. municipalities); the
+// static Swiss canton centroids remain as the fallback for legacy datasets.
+const makeCentroidOf = (zoneByName) => (zone) =>
+    zoneByName?.get?.(zone)?.center || cantonCentroids[zone] || null;
 
 // Quadratic bezier sample. Returns N+1 points o → c → d.
 const bezier = (o, c, d, N = 28) => {
@@ -105,7 +101,7 @@ const removeAll = (map) => {
 // so in outflow the line goes clicked → other and in inflow it goes other →
 // clicked. The line-gradient paint expression then naturally brightens
 // toward the destination end regardless of direction.
-const buildFeatures = (originCanton, perCanton, selectedMode, isOriginMode) => {
+const buildFeatures = (originCanton, perCanton, selectedMode, isOriginMode, centroidOf) => {
     const origin = centroidOf(originCanton);
     if (!origin) return { lines: [], dots: [] };
 
@@ -165,9 +161,11 @@ const buildFeatures = (originCanton, perCanton, selectedMode, isOriginMode) => {
 export default function useDestinationZones({ mapRef, selectedDestinationData, isGraphExpanded }) {
     const { clickedCanton } = useSelection();
     const {
+        studyArea, zoneByName,
         destinationHoveredCanton, setDestinationHoveredCanton,
         destinationSelectedCanton, setDestinationSelectedCanton,
     } = useData();
+    const centroidOf = makeCentroidOf(zoneByName);
     const { isSidebarOpen, isLeftSidebarCollapsed } = useMap();
 
     // canton → feature id map, used by the hover/select effects.
@@ -198,7 +196,7 @@ export default function useDestinationZones({ mapRef, selectedDestinationData, i
         }
 
         const { perCanton, selectedMode, selectedPurpose, isOriginMode = true, sizingMode = 'volume' } = selectedDestinationData;
-        const { lines, dots } = buildFeatures(clickedCanton, perCanton, selectedMode, isOriginMode);
+        const { lines, dots } = buildFeatures(clickedCanton, perCanton, selectedMode, isOriginMode, centroidOf);
         // Purpose color wins over mode if a specific purpose is selected.
         const palette = (selectedPurpose && selectedPurpose !== 'all' && PURPOSE_PALETTE[selectedPurpose])
             || MODE_PALETTE[selectedMode]
@@ -350,7 +348,7 @@ export default function useDestinationZones({ mapRef, selectedDestinationData, i
                 'circle-stroke-width': 3,
             },
         });
-    }, [mapRef, selectedDestinationData, isGraphExpanded, clickedCanton, destinationSelectedCanton]);
+    }, [mapRef, selectedDestinationData, isGraphExpanded, clickedCanton, destinationSelectedCanton, zoneByName]);
 
     // ── EFFECT 2: apply hovered + selected feature-state when they change ──
     useEffect(() => {
@@ -394,8 +392,10 @@ export default function useDestinationZones({ mapRef, selectedDestinationData, i
             bottom: 60,
         };
 
+        const studyAreaBounds = toBoundsPair(studyArea?.bbox);
         const timer = setTimeout(() => {
-            map.fitBounds(SWITZERLAND_BBOX, {
+            if (!studyAreaBounds) return;
+            map.fitBounds(studyAreaBounds, {
                 padding,
                 duration: ZOOM_OUT_MS,
                 essential: true,
@@ -403,7 +403,7 @@ export default function useDestinationZones({ mapRef, selectedDestinationData, i
         }, ZOOM_IN_MS + HOLD_MS);
 
         return () => clearTimeout(timer);
-    }, [clickedCanton, isGraphExpanded, mapRef, isSidebarOpen, isLeftSidebarCollapsed]);
+    }, [clickedCanton, isGraphExpanded, mapRef, isSidebarOpen, isLeftSidebarCollapsed, studyArea]);
 
     // ── EFFECT 3: map → sidebar hover + click sync ──
     useEffect(() => {

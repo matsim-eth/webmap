@@ -19,7 +19,6 @@ from typing import Iterable
 
 from .connection import get_source_cursor
 from .helpers import (
-    canton_label,
     all_canton_ids,
     get_hot_polygon_meta,
     parse_source_param,
@@ -86,6 +85,9 @@ def resolve_polygon_ids(con, params: dict, default_type: str = "canton") -> list
     if pids:
         return pids
     if default_type == "canton":
+        # "canton" here means "the dataset's primary zone type" — all_canton_ids
+        # is generalised via the registry, so this enumerates all primary zones
+        # (cantons for legacy Swiss data, any type for other study areas).
         return all_canton_ids(con)
     rows = con.execute(
         "SELECT polygon_id FROM hot_polygons WHERE polygon_type = ? "
@@ -112,10 +114,12 @@ def _polygon_area_km2(geojson_str: str) -> float:
             any_db = get_db_connection(__import__("os").environ.get("WEBMAP_ROOT", "") + "/synthetic.duckdb")
         cur = any_db.cursor()
         cur.execute("LOAD spatial;")
+        from .zone_registry import get_registry
+        crs = get_registry().crs
         gj = geojson_str.replace("'", "''")
         return float(cur.execute(f"""
             SELECT ST_Area(ST_Transform(ST_GeomFromGeoJSON('{gj}'),
-                                        'EPSG:4326', 'EPSG:2056', always_xy := true)) / 1e6
+                                        'EPSG:4326', '{crs}', always_xy := true)) / 1e6
         """).fetchone()[0])
     except Exception:
         return 0.0
@@ -146,9 +150,10 @@ def custom_polygon_filter_clause(geojson_str: str, person_alias: str = "p", poin
     """Build a clause that filters by an arbitrary GeoJSON polygon (in WGS84).
 
     The GeoJSON is passed inline as a SQL constant via ``ST_GeomFromGeoJSON``
-    and reprojected to EPSG:2056 to match the dataset's native CRS. The
-    polygon is materialised in a CTE so DuckDB can use the R-tree index on
-    ``persons.home_pt`` (or whatever ``point_col`` is).
+    and reprojected to the dataset's native CRS (``registry.crs``, LV95 for
+    Swiss data) to match the geometry columns. The polygon is materialised in
+    a CTE so DuckDB can use the R-tree index on ``persons.home_pt`` (or
+    whatever ``point_col`` is).
 
     Returns ``(join_clause, where_clause, group_by_expr, bind, label_fn)``
     matching the shape of :func:`polygon_filter_clause`.
@@ -159,11 +164,13 @@ def custom_polygon_filter_clause(geojson_str: str, person_alias: str = "p", poin
     # We can't bind GeoJSON as a parameter cleanly in DuckDB Spatial, so we
     # inline it. Caller is responsible for passing a trustworthy string
     # (sanitised by parse_polygon_geojson at the helpers layer).
+    from .zone_registry import get_registry
+    crs = get_registry().crs
     geojson_sql = geojson_str.replace("'", "''")
     cte = (
         " JOIN ( "
         f"   SELECT ST_Transform(ST_GeomFromGeoJSON('{geojson_sql}'), "
-        "                        'EPSG:4326', 'EPSG:2056', always_xy := true) AS geom "
+        f"                        'EPSG:4326', '{crs}', always_xy := true) AS geom "
         " ) AS custom_poly ON 1=1 "
     )
     where = f" AND ST_Within({person_alias}.{point_col}, custom_poly.geom)"
@@ -176,14 +183,22 @@ def custom_polygon_filter_clause(geojson_str: str, person_alias: str = "p", poin
     )
 
 
+def primary_fast_path(polygon_ids: list[str]) -> bool:
+    """True when every polygon_id is a primary-zone id (int-column fast path)."""
+    from .zone_registry import get_registry
+    prefix = get_registry().prefix
+    return bool(polygon_ids) and all(p.startswith(prefix) for p in polygon_ids)
+
+
 def polygon_filter_clause(polygon_ids: list[str], person_alias: str = "p") -> tuple[str, str, str, list, callable]:
     """Return ``(join_clause, where_clause, group_by_expr, bind, label_fn)``
     for filtering persons by a list of polygon IDs.
 
-    Optimisation: when **all** polygon IDs are of type ``canton:*``, we can
-    skip the ST_Within spatial join entirely and use the precomputed
-    ``canton_id`` integer column on ``persons`` (and ``trips`` via JOIN
-    persons). This is roughly 100-500x faster than ST_Within on big tables.
+    Optimisation: when **all** polygon IDs are of the dataset's primary zone
+    type (``canton:*`` for legacy Swiss data), we can skip the ST_Within
+    spatial join entirely and use the precomputed integer zone-id column on
+    ``persons`` (and ``trips`` via JOIN persons). This is roughly 100-500x
+    faster than ST_Within on big tables.
 
     Otherwise we fall back to a JOIN onto ``hot_polygons`` with R-tree
     spatial filtering.
@@ -194,19 +209,23 @@ def polygon_filter_clause(polygon_ids: list[str], person_alias: str = "p") -> tu
     if len(polygon_ids) == 1 and polygon_ids[0].startswith("custom:"):
         geojson_str = polygon_ids[0].split(":", 1)[1]
         return custom_polygon_filter_clause(geojson_str, person_alias=person_alias)
-    if all(pid.startswith("canton:") for pid in polygon_ids):
+    if primary_fast_path(polygon_ids):
+        from .zone_registry import get_registry, zone_col
+        reg = get_registry()
+        prefix = reg.prefix
         try:
-            ids = [int(pid.split(":", 1)[1]) for pid in polygon_ids]
+            ids = [int(pid[len(prefix):]) for pid in polygon_ids]
         except ValueError:
             ids = []
         if ids:
             ph = ",".join("?" * len(ids))
+            zcol = zone_col("synthetic", "persons", "zone")
             return (
                 "",
-                f" AND {person_alias}.canton_id IN ({ph})",
-                f"{person_alias}.canton_id",
+                f" AND {person_alias}.{zcol} IN ({ph})",
+                f"{person_alias}.{zcol}",
                 ids,
-                lambda v: f"canton:{int(v)}",
+                lambda v: f"{reg.primary_type}:{int(v)}",
             )
     ph = ",".join("?" * len(polygon_ids))
     join = (
@@ -226,10 +245,11 @@ def make_label_resolver(con, polygon_ids: list[str], use_canton_fast_path: bool)
     look up its name in ``hot_polygons``.
     """
     if use_canton_fast_path:
-        from .constants import canton_name
+        from .zone_registry import get_registry
+        reg = get_registry()
         def fn(v):
             try:
-                return canton_name(int(v))
+                return reg.zone_name(int(v))
             except (TypeError, ValueError):
                 return str(v)
         return fn
@@ -244,12 +264,15 @@ def make_label_resolver(con, polygon_ids: list[str], use_canton_fast_path: bool)
 def label_for(polygon_id: str, meta: dict | None = None) -> str:
     """Human-readable label for a polygon_id.
 
-    Cantons → canonical Swiss name (matches the legacy
-    ``CANTON_MAP`` mapping). Other types fall back to the polygon's
-    ``polygon_name`` from the meta lookup, then the polygon_id itself.
+    Primary-zone ids (and legacy ``canton:*`` ids on any dataset) resolve
+    through the dataset's zone registry → canonical zone name. Other types
+    fall back to the polygon's ``polygon_name`` from the meta lookup, then
+    the polygon_id itself.
     """
-    if polygon_id.startswith("canton:"):
-        return canton_label(polygon_id)
+    from .zone_registry import get_registry
+    reg = get_registry()
+    if polygon_id.startswith(reg.prefix) or polygon_id.startswith("canton:"):
+        return reg.zone_label(polygon_id)
     if meta and polygon_id in meta:
         return meta[polygon_id].get("name") or polygon_id
     return polygon_id
@@ -295,6 +318,8 @@ def build_share_response(
         # Demo grids exist in 100/500/5000m. Trip and OoH grids only at 500m
         # (no point pre-aggregating trip flows at 100m — too many cells).
         custom_grid = pick_custom_grid(table, geojson_str, summary_grid)
+        from .zone_registry import get_registry
+        crs = get_registry().crs
         cols_sql = ", ".join(f"COALESCE(SUM({c}),0)" for c in cols)
         for source in sources:
             try:
@@ -304,7 +329,7 @@ def build_share_response(
             row = con.execute(f"""
                 WITH custom_poly AS (
                     SELECT ST_Transform(ST_GeomFromGeoJSON('{geojson_str}'),
-                                        'EPSG:4326', 'EPSG:2056', always_xy := true) AS geom
+                                        'EPSG:4326', '{crs}', always_xy := true) AS geom
                 )
                 SELECT {cols_sql} FROM {custom_grid} g, custom_poly
                 WHERE ST_Intersects(g.cell_geom, custom_poly.geom)

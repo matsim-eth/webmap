@@ -504,6 +504,65 @@ body {
   margin: 16px 0;
 }
 
+/* ── Study-area re-zone (Edit Dataset modal) ── */
+.form-hint {
+  margin: 4px 0 8px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.ds-rezone-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.ds-rezone-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ds-rezone-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+}
+
+.ds-rezone-go {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.ds-rezone-confirm {
+  margin-top: 4px;
+  padding: 10px 12px;
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  background: rgba(99, 102, 241, 0.06);
+  border-radius: var(--radius, 6px);
+}
+
+.ds-rezone-confirm-text {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-text);
+}
+
+.ds-rezone-confirm-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.ds-rezone-status {
+  font-weight: 600;
+  color: var(--color-primary-dark, #4f46e5);
+}
+
 /* ── DuckDB file manager (Edit Dataset modal) ── */
 .ds-files {
   display: flex;

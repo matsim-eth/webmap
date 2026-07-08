@@ -18,7 +18,7 @@ from .helpers import (
     parse_source_param,
     purpose_filter_sql,
 )
-from ._pre_agg import label_for, polygon_filter_clause, resolve_polygon_ids, _source_label
+from ._pre_agg import label_for, polygon_filter_clause, primary_fast_path, resolve_polygon_ids, _source_label
 
 
 class AvgDistanceProvider(DataProvider):
@@ -34,7 +34,7 @@ class AvgDistanceProvider(DataProvider):
         sources = parse_source_param(params)
         if not sources:
             return {}
-        summary = is_summary_only(params) and not (params.get("canton") or params.get("polygon_id")) and not has_person_filters(params)
+        summary = is_summary_only(params) and not (params.get("canton") or params.get("zone") or params.get("polygon_id")) and not has_person_filters(params)
         gf = "" if summary else gender_filter_sql(params, "p.sex")
         af = "" if summary else age_filter_sql(params, "p.age")
         mf = mode_filter_sql(params, "t.main_mode")
@@ -75,19 +75,12 @@ class AvgDistanceProvider(DataProvider):
                     {where}{gf}{af}{mf}{pf}
                     GROUP BY poly_key, grp
                 """, bind).fetchall()
-                meta = get_hot_polygon_meta(con, polygon_ids) if not all(p.startswith("canton:") for p in polygon_ids) else None
+                meta = get_hot_polygon_meta(con, polygon_ids) if not primary_fast_path(polygon_ids) else None
                 for poly_key, grp, euc, net, cnt in rows:
                     if cnt < min_sample:
                         continue
                     pid = label_fn(poly_key)
-                    if pid.startswith("canton:"):
-                        from .constants import canton_name
-                        try:
-                            label = canton_name(int(pid.split(":", 1)[1]))
-                        except (ValueError, IndexError):
-                            label = pid
-                    else:
-                        label = label_for(pid, meta)
+                    label = label_for(pid, meta)
                     result.setdefault(label, {}).setdefault(slabel, {})[str(grp)] = {
                         "euclidean_distance": round(float(euc) / cnt, 2),
                         "network_distance":   round(float(net) / cnt, 2),

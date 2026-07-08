@@ -1,4 +1,5 @@
 import { createContext, useContext, useMemo, useState } from 'react';
+import { useStudyArea } from '../hooks/useStudyArea';
 
 const DataContext = createContext(null);
 
@@ -11,6 +12,14 @@ export const DataProvider = ({ children }) => {
   const [datasetId, setDatasetId] = useState(1);
   const [dataURL, setDataURL] = useState('https://matsim-eth.github.io/webmap/data/');
   const [cantonList, setCantonList] = useState([]);
+
+  // Per-dataset study area (zone labels, zone list, map extent). Re-fetches on
+  // datasetId change; falls back to Swiss defaults when the backend can't serve
+  // it. Named `studyArea*` here to avoid colliding with existing fields.
+  const {
+    studyArea, zoneLabel, zoneLabelPlural, zones, zoneByName,
+    isFallback: studyAreaIsFallback,
+  } = useStudyArea(datasetId);
 
   const [featureGeoJSON, setFeatureGeoJSON] = useState(null);
   const [tableFilterQuery, setTableFilterQuery] = useState(null);
@@ -50,6 +59,8 @@ export const DataProvider = ({ children }) => {
     datasetId, setDatasetId,
     dataURL, setDataURL,
     cantonList, setCantonList,
+    studyArea, zoneLabel, zoneLabelPlural, zones, zoneByName,
+    studyAreaIsFallback,
     featureGeoJSON, setFeatureGeoJSON,
     tableFilterQuery, setTableFilterQuery,
     isFeatureTableOpen, setIsFeatureTableOpen,
@@ -68,6 +79,7 @@ export const DataProvider = ({ children }) => {
     polygonTripsLoading, setPolygonTripsLoading,
   }), [
     datasetId, dataURL, cantonList,
+    studyArea, zoneLabel, zoneLabelPlural, zones, zoneByName, studyAreaIsFallback,
     featureGeoJSON, tableFilterQuery, isFeatureTableOpen, polygonStopIds,
     destinationData, destinationHoveredCanton, destinationSelectedCanton, boardingData,
     nodeFlowsData,

@@ -5,7 +5,6 @@ import "rc-slider/assets/index.css";
 import { useQuery } from "@tanstack/react-query";
 
 import { marks, formatTimeLabel } from "../../utils/timeSliderUtils";
-import cantonAlias from "../../utils/canton_alias.json";
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
 import { useData } from "../../context/DataContext";
 
@@ -34,11 +33,6 @@ const PURPOSES = [
   { value: "shop", label: "Shop" },
   { value: "leisure", label: "Leis" },
 ];
-
-const REVERSE_CANTON = Object.entries(cantonAlias).reduce((acc, [internal, display]) => {
-  acc[display] = internal;
-  return acc;
-}, {});
 
 // Mirrors the +/- CollapseToggle from LinkSpeedsModule so destination cards
 // expand/collapse the same way as other module cards.
@@ -76,10 +70,20 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
 
   const {
     datasetId,
+    zones, zoneByName, zoneLabel, zoneLabelPlural,
     destinationHoveredCanton, setDestinationHoveredCanton,
     destinationSelectedCanton, setDestinationSelectedCanton,
   } = useData();
   const loadWithFallback = useLoadWithFallback();
+
+  // display name → internal zone name (was the module-level REVERSE_CANTON
+  // built from canton_alias.json — same values for Swiss datasets).
+  const REVERSE_CANTON = useMemo(() => {
+    const acc = {};
+    for (const z of zones) acc[z.displayName] = z.name;
+    return acc;
+  }, [zones]);
+  const displayOf = (name) => zoneByName?.get(name)?.displayName || name;
 
   // The selected destination drives both map highlight and the trip-count plot
   // filter. null = "all cantons" (no filter applied).
@@ -129,7 +133,7 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
     });
     const times = Object.keys(bins).sort();
     return { times, counts: times.map((t) => bins[t]) };
-  }, [plotData, isOriginMode, filterCanton, selectedMode, selectedPurpose, timeRange]);
+  }, [plotData, isOriginMode, filterCanton, selectedMode, selectedPurpose, timeRange, REVERSE_CANTON]);
 
   // Per-canton totals used to drive the map arrows + the side list. Does NOT
   // depend on `filterCanton` — the list always shows all destinations so the
@@ -162,7 +166,7 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
     });
 
     return { all: modeTotals, perCanton: cantonTotals, selectedMode, selectedPurpose, isOriginMode, originCanton: canton, sizingMode };
-  }, [plotData, selectedMode, selectedPurpose, timeRange, isOriginMode, canton, sizingMode]);
+  }, [plotData, selectedMode, selectedPurpose, timeRange, isOriginMode, canton, sizingMode, REVERSE_CANTON]);
 
   if (onTotalOutflowChange && outflowData) {
     const key = JSON.stringify(outflowData);
@@ -188,8 +192,8 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
     return (
       <div className="plot-container">
         <div className="no-selection">
-          <p>No canton selected</p>
-          <p className="hint">Click a canton on the map to view destination flows</p>
+          <p>No {zoneLabel.toLowerCase()} selected</p>
+          <p className="hint">Click a {zoneLabel.toLowerCase()} on the map to view destination flows</p>
         </div>
       </div>
     );
@@ -207,7 +211,7 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
 
   return (
     <div className="plot-container">
-      <h3 className="dz-title">{directionLabel} {cantonAlias[canton]}</h3>
+      <h3 className="dz-title">{directionLabel} {displayOf(canton)}</h3>
 
       {/* Direction + Size by on the left (compact), time slider on the right. */}
       <div className="dz-controls-row">
@@ -296,7 +300,7 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
               className={`dz-list-row dz-list-all${filterCanton === "all" ? " active" : ""}`}
               onClick={() => setFilterCanton("all")}
             >
-              <span className="dz-list-name">All cantons</span>
+              <span className="dz-list-name">All {(zoneLabelPlural || 'Cantons').toLowerCase()}</span>
               <span className="dz-list-count">
                 {destinationRows.reduce((s, r) => s + r.volume, 0).toLocaleString()}
               </span>
@@ -313,7 +317,7 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
                   onMouseLeave={() => setDestinationHoveredCanton(null)}
                   onClick={() => setFilterCanton((prev) => (prev === r.canton ? "all" : r.canton))}
                 >
-                  <span className="dz-list-name">{cantonAlias[r.canton] || r.canton}</span>
+                  <span className="dz-list-name">{displayOf(r.canton)}</span>
                   <div className="dz-list-bar-wrap">
                     <div
                       className="dz-list-bar"
@@ -335,7 +339,7 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
         <h4>
           Trip Counts
           {filterCanton !== "all" && (
-            <span className="dz-plot-filter"> · {cantonAlias[filterCanton] || filterCanton}</span>
+            <span className="dz-plot-filter"> · {displayOf(filterCanton)}</span>
           )}
         </h4>
         {!isPlotCollapsed && (

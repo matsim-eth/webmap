@@ -61,7 +61,7 @@ const cellTextColor = (value, max) => {
 };
 
 const NodeFlowsModule = () => {
-    const { nodeFlowsData } = useData();
+    const { nodeFlowsData, zoneLabel } = useData();
     const { clickedCanton, hoveredMatrixCell, setHoveredMatrixCell } = useSelection();
     const { timeRange, setTimeRange } = useFilters();
 
@@ -113,8 +113,8 @@ const NodeFlowsModule = () => {
             <div className="plot-container">
                 {timeSlider}
                 <div className="nf-no-selection">
-                    <p>No canton selected</p>
-                    <p className="nf-hint">Select a canton to load the network</p>
+                    <p>No {zoneLabel.toLowerCase()} selected</p>
+                    <p className="nf-hint">Select a {zoneLabel.toLowerCase()} to load the network</p>
                 </div>
             </div>
         );

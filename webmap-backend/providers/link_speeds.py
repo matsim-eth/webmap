@@ -21,11 +21,9 @@ from __future__ import annotations
 from collections import OrderedDict
 
 from .base import DataProvider, Param
-from .constants import CANTON_MAP
 from .connection import get_source_cursor
 from .paths import dataset_key
-
-_NAME_TO_ID = {v.lower(): k for k, v in CANTON_MAP.items()}
+from .zone_registry import get_registry, zone_col
 
 # ─── Result cache ──────────────────────────────────────────────────────────
 # link_speeds.json (per canton/time-window) and speed_dashboard.json scan the
@@ -61,22 +59,17 @@ def _get_con():
 
 
 def _resolve_cantons(raw: str) -> list[int]:
-    """Parse comma-separated canton names/IDs into a list of canton IDs."""
+    """Parse comma-separated zone names/IDs into a list of zone IDs, resolved
+    through the dataset's zone registry."""
+    reg = get_registry()
     ids = []
     for part in raw.split(","):
         part = part.strip()
         if not part:
             continue
-        try:
-            cid = int(part)
-            if cid in CANTON_MAP:
-                ids.append(cid)
-                continue
-        except ValueError:
-            pass
-        cid = _NAME_TO_ID.get(part.lower())
-        if cid is not None:
-            ids.append(cid)
+        zid = reg.resolve_zone(part)
+        if zid is not None:
+            ids.append(zid)
     return ids
 
 
@@ -96,13 +89,14 @@ def _build_filters(params: dict) -> tuple[str, list]:
             clauses.append(f"road_type IN ({placeholders})")
             bind.extend(types)
 
-    # Canton filter
-    canton = (params.get("canton") or "").strip()
+    # Canton/zone filter
+    canton = (params.get("canton") or params.get("zone") or "").strip()
     if canton:
         canton_ids = _resolve_cantons(canton)
         if canton_ids:
+            zcol = zone_col("synthetic", "link_speeds", "zone")
             placeholders = ", ".join(["?"] * len(canton_ids))
-            clauses.append(f"canton_id IN ({placeholders})")
+            clauses.append(f"{zcol} IN ({placeholders})")
             bind.extend(canton_ids)
 
     # Time filter. The v2 `time_bin` column is a 15-minute bin INDEX (0..95);
@@ -164,6 +158,7 @@ def link_traffic_volumes(canton_id: int, min_capacity: float | None = None) -> l
         return cached
 
     con = _get_con()
+    zcol = zone_col("synthetic", "link_speeds", "zone")
     # time_bin is a 15-min bin index (0..95); // 4 → hour (0..23). A flat
     # GROUP BY + Python dict fill is the fastest build measured — packing the
     # 24-array in SQL (ordered list_agg) or via numpy.unique on the string
@@ -172,12 +167,12 @@ def link_traffic_volumes(canton_id: int, min_capacity: float | None = None) -> l
     if min_capacity is not None:
         try:
             rows = con.execute(
-                """
+                f"""
                 SELECT ls.link_id, ls.time_bin // 4 AS hour, SUM(ls.volume)::INTEGER AS volume
                 FROM link_speeds ls
                 JOIN network_links nl
                   ON CAST(nl.link_id AS VARCHAR) = CAST(ls.link_id AS VARCHAR)
-                WHERE ls.canton_id = ? AND nl.capacity > ?
+                WHERE ls.{zcol} = ? AND nl.capacity > ?
                 GROUP BY ls.link_id, ls.time_bin // 4
                 """,
                 [canton_id, min_capacity],
@@ -188,10 +183,10 @@ def link_traffic_volumes(canton_id: int, min_capacity: float | None = None) -> l
             rows = None
     if rows is None:
         rows = con.execute(
-            """
+            f"""
             SELECT link_id, time_bin // 4 AS hour, SUM(volume)::INTEGER AS volume
             FROM link_speeds
-            WHERE canton_id = ?
+            WHERE {zcol} = ?
             GROUP BY link_id, time_bin // 4
             """,
             [canton_id],
@@ -220,6 +215,7 @@ def link_traffic_volumes(canton_id: int, min_capacity: float | None = None) -> l
 _LINK_SPEED_PARAMS = [
     Param("road_type", "Road type filter (comma-separated, e.g. motorway,primary)"),
     Param("canton", "Canton name or ID (comma-separated)"),
+    Param("zone", "Zone name or ID (comma-separated); alias of canton"),
     Param("minute_start", "Time window start (minutes from midnight)", param_type="integer"),
     Param("minute_end", "Time window end (minutes from midnight)", param_type="integer"),
 ]

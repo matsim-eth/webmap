@@ -13,7 +13,7 @@ const DIRECTION_OPTIONS = [
 ];
 
 const VolumeFlowModule = ({ featureTableRef }) => {
-    const { isFeatureTableOpen, setTableFilterQuery } = useData();
+    const { isFeatureTableOpen, setTableFilterQuery, zoneLabel } = useData();
     const {
         volumeFlowSegment,
         clickedCanton,
@@ -107,7 +107,7 @@ const VolumeFlowModule = ({ featureTableRef }) => {
                 <p className="hint">
                 {clickedCanton
                     ? 'Click on any link on the map to analyze volume flow'
-                    : 'Select a canton to load the network'}
+                    : `Select a ${zoneLabel.toLowerCase()} to load the network`}
                     </p>
                     </div>
                 )}

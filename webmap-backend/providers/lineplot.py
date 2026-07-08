@@ -29,7 +29,7 @@ from .helpers import (
     parse_source_param,
     purpose_filter_sql,
 )
-from ._pre_agg import make_label_resolver, polygon_filter_clause, resolve_polygon_ids
+from ._pre_agg import make_label_resolver, polygon_filter_clause, primary_fast_path, resolve_polygon_ids
 from .lineplot_base import assemble_from_counts, build_lineplot
 
 
@@ -70,7 +70,7 @@ class LineplotProvider(DataProvider):
         sources = parse_source_param(params)
         if not sources:
             return {}
-        summary = is_summary_only(params) and not (params.get("canton") or params.get("polygon_id")) and not has_person_filters(params)
+        summary = is_summary_only(params) and not (params.get("canton") or params.get("zone") or params.get("polygon_id")) and not has_person_filters(params)
         gf = "" if summary else gender_filter_sql(params, "p.sex")
         af = "" if summary else age_filter_sql(params, "p.age")
         mf = mode_filter_sql(params, "t.main_mode")
@@ -160,7 +160,7 @@ class LineplotProvider(DataProvider):
             if use_polygon:
                 join, where, group_expr, bind, _ = polygon_filter_clause(polygon_ids)
                 resolve = make_label_resolver(
-                    con, polygon_ids, all(p.startswith("canton:") for p in polygon_ids)
+                    con, polygon_ids, primary_fast_path(polygon_ids)
                 )
                 rows = con.execute(f"""
                     SELECT {group_expr} AS lbl, {grp_col} AS grp, {bin_expr} AS bin, count(*) AS c
@@ -223,7 +223,7 @@ class LineplotProvider(DataProvider):
             if use_polygon:
                 join, where, group_expr, bind, _ = polygon_filter_clause(polygon_ids)
                 resolve = make_label_resolver(
-                    con, polygon_ids, all(p.startswith("canton:") for p in polygon_ids)
+                    con, polygon_ids, primary_fast_path(polygon_ids)
                 )
                 rows = con.execute(f"""
                     SELECT {group_expr} AS poly_key, {grp_col} AS grp, {value_expr} AS val

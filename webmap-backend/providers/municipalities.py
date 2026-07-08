@@ -1,21 +1,10 @@
 from .base import DataProvider, Param
 from .helpers import load_static_asset
 from .paths import dataset_key
+from .zone_registry import get_registry
 
 
 _cache: dict[str, dict] = {}
-
-
-# FSO canton numbering — matches the `kantonsnum` field set by
-# build_municipalities.py.
-_CANTON_NAME_TO_NUM = {
-    "Zurich": 1, "Bern": 2, "Luzern": 3, "Uri": 4, "Schwyz": 5, "Obwalden": 6,
-    "Nidwalden": 7, "Glarus": 8, "Zug": 9, "Fribourg": 10, "Solothurn": 11,
-    "Basel-Stadt": 12, "Basel-Landschaft": 13, "Schaffhausen": 14,
-    "AppenzellAusserrhoden": 15, "AppenzellInnerrhoden": 16, "StGallen": 17,
-    "Graubunden": 18, "Aargau": 19, "Thurgau": 20, "Ticino": 21, "Vaud": 22,
-    "Valais": 23, "Neuchatel": 24, "Geneve": 25, "Jura": 26,
-}
 
 
 class MunicipalitiesProvider(DataProvider):
@@ -66,12 +55,17 @@ class MunicipalitiesProvider(DataProvider):
         if not cantons_param:
             return data
 
+        # Resolve each requested canton/zone name to its numeric id through the
+        # dataset's zone registry (Swiss canton datasets resolve to the same FSO
+        # 1–26 numbering the `kantonsnum` field carries, so behaviour is
+        # identical; non-Swiss study areas resolve against their own zones).
+        reg = get_registry()
         wanted_nums = set()
         for name in cantons_param.split(","):
             name = name.strip()
             if not name:
                 continue
-            num = _CANTON_NAME_TO_NUM.get(name)
+            num = reg.resolve_zone(name)
             if num is not None:
                 wanted_nums.add(num)
         if not wanted_nums:

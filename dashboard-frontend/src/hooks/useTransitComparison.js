@@ -169,7 +169,7 @@ export function useCantonCountsPerDataset(canton) {
     queryKey: ['cantonCounts', ds0?.datasetId, canton],
     enabled: enabled && !!ds0,
     queryFn: () =>
-      getCantonData(`matsim/transit/per_canton_counts/${canton}_counts.json`)
+      getCantonData(`matsim/transit/per_canton_counts/${encodeURIComponent(canton)}_counts.json`)
         .catch(() => null),
   });
 
@@ -178,7 +178,7 @@ export function useCantonCountsPerDataset(canton) {
     enabled: enabled && !!ds1,
     staleTime: 5 * 60 * 1000,
     queryFn: () =>
-      getUrlData(`/backend/data/${ds1.datasetId}/matsim/transit/per_canton_counts/${canton}_counts.json`)
+      getUrlData(`/backend/data/${ds1.datasetId}/matsim/transit/per_canton_counts/${encodeURIComponent(canton)}_counts.json`)
         .catch(() => null),
   });
 
@@ -275,7 +275,7 @@ export function useLineCantonCountsMulti(selectedLineMeta) {
     queryFn: async () => {
       const results = await Promise.all(
         cantons.map((c) =>
-          getUrlData(`/backend/data/${ds1.datasetId}/matsim/transit/per_canton_counts/${c}_counts.json`)
+          getUrlData(`/backend/data/${ds1.datasetId}/matsim/transit/per_canton_counts/${encodeURIComponent(c)}_counts.json`)
             .catch(() => null)
         )
       );

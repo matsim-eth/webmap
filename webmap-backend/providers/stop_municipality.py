@@ -1,7 +1,7 @@
 from .base import DataProvider, Param
-from .constants import canton_name
 from .helpers import load_static_asset
 from .paths import dataset_key
+from .zone_registry import get_registry
 
 
 _cache: dict[str, dict] = {}
@@ -34,12 +34,13 @@ class StopMunicipalityProvider(DataProvider):
         raw = load_static_asset("synthetic", "stop_municipality")
         if raw is None:
             raise FileNotFoundError("stop_municipality not in static_assets")
+        reg = get_registry()
         # Field mapping for the frontend: it keys on `bfs_nummer`, `municipality`
         # and `kanton` (name); the v2 asset uses `bfs`, `gemeinde`, `canton_id`.
         data = {
             sid: {
                 **info,
-                "kanton": canton_name(info["canton_id"]) if info.get("canton_id") is not None else None,
+                "kanton": reg.zone_name(info["canton_id"]) if info.get("canton_id") is not None else None,
                 "bfs_nummer": info.get("bfs"),
                 "municipality": info.get("gemeinde"),
             }

@@ -8,8 +8,14 @@ as "the line is not present here" — muni overlays, inter-cantonal stops,
 and counts all get pruned.
 
 This script replaces `cantons` with the true geographic set: the union of
-cantons whose per-canton stops file lists a feature whose `lines` array
-contains this line_id.
+zones whose stops list a feature whose `lines` array contains this line_id.
+
+The zone-membership source is parametrised. By default it reads per-canton
+stops files (a local mirror, else the GitHub CDN) — the historical Swiss path.
+Pass ``stops_duckdb`` (CLI ``--stops-duckdb``) to instead derive the map
+straight from a dataset's ``synthetic.duckdb`` (the ``boarding_data_by_line``
+static asset already carries each stop's ``canton_id``, and hot_polygons gives
+the zone names) — no CDN, works for any study area.
 
 Input/output paths follow the same convention as build_stop_municipality:
 the public dataset by default, override on the CLI.
@@ -80,15 +86,66 @@ def _build_line_canton_map(local_dir: Path | None) -> dict[str, set[str]]:
     return line_to_cantons
 
 
+def _build_line_canton_map_from_duckdb(duckdb_path: Path) -> dict[str, set[str]]:
+    """line_id → set of zone names, derived from the dataset's duckdb.
+
+    ``boarding_data_by_line`` already tags every stop with its ``canton_id``,
+    so a line's zone set is just the zone names of its stops' ids — no CDN, no
+    coordinates. hot_polygons supplies the id → name mapping."""
+    import duckdb
+
+    con = duckdb.connect(str(duckdb_path), read_only=True)
+    try:
+        meta_row = con.execute(
+            "SELECT payload FROM static_assets WHERE key = 'study_area'"
+        ).fetchone()
+        meta = json.loads(bytes(meta_row[0])) if meta_row and meta_row[0] else {}
+        primary_type = meta.get("primary_zone_type") or "canton"
+
+        zone_names: dict[int, str] = {}
+        for pid, name in con.execute(
+            "SELECT polygon_id, polygon_name FROM hot_polygons WHERE polygon_type = ?",
+            [primary_type],
+        ).fetchall():
+            try:
+                zone_names[int(str(pid).split(":", 1)[1])] = name or str(pid)
+            except (ValueError, IndexError):
+                continue
+
+        row = con.execute(
+            "SELECT payload FROM static_assets WHERE key = 'boarding_data_by_line'"
+        ).fetchone()
+        lines = json.loads(bytes(row[0])) if row and row[0] else []
+    finally:
+        con.close()
+
+    line_to_cantons: dict[str, set[str]] = defaultdict(set)
+    for line in lines:
+        lid = line.get("line_id")
+        if lid is None:
+            continue
+        for s in line.get("stops", []):
+            cid = s.get("canton_id")
+            if cid is None:
+                continue
+            line_to_cantons[str(lid)].add(zone_names.get(cid, str(cid)))
+    print(f"  [duckdb] scanned {len(lines)} lines from boarding_data_by_line")
+    return line_to_cantons
+
+
 def build_line_cantons(
     boarding_path: Path,
     output_path: Path,
     local_stops_dir: Path | None = None,
+    stops_duckdb: Path | None = None,
 ) -> None:
     with open(boarding_path, "r", encoding="utf-8") as f:
         boarding = json.load(f)
 
-    line_to_cantons = _build_line_canton_map(local_stops_dir)
+    if stops_duckdb is not None:
+        line_to_cantons = _build_line_canton_map_from_duckdb(stops_duckdb)
+    else:
+        line_to_cantons = _build_line_canton_map(local_stops_dir)
     print(f"Built line-to-cantons map for {len(line_to_cantons)} lines.")
 
     if not isinstance(boarding, dict):

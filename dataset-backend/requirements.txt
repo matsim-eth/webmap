@@ -10,3 +10,6 @@ passlib[bcrypt]>=1.7.4
 
 pydantic>=2.7
 python-multipart>=0.0.9
+
+# Re-zoning (study-area dropdown): reads/writes the dataset DuckDB files
+duckdb>=1.1

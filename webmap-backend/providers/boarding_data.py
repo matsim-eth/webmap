@@ -1,7 +1,7 @@
 from .base import DataProvider, Param
-from .constants import canton_name
 from .helpers import load_static_asset
 from .paths import dataset_key
+from .zone_registry import get_registry
 
 
 # Per-dataset cache for boarding data, keyed by dataset root.
@@ -78,10 +78,11 @@ class BoardingDataProvider(DataProvider):
             # EV/B/EXT/…) that otherwise pollute the line search and let a user
             # land on a variant whose charts are all zero.
             raw = [l for l in raw if l.get("stops")]
+            reg = get_registry()
             for line in raw:
                 modes = line.get("modes") or []
                 line["vehicle"] = modes[0] if modes else None
-                line["cantons"] = [canton_name(c) for c in (line.get("cantons") or [])]
+                line["cantons"] = [reg.zone_name(c) for c in (line.get("cantons") or [])]
             _data_cache[dk] = raw
         return _data_cache[dk]
 

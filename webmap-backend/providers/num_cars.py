@@ -22,7 +22,7 @@ from .helpers import (
     get_hot_polygon_meta,
     parse_source_param,
 )
-from ._pre_agg import label_for, make_label_resolver, polygon_filter_clause, resolve_polygon_ids, _source_label
+from ._pre_agg import label_for, make_label_resolver, polygon_filter_clause, primary_fast_path, resolve_polygon_ids, _source_label
 
 
 def _grp_sort_key(x):
@@ -143,7 +143,7 @@ class NumCarsProvider(DataProvider):
             if polygon_ids:
                 pjoin, pwhere, group_expr, pbind, _ = polygon_filter_clause(polygon_ids)
                 resolve = make_label_resolver(con, polygon_ids,
-                                               all(p.startswith("canton:") for p in polygon_ids))
+                                               primary_fast_path(polygon_ids))
                 rows = con.execute(f"""
                     SELECT {group_expr} AS poly_key, {grp_sql} AS grp, h.n_cars_class
                     FROM persons p

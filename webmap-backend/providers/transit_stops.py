@@ -22,8 +22,8 @@ import threading
 from collections import defaultdict
 
 from .connection import get_source_cursor
-from .constants import canton_name
 from .paths import dataset_key
+from .zone_registry import get_registry
 
 # Leading numeric token = physical station id (platforms share it), e.g.
 # "8593773:0:1.link:pt_8593773:0:1" and "8593773:0:2.link:..." → station 8593773.
@@ -55,11 +55,12 @@ def _resolve_coords(cur, linkids: list[str]) -> dict[str, tuple]:
     dominant cost of the build (cuts it roughly in half on a cold dataset)."""
     if not linkids:
         return {}
+    crs = get_registry().crs
     rows = cur.execute(
-        """
+        f"""
         SELECT l.link_id,
-               ST_X(ST_Transform(n.geom, 'EPSG:2056', 'EPSG:4326', always_xy := true)),
-               ST_Y(ST_Transform(n.geom, 'EPSG:2056', 'EPSG:4326', always_xy := true))
+               ST_X(ST_Transform(n.geom, '{crs}', 'EPSG:4326', always_xy := true)),
+               ST_Y(ST_Transform(n.geom, '{crs}', 'EPSG:4326', always_xy := true))
         FROM network_links l
         JOIN network_nodes n ON n.node_id = l.to_node
         WHERE l.link_id IN (SELECT UNNEST(?))
@@ -194,9 +195,10 @@ def inter_cantonal_stops() -> dict:
     b = _bundle()
     if b["inter"] is not None:
         return b["inter"]
+    reg = get_registry()
     feats = []
     for cid, fc in b["stops"].items():
-        cname = canton_name(cid)
+        cname = reg.zone_name(cid)
         for f in fc["features"]:
             feats.append({
                 **f,

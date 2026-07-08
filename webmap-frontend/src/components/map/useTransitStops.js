@@ -52,8 +52,8 @@ export default function useTransitStops({
     }
     
     // data loading...
-    const stopsPath = `matsim/transit/stops_by_canton/${searchCanton}_stops.geojson`;
-    const volumePath = `matsim/transit/per_canton_counts/${searchCanton}_counts.json`;
+    const stopsPath = `matsim/transit/stops_by_canton/${encodeURIComponent(searchCanton)}_stops.geojson`;
+    const volumePath = `matsim/transit/per_canton_counts/${encodeURIComponent(searchCanton)}_counts.json`;
     
     Promise.all([
       loadWithFallback(stopsPath),

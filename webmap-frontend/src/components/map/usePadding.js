@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import bboxCache from '../../utils/bboxCanton.json';
+import { useData } from '../../context/DataContext';
 import { computeMapPadding } from '../sidebar/sidebarLayout';
 
 export default function usePadding({
@@ -15,6 +15,12 @@ export default function usePadding({
   setIsFeatureTableOpen,
   isLeftSidebarOpen
 }) {
+
+  const { zoneByName } = useData();
+  // Latest zone bbox lookup, read inside the search-zoom effect without
+  // adding it as a dep (which would re-trigger the zoom on study-area load).
+  const zoneByNameRef = useRef(zoneByName);
+  zoneByNameRef.current = zoneByName;
 
   // avoid changing padding when we select new canton
   const suppressPaddingRef = useRef(false);
@@ -57,7 +63,7 @@ export default function usePadding({
     setIsFeatureTableOpen(false);
     suppressPaddingRef.current = true
 
-    const bbox = bboxCache[searchCanton];
+    const bbox = zoneByNameRef.current?.get(searchCanton)?.bbox;
     if (!bbox) return;
     setClickedCanton(searchCanton);
     map.setFilter('selected-canton-border',['==','NAME',searchCanton]);

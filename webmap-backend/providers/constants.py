@@ -30,6 +30,38 @@ CANTON_MAP: dict[int, str] = {
 }
 
 
+# Pretty display names (accented) — mirrors the frontends' canton_alias.json.
+# Used by the zone registry as `display_name` for canton-typed study areas.
+CANTON_DISPLAY: dict[int, str] = {
+    1: "Zürich",
+    2: "Bern",
+    3: "Luzern",
+    4: "Uri",
+    5: "Schwyz",
+    6: "Obwalden",
+    7: "Nidwalden",
+    8: "Glarus",
+    9: "Zug",
+    10: "Fribourg",
+    11: "Solothurn",
+    12: "Basel-Stadt",
+    13: "Basel-Landschaft",
+    14: "Schaffhausen",
+    15: "Appenzell Ausserrhoden",
+    16: "Appenzell Innerrhoden",
+    17: "St. Gallen",
+    18: "Graubünden",
+    19: "Aargau",
+    20: "Thurgau",
+    21: "Ticino",
+    22: "Vaud",
+    23: "Valais",
+    24: "Neuchâtel",
+    25: "Genève",
+    26: "Jura",
+}
+
+
 def canton_name(canton_id: int | str) -> str:
     try:
         return CANTON_MAP.get(int(canton_id), str(canton_id))

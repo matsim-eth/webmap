@@ -20,6 +20,7 @@ from .helpers import (
 from ._pre_agg import (
     make_label_resolver,
     polygon_filter_clause,
+    primary_fast_path,
     resolve_polygon_ids,
     _source_label,
 )
@@ -123,7 +124,7 @@ class PtSubProvider(DataProvider):
                 # than ST_Within), spatial join only for gemeinde/custom.
                 join, where, group_expr, bind_poly, _ = polygon_filter_clause(polygon_ids)
                 resolve = make_label_resolver(
-                    con, polygon_ids, all(p.startswith("canton:") for p in polygon_ids)
+                    con, polygon_ids, primary_fast_path(polygon_ids)
                 )
                 rows = con.execute(f"""
                     SELECT {group_expr} AS gkey, {_SUB_DENOM} AS total, {_sub_sum_sql('p')}
@@ -221,7 +222,7 @@ class PtSubProvider(DataProvider):
                 # provider, ~100x faster than ST_Within); spatial only otherwise.
                 pjoin, pwhere, group_expr, bind_poly, _ = polygon_filter_clause(polygon_ids)
                 resolve = make_label_resolver(
-                    con, polygon_ids, all(p.startswith("canton:") for p in polygon_ids)
+                    con, polygon_ids, primary_fast_path(polygon_ids)
                 )
                 rows = con.execute(f"""
                     SELECT {group_expr} AS gkey, {grp_sql} AS grp, {_SUB_DENOM} AS total, {_sub_sum_sql('p')}

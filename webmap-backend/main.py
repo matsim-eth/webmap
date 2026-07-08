@@ -122,9 +122,20 @@ def _prewarm_caches() -> None:
 
     base = os.getenv("WEBMAP_ROOT", "/data/datasets/public")
     roots = sorted({os.path.dirname(p) for p in glob.glob(os.path.join(base, "*", "synthetic.duckdb"))})
+    from providers.study_area import study_area_dict, zones_fc_bytes
+
     for root in roots:
         set_root_override(root)
         try:
+            # Zone layer + study-area meta: cheap, but on the critical path of
+            # the very first map render (simplify + reproject + per-zone bbox
+            # scan of every primary polygon) — warm them before the slow scans.
+            try:
+                study_area_dict()
+                zones_fc_bytes(False)
+                logger.info("prewarmed zones/study_area for %s", root)
+            except Exception as exc:
+                logger.warning("zones prewarm skipped for %s: %s", root, exc)
             try:
                 SpeedDashboardProvider().deliver({})
                 logger.info("prewarmed speed_dashboard for %s", root)
@@ -235,6 +246,10 @@ _ROUTES_BY_LINE_RE = _re.compile(r"transit/routes/by_line/(.+)\.geojson$")
 
 
 def _canton_id_from(name: str) -> int | None:
+    """Resolve a zone name or id (as it appears in a matsim/* path) to its
+    integer zone id, resolved through the dataset's zone registry. Zone ids are
+    numeric, so the int-suffix parse of the returned polygon_id stays valid for
+    any study area (canton, or a generalized primary zone type)."""
     pid = resolve_canton_to_polygon_id(name)
     try:
         return int(pid.split(":", 1)[1]) if pid else None

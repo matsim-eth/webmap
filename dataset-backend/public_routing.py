@@ -27,6 +27,7 @@ from schemas import (
     FileListOut,
     GrantIn,
     GrantOut,
+    RezoneIn,
 )
 from storage import (
     check_dataset_completeness,
@@ -293,6 +294,132 @@ async def validate_dataset(
     await db.commit()
     await db.refresh(ds)
     return _dataset_to_out(ds)
+
+
+# ── Re-zoning (study-area dropdown) ───────────────────────────────
+#
+# Creates a NEW dataset (safe: the source is never modified) whose primary
+# zones are a smaller admin level from the source's own hot_polygons —
+# e.g. "Canton Zürich, zoned by municipality". The heavy build runs in a
+# background thread; job state is persisted to <new_root>/.rezone.json so
+# any uvicorn worker can answer the status poll.
+
+import asyncio as _asyncio
+
+import rezone as _rezone
+
+
+@router.get("/datasets/{dataset_id}/rezone/options")
+async def rezone_options(
+    dataset_id: int,
+    user=Depends(RequireUser()),
+    db: AsyncSession = Depends(get_db),
+):
+    """What re-zoning is possible for this dataset (zone levels + cantons)."""
+    ds = await require_dataset_manage(dataset_id, db, user)
+    root = dataset_root(ds.owner_id, ds.id, ds.is_public)
+    try:
+        return await _asyncio.to_thread(_rezone.study_area_options, root)
+    except FileNotFoundError:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                            detail="upload a synthetic DuckDB first")
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                            detail=f"dataset not re-zonable: {exc}")
+
+
+@router.post("/datasets/{dataset_id}/rezone", status_code=status.HTTP_202_ACCEPTED)
+async def rezone_dataset(
+    dataset_id: int,
+    body: RezoneIn,
+    user=Depends(RequireUser()),
+    db: AsyncSession = Depends(get_db),
+):
+    """Start a re-zone job. Returns the NEW dataset's id; poll
+    GET /datasets/{new_id}/rezone/status until state is done/error."""
+    from sqlalchemy.exc import IntegrityError
+    from models import _generate_dataset_id
+
+    src = await require_dataset_write(dataset_id, db, user)
+    src_root = dataset_root(src.owner_id, src.id, src.is_public)
+    if not (src_root / "synthetic.duckdb").exists():
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                            detail="upload a synthetic DuckDB first")
+
+    labels = _rezone.ZONE_TYPE_LABELS.get(body.zone_type,
+                                          (body.zone_type, body.zone_type + "s"))
+    label = labels[1] if len(labels) > 1 else labels[0]  # plural for names
+    # Default name: "<source> · Zürich municipalities" / "<source> · districts"
+    canton_name = None
+    if body.canton_id is not None:
+        try:
+            opts = await _asyncio.to_thread(_rezone.study_area_options, src_root)
+            canton_name = next((c["name"] for c in opts["cantons"]
+                                if c["id"] == body.canton_id), None)
+        except Exception:
+            pass
+        if canton_name is None:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                                detail=f"canton {body.canton_id} not in this dataset")
+    name = body.name or (
+        f"{src.name} · {canton_name} {label.lower()}" if canton_name
+        else f"{src.name} · {label.lower()}"
+    )
+
+    for attempt in range(10):
+        new_ds = Dataset(
+            id=_generate_dataset_id(),
+            name=name,
+            slug=f"{slugify(name)}-{attempt}" if attempt else slugify(name),
+            description=f"Re-zoned from '{src.name}' ({src.id}): "
+                        f"{canton_name or 'whole area'}, {labels[0].lower()} zones",
+            owner_id=src.owner_id,
+            owner_username=src.owner_username,
+            status=DatasetStatus.INACTIVE,
+            is_public=src.is_public,
+        )
+        db.add(new_ds)
+        try:
+            await db.commit()
+            break
+        except IntegrityError:
+            await db.rollback()
+            if attempt == 9:
+                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                    detail="failed to create dataset record")
+    await db.refresh(new_ds)
+    new_root = create_dataset_dirs(new_ds.owner_id, new_ds.id, new_ds.is_public)
+
+    _rezone.start_rezone_thread(
+        src_root, new_root, body.canton_id, body.zone_type,
+        # Study-area display name (map header), not the dataset record name.
+        (f"{canton_name}" if canton_name else src.name),
+        source_dataset_id=src.id,
+    )
+    return {"dataset_id": new_ds.id, "name": new_ds.name, "state": "running"}
+
+
+@router.get("/datasets/{dataset_id}/rezone/status")
+async def rezone_status(
+    dataset_id: int,
+    user=Depends(RequireUser()),
+    db: AsyncSession = Depends(get_db),
+):
+    """Job status of a re-zoned dataset (owner or admin; works while the
+    dataset is still INACTIVE)."""
+    ds = await require_dataset_manage(dataset_id, db, user)
+    job = _rezone.read_job(dataset_root(ds.owner_id, ds.id, ds.is_public))
+    if job is None:
+        raise HTTPException(status_code=404, detail="no re-zone job for this dataset")
+    if job.get("state") == "done" and not ds.has_synthetic:
+        completeness = check_dataset_completeness(ds.owner_id, ds.id, ds.is_public)
+        ds.has_synthetic = completeness["has_synthetic"]
+        ds.has_microcensus = completeness["has_microcensus"]
+        ds.has_json_preview = completeness["has_json_preview"]
+        ds.has_spider_db = completeness["has_spider_db"]
+        await db.commit()
+    job.pop("trace", None)
+    return job
 
 
 # ── Sharing / grants ─────────────────────────────────────────────

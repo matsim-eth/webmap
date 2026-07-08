@@ -8,7 +8,6 @@ import {
   getLineNameFromStop,
   filterCountRows,
 } from "../../hooks/useTransitComparison";
-import cantonAlias from "../../utils/canton_alias.json";
 import PlotLoader from "./PlotLoader";
 
 // Full-width stat row (label left, value(s) right) — stacked vertically like
@@ -71,7 +70,7 @@ const StatRow = ({ label, values, accent, compact }) => (
 );
 
 const TransitStopSummary = () => {
-  const { selectedCanton, selectedTransitStop, selectedTransitLine } = useDashboard();
+  const { selectedCanton, selectedTransitStop, selectedTransitLine, zoneByName, zoneLabel } = useDashboard();
 
   const datasets = useTransitDatasets();
   const isComparison = datasets.length > 1;
@@ -155,14 +154,14 @@ const TransitStopSummary = () => {
       }
       return selectedTransitStop.name;
     }
-    return cantonAlias[selectedCanton] || selectedCanton;
+    return zoneByName.get(selectedCanton)?.displayName || selectedCanton;
   })();
 
   // --- Render states ---
   if (!selectedCanton || selectedCanton === "All") {
     return (
       <div className="plot-wrapper" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div className="plot-loading">Please select a specific canton</div>
+        <div className="plot-loading">Please select a specific {zoneLabel.toLowerCase()}</div>
       </div>
     );
   }

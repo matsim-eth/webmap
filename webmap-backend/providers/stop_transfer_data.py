@@ -1,9 +1,9 @@
 from collections import defaultdict
 
 from .base import DataProvider, Param
-from .constants import canton_name
 from .helpers import load_static_asset
 from .paths import dataset_key
+from .zone_registry import get_registry
 
 
 # Per-dataset cache, keyed by dataset root.
@@ -55,9 +55,10 @@ class StopTransferDataProvider(DataProvider):
                 for d in stop.get("data", []):
                     boardings_by_stop[sid] += d.get("boardings", 0)
 
+        reg = get_registry()
         out: dict[str, dict] = {}
         for entry in raw:
-            cname = canton_name(entry.get("canton_id"))
+            cname = reg.zone_name(entry.get("canton_id"))
             stops: dict[str, dict] = {}
             for s in entry.get("stops", []):
                 sid = s.get("stop_id")

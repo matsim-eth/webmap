@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useMemo, useRef } from "react";
 import Plot from "react-plotly.js";
 import { marks, formatTimeLabel } from "../../utils/timeSliderUtils";
-import cantonAlias from "../../utils/canton_alias.json";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
@@ -23,7 +22,7 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
   const [selectedLine, setSelectedLine] = useState('all');
   const [showStopAnalysis, setShowStopAnalysis] = useState(false);
   const loadWithFallback = useLoadWithFallback();
-  const { datasetId } = useData();
+  const { datasetId, zoneByName, zoneLabel } = useData();
   
   const vehicles = [
     { value: 'all', label: 'All Vehicles' },
@@ -431,14 +430,14 @@ const PtBoardings = ({ canton, onTotalBoardingsChange, timeRange, setTimeRange, 
   if (!plotData) {
     return (
       <div className="plot-container">
-        <p className="plot-empty">Click a canton to load boarding data.</p>
+        <p className="plot-empty">Click a {zoneLabel.toLowerCase()} to load boarding data.</p>
       </div>
     );
   }
 
   return (
     <div className="plot-container">
-      <h3>PT Boardings · {cantonAlias[canton] || canton}</h3>
+      <h3>PT Boardings · {zoneByName?.get(canton)?.displayName || canton}</h3>
       {selectedTransitStop && (
         <div className="plot-context-pill">
           <span><strong>Selected stop:</strong> {selectedTransitStop.name}</span>

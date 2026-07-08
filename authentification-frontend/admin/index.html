@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./admin.css?v=4" />
+  <link rel="stylesheet" href="./admin.css?v=5" />
 </head>
 <body>
   <div class="admin-layout">
@@ -293,6 +293,39 @@
           <div id="dsFilesManager" class="ds-files"></div>
           <input type="file" id="dsHiddenFileInput" accept=".duckdb" hidden />
         </div>
+
+        <hr class="form-divider" />
+        <div class="form-group" id="dsRezoneSection" hidden>
+          <label class="form-label">Study area</label>
+          <p class="form-hint" id="dsRezoneCurrent"></p>
+          <div class="ds-rezone-grid">
+            <div class="ds-rezone-field">
+              <label class="ds-rezone-label" for="dsRezoneCanton">Study area</label>
+              <select class="form-select" id="dsRezoneCanton">
+                <option value="">Whole area</option>
+              </select>
+            </div>
+            <div class="ds-rezone-field">
+              <label class="ds-rezone-label" for="dsRezoneLevel">Zone level</label>
+              <select class="form-select" id="dsRezoneLevel"></select>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm ds-rezone-go" id="dsRezoneBtn">
+              Create re-zoned copy…
+            </button>
+          </div>
+          <div class="ds-rezone-confirm" id="dsRezoneConfirm" hidden>
+            <p class="ds-rezone-confirm-text" id="dsRezoneConfirmText"></p>
+            <div class="ds-rezone-confirm-actions">
+              <button type="button" class="btn btn-primary btn-sm" id="dsRezoneConfirmBtn">
+                Start re-zoning
+              </button>
+              <button type="button" class="btn btn-outline btn-sm" id="dsRezoneCancelBtn">
+                Cancel
+              </button>
+            </div>
+          </div>
+          <p class="form-hint ds-rezone-status" id="dsRezoneStatus" hidden></p>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline btn-sm" data-dismiss="modal">Cancel</button>
@@ -308,6 +341,6 @@
     </div>
   </div>
 
-  <script src="./admin.js?v=4"></script>
+  <script src="./admin.js?v=5"></script>
 </body>
 </html>
