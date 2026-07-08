@@ -57,14 +57,23 @@ export const DataProvider = ({ children }) => {
   const loaderRef = useRef(loadWithFallback);
   loaderRef.current = loadWithFallback; // always keep latest ref
 
-  // Cross-dataset isolation: the in-memory cache is keyed by relative path
-  // (e.g. "stop_municipality.json?cantons=Zurich") WITHOUT the dataset id, and
-  // react-query keys likewise omit it. Without this, switching datasets serves
-  // the previous dataset's cached responses (e.g. dataset-1 stop_municipality
-  // against dataset-2 stop_ids → empty municipality charts). Clear both caches
-  // whenever the active dataset changes so everything refetches.
+  // Cross-dataset isolation, two layers:
+  //
+  // 1. Every cache/loading/inflight key is NAMESPACED with the dataset id,
+  //    captured at request start (`nsKey`). This is the correctness layer: a
+  //    clear-on-switch effect alone is not enough because child effects keyed
+  //    on datasetId (e.g. useCantonMap's zone-layer reload) run BEFORE this
+  //    provider's effect on the same commit and would read the previous
+  //    dataset's entry; and a fetch started pre-switch would resolve
+  //    post-clear and re-poison the fresh cache. The ref is assigned during
+  //    render, so it is already current when any child effect runs.
+  // 2. The clear-on-switch effect below stays as memory hygiene (drop the old
+  //    dataset's MBs immediately) and to reset react-query state.
   const queryClient = useQueryClient();
   const { datasetId } = useDashboard();
+  const dsRef = useRef(datasetId);
+  dsRef.current = datasetId;
+  const nsKey = useCallback((key) => `${dsRef.current}::${key}`, []);
   const prevDatasetRef = useRef(datasetId);
   useEffect(() => {
     if (prevDatasetRef.current === datasetId) return;
@@ -123,66 +132,73 @@ export const DataProvider = ({ children }) => {
   // Components use this in useMemo — first render returns null ("Loading..."),
   // once fetched the cache updates, getData gets a new identity, useMemo re-runs.
   const getData = useCallback((filename) => {
-    const cached = getCached(filename);
+    // Key captured at request start — if the dataset switches mid-fetch, the
+    // result lands under the OLD namespace and is never served to the new one.
+    const key = nsKey(filename);
+    const cached = getCached(key);
     if (cached !== undefined) return cached;
 
-    if (!loadingRef.current.has(filename)) {
-      loadingRef.current.add(filename);
+    if (!loadingRef.current.has(key)) {
+      loadingRef.current.add(key);
       loaderRef.current(filename)
         .then((data) => {
-          setCached(filename, data);
-          loadingRef.current.delete(filename);
+          setCached(key, data);
+          loadingRef.current.delete(key);
           setCacheVersion((v) => v + 1);
         })
         .catch((err) => {
           console.warn(`Failed to load ${filename}:`, err);
-          setCached(filename, null);
-          loadingRef.current.delete(filename);
+          setCached(key, null);
+          loadingRef.current.delete(key);
           setCacheVersion((v) => v + 1);
         });
     }
 
     return null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cacheVersion, getCached, setCached]);
+  }, [cacheVersion, getCached, setCached, nsKey]);
 
   // Async data access with caching (for per-canton files used in useEffect)
   const getCantonData = useCallback(async (relativePath) => {
-    const cached = getCached(relativePath);
+    const key = nsKey(relativePath);
+    const cached = getCached(key);
     if (cached !== undefined) return cached;
 
     // Dedup concurrent callers for the same path — several map hooks request
     // the same stops_by_canton geojson at once, and without this each fired
-    // its own fetch. Reuse the inflight map keyed by the relative path.
-    if (inflightRef.current.has(relativePath)) {
-      return inflightRef.current.get(relativePath);
+    // its own fetch. Reuse the inflight map keyed per (dataset, path).
+    if (inflightRef.current.has(key)) {
+      return inflightRef.current.get(key);
     }
 
     const promise = loaderRef.current(relativePath)
       .then((data) => {
-        setCached(relativePath, data);
+        setCached(key, data);
         return data;
       })
       .catch((err) => {
         console.warn(`Failed to load: ${relativePath}`, err);
-        setCached(relativePath, null);
+        setCached(key, null);
         return null;
       })
       .finally(() => {
-        inflightRef.current.delete(relativePath);
+        inflightRef.current.delete(key);
       });
 
-    inflightRef.current.set(relativePath, promise);
+    inflightRef.current.set(key, promise);
     return promise;
-  }, [getCached, setCached]);
+  }, [getCached, setCached, nsKey]);
 
   const getUrlData = useCallback(async (url) => {
-    const cached = getCached(url);
+    // Absolute URLs usually embed the dataset id already, but namespace anyway
+    // for uniformity (double-keying is harmless; staleness is not).
+    const key = nsKey(url);
+    const cached = getCached(key);
     if (cached !== undefined) return cached;
 
     // Deduplicate in-flight requests for the same URL
-    if (inflightRef.current.has(url)) {
-      return inflightRef.current.get(url);
+    if (inflightRef.current.has(key)) {
+      return inflightRef.current.get(key);
     }
 
     const promise = (async () => {
@@ -199,15 +215,15 @@ export const DataProvider = ({ children }) => {
         throw new Error(`Failed to load ${url}: HTTP ${response.status}`);
       }
       const data = await response.json();
-      setCached(url, data);
+      setCached(key, data);
       return data;
     })().finally(() => {
-      inflightRef.current.delete(url);
+      inflightRef.current.delete(key);
     });
 
-    inflightRef.current.set(url, promise);
+    inflightRef.current.set(key, promise);
     return promise;
-  }, [getCached, setCached]);
+  }, [getCached, setCached, nsKey]);
 
   // Fire fetches for multiple URLs in parallel; results are cached for components
   const prefetchUrls = useCallback((urls) => {

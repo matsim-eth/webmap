@@ -159,6 +159,23 @@ export function useCantonMap({
     (name && name !== 'All' && boundsRef.current.get(name)) || allBounds();
   const isZoneClickable = (name) => !!(name && boundsRef.current.has(name));
 
+  // Union bbox of a freshly-loaded zone FeatureCollection → [[sw],[ne]].
+  // Used for the study-area fit on a dataset switch: studyBbox (from the async
+  // study_area.json query) can still hold the PREVIOUS dataset's extent at the
+  // moment the switch fires, whereas the geojson we just drew is authoritative.
+  const unionBounds = (geo) => {
+    let minLon = Infinity, minLat = Infinity, maxLon = -Infinity, maxLat = -Infinity;
+    for (const f of geo?.features ?? []) {
+      const b = featureBounds(f); // [[sw_lon,sw_lat],[ne_lon,ne_lat]]
+      if (!b) continue;
+      if (b[0][0] < minLon) minLon = b[0][0];
+      if (b[0][1] < minLat) minLat = b[0][1];
+      if (b[1][0] > maxLon) maxLon = b[1][0];
+      if (b[1][1] > maxLat) maxLat = b[1][1];
+    }
+    return Number.isFinite(minLon) ? [[minLon, minLat], [maxLon, maxLat]] : null;
+  };
+
   // Load the primary-zone boundary geojson: backend zones.json first
   // (authoritative, per-dataset), CDN TLM boundaries as the last resort so
   // legacy Swiss datasets whose backend lacks the endpoint still render.
@@ -392,11 +409,18 @@ export function useCantonMap({
       if (cancelled || !map.current) return;
       const src = map.current.getSource('cantons');
       if (src) src.setData(geo);
-      // Re-fit unless the user is mid transit-stop/line drilldown.
+      // Zoom into the new study area (animated, like the webmap's dataset
+      // switch). selectedCanton was reset to "All" by the context on switch,
+      // so fit the whole new area — computed from the geojson we just drew,
+      // NOT studyBbox (which may still be the previous dataset's extent).
+      // Skip only when the user is mid transit-stop/line drilldown.
       if (!STOP_TABS.has(activeTabRef.current)) {
-        map.current.fitBounds(boundsFor(selectedCanton), {
+        const target = (selectedCanton && selectedCanton !== 'All'
+          && boundsRef.current.get(selectedCanton))
+          || unionBounds(geo) || boundsFor(selectedCanton);
+        map.current.fitBounds(target, {
           padding: isExpanded ? 50 : 20,
-          duration: 0,
+          duration: 900,
         });
       }
     };

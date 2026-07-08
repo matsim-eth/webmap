@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useRef, useCallback, useMemo } from "react";
+import React, { createContext, useContext, useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { useStudyArea } from "../hooks/useStudyArea";
 
 const DashboardContext = createContext();
@@ -63,6 +63,23 @@ export const DashboardProvider = ({ children }) => {
 
   // Derived datasetId from slot 0 for backward compat (transit stops, file upload, canton map)
   const datasetId = comparisonSlots[0]?.datasetId ?? 1;
+
+  // Zone-scoped selections don't survive a dataset switch: the new dataset may
+  // declare a different study area (different zones entirely), so a stale
+  // zone/stop/line/municipality selection would keep filtering the new data
+  // with names it can't resolve. Mirrors the webmap's "dataset switch = reset".
+  const prevZoneDatasetRef = useRef(datasetId);
+  useEffect(() => {
+    if (prevZoneDatasetRef.current === datasetId) return;
+    prevZoneDatasetRef.current = datasetId;
+    setSelectedCantonInner("All");
+    setSelectedTransitStop(null);
+    setSelectedTransitLine(null);
+    setSelectedLineMeta(null);
+    setSelectedMunicipality(null);
+    setSelectedLineModes(['all']);
+    setPolygonSetInner({ kind: 'municipality', name: 'Municipalities (default)' });
+  }, [datasetId]);
   const setDatasetId = useCallback((id) => {
     setComparisonSlots((prev) =>
       prev.map((slot) => (slot ? { ...slot, datasetId: id } : slot))
