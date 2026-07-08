@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
-import cantonAlias from "../../utils/canton_alias.json";
+import { useData } from '../../context/DataContext';
 import { safeRemoveLayer, safeRemoveSource } from './_lib/mapbox';
 
 
@@ -22,6 +22,12 @@ export default function usePtBoardings({
   // handler must be kept here across effect runs — otherwise every canton
   // switch stacks another live handler onto the hitbox layer.
   const stopClickHandlerRef = useRef(null);
+
+  // Study-area display names (was canton_alias.json). Read via ref inside the
+  // hover popup handler so the handler effect doesn't re-register on load.
+  const { zoneByName } = useData();
+  const zoneByNameRef = useRef(zoneByName);
+  zoneByNameRef.current = zoneByName;
 
   // ------------------------- PT BOARDINGS CHOROPLETH -------------------------
   useEffect(() => {
@@ -175,7 +181,7 @@ export default function usePtBoardings({
       if (boardingCount > 0) {
         const popupContent = `
           <div style="font-size: 12px;">
-            <strong>${cantonAlias[cantonName] || cantonName}</strong><br/>
+            <strong>${zoneByNameRef.current?.get(cantonName)?.displayName || cantonName}</strong><br/>
             <strong>PT Line Boardings:</strong><br/>
             <div style="font-weight: bold; color: #FF0066; margin: 4px 0;">
               Line ${lineInfo.line_name} (${lineInfo.vehicle}): ${boardingCount.toLocaleString()}

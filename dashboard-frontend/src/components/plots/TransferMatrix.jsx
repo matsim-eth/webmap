@@ -34,7 +34,7 @@ const mergeTransfers = (parts) => {
 };
 
 const TransferMatrix = ({ sidebarCollapsed, isExpanded = false }) => {
-  const { selectedCanton, selectedTransitStop } = useDashboard();
+  const { selectedCanton, selectedTransitStop, zoneLabel } = useDashboard();
   const { getData } = useData();
 
   const datasets = useTransitDatasets();
@@ -159,7 +159,7 @@ const TransferMatrix = ({ sidebarCollapsed, isExpanded = false }) => {
 
   // --- Render states ---
   if (!selectedCanton || selectedCanton === "All") {
-    return <div className="plot-loading">Please select a specific canton</div>;
+    return <div className="plot-loading">Please select a specific {zoneLabel.toLowerCase()}</div>;
   }
 
   if (!anyTransfer) {

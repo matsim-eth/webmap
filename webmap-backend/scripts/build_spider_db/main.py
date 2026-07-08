@@ -3,11 +3,23 @@
 
 Usage
 -----
+    # Swiss default (26 cantons, LV95 coords) — unchanged from before:
     python main.py
-    python main.py /path/to/events.xml /path/to/persons.parquet /path/to/households.parquet /path/to/spider.duckdb [/path/to/output_trips.parquet] [/path/to/TLM_KANTONSGEBIET.geojson]
+    python main.py /path/to/events.xml /path/to/persons.parquet \
+        /path/to/households.parquet /path/to/spider.duckdb \
+        [/path/to/output_trips.parquet] [/path/to/TLM_KANTONSGEBIET.geojson]
+
+    # Any other study area (e.g. Vaud municipalities):
+    python main.py events.xml persons.parquet households.parquet spider.duckdb \
+        output_trips.parquet vaud_muni.geojson --zone-type municipality \
+        --zone-id-property BFS_NUMMER --zone-name-property NAME --crs EPSG:2056
+
+The positional args keep their historical order and defaults; the new
+``--zone-*`` / ``--crs`` flags default to the Swiss setup so no-flag
+invocations behave exactly as before.
 """
 
-import sys
+import argparse
 from pathlib import Path
 
 from build_spider_db import build_spider_db
@@ -26,25 +38,54 @@ _DEFAULTS = {
 
 
 def main() -> None:
-    args = sys.argv[1:]
-    events_xml = Path(args[0]) if len(args) > 0 else _DEFAULTS["events_xml"]
-    persons_parquet = Path(args[1]) if len(args) > 1 else _DEFAULTS["persons_parquet"]
-    households_parquet = Path(args[2]) if len(args) > 2 else _DEFAULTS["households_parquet"]
-    output_db = Path(args[3]) if len(args) > 3 else _DEFAULTS["output_db"]
-    output_trips_parquet = Path(args[4]) if len(args) > 4 else _DEFAULTS["output_trips_parquet"]
-    canton_geojson = Path(args[5]) if len(args) > 5 else _DEFAULTS["canton_geojson"]
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("events_xml", nargs="?", default=None)
+    ap.add_argument("persons_parquet", nargs="?", default=None)
+    ap.add_argument("households_parquet", nargs="?", default=None)
+    ap.add_argument("output_db", nargs="?", default=None)
+    ap.add_argument("output_trips_parquet", nargs="?", default=None)
+    ap.add_argument("zones", nargs="?", default=None,
+                    help="zone boundaries GeoJSON, WGS84 (default: "
+                         "TLM_KANTONSGEBIET.geojson = 26 Swiss cantons)")
+    ap.add_argument("--zones", dest="zones_opt", default=None,
+                    help="alias for the positional zones argument")
+    ap.add_argument("--zone-type", default="canton",
+                    help="zone type label (informational; the output columns are "
+                         "always origin_canton_id / dest_canton_id — default: canton)")
+    ap.add_argument("--zone-id-property", default="KANTONSNUMMER",
+                    help="GeoJSON property with the numeric zone id "
+                         "(default: KANTONSNUMMER)")
+    ap.add_argument("--zone-name-property", default="NAME",
+                    help="GeoJSON property with the zone name (default: NAME)")
+    ap.add_argument("--crs", default="EPSG:2056",
+                    help="projected CRS of trip start/end coords (default: EPSG:2056)")
+    args = ap.parse_args()
+
+    events_xml = Path(args.events_xml) if args.events_xml else _DEFAULTS["events_xml"]
+    persons_parquet = Path(args.persons_parquet) if args.persons_parquet else _DEFAULTS["persons_parquet"]
+    households_parquet = Path(args.households_parquet) if args.households_parquet else _DEFAULTS["households_parquet"]
+    output_db = Path(args.output_db) if args.output_db else _DEFAULTS["output_db"]
+    output_trips_parquet = (Path(args.output_trips_parquet)
+                            if args.output_trips_parquet else _DEFAULTS["output_trips_parquet"])
+
+    zones = args.zones_opt or args.zones
+    canton_geojson = Path(zones) if zones else _DEFAULTS["canton_geojson"]
 
     # If output_trips doesn't exist, pass None (optional)
     if not output_trips_parquet.exists():
         output_trips_parquet = None
 
-    # If canton geojson doesn't exist, pass None (optional)
+    # If zones geojson doesn't exist, pass None (optional)
     if not canton_geojson.exists():
         canton_geojson = None
 
     build_spider_db(
         events_xml, persons_parquet, households_parquet,
         output_db, output_trips_parquet, canton_geojson,
+        zone_id_property=args.zone_id_property,
+        zone_name_property=args.zone_name_property,
+        crs=args.crs,
     )
 
 

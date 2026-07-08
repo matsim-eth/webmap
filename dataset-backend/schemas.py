@@ -33,6 +33,15 @@ class AdminDatasetUpdate(BaseModel):
     is_public: bool | None = None
 
 
+class RezoneIn(BaseModel):
+    """Re-zone request: derive a NEW dataset whose primary zones are
+    ``zone_type`` polygons (already present in the source duckdb's
+    hot_polygons), optionally filtered to one canton."""
+    zone_type: str = Field(pattern="^(gemeinde|bezirk)$")
+    canton_id: int | None = None  # None = keep the whole study area
+    name: str | None = Field(None, min_length=1, max_length=255)
+
+
 # ── Response schemas ─────────────────────────────────────────────
 
 class DatasetOut(BaseModel):

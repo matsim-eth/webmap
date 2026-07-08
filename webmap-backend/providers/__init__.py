@@ -23,6 +23,9 @@ from .lineplot import LineplotProvider
 from .stacked_bar_distance import StackedBarDistanceProvider
 from .tlm_kantonsgebiet import TlmKantonsgebietProvider
 
+# --- Study area / zones ---
+from .study_area import StudyAreaProvider, ZonesProvider
+
 # --- Trip-based providers ---
 from .mode_share import ModeShareProvider
 from .purpose_share import PurposeShareProvider
@@ -86,6 +89,10 @@ ALL_PROVIDERS = [
     MunicipalitiesProvider(),
     # Geographic (consolidated: ?format=geojson/json)
     TlmKantonsgebietProvider(),
+    # Study area / zones (study_area.json metadata + zones.json geometry;
+    # tlm_kantonsgebiet.json is now a thin legacy alias of zones.json)
+    StudyAreaProvider(),
+    ZonesProvider(),
     # Spider analysis
     SpiderInflowProvider(),
     SpiderOutflowProvider(),

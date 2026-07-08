@@ -28,6 +28,7 @@ from collections import OrderedDict
 
 from .connection import get_source_cursor
 from .paths import dataset_key
+from .zone_registry import get_registry, zone_col
 
 # Serialized GeoJSON bytes per (dataset, canton). Each canton is large
 # (Zurich ~178k links → tens of MB), so this is a small bounded LRU.
@@ -108,9 +109,9 @@ def _js_num(v) -> str:
 
 
 def merged_segments_geojson(canton_id: int) -> bytes | None:
-    """Return the canton's network as serialized GeoJSON bytes, or None if the
-    ``network_links`` table is unavailable (older datasets → caller falls back
-    to the thin static_asset blob)."""
+    """Return the zone (canton)'s network as serialized GeoJSON bytes, or None if
+    the ``network_links`` table is unavailable (older datasets → caller falls
+    back to the thin static_asset blob). ``canton_id`` is the primary zone id."""
     ckey = (dataset_key(), canton_id)
     with _LOCK:
         hit = _CACHE.get(ckey)
@@ -120,8 +121,10 @@ def merged_segments_geojson(canton_id: int) -> bytes | None:
 
     try:
         cur = get_source_cursor("synthetic")
+        zcol = zone_col("synthetic", "network_links", "zone")
+        crs = get_registry().crs
         rows = cur.execute(
-            """
+            f"""
             -- Some PT links carry freespeed = Infinity (and other columns could
             -- in principle be NaN/Inf too). json.dumps would emit the literal
             -- `Infinity`/`NaN` tokens, which are invalid JSON and make the
@@ -138,10 +141,10 @@ def merged_segments_geojson(canton_id: int) -> bytes | None:
                    CASE WHEN isfinite(permlanes) THEN permlanes            END AS permlanes,
                    road_type,
                    ST_AsGeoJSON(
-                       ST_Transform(geom, 'EPSG:2056', 'EPSG:4326', always_xy := true)
+                       ST_Transform(geom, '{crs}', 'EPSG:4326', always_xy := true)
                    ) AS gj
             FROM network_links
-            WHERE canton_id = ?
+            WHERE {zcol} = ?
             """,
             [canton_id],
         ).fetchall()

@@ -19,6 +19,7 @@ import { useData } from '../../context/DataContext';
 import { useFilters } from '../../context/FilterContext';
 import { useChoropleth } from '../../context/ChoroplethContext';
 import { redirectToLogin, checkIsAdmin } from '../../utils/auth';
+import { useFullReset } from '../../hooks/useFullReset';
 import { useQuery } from '@tanstack/react-query';
 import DatasetSelector from '../DatasetSelector';
 import { LEFT_SIDEBAR_WIDTH, LEFT_SIDEBAR_COLLAPSED_WIDTH } from './sidebarLayout';
@@ -37,18 +38,12 @@ const LeftSidebar = () => {
   const { isGraphExpanded, setIsGraphExpanded } = useModule();
   const {
     setIsSidebarOpen,
-    setResetMapTrigger,
-    resetMapView,
     isLeftSidebarCollapsed: isCollapsed,
     setIsLeftSidebarCollapsed: setIsCollapsed,
   } = useMap();
-  const { setIsFeatureTableOpen, setDataURL } = useData();
-  const { setSelectedNetworkModes, setSelectedTransitModes } = useFilters();
-  const {
-    setHighlightedLineId, setHighlightedRouteIds,
-    setSelectedDataset, setSelectedMode,
-    updateMapChoropleth,
-  } = useChoropleth();
+  const { setIsFeatureTableOpen } = useData();
+  const { setSelectedNetworkModes } = useFilters();
+  const { setHighlightedLineId, setHighlightedRouteIds } = useChoropleth();
 
   const { data: isAdmin = false } = useQuery({
     queryKey: ['admin-check'],
@@ -97,25 +92,7 @@ const LeftSidebar = () => {
     setIsSidebarOpen(true);
   };
 
-  const handleReset = () => {
-    setResetMapTrigger((prev) => !prev);
-
-    setSelectedDataset('Microcensus');
-    setSelectedMode('None');
-    setSelectedNetworkModes(['all']);
-    setSelectedTransitModes(['all']);
-    updateMapChoropleth('None', 'Microcensus');
-    resetMapView();
-
-    setHighlightedLineId(null);
-    setHighlightedRouteIds([]);
-
-    setIsGraphExpanded(null);
-
-    setDataURL('https://matsim-eth.github.io/webmap/data/');
-
-    setIsSidebarOpen(false);
-  };
+  const handleReset = useFullReset();
 
   const handleLogout = async () => {
     try {

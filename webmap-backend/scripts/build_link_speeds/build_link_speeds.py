@@ -11,15 +11,30 @@ Pipeline
   2. Query output_events.parquet with DuckDB → per-vehicle per-link travel
      times via LEAD() window function.
   3. Join with link attributes, compute speed = length / travel_time.
-  4. Optionally assign canton to each link via spatial join with canton
-     GeoJSON (point-in-polygon on link midpoint).
+  4. Optionally assign a zone (canton by default) to each link via spatial
+     join with a zone GeoJSON (point-in-polygon on link midpoint).
   5. Aggregate into 15-min bins → write link_speeds.parquet.
+
+Zoning is parametrised (see :func:`build_link_speeds`): the ``--zones`` file,
+the id/name properties to read off it, and the CRS of the network geometry all
+default to the Swiss setup (TLM canton boundaries, ``KANTONSNUMMER``/``NAME``,
+EPSG:2056) so existing Swiss commands are unchanged, but any admin-unit GeoJSON
+for any study area can be supplied instead. Example for a non-Swiss area::
+
+    python main.py net.xml events.parquet link_speeds.parquet vaud_muni.geojson \
+        --zone-type municipality --zone-id-property BFS_NUMMER \
+        --zone-name-property NAME --crs EPSG:2056
+
+The assigned id is written to the ``canton_id`` column regardless of zone type
+(the webmap probes ``zone_id`` first and ``canton_id`` second, so the legacy
+spelling stays fully compatible — see zone_registry.zone_col).
 
 Input files
 -----------
   output_network.xml       – MATSim network with osm:way:highway attribute
   output_events.parquet    – Columnar event log (much faster than XML)
-  TLM_KANTONSGEBIET.geojson – Canton boundaries (optional, for zone filter)
+  <zones>.geojson          – Zone boundaries, WGS84 (optional, for zone filter);
+                             defaults to TLM_KANTONSGEBIET.geojson (26 cantons)
 
 Output
 ------
@@ -139,16 +154,33 @@ def build_link_speeds(
     output_parquet: str | Path,
     canton_geojson: str | Path | None = None,
     memory_limit: str = "4GB",
+    zone_id_property: str = "KANTONSNUMMER",
+    zone_name_property: str = "NAME",
+    crs: str = "EPSG:2056",
 ) -> None:
     """Build link_speeds.parquet from network XML + events parquet.
 
     Parameters
     ----------
-    network_xml      : path to output_network.xml (with osm:way:highway)
-    events_parquet   : path to output_events.parquet
-    output_parquet   : path where link_speeds.parquet will be written
-    canton_geojson   : path to TLM_KANTONSGEBIET.geojson (optional)
-    memory_limit     : DuckDB memory limit (default 4GB)
+    network_xml        : path to output_network.xml (with osm:way:highway)
+    events_parquet     : path to output_events.parquet
+    output_parquet     : path where link_speeds.parquet will be written
+    canton_geojson     : path to the zone GeoJSON (optional). Defaults to the
+                         Swiss TLM_KANTONSGEBIET.geojson; any admin-unit GeoJSON
+                         (WGS84) works.
+    memory_limit       : DuckDB memory limit (default 4GB)
+    zone_id_property   : GeoJSON property holding the numeric zone id
+                         (default ``KANTONSNUMMER`` — the Swiss canton number)
+    zone_name_property : GeoJSON property holding the zone name (default ``NAME``)
+    crs                : projected CRS of the network geometry / link midpoints
+                         (default ``EPSG:2056`` = Swiss LV95). When it is
+                         EPSG:2056 the exact historical swisstopo LV95→WGS84
+                         formulas are used so Swiss output is byte-identical;
+                         any other CRS goes through ``ST_Transform``.
+
+    The assigned id is written to the ``canton_id`` column whatever the zone
+    type, preserving the output contract (the backend probes ``zone_id`` first
+    and ``canton_id`` second).
     """
     network_xml = Path(network_xml)
     events_parquet = Path(events_parquet)
@@ -323,23 +355,22 @@ def build_link_speeds(
 
     # ── Step 4 (optional): Assign canton via spatial join ──────────
     if canton_geojson is not None:
-        print("[4/4] Assigning cantons to links via spatial join ...")
+        print("[4/4] Assigning zones to links via spatial join ...")
         con.execute("INSTALL spatial; LOAD spatial;")
         con.execute(f"""
             CREATE TEMP TABLE canton_boundaries AS
-            SELECT KANTONSNUMMER AS canton_id, NAME AS canton_name,
+            SELECT "{zone_id_property}" AS canton_id, "{zone_name_property}" AS canton_name,
                    CAST(geom AS GEOMETRY) AS geom
             FROM ST_Read('{canton_geojson}')
         """)
 
-        # Add canton_id column via point-in-polygon on link midpoint
-        con.execute("ALTER TABLE link_speeds_agg ADD COLUMN canton_id INTEGER")
-        con.execute("""
-            UPDATE link_speeds_agg
-            SET canton_id = (
-                SELECT c.canton_id
-                FROM canton_boundaries c
-                WHERE ST_Contains(c.geom, ST_Point(
+        # Zone GeoJSONs are WGS84 (EPSG:4326) by spec, while link midpoints are
+        # in the network's projected CRS. Build the WGS84 point expression for
+        # the point-in-polygon test. For the default Swiss LV95 the exact
+        # historical swisstopo approximation is kept so output is byte-identical;
+        # any other CRS is reprojected generically with ST_Transform.
+        if crs == "EPSG:2056":
+            point_expr = """ST_Point(
                     (2.6779094
                      + 4.728982 * ((mid_x - 2600000.0) / 1000000.0)
                      + 0.791484 * ((mid_x - 2600000.0) / 1000000.0)
@@ -356,7 +387,21 @@ def build_link_speeds(
                                  * ((mid_y - 1200000.0) / 1000000.0)
                      - 0.0140    * POWER((mid_y - 1200000.0) / 1000000.0, 3)
                     ) * 100.0 / 36.0
-                ))
+                )"""
+        else:
+            point_expr = (
+                f"ST_Transform(ST_Point(mid_x, mid_y), "
+                f"'{crs}', 'EPSG:4326', always_xy := true)"
+            )
+
+        # Add canton_id column via point-in-polygon on link midpoint
+        con.execute("ALTER TABLE link_speeds_agg ADD COLUMN canton_id INTEGER")
+        con.execute(f"""
+            UPDATE link_speeds_agg
+            SET canton_id = (
+                SELECT c.canton_id
+                FROM canton_boundaries c
+                WHERE ST_Contains(c.geom, {point_expr})
                 LIMIT 1
             )
             WHERE mid_x IS NOT NULL AND mid_y IS NOT NULL

@@ -46,38 +46,36 @@ const awaitStyleLoaded = (m) => {
   return new Promise((resolve) => m.once('idle', resolve));
 };
 
-// Canton bounding boxes for zooming
-const CANTON_BOUNDS = {
-  "All": [[5.9, 45.8], [10.5, 47.8]],
-  "Zurich": [[8.35, 47.15], [8.99, 47.7]],
-  "Bern": [[6.85, 46.32], [8.46, 47.35]],
-  "Geneve": [[5.95, 46.12], [6.32, 46.37]],
-  "Vaud": [[6.07, 46.2], [7.24, 46.98]],
-  "Aargau": [[7.71, 47.13], [8.46, 47.62]],
-  "StGallen": [[8.79, 46.87], [9.68, 47.53]],
-  "Luzern": [[7.83, 46.76], [8.52, 47.27]],
-  "Ticino": [[8.38, 45.82], [9.17, 46.64]],
-  "Valais": [[6.77, 45.85], [8.48, 46.66]],
-  "Basel-Stadt": [[7.55, 47.51], [7.68, 47.6]],
-  "Basel-Landschaft": [[7.32, 47.33], [7.97, 47.57]],
-  "Fribourg": [[6.74, 46.44], [7.39, 47.01]],
-  "Solothurn": [[7.34, 47.07], [7.95, 47.5]],
-  "Graubunden": [[8.65, 46.17], [10.49, 47.07]],
-  "Thurgau": [[8.63, 47.37], [9.47, 47.7]],
-  "Schaffhausen": [[8.4, 47.65], [8.87, 47.8]],
-  "Neuchatel": [[6.44, 46.82], [7.07, 47.14]],
-  "Schwyz": [[8.42, 46.88], [9.0, 47.23]],
-  "Zug": [[8.4, 47.05], [8.65, 47.27]],
-  "Glarus": [[8.76, 46.79], [9.23, 47.17]],
-  "Jura": [[6.84, 47.14], [7.56, 47.51]],
-  "Nidwalden": [[8.2, 46.77], [8.57, 47.0]],
-  "Obwalden": [[8.02, 46.72], [8.42, 47.0]],
-  "Uri": [[8.38, 46.41], [8.93, 46.99]],
-  "AppenzellAusserrhoden": [[9.19, 47.25], [9.61, 47.48]],
-  "AppenzellInnerrhoden": [[9.35, 47.24], [9.51, 47.5]],
-};
+// Fallback "All" extent if the study area lacks a top-level bbox — Switzerland,
+// so a mis-served study area still frames the country instead of the whole map.
+const DEFAULT_ALL_BOUNDS = [[5.9, 45.8], [10.5, 47.8]];
 
-export { CANTON_BOUNDS };
+// Study-area bbox [minLon,minLat,maxLon,maxLat] → Mapbox nested-pair bounds.
+const flatBboxToBounds = (b) =>
+  Array.isArray(b) && b.length === 4 ? [[b[0], b[1]], [b[2], b[3]]] : null;
+
+// bbox (nested Mapbox bounds) for any GeoJSON feature — walks all coordinate
+// rings so Polygon / MultiPolygon zone features resolve when their study-area
+// bbox is null. Returns null if no finite coords found.
+const featureBounds = (feature) => {
+  let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;
+  const visit = (node) => {
+    if (!Array.isArray(node)) return;
+    if (typeof node[0] === 'number' && typeof node[1] === 'number') {
+      const [lng, lat] = node;
+      if (Number.isFinite(lng) && Number.isFinite(lat)) {
+        if (lng < minLng) minLng = lng;
+        if (lat < minLat) minLat = lat;
+        if (lng > maxLng) maxLng = lng;
+        if (lat > maxLat) maxLat = lat;
+      }
+      return;
+    }
+    for (const child of node) visit(child);
+  };
+  visit(feature?.geometry?.coordinates);
+  return Number.isFinite(minLng) ? [[minLng, minLat], [maxLng, maxLat]] : null;
+};
 
 // Swiss canton name → kantonsnum (1–26), matching the FSO numbering used by
 // build_municipalities.py. Exported so CantonMap can pre-filter
@@ -115,11 +113,86 @@ export function useCantonMap({
   getCantonData,
   hideLineByFilter = false,
   hideStopByFilter = false,
+  // Study-area driven map extent + zone layer (Swiss fallback = the old
+  // hardcoded canton bounds / TLM boundaries / center+zoom).
+  zones = [],
+  studyBbox = null,
+  initialCenter = [8.2275, 46.8182],
+  initialZoom = 5.5,
+  getZonesGeojson,
+  datasetId,
 }) {
   const map = useRef(null);
   const markerRef = useRef(null);
   const activeTabRef = useRef(activeTab);
   const initialCantonRef = useRef(selectedCanton);
+
+  // Latest study-area inputs, kept in a ref so the once-only init effect and
+  // the dataset-switch reload effect always read current values without
+  // re-subscribing.
+  const latest = useRef({});
+  latest.current = { zones, studyBbox, initialCenter, initialZoom, getZonesGeojson };
+
+  // name -> Mapbox nested bounds. Seeded from each zone's study-area bbox, then
+  // filled from the loaded zone geojson for any zone lacking a bbox.
+  const boundsRef = useRef(new Map());
+  const rebuildBounds = (geo) => {
+    const featBounds = new Map();
+    for (const f of geo?.features ?? []) {
+      const nm = f?.properties?.NAME ?? f?.properties?.name;
+      if (nm == null) continue;
+      const b = featureBounds(f);
+      if (b) featBounds.set(String(nm), b);
+    }
+    const m = new Map();
+    for (const z of latest.current.zones ?? []) {
+      const nested = flatBboxToBounds(z.bbox) || featBounds.get(String(z.name));
+      if (nested) m.set(z.name, nested);
+    }
+    // Defensive: keep any geojson feature not present in the zone list.
+    for (const [nm, b] of featBounds) if (!m.has(nm)) m.set(nm, b);
+    boundsRef.current = m;
+  };
+
+  const allBounds = () => flatBboxToBounds(latest.current.studyBbox) || DEFAULT_ALL_BOUNDS;
+  const boundsFor = (name) =>
+    (name && name !== 'All' && boundsRef.current.get(name)) || allBounds();
+  const isZoneClickable = (name) => !!(name && boundsRef.current.has(name));
+
+  // Union bbox of a freshly-loaded zone FeatureCollection → [[sw],[ne]].
+  // Used for the study-area fit on a dataset switch: studyBbox (from the async
+  // study_area.json query) can still hold the PREVIOUS dataset's extent at the
+  // moment the switch fires, whereas the geojson we just drew is authoritative.
+  const unionBounds = (geo) => {
+    let minLon = Infinity, minLat = Infinity, maxLon = -Infinity, maxLat = -Infinity;
+    for (const f of geo?.features ?? []) {
+      const b = featureBounds(f); // [[sw_lon,sw_lat],[ne_lon,ne_lat]]
+      if (!b) continue;
+      if (b[0][0] < minLon) minLon = b[0][0];
+      if (b[0][1] < minLat) minLat = b[0][1];
+      if (b[1][0] > maxLon) maxLon = b[1][0];
+      if (b[1][1] > maxLat) maxLat = b[1][1];
+    }
+    return Number.isFinite(minLon) ? [[minLon, minLat], [maxLon, maxLat]] : null;
+  };
+
+  // Load the primary-zone boundary geojson: backend zones.json first
+  // (authoritative, per-dataset), CDN TLM boundaries as the last resort so
+  // legacy Swiss datasets whose backend lacks the endpoint still render.
+  const loadZonesGeojson = async () => {
+    const fn = latest.current.getZonesGeojson;
+    if (fn) {
+      try {
+        const g = await fn();
+        if (g?.features?.length) return g;
+      } catch { /* fall through to CDN */ }
+    }
+    try {
+      const res = await fetch('https://matsim-eth.github.io/webmap/data/TLM_KANTONSGEBIET.geojson');
+      if (res.ok) return await res.json();
+    } catch { /* give up — empty layer */ }
+    return { type: 'FeatureCollection', features: [] };
+  };
   // Latest dim-mask state, kept in a ref so loadTransitStops can re-apply it
   // when the layer is (re)created after a canton change post-search.
   const dimMaskRef = useRef({ active: false, lineId: null });
@@ -189,7 +262,7 @@ export function useCantonMap({
           return;
         }
 
-        const bounds = CANTON_BOUNDS[selectedCanton] || CANTON_BOUNDS["All"];
+        const bounds = boundsFor(selectedCanton);
         map.current.fitBounds(bounds, {
           padding: isExpanded ? 50 : 20,
           duration: 300
@@ -213,8 +286,8 @@ export function useCantonMap({
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/light-v11',
-      center: [8.2275, 46.8182],
-      zoom: 5.5,
+      center: latest.current.initialCenter,
+      zoom: latest.current.initialZoom,
       attributionControl: false,
       preserveDrawingBuffer: true,
       dragPan: false,
@@ -226,15 +299,21 @@ export function useCantonMap({
       touchZoomRotate: false,
     });
 
-    map.current.on('load', () => {
+    map.current.on('load', async () => {
       if (STOP_TABS.has(activeTabRef.current)) {
         map.current.dragPan.enable();
         map.current.scrollZoom.enable();
       }
 
+      // Load the zone boundary layer (backend zones.json → CDN TLM) and derive
+      // per-zone fit bounds before wiring the layers/handlers that depend on it.
+      const cantonsData = await loadZonesGeojson();
+      if (!map.current) return;
+      rebuildBounds(cantonsData);
+
       map.current.addSource('cantons', {
         type: 'geojson',
-        data: 'https://matsim-eth.github.io/webmap/data/TLM_KANTONSGEBIET.geojson'
+        data: cantonsData,
       });
 
       map.current.addLayer({
@@ -270,8 +349,7 @@ export function useCantonMap({
 
       const initCanton = initialCantonRef.current;
       if (initCanton && initCanton !== "All" && activeTabRef.current !== 'transit-stops') {
-        const bounds = CANTON_BOUNDS[initCanton] || CANTON_BOUNDS["All"];
-        map.current.fitBounds(bounds, {
+        map.current.fitBounds(boundsFor(initCanton), {
           padding: isExpanded ? 50 : 20,
           duration: 0
         });
@@ -283,7 +361,7 @@ export function useCantonMap({
       map.current.on('click', 'canton-fills', (e) => {
         if (e.features && e.features.length > 0) {
           const cantonName = e.features[0].properties.NAME;
-          if (cantonName && CANTON_BOUNDS[cantonName]) {
+          if (isZoneClickable(cantonName)) {
             setSelectedCanton(cantonName);
           }
         }
@@ -292,7 +370,7 @@ export function useCantonMap({
       map.current.on('dblclick', () => {
         setSelectedCanton('All');
         if (!STOP_TABS.has(activeTabRef.current)) {
-          map.current.fitBounds(CANTON_BOUNDS['All'], {
+          map.current.fitBounds(boundsFor('All'), {
             padding: isExpanded ? 50 : 20,
             duration: 500
           });
@@ -310,6 +388,47 @@ export function useCantonMap({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // effect:audited -- external map sync: reload the zone boundary layer when the
+  // dataset changes. Different datasets can declare different study areas
+  // (e.g. Swiss cantons vs a re-zoned canton's municipalities), so re-fetch
+  // zones.json and refresh the 'cantons' source + fit bounds. Skips the first
+  // run — the init effect already loads the layer for the initial dataset.
+  const didInitDatasetRef = useRef(false);
+  useEffect(() => {
+    if (!map.current) return;
+    if (!didInitDatasetRef.current) {
+      didInitDatasetRef.current = true;
+      return;
+    }
+    let cancelled = false;
+    const reload = async () => {
+      const geo = await loadZonesGeojson();
+      if (cancelled || !map.current) return;
+      rebuildBounds(geo);
+      await awaitStyleLoaded(map.current);
+      if (cancelled || !map.current) return;
+      const src = map.current.getSource('cantons');
+      if (src) src.setData(geo);
+      // Zoom into the new study area (animated, like the webmap's dataset
+      // switch). selectedCanton was reset to "All" by the context on switch,
+      // so fit the whole new area — computed from the geojson we just drew,
+      // NOT studyBbox (which may still be the previous dataset's extent).
+      // Skip only when the user is mid transit-stop/line drilldown.
+      if (!STOP_TABS.has(activeTabRef.current)) {
+        const target = (selectedCanton && selectedCanton !== 'All'
+          && boundsRef.current.get(selectedCanton))
+          || unionBounds(geo) || boundsFor(selectedCanton);
+        map.current.fitBounds(target, {
+          padding: isExpanded ? 50 : 20,
+          duration: 900,
+        });
+      }
+    };
+    reload();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [datasetId]);
+
   // effect:audited -- external map sync: load transit stops layer
   useEffect(() => {
     if (!map.current || !STOP_TABS.has(activeTab) || !selectedCanton || selectedCanton === 'All') {
@@ -322,7 +441,7 @@ export function useCantonMap({
 
     const loadTransitStops = async () => {
       try {
-        const stopsPath = `matsim/transit/stops_by_canton/${selectedCanton}_stops.geojson`;
+        const stopsPath = `matsim/transit/stops_by_canton/${encodeURIComponent(selectedCanton)}_stops.geojson`;
         const geojson = await getCantonData(stopsPath);
 
         // Inject `line_ids` into each feature so Mapbox filter expressions can
@@ -532,9 +651,7 @@ export function useCantonMap({
 
       setTimeout(() => {
         if (!map.current) return;
-        const bounds = CANTON_BOUNDS[selectedCanton] || CANTON_BOUNDS["All"];
-
-        map.current.fitBounds(bounds, {
+        map.current.fitBounds(boundsFor(selectedCanton), {
           padding: isExpanded ? 50 : 20,
           duration: 500
         });
@@ -819,7 +936,7 @@ export function useCantonMap({
       const stopFetches = [
         getCantonData('matsim/transit/stops_by_canton/inter_cantonal_stops.geojson').catch(() => null),
         ...otherCantons.map((c) =>
-          getCantonData(`matsim/transit/stops_by_canton/${c}_stops.geojson`).catch(() => null)
+          getCantonData(`matsim/transit/stops_by_canton/${encodeURIComponent(c)}_stops.geojson`).catch(() => null)
         ),
       ];
       const stopGeos = await Promise.all(stopFetches);

@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useDashboard } from '../../context/DashboardContext';
@@ -21,8 +21,19 @@ const CantonMap = ({ sidebarCollapsed, isExpanded = false, activeTab }) => {
     selectedLineModes,
     polygonSet,
     datasetId,
+    zones,
+    studyAreaBbox,
+    studyAreaCenter,
+    studyAreaZoom,
   } = useDashboard();
   const { getCantonData } = useData();
+
+  // Zone boundary loader for useCantonMap: backend zones.json first (per
+  // dataset, authoritative), CDN TLM as last resort is handled inside the hook.
+  const getZonesGeojson = useCallback(
+    () => getCantonData('zones.json'),
+    [getCantonData]
+  );
 
   // Mode-filter visibility flags. Selection state stays put; only rendering
   // is suppressed so unfiltering brings the prior selection right back.
@@ -146,6 +157,12 @@ const CantonMap = ({ sidebarCollapsed, isExpanded = false, activeTab }) => {
     getCantonData,
     hideLineByFilter,
     hideStopByFilter,
+    zones,
+    studyBbox: studyAreaBbox,
+    initialCenter: studyAreaCenter,
+    initialZoom: studyAreaZoom,
+    getZonesGeojson,
+    datasetId,
   });
 
   return (

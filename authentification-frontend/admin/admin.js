@@ -633,7 +633,7 @@ function triggerDuckdbPicker(category) {
   input.click();
 }
 
-function openEditDatasetModal(ds) {
+async function openEditDatasetModal(ds) {
   el("editDsOriginalId").value = ds.id;
   el("editDsId").value = ds.id;
   el("editDsName").value = ds.name || "";
@@ -642,6 +642,13 @@ function openEditDatasetModal(ds) {
   el("editDsPublic").checked = !!ds.is_public;
 
   renderDatasetFiles(ds);
+  // Load the study-area section BEFORE showing the modal so it doesn't pop in
+  // late; a slow/unreachable backend is capped at 2s (the section then just
+  // appears when the fetch settles, as before). Cached per dataset id.
+  await Promise.race([
+    loadRezoneOptions(ds),
+    new Promise((resolve) => setTimeout(resolve, 2000)),
+  ]);
 
   openModal("editDatasetModal");
 }
@@ -678,6 +685,9 @@ async function uploadDuckdbFile(category, file) {
       // Re-render the manager from the refreshed flags (restores button state)
       const updated = _allDatasets.find((d) => String(d.id) === String(dsid));
       if (updated) renderDatasetFiles(updated);
+      // A new duckdb can change what re-zoning is possible.
+      _rezoneOptsCache.delete(String(dsid));
+      if (updated) loadRezoneOptions(updated);
     } else {
       const err = await readJsonOrText(res);
       showToast(err?.detail || "Upload failed");
@@ -688,6 +698,133 @@ async function uploadDuckdbFile(category, file) {
     showToast("Upload failed");
     if (btn) { btn.disabled = false; btn.textContent = origText; }
   }
+}
+
+// ── Study-area re-zoning ─────────────────────────────────────────
+// Derives a NEW dataset zoned by a smaller admin level (municipalities /
+// districts) from the dataset's own polygons — see dataset-backend/rezone.py.
+
+const ZONE_LEVELS = [
+  { key: "gemeinde", label: "Municipalities" },
+  { key: "bezirk", label: "Districts" },
+];
+
+let _rezonePollTimer = null;
+
+// Options per dataset id — so reopening the modal renders the section
+// instantly instead of popping in after the fetch. Invalidated on upload.
+const _rezoneOptsCache = new Map();
+
+async function loadRezoneOptions(ds) {
+  const section = el("dsRezoneSection");
+  if (!section) return;
+  section.hidden = true;
+  clearInterval(_rezonePollTimer);
+  hideRezoneConfirm();
+  const statusEl = el("dsRezoneStatus");
+  if (statusEl) statusEl.hidden = true;
+  if (!(ds.data_categories || []).includes("synthetic")) return;
+
+  let opts = _rezoneOptsCache.get(String(ds.id));
+  if (!opts) {
+    const res = await datasetApi(`/datasets/${ds.id}/rezone/options`);
+    if (!res.ok) return; // not re-zonable (v1 dataset, no hot_polygons, …)
+    opts = await res.json().catch(() => null);
+    if (opts) _rezoneOptsCache.set(String(ds.id), opts);
+  }
+  const levels = (opts?.zone_types || [])
+    .map((t) => ZONE_LEVELS.find((z) => z.key === t))
+    .filter(Boolean);
+  if (!levels.length) return;
+
+  el("dsRezoneLevel").innerHTML = levels
+    .map((l) => `<option value="${l.key}">${l.label}</option>`)
+    .join("");
+  el("dsRezoneCanton").innerHTML =
+    `<option value="">Whole area</option>` +
+    (opts.cantons || [])
+      .map((c) => `<option value="${c.id}">${c.name}</option>`)
+      .join("");
+  const cur = opts.current || {};
+  el("dsRezoneCurrent").textContent =
+    `Current study area: ${cur.name || "Switzerland"} (${cur.primary_zone_type || "canton"} zones)`;
+  section.hidden = false;
+}
+
+function _selectedText(sel) {
+  return sel?.selectedOptions?.[0]?.textContent?.trim() || "";
+}
+
+function showRezoneConfirm() {
+  const canton = _selectedText(el("dsRezoneCanton"));
+  const level = _selectedText(el("dsRezoneLevel")).toLowerCase();
+  const area = el("dsRezoneCanton").value ? `canton ${canton}` : "the whole study area";
+  el("dsRezoneConfirmText").innerHTML =
+    `Create a <strong>new</strong> dataset for <strong>${area}</strong>, zoned by ` +
+    `<strong>${level}</strong>? The source dataset stays unchanged. ` +
+    `This takes a few minutes.`;
+  el("dsRezoneConfirm").hidden = false;
+  const btn = el("dsRezoneBtn");
+  if (btn) btn.disabled = true;
+}
+
+function hideRezoneConfirm() {
+  const confirmEl = el("dsRezoneConfirm");
+  if (confirmEl) confirmEl.hidden = true;
+  const btn = el("dsRezoneBtn");
+  if (btn) { btn.disabled = false; btn.textContent = "Create re-zoned copy…"; }
+}
+
+async function startRezone() {
+  const dsid = el("editDsOriginalId").value;
+  const cantonRaw = el("dsRezoneCanton").value;
+  const body = {
+    zone_type: el("dsRezoneLevel").value,
+    canton_id: cantonRaw ? parseInt(cantonRaw, 10) : null,
+  };
+  hideRezoneConfirm();
+  const btn = el("dsRezoneBtn");
+  if (btn) { btn.disabled = true; btn.textContent = "Starting…"; }
+
+  const res = await datasetApi(`/datasets/${dsid}/rezone`, { method: "POST", body });
+  if (!res.ok) {
+    const err = await readJsonOrText(res);
+    showToast(err?.detail || "Failed to start re-zone");
+    if (btn) { btn.disabled = false; btn.textContent = "Create re-zoned copy…"; }
+    return;
+  }
+  const { dataset_id: newId, name } = await res.json();
+  showToast(`Re-zoning into “${name}”…`, "success");
+  pollRezone(newId, btn);
+}
+
+function pollRezone(newId, btn) {
+  const statusEl = el("dsRezoneStatus");
+  if (statusEl) statusEl.hidden = false;
+  clearInterval(_rezonePollTimer);
+  const tick = async () => {
+    const res = await datasetApi(`/datasets/${newId}/rezone/status`);
+    if (!res.ok) return; // transient — keep polling
+    const job = await res.json().catch(() => null);
+    if (!job) return;
+    if (job.state === "running") {
+      if (statusEl) statusEl.textContent = `Re-zoning… ${job.step || ""}`;
+      return;
+    }
+    clearInterval(_rezonePollTimer);
+    if (btn) { btn.disabled = false; btn.textContent = "Create re-zoned copy…"; }
+    if (job.state === "done") {
+      if (statusEl) statusEl.textContent =
+        "Done — new dataset created (inactive). Set it to active to publish.";
+      showToast("Re-zoned dataset ready ✓", "success");
+      await loadDatasets(_currentOwnerFilter, _currentOwnerName);
+    } else {
+      if (statusEl) statusEl.textContent = `Failed: ${job.detail || "unknown error"}`;
+      showToast("Re-zone failed");
+    }
+  };
+  _rezonePollTimer = setInterval(tick, 4000);
+  tick();
 }
 
 async function saveDataset() {
@@ -843,6 +980,23 @@ function attachLogout() {
       }
       _pendingUploadCategory = null;
     });
+  }
+
+  const rezoneBtn = el("dsRezoneBtn");
+  if (rezoneBtn) {
+    rezoneBtn.addEventListener("click", showRezoneConfirm);
+  }
+  const rezoneConfirmBtn = el("dsRezoneConfirmBtn");
+  if (rezoneConfirmBtn) {
+    rezoneConfirmBtn.addEventListener("click", startRezone);
+  }
+  const rezoneCancelBtn = el("dsRezoneCancelBtn");
+  if (rezoneCancelBtn) {
+    rezoneCancelBtn.addEventListener("click", hideRezoneConfirm);
+  }
+  // Changing either dropdown invalidates a pending confirmation summary.
+  for (const id of ["dsRezoneCanton", "dsRezoneLevel"]) {
+    el(id)?.addEventListener("change", hideRezoneConfirm);
   }
 })();
 

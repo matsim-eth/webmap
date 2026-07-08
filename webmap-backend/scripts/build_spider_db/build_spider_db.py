@@ -10,11 +10,27 @@ Pipeline (all inside this script):
   4. Import persons + households parquets as tables
   5. Create DB indexes for fast lookups
 
+Optionally imports output_trips and assigns an origin/dest zone to each trip
+by point-in-polygon against a zone GeoJSON. The zoning is parametrised (zones
+file, id/name properties, CRS) and defaults to the Swiss setup (TLM canton
+boundaries, ``KANTONSNUMMER``/``NAME``, EPSG:2056) so existing commands are
+unchanged. Example for a non-Swiss study area::
+
+    python main.py events.xml persons.parquet households.parquet spider.duckdb \
+        output_trips.parquet vaud_muni.geojson --zone-type municipality \
+        --zone-id-property BFS_NUMMER --zone-name-property NAME --crs EPSG:2056
+
+The assigned ids are written to the ``origin_canton_id`` / ``dest_canton_id``
+columns whatever the zone type (the backend probes the ``*_zone_id`` spellings
+first and these legacy names second — see zone_registry.zone_col).
+
 Input files
 -----------
   output_events.xml              – MATSim simulation events
   switzerland_persons.parquet    – person attributes (age, sex, …)
   households.parquet             – household attributes (income)
+  <zones>.geojson                – zone boundaries, WGS84 (optional); defaults
+                                   to TLM_KANTONSGEBIET.geojson (26 cantons)
 
 Output
 ------
@@ -176,6 +192,9 @@ def build_spider_db(
     output_trips_parquet: str | Path | None = None,
     canton_geojson: str | Path | None = None,
     memory_limit: str = "4GB",
+    zone_id_property: str = "KANTONSNUMMER",
+    zone_name_property: str = "NAME",
+    crs: str = "EPSG:2056",
 ) -> None:
     """Build spider.duckdb from raw source files.
 
@@ -186,8 +205,18 @@ def build_spider_db(
     households_parquet   : path to households.parquet
     output_db            : path where spider.duckdb will be written
     output_trips_parquet : path to output_trips.parquet (optional, for zone flows)
-    canton_geojson       : path to TLM_KANTONSGEBIET.geojson (optional, for zone flows)
+    canton_geojson       : path to the zone GeoJSON (optional, for zone flows).
+                           Defaults to the Swiss TLM_KANTONSGEBIET.geojson; any
+                           admin-unit GeoJSON (WGS84) works.
     memory_limit         : DuckDB memory limit (default 4GB)
+    zone_id_property     : GeoJSON property with the numeric zone id
+                           (default ``KANTONSNUMMER`` — Swiss canton number)
+    zone_name_property   : GeoJSON property with the zone name (default ``NAME``)
+    crs                  : projected CRS of the trip start/end coordinates
+                           (default ``EPSG:2056`` = Swiss LV95). EPSG:2056 keeps
+                           the exact historical swisstopo LV95→WGS84 formulas so
+                           Swiss output is byte-identical; any other CRS uses
+                           ``ST_Transform``.
     """
     events_xml = Path(events_xml)
     persons_parquet = Path(persons_parquet)
@@ -318,65 +347,69 @@ def build_spider_db(
                 canton_geojson = None
 
         if canton_geojson is not None:
-            print("[7/7] Assigning origin/dest cantons via spatial join ...")
+            print("[7/7] Assigning origin/dest zones via spatial join ...")
             con.execute("INSTALL spatial; LOAD spatial;")
             # Use a temp table to avoid CRS storage issues with older DB formats
             con.execute(f"""
                 CREATE TEMP TABLE canton_boundaries AS
-                SELECT KANTONSNUMMER AS canton_id, NAME AS canton_name,
+                SELECT "{zone_id_property}" AS canton_id, "{zone_name_property}" AS canton_name,
                        CAST(geom AS GEOMETRY) AS geom
                 FROM ST_Read('{canton_geojson}')
             """)
 
-            # LV95 → WGS84 approximate conversion (swisstopo formulas)
-            # then spatial join with canton polygons.
-            _LV95_TO_WGS84_LON = """
-                (2.6779094
-                 + 4.728982 * ((x - 2600000.0) / 1000000.0)
-                 + 0.791484 * ((x - 2600000.0) / 1000000.0) * ((y - 1200000.0) / 1000000.0)
-                 + 0.1306   * ((x - 2600000.0) / 1000000.0) * POWER((y - 1200000.0) / 1000000.0, 2)
-                 - 0.0436   * POWER((x - 2600000.0) / 1000000.0, 3)
-                ) * 100.0 / 36.0
-            """
-            _LV95_TO_WGS84_LAT = """
-                (16.9023892
-                 + 3.238272  * ((y - 1200000.0) / 1000000.0)
-                 - 0.270978  * POWER((x - 2600000.0) / 1000000.0, 2)
-                 - 0.002528  * POWER((y - 1200000.0) / 1000000.0, 2)
-                 - 0.0447    * POWER((x - 2600000.0) / 1000000.0, 2) * ((y - 1200000.0) / 1000000.0)
-                 - 0.0140    * POWER((y - 1200000.0) / 1000000.0, 3)
-                ) * 100.0 / 36.0
-            """
+            # Zone GeoJSONs are WGS84; trip start/end coords are in the projected
+            # CRS. Build a WGS84 point expression for each end. For the default
+            # Swiss LV95 the exact historical swisstopo approximation is kept so
+            # output is byte-identical; any other CRS uses ST_Transform.
+            def _wgs84_point(x_col: str, y_col: str) -> str:
+                if crs == "EPSG:2056":
+                    lon = f"""
+                        (2.6779094
+                         + 4.728982 * (({x_col} - 2600000.0) / 1000000.0)
+                         + 0.791484 * (({x_col} - 2600000.0) / 1000000.0) * (({y_col} - 1200000.0) / 1000000.0)
+                         + 0.1306   * (({x_col} - 2600000.0) / 1000000.0) * POWER(({y_col} - 1200000.0) / 1000000.0, 2)
+                         - 0.0436   * POWER(({x_col} - 2600000.0) / 1000000.0, 3)
+                        ) * 100.0 / 36.0
+                    """
+                    lat = f"""
+                        (16.9023892
+                         + 3.238272  * (({y_col} - 1200000.0) / 1000000.0)
+                         - 0.270978  * POWER(({x_col} - 2600000.0) / 1000000.0, 2)
+                         - 0.002528  * POWER(({y_col} - 1200000.0) / 1000000.0, 2)
+                         - 0.0447    * POWER(({x_col} - 2600000.0) / 1000000.0, 2) * (({y_col} - 1200000.0) / 1000000.0)
+                         - 0.0140    * POWER(({y_col} - 1200000.0) / 1000000.0, 3)
+                        ) * 100.0 / 36.0
+                    """
+                    return f"ST_Point({lon}, {lat})"
+                return (f"ST_Transform(ST_Point({x_col}, {y_col}), "
+                        f"'{crs}', 'EPSG:4326', always_xy := true)")
 
-            # Build origin canton
-            lon_start = _LV95_TO_WGS84_LON.replace("x", "t.start_x").replace("y", "t.start_y")
-            lat_start = _LV95_TO_WGS84_LAT.replace("x", "t.start_x").replace("y", "t.start_y")
-            lon_end = _LV95_TO_WGS84_LON.replace("x", "t.end_x").replace("y", "t.end_y")
-            lat_end = _LV95_TO_WGS84_LAT.replace("x", "t.end_x").replace("y", "t.end_y")
+            point_start = _wgs84_point("t.start_x", "t.start_y")
+            point_end = _wgs84_point("t.end_x", "t.end_y")
 
             # Add origin_canton_id and dest_canton_id columns
             con.execute("ALTER TABLE output_trips ADD COLUMN origin_canton_id INTEGER")
             con.execute("ALTER TABLE output_trips ADD COLUMN dest_canton_id INTEGER")
 
-            # Update origin canton via spatial join
+            # Update origin zone via spatial join
             con.execute(f"""
                 UPDATE output_trips t
                 SET origin_canton_id = (
                     SELECT c.canton_id
                     FROM canton_boundaries c
-                    WHERE ST_Contains(c.geom, ST_Point({lon_start}, {lat_start}))
+                    WHERE ST_Contains(c.geom, {point_start})
                     LIMIT 1
                 )
                 WHERE t.start_x IS NOT NULL AND t.start_y IS NOT NULL
             """)
 
-            # Update dest canton via spatial join
+            # Update dest zone via spatial join
             con.execute(f"""
                 UPDATE output_trips t
                 SET dest_canton_id = (
                     SELECT c.canton_id
                     FROM canton_boundaries c
-                    WHERE ST_Contains(c.geom, ST_Point({lon_end}, {lat_end}))
+                    WHERE ST_Contains(c.geom, {point_end})
                     LIMIT 1
                 )
                 WHERE t.end_x IS NOT NULL AND t.end_y IS NOT NULL

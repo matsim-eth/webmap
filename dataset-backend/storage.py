@@ -27,7 +27,7 @@ EXPECTED_FILES = {
 # Allowed extensions per category
 ALLOWED_EXTENSIONS = {
     "synthetic": {".parquet", ".duckdb"},
-    "microcensus": {".parquet"},
+    "microcensus": {".parquet", ".duckdb"},
 }
 
 # v2 layout: each source is a single DuckDB file at the dataset root

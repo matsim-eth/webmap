@@ -31,7 +31,7 @@ const SINGLE_DEST_COLOR = "#f97316";
 const SINGLE_SELF_COLOR = "#3b82f6";
 
 const TransferDestinations = ({ sidebarCollapsed, isExpanded = false }) => {
-  const { selectedCanton, selectedTransitStop, datasetId } = useDashboard();
+  const { selectedCanton, selectedTransitStop, datasetId, zoneLabel } = useDashboard();
   const { getCantonData } = useData();
 
   const datasets = useTransitDatasets();
@@ -46,7 +46,7 @@ const TransferDestinations = ({ sidebarCollapsed, isExpanded = false }) => {
   const { data: stopsData = null } = useQuery({
     queryKey: ["cantonStops", datasetId, selectedCanton],
     queryFn: () =>
-      getCantonData(`matsim/transit/stops_by_canton/${selectedCanton}_stops.geojson`)
+      getCantonData(`matsim/transit/stops_by_canton/${encodeURIComponent(selectedCanton)}_stops.geojson`)
         .then((geojson) => geojson?.features || [])
         .catch(() => null),
     enabled: !!selectedCanton && selectedCanton !== "All",
@@ -134,7 +134,7 @@ const TransferDestinations = ({ sidebarCollapsed, isExpanded = false }) => {
 
   // --- Render states ---
   if (!selectedCanton || selectedCanton === "All") {
-    return <div className="plot-loading">Please select a specific canton</div>;
+    return <div className="plot-loading">Please select a specific {zoneLabel.toLowerCase()}</div>;
   }
   if (!anyTransfer) {
     return <PlotLoader />;

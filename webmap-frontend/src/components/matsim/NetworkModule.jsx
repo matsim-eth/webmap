@@ -18,7 +18,7 @@ const EXCLUDED_MODES = new Set([
 ]);
 
 const NetworkModule = ({ featureTableRef }) => {
-  const { isFeatureTableOpen, featureGeoJSON, setTableFilterQuery } = useData();
+  const { isFeatureTableOpen, featureGeoJSON, setTableFilterQuery, zoneLabel } = useData();
   const { selectedNetworkModes, setSelectedNetworkModes } = useFilters();
   const {
     clickedCanton: canton,
@@ -140,7 +140,7 @@ const NetworkModule = ({ featureTableRef }) => {
         </div>
       ) : (
         <p style={{ padding: "1rem", fontStyle: "italic", color: "#555" }}>
-        Click a canton to view MATSim network links.
+        Click a {zoneLabel.toLowerCase()} to view MATSim network links.
         </p>
       )}
 

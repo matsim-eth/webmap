@@ -20,25 +20,17 @@ which is what the frontend's purpose filter expects (work/education/shop/leisure
 from __future__ import annotations
 
 from .base import DataProvider, Param
-from .constants import CANTON_MAP
 from .connection import get_source_cursor
 from .result_cache import make_cache
+from .zone_registry import get_registry, zone_col
 
 _cget, _cput = make_cache(maxsize=48)
 
-_NAME_TO_ID = {v.lower(): k for k, v in CANTON_MAP.items()}
-
 
 def _resolve_canton(value: str) -> int | None:
-    """Resolve a canton name or ID string to a canton ID integer."""
-    value = value.strip()
-    try:
-        cid = int(value)
-        if cid in CANTON_MAP:
-            return cid
-    except ValueError:
-        pass
-    return _NAME_TO_ID.get(value.lower())
+    """Resolve a zone name or ID string to a zone ID integer via the dataset's
+    zone registry."""
+    return get_registry().resolve_zone(value)
 
 
 def _bin_key(bin15: int) -> str:
@@ -55,6 +47,7 @@ def _bin_key(bin15: int) -> str:
 
 _PARAMS = [
     Param("canton", "Hub canton name or ID", required=True),
+    Param("zone", "Hub zone name or ID; alias of canton"),
     Param("source", "Data source", enum=["synthetic", "microcensus"]),
 ]
 
@@ -69,7 +62,7 @@ class DestinationZonesProvider(DataProvider):
     PARAMS = _PARAMS
 
     def deliver(self, params: dict):
-        raw = (params.get("canton") or "").strip()
+        raw = (params.get("canton") or params.get("zone") or "").strip()
         if not raw:
             return {"error": "canton parameter is required"}
         cid = _resolve_canton(raw)
@@ -88,26 +81,30 @@ class DestinationZonesProvider(DataProvider):
         except Exception as exc:
             return {"error": f"destination_zones data unavailable: {exc}"}
 
+        reg = get_registry()
+        ocol = zone_col(source, "trips", "origin")
+        dcol = zone_col(source, "trips", "dest")
+
         # One scan, both directions. Each row is tagged with the hub's role and
         # the "other" canton; intra-canton trips and rows missing a canton id are
         # excluded. 15-min bin index = floor(departure_time / 900).
-        query = """
+        query = f"""
             SELECT role, other_id, main_mode, following_purpose, bin15,
                    COUNT(*)::INTEGER AS cnt
             FROM (
-                SELECT 'origin' AS role, dest_canton_id AS other_id,
+                SELECT 'origin' AS role, {dcol} AS other_id,
                        main_mode, following_purpose,
                        CAST(departure_time // 900 AS INTEGER) AS bin15
                 FROM trips
-                WHERE origin_canton_id = ? AND dest_canton_id IS NOT NULL
-                  AND dest_canton_id <> ?
+                WHERE {ocol} = ? AND {dcol} IS NOT NULL
+                  AND {dcol} <> ?
                 UNION ALL
-                SELECT 'destination' AS role, origin_canton_id AS other_id,
+                SELECT 'destination' AS role, {ocol} AS other_id,
                        main_mode, following_purpose,
                        CAST(departure_time // 900 AS INTEGER) AS bin15
                 FROM trips
-                WHERE dest_canton_id = ? AND origin_canton_id IS NOT NULL
-                  AND origin_canton_id <> ?
+                WHERE {dcol} = ? AND {ocol} IS NOT NULL
+                  AND {ocol} <> ?
             )
             GROUP BY role, other_id, main_mode, following_purpose, bin15
         """
@@ -116,12 +113,12 @@ class DestinationZonesProvider(DataProvider):
         except Exception as exc:
             return {"error": str(exc)}
 
-        hub = CANTON_MAP.get(cid, str(cid))
+        hub = reg.zone_name(cid)
         # Collapse to one record per (role, other, mode, purpose) carrying a
         # {"HH:MM": count} time_bins dict.
         records: dict[tuple, dict] = {}
         for role, other_id, mode, purpose, bin15, cnt in rows:
-            other = CANTON_MAP.get(other_id, str(other_id))
+            other = reg.zone_name(other_id)
             key = (role, other_id, mode, purpose)
             rec = records.get(key)
             if rec is None:

@@ -5,8 +5,6 @@ import { useSelection } from '../../context/SelectionContext';
 import { useFilters } from '../../context/FilterContext';
 import { useData } from '../../context/DataContext';
 import { marks, formatTimeLabel } from '../../utils/timeSliderUtils';
-import bboxCache from '../../utils/bboxCanton.json';
-import cantonAlias from '../../utils/canton_alias.json';
 import './VolumeFlowModule.css';
 import './ZoneFlowsModule.css';
 
@@ -25,17 +23,19 @@ const ZoneFlowsModule = () => {
         zoneFlowDirection, setZoneFlowDirection,
         timeRange, setTimeRange,
     } = useFilters();
-    const { zoneFlowData, zoneFlowLoading } = useData();
+    const { zoneFlowData, zoneFlowLoading, zones, zoneByName, zoneLabel } = useData();
+
+    const displayOf = (name) => zoneByName?.get(name)?.displayName || name;
 
     const cantons = useMemo(
-        () => Object.keys(bboxCache).sort((a, b) =>
-            (cantonAlias[a] || a).localeCompare(cantonAlias[b] || b)
+        () => zones.map((z) => z.name).sort((a, b) =>
+            (zoneByName?.get(a)?.displayName || a).localeCompare(zoneByName?.get(b)?.displayName || b)
         ),
-        []
+        [zones, zoneByName]
     );
 
-    const originLabel = zoneFlowOriginCanton ? (cantonAlias[zoneFlowOriginCanton] || zoneFlowOriginCanton) : null;
-    const destLabel = zoneFlowDestCanton ? (cantonAlias[zoneFlowDestCanton] || zoneFlowDestCanton) : null;
+    const originLabel = zoneFlowOriginCanton ? displayOf(zoneFlowOriginCanton) : null;
+    const destLabel = zoneFlowDestCanton ? displayOf(zoneFlowDestCanton) : null;
 
     const sameCanton = zoneFlowOriginCanton && zoneFlowOriginCanton === zoneFlowDestCanton;
     const totalTrips = zoneFlowData?.total_trips ?? null;
@@ -56,7 +56,7 @@ const ZoneFlowsModule = () => {
                 <div className="zf-canton-row">
                     <label>Origin</label>
                     <div className="zf-origin-display">
-                        {originLabel || <span className="zf-origin-empty">Click a canton</span>}
+                        {originLabel || <span className="zf-origin-empty">Click a {zoneLabel.toLowerCase()}</span>}
                     </div>
                 </div>
                 <div className="zf-canton-row">
@@ -67,7 +67,7 @@ const ZoneFlowsModule = () => {
                     >
                         <option value="">— Select —</option>
                         {cantons.map(c => (
-                            <option key={c} value={c}>{cantonAlias[c] || c}</option>
+                            <option key={c} value={c}>{displayOf(c)}</option>
                         ))}
                     </select>
                 </div>
@@ -109,18 +109,18 @@ const ZoneFlowsModule = () => {
             {/* Body */}
             {!zoneFlowOriginCanton ? (
                 <div className="no-selection">
-                    <p>Click a canton to set the origin</p>
-                    <p className="hint">Then pick a destination canton from the dropdown above.</p>
+                    <p>Click a {zoneLabel.toLowerCase()} to set the origin</p>
+                    <p className="hint">Then pick a destination {zoneLabel.toLowerCase()} from the dropdown above.</p>
                 </div>
             ) : !zoneFlowDestCanton ? (
                 <div className="no-selection">
-                    <p>Pick a destination canton</p>
-                    <p className="hint">Trip routes between the two cantons will be highlighted on the map.</p>
+                    <p>Pick a destination {zoneLabel.toLowerCase()}</p>
+                    <p className="hint">Trip routes between the two {zoneLabel.toLowerCase()}s will be highlighted on the map.</p>
                 </div>
             ) : sameCanton ? (
                 <div className="no-selection">
                     <p>Origin and destination are the same</p>
-                    <p className="hint">Choose two different cantons to see inter-canton flows.</p>
+                    <p className="hint">Choose two different {zoneLabel.toLowerCase()}s to see inter-{zoneLabel.toLowerCase()} flows.</p>
                 </div>
             ) : (
                 <div className="canton-mode-share">

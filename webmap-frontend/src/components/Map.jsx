@@ -49,6 +49,7 @@ export default function Map() {
     destinationData: selectedDestinationData,
     boardingData: selectedBoardingData,
     zoneFlowLoading,
+    studyArea,
   } = useData();
   const {
     selectedNetworkModes,
@@ -111,7 +112,9 @@ export default function Map() {
       isSidebarOpen,
       isFeatureTableOpen,
       isLeftSidebarOpen: !isLeftSidebarCollapsed,
-    })
+    }),
+    // Study-area extent (Swiss defaults until/unless the dataset serves one).
+    { center: studyArea?.center, zoom: studyArea?.zoom }
   );
 
   // Sync map instance to context ref (derived assignment, not an effect)

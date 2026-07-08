@@ -11,6 +11,9 @@ RUN apt-get update \
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+# Pre-install the DuckDB spatial extension so re-zone jobs don't need
+# network access at runtime.
+RUN python -c "import duckdb; duckdb.connect().execute('INSTALL spatial')"
 
 # ── Dev: hot reload, source via bind mount ─────────────────────
 FROM base AS dev

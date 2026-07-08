@@ -7,8 +7,9 @@ Categories:
   - internal: both endpoints inside the polygon
 
 Coordinate system: the polygon is supplied in WGS84 (lng/lat). Trip endpoints
-in the duckdb `trips` table are already stored as GEOMETRY in CH1903+/LV95
-(EPSG:2056); the spatial extension reprojects the polygon once per request.
+in the duckdb `trips` table are already stored as GEOMETRY in the dataset's own
+CRS (the zone registry's `crs`, e.g. CH1903+/LV95 EPSG:2056 for Swiss datasets);
+the spatial extension reprojects the polygon into that CRS once per request.
 
 Query params
 ------------
@@ -26,6 +27,7 @@ from __future__ import annotations
 from .base import DataProvider, Param
 from .connection import get_source_cursor
 from .result_cache import make_cache
+from .zone_registry import get_registry
 
 _cget, _cput = make_cache(maxsize=48)
 
@@ -118,6 +120,7 @@ class PolygonTripsProvider(DataProvider):
         time_filter = "\n            ".join(time_clauses)
 
         cur = get_source_cursor(source)
+        crs = get_registry().crs
 
         # Bounding-box pre-filter via ST_X/ST_Y narrows ~99% of trips out
         # before ST_Within runs. Without it the full ST_Within scan is ~slow
@@ -125,7 +128,7 @@ class PolygonTripsProvider(DataProvider):
         query = f"""
             WITH poly AS (
                 SELECT ST_Transform(ST_GeomFromText(?),
-                                    'EPSG:4326', 'EPSG:2056',
+                                    'EPSG:4326', '{crs}',
                                     always_xy := true) AS geom
             ),
             poly_bbox AS (

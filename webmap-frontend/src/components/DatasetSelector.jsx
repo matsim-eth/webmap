@@ -4,11 +4,13 @@ import { faDatabase, faCheck, faSpinner } from '@fortawesome/free-solid-svg-icon
 import { useDatasets } from '../hooks/useDatasets';
 import { useData } from '../context/DataContext';
 import useClickOutside from '../hooks/useClickOutside';
+import { useFullReset } from '../hooks/useFullReset';
 import './DatasetSelector.css';
 
 const DatasetSelector = ({ isCollapsed }) => {
   const { datasetId, setDatasetId } = useData();
   const { data: datasets = [], isLoading } = useDatasets();
+  const fullReset = useFullReset();
   const [isOpen, setIsOpen] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const wrapperRef = useRef(null);
@@ -22,11 +24,14 @@ const DatasetSelector = ({ isCollapsed }) => {
   const handleSelect = useCallback((id) => {
     if (id !== datasetId) {
       setDatasetId(id);
+      // A dataset switch behaves exactly like the Reset button: no module
+      // state, selections or choropleth from the previous dataset survive.
+      fullReset();
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 1000);
     }
     setIsOpen(false);
-  }, [setDatasetId, datasetId]);
+  }, [setDatasetId, datasetId, fullReset]);
 
   const getPanelStyle = () => {
     const rect = buttonRef.current?.getBoundingClientRect();

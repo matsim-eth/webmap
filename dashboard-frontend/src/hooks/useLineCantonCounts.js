@@ -34,7 +34,7 @@ export function useLineCantonCounts(selectedLineMeta) {
     queryFn: async () => {
       const results = await Promise.all(
         cantons.map((c) =>
-          getCantonData(`matsim/transit/per_canton_counts/${c}_counts.json`).catch(() => null)
+          getCantonData(`matsim/transit/per_canton_counts/${encodeURIComponent(c)}_counts.json`).catch(() => null)
         )
       );
 

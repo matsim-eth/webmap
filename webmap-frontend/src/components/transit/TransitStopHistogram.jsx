@@ -16,7 +16,7 @@ const TransitStopHistogram = ({ stopIds, canton, lineId, onVolumeUpdate, timeRan
   const { data: hourlyCounts } = useQuery({
     queryKey: ['transit-stop-histogram', datasetId, canton, stopIdsKey, lineId, selectedDirection],
     queryFn: () => {
-      return loadWithFallback(`matsim/transit/per_canton_counts/${canton}_counts.json`)
+      return loadWithFallback(`matsim/transit/per_canton_counts/${encodeURIComponent(canton)}_counts.json`)
         .then(data => {
           const cleanedIds = stopIds.flatMap(s => {
             if (Array.isArray(s)) return s;

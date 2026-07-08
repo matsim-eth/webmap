@@ -11,7 +11,6 @@ import {
   filterCountRows,
 } from "../../hooks/useTransitComparison";
 import PlotLoader from "./PlotLoader";
-import cantonAlias from "../../utils/canton_alias.json";
 
 const METRICS = {
   boardings: { label: "Boardings", color: "#1f77b4" },
@@ -25,7 +24,7 @@ const METRICS = {
 const HOUR_LABELS = Array.from({ length: 24 }, (_, h) => `${String(h).padStart(2, "0")}:00`);
 
 const PassengersByStop = ({ sidebarCollapsed, isExpanded = false, metric = "boardings" }) => {
-  const { selectedCanton, selectedTransitStop, selectedTransitLine } = useDashboard();
+  const { selectedCanton, selectedTransitStop, selectedTransitLine, zoneByName, zoneLabel } = useDashboard();
 
   const { label, color } = METRICS[metric] || METRICS.boardings;
 
@@ -67,7 +66,7 @@ const PassengersByStop = ({ sidebarCollapsed, isExpanded = false, metric = "boar
   }, [countsPerDataset, resolveStopIds, selectedTransitStop, selectedTransitLine, metric]);
 
   if (!selectedCanton || selectedCanton === "All") {
-    return <div className="plot-loading">Please select a specific canton</div>;
+    return <div className="plot-loading">Please select a specific {zoneLabel.toLowerCase()}</div>;
   }
 
   if (!perDataset.some((d) => d.values)) {
@@ -75,7 +74,7 @@ const PassengersByStop = ({ sidebarCollapsed, isExpanded = false, metric = "boar
   }
 
   // Build title
-  let plotTitle = `Hourly ${label} - ${cantonAlias[selectedCanton] || selectedCanton}`;
+  let plotTitle = `Hourly ${label} - ${zoneByName.get(selectedCanton)?.displayName || selectedCanton}`;
   if (selectedTransitStop) {
     plotTitle = `Hourly ${label} - ${selectedTransitStop.name}`;
     if (selectedTransitLine) {

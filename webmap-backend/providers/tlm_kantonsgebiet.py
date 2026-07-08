@@ -1,8 +1,14 @@
-"""TLM Kantonsgebiet data — served from the ``hot_polygons`` table.
+"""TLM Kantonsgebiet data — a thin legacy alias of ``zones.json``.
 
-Returns the same GeoJSON shape the legacy provider produced: a
-FeatureCollection with one Feature per canton, properties
-``{KANTONSNUMMER, NAME}``. Filters: ``canton`` (IDs), ``canton_name``,
+Served from the ``hot_polygons`` table, this returns the same GeoJSON shape
+the legacy provider produced: a FeatureCollection with one Feature per
+primary zone, properties ``{KANTONSNUMMER, NAME}`` (legacy prop names kept as
+the frontend contract even for non-canton study areas). The zone set is the
+dataset's primary zone type (``canton`` for legacy Swiss data). New callers
+should prefer :class:`~.study_area.ZonesProvider` (``zones.json``); this route
+survives so existing choropleth joins / bookmarks keep working.
+
+Filters: ``canton``/``zone`` (IDs), ``canton_name``/``zone_name``,
 ``simplify`` (drop geometry).
 """
 
@@ -12,15 +18,17 @@ import json
 
 from .base import DataProvider, Param
 from .connection import default_source, get_source_cursor
-from .constants import CANTON_MAP
+from .zone_registry import get_registry
 
 
 class TlmKantonsgebietProvider(DataProvider):
     ROUTE = "tlm_kantonsgebiet.json"
     PARAMS = [
         Param("format", "Output format", enum=["geojson", "json"]),
-        Param("canton", "Comma-separated canton IDs (KANTONSNUMMER)"),
-        Param("canton_name", "Comma-separated canton names"),
+        Param("canton", "Comma-separated zone IDs (KANTONSNUMMER)"),
+        Param("canton_name", "Comma-separated zone names"),
+        Param("zone", "Comma-separated zone IDs (alias of canton)"),
+        Param("zone_name", "Comma-separated zone names (alias of canton_name)"),
         Param("simplify", "Remove geometry for lighter payload", enum=["true", "false"]),
     ]
 
@@ -31,14 +39,16 @@ class TlmKantonsgebietProvider(DataProvider):
         simplify = (params.get("simplify") or "").lower() == "true"
 
         canton_ids = None
-        if params.get("canton"):
+        id_param = params.get("canton") or params.get("zone")
+        if id_param:
             try:
-                canton_ids = {int(c.strip()) for c in params["canton"].split(",")}
+                canton_ids = {int(c.strip()) for c in id_param.split(",")}
             except ValueError:
                 canton_ids = None
         canton_names = None
-        if params.get("canton_name"):
-            canton_names = {c.strip() for c in params["canton_name"].split(",")}
+        name_param = params.get("canton_name") or params.get("zone_name")
+        if name_param:
+            canton_names = {c.strip() for c in name_param.split(",")}
 
         src = default_source()
         if not src:
@@ -48,12 +58,13 @@ class TlmKantonsgebietProvider(DataProvider):
         except Exception:
             return {"type": "FeatureCollection", "features": []}
 
+        ptype = get_registry().primary_type
         rows = con.execute("""
             SELECT polygon_id, polygon_name, ST_AsGeoJSON(polygon_geom)
             FROM hot_polygons
-            WHERE polygon_type = 'canton'
+            WHERE polygon_type = ?
             ORDER BY polygon_id
-        """).fetchall()
+        """, [ptype]).fetchall()
 
         features = []
         for pid, name, geom_json in rows:

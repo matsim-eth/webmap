@@ -24,6 +24,7 @@ from .base import DataProvider, Param
 from .connection import get_source_cursor
 from .helpers import resolve_canton_to_polygon_id
 from .paths import dataset_key
+from .zone_registry import get_registry, zone_col
 
 # node_flows only analyses car/road turning movements, so the clickable nodes
 # must be road nodes. PT-only junctions (tram/rail) have no car link and would
@@ -58,7 +59,7 @@ class NodesGeoJSONProvider(DataProvider):
     ]
 
     def deliver(self, params: dict):
-        canton = (params.get("canton") or "").strip()
+        canton = (params.get("canton") or params.get("zone") or "").strip()
         if not canton:
             return {"error": "canton parameter is required"}
         cid = _canton_id_from_param(canton)
@@ -72,6 +73,8 @@ class NodesGeoJSONProvider(DataProvider):
                 return JSONResponse(cached)
             try:
                 cur = get_source_cursor("synthetic")
+                zcol = zone_col("synthetic", "network_nodes", "zone")
+                crs = get_registry().crs
                 # Only emit "real" intersections: nodes with >= 3 distinct car
                 # connections. Reversed-coordinate twins (the forward + reverse
                 # link of one road) collapse to a single undirected edge via
@@ -103,9 +106,9 @@ class NodesGeoJSONProvider(DataProvider):
                            ROUND(ST_Y(p), {_COORD_DECIMALS}) AS lat
                     FROM (
                         SELECT node_id,
-                               ST_Transform(geom, 'EPSG:2056', 'EPSG:4326', always_xy := true) AS p
+                               ST_Transform(geom, '{crs}', 'EPSG:4326', always_xy := true) AS p
                         FROM network_nodes
-                        WHERE canton_id = ?
+                        WHERE {zcol} = ?
                           AND node_id IN (SELECT node FROM busy)
                     )
                     """,

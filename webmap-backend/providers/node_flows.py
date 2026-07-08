@@ -42,7 +42,7 @@ def _node_links(con, node_id: str):
 # which is a full-day, all-persons aggregate — gives an identical result.
 _PERSON_FILTER_KEYS = (
     "sex", "age_min", "age_max", "employed", "has_license",
-    "car_availability", "home_canton", "polygon_id", "polygon_ids", "income",
+    "car_availability", "home_canton", "zone", "polygon_id", "polygon_ids", "income",
 )
 
 

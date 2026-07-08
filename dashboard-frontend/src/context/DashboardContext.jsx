@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useCallback, useMemo } from "react";
+import React, { createContext, useContext, useState, useRef, useCallback, useMemo, useEffect } from "react";
+import { useStudyArea } from "../hooks/useStudyArea";
 
 const DashboardContext = createContext();
 
@@ -62,11 +63,55 @@ export const DashboardProvider = ({ children }) => {
 
   // Derived datasetId from slot 0 for backward compat (transit stops, file upload, canton map)
   const datasetId = comparisonSlots[0]?.datasetId ?? 1;
+
+  // Zone-scoped selections don't survive a dataset switch: the new dataset may
+  // declare a different study area (different zones entirely), so a stale
+  // zone/stop/line/municipality selection would keep filtering the new data
+  // with names it can't resolve. Mirrors the webmap's "dataset switch = reset".
+  const prevZoneDatasetRef = useRef(datasetId);
+  useEffect(() => {
+    if (prevZoneDatasetRef.current === datasetId) return;
+    prevZoneDatasetRef.current = datasetId;
+    setSelectedCantonInner("All");
+    setSelectedTransitStop(null);
+    setSelectedTransitLine(null);
+    setSelectedLineMeta(null);
+    setSelectedMunicipality(null);
+    setSelectedLineModes(['all']);
+    setPolygonSetInner({ kind: 'municipality', name: 'Municipalities (default)' });
+  }, [datasetId]);
   const setDatasetId = useCallback((id) => {
     setComparisonSlots((prev) =>
       prev.map((slot) => (slot ? { ...slot, datasetId: id } : slot))
     );
   }, []);
+
+  // Study-area bootstrap. The canonical study area is the FIRST comparison
+  // slot's dataset (the same `datasetId` used for the canton map, canton
+  // dropdown, transit stops, and file upload). It re-fetches on dataset switch
+  // via useStudyArea's queryKey.
+  //
+  // Single-study-area assumption: when two datasets are compared, the dashboard
+  // uses ONLY the primary slot's study area for shared UI (zones/labels/map
+  // extent). We deliberately do NOT build multi-area UI; a second dataset with
+  // a different study area is assumed to share the primary's zone geography.
+  const study = useStudyArea(datasetId);
+  const secondSlotId = comparisonSlots[1]?.datasetId;
+  const studyWarnRef = useRef(new Set());
+  useMemo(() => {
+    if (secondSlotId != null && secondSlotId !== datasetId) {
+      const key = `${datasetId}:${secondSlotId}`;
+      if (!studyWarnRef.current.has(key)) {
+        studyWarnRef.current.add(key);
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[study-area] Comparison slot 2 (dataset ${secondSlotId}) differs from ` +
+          `the primary dataset ${datasetId}; the dashboard assumes both share the ` +
+          `primary dataset's study area (zones, labels, map extent).`
+        );
+      }
+    }
+  }, [secondSlotId, datasetId]);
 
   // Labeled slots with computed label fields
   const labeledSlots = useMemo(
@@ -151,6 +196,17 @@ export const DashboardProvider = ({ children }) => {
     selectedMunicipality, setSelectedMunicipality,
     selectedLineModes, setSelectedLineModes,
     polygonSet, setPolygonSet, resetPolygonSet,
+    // Study area (primary zone = "canton" for Swiss datasets)
+    studyArea: study.studyArea,
+    zoneLabel: study.zoneLabel,
+    zoneLabelPlural: study.zoneLabelPlural,
+    primaryZoneType: study.primaryZoneType,
+    zones: study.zones,
+    zoneByName: study.zoneByName,
+    studyAreaBbox: study.bbox,
+    studyAreaCenter: study.center,
+    studyAreaZoom: study.zoom,
+    isStudyAreaFallback: study.isFallback,
   };
 
   return (

@@ -25,7 +25,7 @@ import "./VolumeFlowModule.css";
 const VOLUMES_TABLE_MODES = ['car'];
 
 const VolumesModule = ({ featureTableRef }) => {
-  const { isFeatureTableOpen, featureGeoJSON, setTableFilterQuery } = useData();
+  const { isFeatureTableOpen, featureGeoJSON, setTableFilterQuery, zoneLabel } = useData();
   const {
     showMajorRoadsOnly, setShowMajorRoadsOnly,
     timeRange, setTimeRange,
@@ -344,7 +344,7 @@ const VolumesModule = ({ featureTableRef }) => {
       />
     ) : !polygonAggregate ? (
       <p style={{ padding: "1rem", fontStyle: "italic", color: "#9ca3af" }}>
-      Click a canton and/or segment to see hourly volumes.
+      Click a {zoneLabel.toLowerCase()} and/or segment to see hourly volumes.
       </p>
     ) : null}
     </>
