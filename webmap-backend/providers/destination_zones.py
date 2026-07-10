@@ -15,12 +15,24 @@ inflow (other → C). Intra-canton trips (other == C) are excluded — the modul
 visualizes flows *between* cantons (its destination list/arcs already drop the
 hub). ``purpose`` is the trip's destination activity (``following_purpose``),
 which is what the frontend's purpose filter expects (work/education/shop/leisure).
+
+Query params
+------------
+canton         (str, required)  : Hub canton name or ID.
+zone           (str)            : Hub zone name or ID; alias of canton.
+source         (str)            : Data source (default "synthetic").
+gender         (str)            : "0" (male) or "1" (female) → persons.sex.
+age_min        (int)            : Inclusive lower age bound → persons.age.
+age_max        (int)            : Exclusive upper age bound → persons.age.
+income_class   (str)            : Comma-separated income classes → households.income_class.
+subscription   (str)            : Comma-separated PT subscriptions (ga,halbtax,…); match if ANY selected.
 """
 
 from __future__ import annotations
 
 from .base import DataProvider, Param
 from .connection import get_source_cursor
+from .helpers import socio_trip_filter
 from .result_cache import make_cache
 from .zone_registry import get_registry, zone_col
 
@@ -49,6 +61,11 @@ _PARAMS = [
     Param("canton", "Hub canton name or ID", required=True),
     Param("zone", "Hub zone name or ID; alias of canton"),
     Param("source", "Data source", enum=["synthetic", "microcensus"]),
+    Param("gender", "Person sex filter", enum=["0", "1"]),
+    Param("age_min", "Inclusive lower age bound", param_type="integer"),
+    Param("age_max", "Exclusive upper age bound", param_type="integer"),
+    Param("income_class", "Household income class(es), comma-separated"),
+    Param("subscription", "PT subscription(s), comma-separated (ga,halbtax,…); match if ANY selected"),
 ]
 
 
@@ -85,6 +102,11 @@ class DestinationZonesProvider(DataProvider):
         ocol = zone_col(source, "trips", "origin")
         dcol = zone_col(source, "trips", "dest")
 
+        # Optional socioeconomic person filters (gender/age/income/subscription).
+        # Empty strings when no socio param is set, so the common path is
+        # unchanged. Both UNION branches scan `trips`, so both carry the join.
+        socio_join, socio_where = socio_trip_filter(params, trip_alias="t")
+
         # One scan, both directions. Each row is tagged with the hub's role and
         # the "other" canton; intra-canton trips and rows missing a canton id are
         # excluded. 15-min bin index = floor(departure_time / 900).
@@ -92,19 +114,23 @@ class DestinationZonesProvider(DataProvider):
             SELECT role, other_id, main_mode, following_purpose, bin15,
                    COUNT(*)::INTEGER AS cnt
             FROM (
-                SELECT 'origin' AS role, {dcol} AS other_id,
-                       main_mode, following_purpose,
-                       CAST(departure_time // 900 AS INTEGER) AS bin15
-                FROM trips
-                WHERE {ocol} = ? AND {dcol} IS NOT NULL
-                  AND {dcol} <> ?
+                SELECT 'origin' AS role, t.{dcol} AS other_id,
+                       t.main_mode, t.following_purpose,
+                       CAST(t.departure_time // 900 AS INTEGER) AS bin15
+                FROM trips t
+                {socio_join}
+                WHERE t.{ocol} = ? AND t.{dcol} IS NOT NULL
+                  AND t.{dcol} <> ?
+                  {socio_where}
                 UNION ALL
-                SELECT 'destination' AS role, {ocol} AS other_id,
-                       main_mode, following_purpose,
-                       CAST(departure_time // 900 AS INTEGER) AS bin15
-                FROM trips
-                WHERE {dcol} = ? AND {ocol} IS NOT NULL
-                  AND {ocol} <> ?
+                SELECT 'destination' AS role, t.{ocol} AS other_id,
+                       t.main_mode, t.following_purpose,
+                       CAST(t.departure_time // 900 AS INTEGER) AS bin15
+                FROM trips t
+                {socio_join}
+                WHERE t.{dcol} = ? AND t.{ocol} IS NOT NULL
+                  AND t.{ocol} <> ?
+                  {socio_where}
             )
             GROUP BY role, other_id, main_mode, following_purpose, bin15
         """

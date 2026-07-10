@@ -7,6 +7,7 @@ import { handle401 } from '../../utils/auth';
 import { safeRemoveLayer, safeRemoveSource, setFilter } from './_lib/mapbox';
 import { parsePipeList } from './_lib/pipeProps';
 import { CLICKABLE_ROAD_FILTER } from './_lib/mapboxFilters';
+import { socioFiltersToParams } from '../filters/socioFilterConfig';
 
 // Spider overlay source + layers (separate from the shared network-source)
 const SPIDER_SOURCE_ID = 'volume-flow-spider';
@@ -40,6 +41,9 @@ export function resetVolumeFlowOverlay(map) {
 // Promise<Map<linkId, volume>|null> so concurrent callers dedupe. The new v2
 // per-link geometry asset has no baked volume attribute, so VolumeFlow derives
 // it from the link_volumes endpoint to hide links that carry no trips.
+// Deliberately NOT socio-filtered: link_volumes.json comes from the precomputed
+// link_speeds table, which has no person dimension — only the spider
+// in/outflow overlay honors the socio filters.
 const linkVolumesCache = new Map();
 
 function fetchLinkVolumes(datasetId, canton) {
@@ -81,7 +85,7 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
         setVolumeFlowSelectedLink,
     } = useSelection();
     const { featureGeoJSON, datasetId } = useData();
-    const { volumeFlowDirection } = useFilters();
+    const { volumeFlowDirection, socioFilters } = useFilters();
 
     const clickHandlerRef = useRef(null);
     const featureGeoJSONRef = useRef(featureGeoJSON);
@@ -301,14 +305,20 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
         spiderAbortRef.current = abort;
         const signal = abort.signal;
         try {
+            // Socio person filters (gender/age/income/subscription) apply to the
+            // spider queries; only active keys are sent.
+            const socioParams = socioFiltersToParams(socioFilters);
             // Fetch spider data for all keys in parallel
             const results = await Promise.all(
                 keys.map(async (key) => {
-                    let res = await fetch(`/backend/data/${datasetId}/spider_${direction}.json?link_id=${key}`, { signal });
+                    const query = new URLSearchParams({ link_id: key });
+                    for (const [k, v] of Object.entries(socioParams)) query.set(k, v);
+                    const url = `/backend/data/${datasetId}/spider_${direction}.json?${query.toString()}`;
+                    let res = await fetch(url, { signal });
                     if (res.status === 401) {
                       const refreshed = await handle401();
                       if (!refreshed) return { key, total_trips: 0, spiderMap: new Map() };
-                      res = await fetch(`/backend/data/${datasetId}/spider_${direction}.json?link_id=${key}`, { signal });
+                      res = await fetch(url, { signal });
                     }
                     if (!res.ok) throw new Error(`HTTP ${res.status}`);
                     const spider = await res.json();
@@ -356,7 +366,7 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
             console.error('Failed to fetch spider data:', err);
             return null;
         }
-    }, [datasetId]);
+    }, [datasetId, socioFilters]);
 
     // --- Render from cache for a given selection (null = aggregated, key = specific) ---
     const renderForSelection = useCallback((map, cache, selectedLink) => {
@@ -402,7 +412,9 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
         // Check if spider was active before cleanup (for direction-change re-fetch)
         const hadSpider = !!map.getSource(SPIDER_SOURCE_ID);
 
-        // Direction-only change: keep segment info, just re-fetch spider overlay
+        // Direction- or socio-filter-only change: keep segment info, just
+        // re-fetch the spider overlay (socio changes recreate fetchAndCacheSpiders,
+        // which re-runs this effect).
         const isDirectionChange = hadSpider && lastClickRef.current && isGraphExpanded === 'VolumeFlow';
 
         // Always clean up spider overlay + handler first

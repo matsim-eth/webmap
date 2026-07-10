@@ -8,6 +8,7 @@ import { handle401 } from '../../utils/auth';
 import { safeRemoveLayer, safeRemoveSource, setFilter } from './_lib/mapbox';
 import { parsePipeList } from './_lib/pipeProps';
 import { CLICKABLE_ROAD_FILTER } from './_lib/mapboxFilters';
+import { socioFiltersToParams } from '../filters/socioFilterConfig';
 
 // Layer/source IDs
 const NODES_SOURCE = 'node-flows-nodes';
@@ -124,7 +125,7 @@ export default function useNodeFlowLayers({ mapRef, mapReady }) {
     const { isGraphExpanded } = useModule();
     const { clickedCanton, hoveredMatrixCell, setHoveredMatrixCell } = useSelection();
     const { featureGeoJSON, setNodeFlowsData, datasetId } = useData();
-    const { timeRange } = useFilters();
+    const { timeRange, socioFilters } = useFilters();
 
     const debouncedTimeRange = useDebounced(timeRange, 400);
 
@@ -539,7 +540,15 @@ export default function useNodeFlowLayers({ mapRef, mapReady }) {
         nodeAbortRef.current = abort;
         const minuteStart = (debouncedTimeRange?.[0] ?? 0) * 15;
         const minuteEnd = (debouncedTimeRange?.[1] ?? 96) * 15;
-        const url = `/backend/data/${datasetId}/node_flows.json?node_id=${nodeId}&minute_start=${minuteStart}&minute_end=${minuteEnd}`;
+        // Socio filters force the backend off the precomputed node_flow_matrix
+        // fast path onto the per-trip spider path (only sent when active).
+        const query = new URLSearchParams({
+            node_id: nodeId,
+            minute_start: String(minuteStart),
+            minute_end: String(minuteEnd),
+        });
+        for (const [k, v] of Object.entries(socioFiltersToParams(socioFilters))) query.set(k, v);
+        const url = `/backend/data/${datasetId}/node_flows.json?${query.toString()}`;
         try {
             let res = await fetch(url, { signal: abort.signal });
             if (res.status === 401) {
@@ -555,7 +564,7 @@ export default function useNodeFlowLayers({ mapRef, mapReady }) {
             if (err?.name === 'AbortError') return null;
             console.error('Failed to fetch node flows:', err); return null;
         }
-    }, [datasetId, debouncedTimeRange]);
+    }, [datasetId, debouncedTimeRange, socioFilters]);
 
     // -- load nodes GeoJSON for a canton --
     const loadNodes = useCallback(async (map, canton) => {

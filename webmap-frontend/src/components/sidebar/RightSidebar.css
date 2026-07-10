@@ -98,6 +98,30 @@
   border-bottom: 1px solid var(--color-border);
 }
 
+/* Person-filters toolbar toggle: icon-only, right-aligned at the end of the
+   row, apart from the action buttons */
+.socio-toolbar-btn {
+  margin-left: auto;
+  gap: 5px;
+  padding: 8px 10px;
+}
+
+.socio-toolbar-btn.active {
+  background-color: var(--color-bg);
+  color: var(--color-primary);
+}
+
+/* Filter dropdown between the toolbar and the scroll area. No border-bottom —
+   the panel card carries its own border, a separator line reads as clutter. */
+.right-sidebar-socio {
+  flex-shrink: 0;
+  padding: 10px 16px 0;
+}
+
+.right-sidebar-socio .socio-panel {
+  margin-bottom: 0;
+}
+
 /* Scroll area for module content */
 .right-sidebar-content {
   flex: 1 1 auto;
@@ -138,6 +162,7 @@
 .panel-toolbar-btn:hover {
   background-color: var(--color-bg);
 }
+
 
 
 /* ===== Shared styles used by module content ===== */

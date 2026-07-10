@@ -20,12 +20,18 @@ polygon       (str, required) : One or more polygon rings as
 minute_start  (int, 0-1440)   : Departure time window start (minutes from midnight).
 minute_end    (int, 0-1440)   : Departure time window end (minutes from midnight).
 source        (str)           : "synthetic" (default) or "microcensus".
+gender        (str)           : "0" (male) or "1" (female) → persons.sex.
+age_min       (int)           : Inclusive lower age bound → persons.age.
+age_max       (int)           : Exclusive upper age bound → persons.age.
+income_class  (str)           : Comma-separated income classes → households.income_class.
+subscription  (str)           : Comma-separated PT subscriptions (ga,halbtax,…); match if ANY selected.
 """
 
 from __future__ import annotations
 
 from .base import DataProvider, Param
 from .connection import get_source_cursor
+from .helpers import socio_trip_filter
 from .result_cache import make_cache
 from .zone_registry import get_registry
 
@@ -76,6 +82,11 @@ _PARAMS = [
     Param("minute_start", "Departure window start (minutes from midnight)", param_type="integer"),
     Param("minute_end", "Departure window end (minutes from midnight)", param_type="integer"),
     Param("source", "'synthetic' (default) or 'microcensus'"),
+    Param("gender", "Person sex filter", enum=["0", "1"]),
+    Param("age_min", "Inclusive lower age bound", param_type="integer"),
+    Param("age_max", "Exclusive upper age bound", param_type="integer"),
+    Param("income_class", "Household income class(es), comma-separated"),
+    Param("subscription", "PT subscription(s), comma-separated (ga,halbtax,…); match if ANY selected"),
 ]
 
 
@@ -119,6 +130,10 @@ class PolygonTripsProvider(DataProvider):
                     pass
         time_filter = "\n            ".join(time_clauses)
 
+        # Optional socioeconomic person filters (gender/age/income/subscription).
+        # Empty strings when no socio param is set, so the common path is unchanged.
+        socio_join, socio_where = socio_trip_filter(params, trip_alias="t")
+
         cur = get_source_cursor(source)
         crs = get_registry().crs
 
@@ -138,13 +153,15 @@ class PolygonTripsProvider(DataProvider):
                 FROM poly
             ),
             trips_in_bbox AS (
-                SELECT main_mode,
-                       ST_X(origin_pt) AS ox, ST_Y(origin_pt) AS oy,
-                       ST_X(dest_pt)   AS dx, ST_Y(dest_pt)   AS dy,
-                       origin_pt, dest_pt
-                FROM trips
+                SELECT t.main_mode,
+                       ST_X(t.origin_pt) AS ox, ST_Y(t.origin_pt) AS oy,
+                       ST_X(t.dest_pt)   AS dx, ST_Y(t.dest_pt)   AS dy,
+                       t.origin_pt, t.dest_pt
+                FROM trips t
+                {socio_join}
                 WHERE 1=1
                 {time_filter}
+                {socio_where}
             ),
             classified AS (
                 SELECT main_mode,

@@ -6,6 +6,7 @@ import { useFilters } from '../../context/FilterContext';
 import { useSelection } from '../../context/SelectionContext';
 import useDrawPolygons from '../../hooks/useDrawPolygons';
 import { handle401 } from '../../utils/auth';
+import { socioFiltersToParams } from '../filters/socioFilterConfig';
 
 const polygonsToParam = (polygons) => {
     // Encode every drawn polygon's outer ring. The backend unions them into a
@@ -33,7 +34,7 @@ export default function usePolygonTrips({ mapRef, mapReady }) {
         setPolygonTripsData,
         setPolygonTripsLoading,
     } = useData();
-    const { timeRange } = useFilters();
+    const { timeRange, socioFilters } = useFilters();
     const { clickedCanton } = useSelection();
 
     const polygons = useDrawPolygons({
@@ -80,6 +81,7 @@ export default function usePolygonTrips({ mapRef, mapReady }) {
             minute_start: String(minute_start),
             minute_end: String(minute_end),
         });
+        for (const [k, v] of Object.entries(socioFiltersToParams(socioFilters))) params.set(k, v);
         const url = `/backend/data/${datasetId}/polygon_trips.json?${params.toString()}`;
 
         // Debounce: vertex drags fire draw.update per pointermove. Wait until
@@ -121,7 +123,7 @@ export default function usePolygonTrips({ mapRef, mapReady }) {
         // Cleanup aborts the in-flight scan (and cancels a pending debounce) so
         // a new polygon/time selection doesn't leave the old query running.
         return () => { clearTimeout(timer); abort.abort(); };
-    }, [mapReady, isGraphExpanded, polygons, timeRange, datasetId, setPolygonTripsData, setPolygonTripsLoading]);
+    }, [mapReady, isGraphExpanded, polygons, timeRange, socioFilters, datasetId, setPolygonTripsData, setPolygonTripsLoading]);
 
     return null;
 }

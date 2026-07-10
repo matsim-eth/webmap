@@ -195,6 +195,62 @@ def has_person_filters(params: dict) -> bool:
     )
 
 
+def socio_trip_filter(params: dict, person_alias: str = "p", household_alias: str = "h",
+                      trip_alias: str = "t") -> tuple[str, str]:
+    """Return (join_sql, where_sql) applying socioeconomic person filters to a
+    trips query aliased ``trip_alias``. Empty strings when no socio param is
+    present, so the unfiltered path pays nothing.
+
+    Recognised params: ``gender`` (0/1), ``age_min``/``age_max``,
+    ``income_class`` (comma-separated ints → households.income_class), and
+    ``subscription`` (comma-separated subset of ``SUBS`` → any selected
+    ``persons.subscriptions_{s}`` column is TRUE). The households join is added
+    only when ``income_class`` is present."""
+    from .constants import SUBS
+
+    p = person_alias
+    h = household_alias
+
+    gender = params.get("gender") or params.get("sex")
+    has_gender = gender in ("0", "1")
+    has_age = bool(params.get("age_min") or params.get("age_max"))
+
+    # Validate each income token with int() and skip non-numeric ones, so only
+    # sanitised ints are interpolated — never raw user input.
+    income_vals: list[int] = []
+    income_raw = (params.get("income_class") or "").strip()
+    for tok in income_raw.split(","):
+        tok = tok.strip()
+        if not tok:
+            continue
+        try:
+            income_vals.append(int(tok))
+        except ValueError:
+            pass
+
+    sub_raw = (params.get("subscription") or "").strip()
+    subs = [s.strip().lower() for s in sub_raw.split(",") if s.strip().lower() in SUBS] if sub_raw else []
+
+    if not (has_gender or has_age or income_vals or subs):
+        return "", ""
+
+    join_sql = f"JOIN persons {p} ON {trip_alias}.person_id = {p}.person_id"
+    if income_vals:
+        join_sql += f" JOIN households {h} ON {p}.household_id = {h}.household_id"
+
+    where_sql = ""
+    where_sql += gender_filter_sql(params, column=f"{p}.sex")
+    where_sql += age_filter_sql(params, column=f"{p}.age")
+    if income_vals:
+        vals = ", ".join(str(v) for v in income_vals)
+        where_sql += f" AND CAST({h}.income_class AS INTEGER) IN ({vals})"
+    if subs:
+        ors = " OR ".join(f"{p}.subscriptions_{s} = TRUE" for s in subs)
+        where_sql += f" AND ({ors})"
+
+    return join_sql, where_sql
+
+
 # ─── Legacy compatibility shims ───────────────────────────────────────────
 # These are only imported by code paths that have not yet been migrated;
 # they raise loud errors if invoked. New code should use the polygon API

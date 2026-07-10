@@ -3,6 +3,7 @@ import { useSelection } from './SelectionContext';
 import { useFilters } from './FilterContext';
 import { useData } from './DataContext';
 import { useModule } from './ModuleContext';
+import { DEFAULT_SOCIO_FILTERS } from '../components/filters/socioFilterConfig';
 
 const MapContext = createContext(null);
 
@@ -40,6 +41,7 @@ export const MapProvider = ({ children }) => {
     setShowStopVolumeSymbology,
     setSelectedDirection,
     setZoneFlowDirection,
+    setSocioFilters,
   } = useFilters();
   const { setIsFeatureTableOpen, setNodeFlowsData, setZoneFlowData } = useData();
   const { setIsGraphExpanded } = useModule();
@@ -61,13 +63,14 @@ export const MapProvider = ({ children }) => {
     setZoneFlowDestCanton(null);
     setZoneFlowDirection('both');
     setZoneFlowData(null);
+    setSocioFilters(DEFAULT_SOCIO_FILTERS);
   }, [
     setClickedCanton, setSelectedNetworkFeature, setFeatureSelection,
     setSelectedTransitLink, setVisualizeLinkId, setIsGraphExpanded,
     setTimeRange, setShowMajorRoadsOnly, setShowStopVolumeSymbology,
     setIsFeatureTableOpen, setSelectedDirection, setNodeFlowsData,
     setHoveredMatrixCell, setZoneFlowDestCanton, setZoneFlowDirection,
-    setZoneFlowData,
+    setZoneFlowData, setSocioFilters,
   ]);
 
   const value = useMemo(() => ({

@@ -4,6 +4,13 @@ Backed by ``spider_routes`` and ``spider_link_index`` inside
 ``synthetic.duckdb``. Person filters (sex, age, license, …) are applied
 via JOIN onto ``persons``. The legacy ``home_canton`` parameter is
 preserved as a convenience; new clients should pass ``polygon_id``.
+
+Socioeconomic person filters (mirrored from the Zone Flows contract):
+``gender`` (alias of ``sex``, 0/1), ``age_min``/``age_max``, ``income_class``
+(comma-separated ints → ``households.income_class``), and ``subscription``
+(comma-separated subset of ``constants.SUBS`` → any ``persons.subscriptions_{s}``
+is TRUE). These share the same person subquery, so they apply uniformly to the
+inflow/outflow/overlay spiders and to node_flows' filtered path.
 """
 
 from __future__ import annotations
@@ -14,6 +21,7 @@ import duckdb
 
 from .base import DataProvider, Param
 from .connection import get_source_cursor
+from .constants import SUBS
 from .helpers import polygon_ids_from_params
 from .paths import dataset_key
 
@@ -54,6 +62,7 @@ def _spider_cache_put(key: tuple, value: dict) -> None:
 _SPIDER_PARAMS = [
     Param("link_id", "MATSim link ID to analyse", required=True),
     Param("sex", "Gender filter (0=male, 1=female)", enum=["0", "1"]),
+    Param("gender", "Person sex filter (alias of sex)", enum=["0", "1"]),
     Param("age_min", "Minimum age (inclusive)", param_type="integer"),
     Param("age_max", "Maximum age (exclusive)", param_type="integer"),
     Param("employed", "Employment status", enum=["true", "false"]),
@@ -61,7 +70,9 @@ _SPIDER_PARAMS = [
     Param("car_availability", "Car-availability class", enum=["always", "sometimes", "never", "0", "1", "2"]),
     Param("home_canton", "Canton name or ID (legacy, comma-separated)"),
     Param("polygon_id", "Hot-polygon ID(s) for home filter, comma-separated"),
-    Param("income", "Income class (from households)"),
+    Param("income", "Income class (from households, single value, legacy)"),
+    Param("income_class", "Household income class(es), comma-separated"),
+    Param("subscription", "PT subscription(s), comma-separated (ga,halbtax,…); match if ANY selected"),
     Param("minute_start", "Time window start (minutes from midnight, 0-1440)", param_type="integer"),
     Param("minute_end", "Time window end (minutes from midnight, 0-1440)", param_type="integer"),
 ]
@@ -74,7 +85,7 @@ class _SpiderBase(DataProvider):
         clauses: list[str] = []
         bind_persons: list = []
 
-        sex = params.get("sex")
+        sex = params.get("sex") or params.get("gender")
         if sex in ("0", "1"):
             clauses.append("AND p.sex = ?"); bind_persons.append(int(sex))
         try:
@@ -120,6 +131,34 @@ class _SpiderBase(DataProvider):
                 household_join = "LEFT JOIN households h ON p.household_id = h.household_id"
             except ValueError:
                 pass
+
+        # Contract income_class: comma-separated ints → households.income_class
+        # IN (...). Each token is int()-validated so only sanitised integers are
+        # interpolated — never raw user input (mirrors helpers.socio_trip_filter).
+        income_vals: list[int] = []
+        for tok in (params.get("income_class") or "").split(","):
+            tok = tok.strip()
+            if not tok:
+                continue
+            try:
+                income_vals.append(int(tok))
+            except ValueError:
+                pass
+        if income_vals:
+            vals = ", ".join(str(v) for v in income_vals)
+            clauses.append(f"AND CAST(h.income_class AS INTEGER) IN ({vals})")
+            if not household_join:
+                household_join = "LEFT JOIN households h ON p.household_id = h.household_id"
+
+        # Contract subscription: comma-separated subset of SUBS → any selected
+        # persons.subscriptions_{s} is TRUE. Each token is whitelisted against
+        # SUBS, so the column name interpolation is safe (never raw input).
+        sub_raw = (params.get("subscription") or "").strip()
+        subs = [s.strip().lower() for s in sub_raw.split(",")
+                if s.strip().lower() in SUBS] if sub_raw else []
+        if subs:
+            ors = " OR ".join(f"p.subscriptions_{s} = TRUE" for s in subs)
+            clauses.append(f"AND ({ors})")
 
         # Time filter on spider_link_index.departure_time
         time_clauses: list[str] = []

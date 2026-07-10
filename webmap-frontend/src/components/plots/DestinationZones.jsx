@@ -7,6 +7,8 @@ import { useQuery } from "@tanstack/react-query";
 import { marks, formatTimeLabel } from "../../utils/timeSliderUtils";
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
 import { useData } from "../../context/DataContext";
+import { useFilters } from "../../context/FilterContext";
+import { socioFiltersToParams } from "../filters/socioFilterConfig";
 
 import "./DestinationZones.css";
 
@@ -74,6 +76,7 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
     destinationHoveredCanton, setDestinationHoveredCanton,
     destinationSelectedCanton, setDestinationSelectedCanton,
   } = useData();
+  const { socioFilters } = useFilters();
   const loadWithFallback = useLoadWithFallback();
 
   // display name → internal zone name (was the module-level REVERSE_CANTON
@@ -100,10 +103,15 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
 
   // Derived from the backend `destination_zones.json` provider (per-hub-canton
   // outflow/inflow by mode/purpose/15-min bin). datasetId in the key so a
-  // dataset switch refetches instead of serving the previous dataset's cache.
+  // dataset switch refetches instead of serving the previous dataset's cache;
+  // socioFilters in the key so changing a socioeconomic filter refetches.
   const { data: plotData } = useQuery({
-    queryKey: ["destination-zones", canton, datasetId],
-    queryFn: () => loadWithFallback(`destination_zones.json?canton=${encodeURIComponent(canton)}`),
+    queryKey: ["destination-zones", canton, datasetId, socioFilters],
+    queryFn: () => {
+      const params = new URLSearchParams({ canton });
+      for (const [k, v] of Object.entries(socioFiltersToParams(socioFilters))) params.set(k, v);
+      return loadWithFallback(`destination_zones.json?${params.toString()}`);
+    },
     enabled: !!canton,
   });
 

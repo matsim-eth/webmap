@@ -17,6 +17,11 @@ direction          (str)            : "origin_to_dest", "dest_to_origin", or "bo
 source             (str)            : Data source (default "synthetic"; only synthetic has routes).
 minute_start       (int, 0-1440)    : Time window start (minutes from midnight).
 minute_end         (int, 0-1440)    : Time window end (minutes from midnight).
+gender             (str)            : "0" (male) or "1" (female) → persons.sex.
+age_min            (int)            : Inclusive lower age bound → persons.age.
+age_max            (int)            : Exclusive upper age bound → persons.age.
+income_class       (str)            : Comma-separated income classes → households.income_class.
+subscription       (str)            : Comma-separated PT subscriptions (ga,halbtax,…); match if ANY selected.
 """
 
 from __future__ import annotations
@@ -26,6 +31,7 @@ from collections import OrderedDict
 
 from .base import DataProvider, Param
 from .connection import get_source_cursor
+from .helpers import socio_trip_filter
 from .result_cache import make_cache
 from .zone_registry import get_registry, zone_col
 
@@ -86,6 +92,11 @@ _ZONE_FLOWS_PARAMS = [
     Param("source", "Data source (only synthetic has routes)", enum=["synthetic", "microcensus"]),
     Param("minute_start", "Time window start (minutes from midnight, 0-1440)", param_type="integer"),
     Param("minute_end", "Time window end (minutes from midnight, 0-1440)", param_type="integer"),
+    Param("gender", "Person sex filter", enum=["0", "1"]),
+    Param("age_min", "Inclusive lower age bound", param_type="integer"),
+    Param("age_max", "Exclusive upper age bound", param_type="integer"),
+    Param("income_class", "Household income class(es), comma-separated"),
+    Param("subscription", "PT subscription(s), comma-separated (ga,halbtax,…); match if ANY selected"),
 ]
 
 
@@ -167,13 +178,19 @@ class ZoneFlowsProvider(DataProvider):
         except Exception as exc:
             return {"error": f"zone_flows data unavailable: {exc}"}
 
+        # Optional socioeconomic person filters (gender/age/income/subscription).
+        # Empty strings when no socio param is set, so the common path is unchanged.
+        socio_join, socio_where = socio_trip_filter(params)
+
         matching_cte = f"""
             matching_trips AS (
                 SELECT t.person_id, t.trip_index
                 FROM trips t
+                {socio_join}
                 WHERE t.main_mode = 'car'
                   AND ({pair_clause})
                   {time_clause}
+                  {socio_where}
             )
         """
 
