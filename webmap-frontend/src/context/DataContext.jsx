@@ -31,6 +31,13 @@ export const DataProvider = ({ children }) => {
   // exclude stops outside the polygon.
   const [polygonStopIds, setPolygonStopIds] = useState(null);
 
+  // Volumes-mode polygon containment: array of network feature ids (indices
+  // into featureGeoJSON.features, = the source's generateId ids) currently
+  // intersecting the drawn polygon(s). null = no polygon active. Pushed by
+  // VolumesModule (via useLinePolygon) so useFeatureSelectionFocus can hide
+  // links outside the polygon on the base AND split (double-link) layers.
+  const [polygonLinkIds, setPolygonLinkIds] = useState(null);
+
   const [destinationData, setDestinationData] = useState(null);
   const [destinationHoveredCanton, setDestinationHoveredCanton] = useState(null);
   const [destinationSelectedCanton, setDestinationSelectedCanton] = useState(null);
@@ -65,6 +72,7 @@ export const DataProvider = ({ children }) => {
     tableFilterQuery, setTableFilterQuery,
     isFeatureTableOpen, setIsFeatureTableOpen,
     polygonStopIds, setPolygonStopIds,
+    polygonLinkIds, setPolygonLinkIds,
     destinationData, setDestinationData,
     destinationHoveredCanton, setDestinationHoveredCanton,
     destinationSelectedCanton, setDestinationSelectedCanton,
@@ -80,7 +88,7 @@ export const DataProvider = ({ children }) => {
   }), [
     datasetId, dataURL, cantonList,
     studyArea, zoneLabel, zoneLabelPlural, zones, zoneByName, studyAreaIsFallback,
-    featureGeoJSON, tableFilterQuery, isFeatureTableOpen, polygonStopIds,
+    featureGeoJSON, tableFilterQuery, isFeatureTableOpen, polygonStopIds, polygonLinkIds,
     destinationData, destinationHoveredCanton, destinationSelectedCanton, boardingData,
     nodeFlowsData,
     linkSpeedsLinksMap, linkSpeedsSummary,

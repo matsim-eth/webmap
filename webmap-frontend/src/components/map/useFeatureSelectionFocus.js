@@ -1,11 +1,15 @@
 import { useEffect, useRef } from 'react';
 import { buildComparisonFilter, getPropertyName, buildPipeDelimitedComparison, MAJOR_ROADS_FILTER } from './_lib/mapboxFilters';
-import { safeRemoveLayer, safeRemoveSource, setOrAddSource, setFilter } from './_lib/mapbox';
+import { setOrAddSource, setFilter } from './_lib/mapbox';
 import { clearNetworkHighlightData, clearTransitStopHighlight, NETWORK_HIGHLIGHT_PAINT } from './_lib/featureSelection';
 import { measureMapPadding, clampHorizontalPadding } from '../sidebar/sidebarLayout';
 
 const HIGHLIGHT_SOURCE_ID = 'network-highlight';
 const HIGHLIGHT_LAYER_ID = 'network-highlight';
+
+// Always use the shared network-highlight source and layer
+const HIGHLIGHT_SOURCE = HIGHLIGHT_SOURCE_ID;
+const HIGHLIGHT_LAYER = HIGHLIGHT_LAYER_ID;
 
 const computeBounds = (coords) => {
   if (!Array.isArray(coords) || coords.length === 0) return null;
@@ -39,6 +43,10 @@ export default function useFeatureSelectionFocus({
   showMajorRoadsOnly,
   showStopVolumeSymbology,
   highlightedLineId,
+  // Volumes polygon selection: feature ids (featureGeoJSON indices) inside the
+  // drawn polygon(s), pushed by VolumesModule via useLinePolygon. null = no
+  // polygon active.
+  polygonLinkIds,
   // Only used as a dependency: when the network geometry (re)loads, the Volumes
   // split layers (network-split-layer/hitbox) are rebuilt without a filter by
   // useNetworkSplitLayers, so this effect must re-run to re-apply the combined
@@ -46,11 +54,7 @@ export default function useFeatureSelectionFocus({
   featureGeoJSON,
 }) {
   const lastSelectionId = useRef(null);
-  
-  // Always use the shared network-highlight source and layer
-  const HIGHLIGHT_SOURCE = HIGHLIGHT_SOURCE_ID;
-  const HIGHLIGHT_LAYER = HIGHLIGHT_LAYER_ID;
-  
+
   useEffect(() => {
     const map = mapRef?.current;
     if (!mapReady || !map) return;
@@ -493,7 +497,7 @@ export default function useFeatureSelectionFocus({
               
               // Combine all variation filters with OR (any match is good)
               tableFilter = hasSemicolon && values.length > 1 
-                ? ["all", ...values.map((val, idx) => {
+                ? ["all", ...values.map((val) => {
                     const variations = generateAccentVariations(val);
                     const varFilters = variations.map(v => 
                       [">=", ["index-of", v, ["downcase", ["to-string", ["get", "name"]]]], 0]
@@ -732,54 +736,10 @@ export default function useFeatureSelectionFocus({
           }
           } // End of else (column-specific) for Network/TransitVolumes
         }
-      } else if (!column && value && !tableFilter) {
-        // All columns search fallback - only runs if tableFilter wasn't already set above
-        // handle semicolon-separated values with OR logic
-        const values = String(value).split(/[;,]/).map(v => v.trim().toLowerCase()).filter(v => v);
-        
-        if (isTransitStopsMode) {
-          // This shouldn't run - Transit stops "All columns" is handled above
-          // But keeping as fallback for safety
-          if (values.length === 1) {
-            tableFilter = [
-              "any",
-              [">=", ["index-of", values[0], ["downcase", ["to-string", ["get", "name"]]]], 0],
-              [">=", ["index-of", values[0], ["downcase", ["to-string", ["get", "modes_list"]]]], 0]
-            ];
-          } else {
-            const valueFilters = values.map(val => 
-              [
-                "any",
-                [">=", ["index-of", val, ["downcase", ["to-string", ["get", "name"]]]], 0],
-                [">=", ["index-of", val, ["downcase", ["to-string", ["get", "modes_list"]]]], 0]
-              ]
-            );
-            tableFilter = ["any", ...valueFilters];
-          }
-        } else {
-          // Network/TransitVolumes: search in searchable_text and modes
-        if (values.length === 1) {
-          // Single value - check in searchable_text OR modes
-          tableFilter = [
-            "any",
-            [">=", ["index-of", values[0], ["get", "searchable_text"]], 0],
-            [">=", ["index-of", values[0], ["downcase", ["to-string", ["get", "modes"]]]], 0]
-          ];
-        } else {
-          // Multiple values - OR logic (feature must contain ANY of the terms in searchable_text OR modes)
-          const valueFilters = values.map(val => 
-            [
-              "any",
-              [">=", ["index-of", val, ["get", "searchable_text"]], 0],
-              [">=", ["index-of", val, ["downcase", ["to-string", ["get", "modes"]]]], 0]
-            ]
-          );
-          
-          // Use OR logic for "all columns" too
-          tableFilter = ["any", ...valueFilters];
-        }
-        }
       }
+      // NB: there used to be an `else if (!column && value && !tableFilter)`
+      // "all columns" fallback here, but it was chained after `if (value)` so
+      // its `value &&` condition could never hold — dead code, removed.
     }
     
     // --- Build combined filter (single derivation, applied to all layers) ---
@@ -800,6 +760,19 @@ export default function useFeatureSelectionFocus({
     if (isTransitVolumesMode && highlightedLineId) {
       const lineFilter = ["in", highlightedLineId, ["get", "line_ids"]];
       combined = combined ? ["all", lineFilter, combined] : lineFilter;
+    }
+
+    // Volumes polygon selection: hide links outside the drawn polygon(s)
+    // entirely (mirrors the LinkSpeeds polygon filter's behaviour). Both the
+    // base network source (generateId) and the split double-link source
+    // (explicit id = parent index) share the same id space, so one id match
+    // covers the base layer, the zoom>=15 split layers, both hitboxes, and —
+    // via the arrow-preserving label filters below — the split labels.
+    if (isGraphExpanded === 'Volumes' && Array.isArray(polygonLinkIds)) {
+      const polygonFilter = polygonLinkIds.length
+        ? ["match", ["id"], polygonLinkIds, true, false]
+        : ["==", ["literal", 0], ["literal", 1]]; // polygon caught nothing → hide all
+      combined = combined ? ["all", polygonFilter, combined] : polygonFilter;
     }
 
     // Volumes mode: enforce car-only (+ optional major roads)
@@ -845,6 +818,6 @@ export default function useFeatureSelectionFocus({
         map.setFilter('transit-volumes-label-right', combined ? ['all', ARROW_LEFT, combined] : ARROW_LEFT);
       }
     }
-  }, [mapRef, mapReady, query, selectedNetworkModes, isGraphExpanded, showMajorRoadsOnly, highlightedLineId, featureGeoJSON]);
+  }, [mapRef, mapReady, query, selectedNetworkModes, isGraphExpanded, showMajorRoadsOnly, highlightedLineId, polygonLinkIds, featureGeoJSON]);
   
 }

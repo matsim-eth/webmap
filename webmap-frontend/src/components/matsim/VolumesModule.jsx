@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import SegmentAttributesTable from "./SegmentAttributesTable";
 import SegmentVolumeHistogram from "./SegmentVolumeHistogram";
 import FeatureTable from "../table/FeatureTable";
@@ -26,7 +26,7 @@ import "./VolumeFlowModule.css";
 const VOLUMES_TABLE_MODES = ['car'];
 
 const VolumesModule = ({ featureTableRef }) => {
-  const { isFeatureTableOpen, featureGeoJSON, setTableFilterQuery, zoneLabel } = useData();
+  const { isFeatureTableOpen, featureGeoJSON, setTableFilterQuery, setPolygonLinkIds, zoneLabel } = useData();
   const {
     showMajorRoadsOnly, setShowMajorRoadsOnly,
     timeRange, setTimeRange,
@@ -67,6 +67,11 @@ const VolumesModule = ({ featureTableRef }) => {
     setSelectedNetworkFeature?.(null);
   }, [setSelectedNetworkFeature]);
 
+  // No fade layerIds: outside-polygon links are hidden outright instead of
+  // faded — the selected ids go to DataContext (polygonLinkIds), and
+  // useFeatureSelectionFocus ANDs them into the combined Volumes map filter,
+  // which covers the base layer AND the zoom>=15 split double-link layers
+  // (their features carry `id = parent index`, the same id space).
   const polygonFeatures = useLinePolygon({
     mapRef,
     drawRef,
@@ -74,10 +79,11 @@ const VolumesModule = ({ featureTableRef }) => {
     isGraphExpanded,
     activeModule: 'Volumes',
     sourceId: 'network-source',
-    layerIds: ['network-layer'],
-    labelLayerIds: ['network-label-left', 'network-label-right'],
+    layerIds: [],
+    labelLayerIds: [],
     showMajorRoadsOnly,
     onPolygonChange: handlePolygonChange,
+    onSelectionIds: setPolygonLinkIds,
   });
 
   const drawnPolygons = useDrawPolygons({

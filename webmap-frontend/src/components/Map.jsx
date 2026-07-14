@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import "./Loading.css" // loading screen for network
 import { useLoadWithFallback } from '../utils/useLoadWithFallback';
 import useMapbox from './map/useMapbox';
@@ -46,6 +46,7 @@ export default function Map() {
     setFeatureGeoJSON,
     featureGeoJSON,
     tableFilterQuery,
+    polygonLinkIds,
     destinationData: selectedDestinationData,
     boardingData: selectedBoardingData,
     zoneFlowLoading,
@@ -291,6 +292,7 @@ export default function Map() {
     showMajorRoadsOnly: showMajorRoadsOnly,
     showStopVolumeSymbology: showStopVolumeSymbology,
     highlightedLineId: highlightedLineId,
+    polygonLinkIds: polygonLinkIds,
     featureGeoJSON: featureGeoJSON,
   });
 
