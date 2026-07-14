@@ -54,11 +54,12 @@ const Legend = () => {
 
   if (!isVolumes && !isNetwork && !isVolumeFlow && !isLinkSpeeds && !isDestination && !(isTransit && showStopVolumeSymbology)) return null;
 
-  const destMode = destinationData?.selectedMode || "all";
-  const destPurpose = destinationData?.selectedPurpose || "all";
-  // Purpose wins over mode if a specific purpose is picked (same rule as the map hook).
-  const destColor = (destPurpose !== "all" && DESTINATION_PURPOSE_COLORS[destPurpose])
-    || DESTINATION_MODE_COLORS[destMode]
+  const destModes = destinationData?.selectedModes || [];
+  const destPurposes = destinationData?.selectedPurposes || [];
+  // Same rule as the map hook: exactly one purpose selected wins, else
+  // exactly one mode, else the "all" blue.
+  const destColor = (destPurposes.length === 1 && DESTINATION_PURPOSE_COLORS[destPurposes[0]])
+    || (destModes.length === 1 && DESTINATION_MODE_COLORS[destModes[0]])
     || DESTINATION_MODE_COLORS.all;
   const destSizingMode = destinationData?.sizingMode || "volume";
 
@@ -194,6 +195,22 @@ const Legend = () => {
               </div>
               );
             })}
+            {/* Hub marker: only data-scaled (by intra-polygon trips) when the
+                "Show internal trips" toggle is on. */}
+            {destinationData?.showInternalTrips && (
+              <div className="transit-stop-legend-item">
+                <div
+                  className="transit-stop-circle"
+                  style={{
+                    width: "16px",
+                    height: "16px",
+                    backgroundColor: "#ea580c",
+                    borderColor: "#fff",
+                  }}
+                />
+                <span className="network-legend-label">Within</span>
+              </div>
+            )}
           </div>
         </div>
       )}

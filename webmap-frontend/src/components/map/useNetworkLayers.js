@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import useAntPath from './useAntPath';
 import { safeRemoveLayer, safeRemoveSource, setVisibility, setFilter } from './_lib/mapbox';
 import { parsePipeList, decoratePerIdMinMax, decorateLineVolumesFromPerId, mergeSegmentsByGeometry } from './_lib/pipeProps';
-import { CLICKABLE_ROAD_FILTER } from './_lib/mapboxFilters';
+import { CLICKABLE_ROAD_FILTER, MAJOR_ROADS_FILTER } from './_lib/mapboxFilters';
 
 export default function useNetworkLayers({
   mapRef,
@@ -109,7 +109,7 @@ export default function useNetworkLayers({
   const setLabelVisibility = (map, visible) => setVisibility(map, LABEL_IDS, visible);
 
   const applyLabelFilter = (map, showMajorRoadsOnly) => {
-    const labelFilter = showMajorRoadsOnly ? ['>', ['get', 'capacity'], 1200] : null;
+    const labelFilter = showMajorRoadsOnly ? MAJOR_ROADS_FILTER : null;
     setFilter(map, LABEL_IDS, labelFilter);
   };
 
@@ -118,7 +118,7 @@ export default function useNetworkLayers({
     // Exact match for "car" mode (prevents matching "cable car")
     const carFilter = ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0];
     const labelFilter = showMajorRoadsOnly
-      ? ['all', carFilter, ['>', ['get', 'capacity'], 1200]]
+      ? ['all', carFilter, MAJOR_ROADS_FILTER]
       : carFilter;
     setFilter(map, LABEL_IDS, labelFilter);
   };
@@ -291,7 +291,7 @@ export default function useNetworkLayers({
       const carFilter = ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0];
       let filter = carFilter;
       if (showMajorRoadsOnly) {
-        filter = ['all', carFilter, ['>', ['get', 'capacity'], 1200]];
+        filter = ['all', carFilter, MAJOR_ROADS_FILTER];
       }
       map.setFilter('network-layer-hitbox', filter);
       map.setFilter('network-layer', filter);
@@ -442,7 +442,7 @@ export default function useNetworkLayers({
       // the stripped per-link merged_segments format that lacks modes/volume)
       fullFilter = CLICKABLE_ROAD_FILTER;
     } else if (showMajorRoadsOnly) {
-      fullFilter = ['all', carFilter, ['>', ['get', 'capacity'], 1200]];
+      fullFilter = ['all', carFilter, MAJOR_ROADS_FILTER];
     } else {
       fullFilter = carFilter;
     }
@@ -561,8 +561,8 @@ export default function useNetworkLayers({
       
       // --- LOAD per-link hourly volumes ------------------------------------------
       // The default Volumes view is "major roads only", and the map filters to the
-      // same capacity > 1200 set, so by default we only fetch major-road volumes
-      // (?min_capacity=1200 → ~10× smaller payload, much faster first colour). The
+      // same major-road set (?major=1 mirrors MAJOR_ROADS_FILTER server-side),
+      // so by default we only fetch major-road volumes (~10× smaller payload). The
       // full set is fetched lazily only when "major roads only" is unchecked
       // (minor roads then become visible and need their volumes). Both variants
       // are cached per canton so toggling back is instant.
@@ -586,7 +586,7 @@ export default function useNetworkLayers({
         (async () => {
           const path = needFull
             ? `matsim/${searchCanton}_link_traffic_volumes.json`
-            : `matsim/${searchCanton}_link_traffic_volumes.json?min_capacity=1200`;
+            : `matsim/${searchCanton}_link_traffic_volumes.json?major=1`;
           try {
             const raw = await loadWithFallback(path);
             if (cancelled || volCacheRef.current.key !== cacheKey) return;

@@ -11,6 +11,7 @@ import useDrawPolygons from "../../hooks/useDrawPolygons";
 import { computeBoundaryFlow } from "../../utils/boundaryFlow";
 import { buildSelectionPayload } from "../table/_lib/rowSearch";
 import { parsePipeList } from "../map/_lib/pipeProps";
+import { isMajorRoad } from "../map/_lib/mapboxFilters";
 import { useData } from "../../context/DataContext";
 import { useFilters } from "../../context/FilterContext";
 import { useSelection } from "../../context/SelectionContext";
@@ -132,10 +133,10 @@ const VolumesModule = ({ featureTableRef }) => {
   const activeTableRows = useMemo(() => {
     let rows = tableRows;
     // Mirror the map: with "major roads only" on, the map shows (and only fetches
-    // volumes for) capacity > 1200 segments, so the table lists just those too —
+    // volumes for) major-road segments, so the table lists just those too —
     // otherwise minor roads would appear with 0 volume from the major-only fetch.
     if (showMajorRoadsOnly) {
-      rows = rows.filter(row => Number(row.feature?.properties?.capacity) > 1200);
+      rows = rows.filter(row => isMajorRoad(row.feature?.properties));
     }
     if (polygonFeatures.length && isFeatureTableOpen) {
       rows = rows.filter(row => polygonFeaturesSet.has(row.feature));

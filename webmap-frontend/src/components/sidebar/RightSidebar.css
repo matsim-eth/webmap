@@ -81,6 +81,13 @@
   background-color: var(--color-bg);
 }
 
+/* Right-aligned button cluster in the header (filters + collapse) */
+.right-sidebar-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
 /* Collapsed: center the toggle button */
 .right-sidebar.collapsed .right-sidebar-header {
   justify-content: center;
@@ -98,15 +105,14 @@
   border-bottom: 1px solid var(--color-border);
 }
 
-/* Person-filters toolbar toggle: icon-only, right-aligned at the end of the
-   row, apart from the action buttons */
-.socio-toolbar-btn {
-  margin-left: auto;
+/* Person-filters toggle in the header, next to the collapse button */
+.socio-header-btn {
   gap: 5px;
-  padding: 8px 10px;
+  font-size: 14px;
+  padding: 4px 6px;
 }
 
-.socio-toolbar-btn.active {
+.socio-header-btn.active {
   background-color: var(--color-bg);
   color: var(--color-primary);
 }

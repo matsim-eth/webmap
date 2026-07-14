@@ -135,7 +135,19 @@ _TRAFFIC_CACHE: "OrderedDict[tuple, list]" = OrderedDict()
 _TRAFFIC_CACHE_MAX = 6
 
 
-def link_traffic_volumes(canton_id: int, min_capacity: float | None = None) -> list:
+# Hierarchy classes counted as "major roads" — the server-side twin of the
+# frontend's MAJOR_ROADS_FILTER (components/map/_lib/mapboxFilters.js). The
+# `_link` variants keep motorway/primary/secondary ramps attached.
+MAJOR_ROAD_TYPES = (
+    "motorway", "motorway_link",
+    "primary", "primary_link",
+    "secondary", "secondary_link",
+)
+
+
+def link_traffic_volumes(
+    canton_id: int, min_capacity: float | None = None, major: bool = False
+) -> list:
     """Per-link hourly car traffic volumes for a canton.
 
     Returns ``[{link_id, hourly_avg_volumes}]`` where ``hourly_avg_volumes`` is
@@ -144,14 +156,16 @@ def link_traffic_volumes(canton_id: int, min_capacity: float | None = None) -> l
     ``link_id`` up by the segment's ``per_id_keys`` and splits left/right by the
     per-link arrow. Links with no traffic are simply absent (→ treated as 0).
 
-    ``min_capacity`` restricts the result to links whose ``network_links.capacity``
-    exceeds the threshold — the same ``capacity > 1200`` test the frontend's
-    "major roads only" map filter uses. The default Volumes view is major-only,
-    so requesting just those links cuts the payload ~10× (the rest is fetched
-    lazily when the table opens or the toggle is switched off). Cached per
-    (dataset, canton, threshold).
+    ``major`` restricts the result to major roads by hierarchy — the same
+    predicate the frontend's "major roads only" map filter (MAJOR_ROADS_FILTER)
+    applies: ``road_type`` in MAJOR_ROAD_TYPES, falling back to the legacy
+    ``capacity > 1200`` threshold for untagged links (road_type NULL/'unknown').
+    ``min_capacity`` is the older pure-capacity variant, kept for backward
+    compatibility. The default Volumes view is major-only, so requesting just
+    those links cuts the payload ~10× (the rest is fetched lazily when the
+    toggle is switched off). Cached per (dataset, canton, filter variant).
     """
-    ckey = (dataset_key(), canton_id, min_capacity)
+    ckey = (dataset_key(), canton_id, min_capacity, major)
     cached = _TRAFFIC_CACHE.get(ckey)
     if cached is not None:
         _TRAFFIC_CACHE.move_to_end(ckey)
@@ -164,7 +178,18 @@ def link_traffic_volumes(canton_id: int, min_capacity: float | None = None) -> l
     # 24-array in SQL (ordered list_agg) or via numpy.unique on the string
     # link_ids were both slower.
     rows = None
-    if min_capacity is not None:
+    if major or min_capacity is not None:
+        if major:
+            placeholders = ", ".join("?" * len(MAJOR_ROAD_TYPES))
+            link_clause = (
+                f"(nl.road_type IN ({placeholders}) "
+                "OR ((nl.road_type IS NULL OR nl.road_type IN ('unknown', '')) "
+                "AND nl.capacity > 1200))"
+            )
+            args = [canton_id, *MAJOR_ROAD_TYPES]
+        else:
+            link_clause = "nl.capacity > ?"
+            args = [canton_id, min_capacity]
         try:
             rows = con.execute(
                 f"""
@@ -172,10 +197,10 @@ def link_traffic_volumes(canton_id: int, min_capacity: float | None = None) -> l
                 FROM link_speeds ls
                 JOIN network_links nl
                   ON CAST(nl.link_id AS VARCHAR) = CAST(ls.link_id AS VARCHAR)
-                WHERE ls.{zcol} = ? AND nl.capacity > ?
+                WHERE ls.{zcol} = ? AND {link_clause}
                 GROUP BY ls.link_id, ls.time_bin // 4
                 """,
-                [canton_id, min_capacity],
+                args,
             ).fetchall()
         except Exception:
             # Older dataset without a network_links table → fall back to the full

@@ -13,6 +13,7 @@ import dt from "datatables.net-dt";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 
 import { buildRowsFromGeojson, modeMatches } from "./_lib/buildRows";
+import { isMajorRoad } from "../map/_lib/mapboxFilters";
 import { getColumnDefs, getDtColumns } from "./_lib/columns";
 import { exportCsvFromInstance } from "./_lib/csv";
 import { buildTableStyles } from "./_lib/tableStyles";
@@ -78,16 +79,11 @@ const FeatureTable = forwardRef(
 
     const tableRows = useMemo(() => {
       let filtered = baseRows.filter((r) => modeMatches(r.modes, selectedModes));
-      // Major-roads filter: match the map's predicate exactly. The map tests the
-      // segment's representative `capacity` (['>', ['get','capacity'], 1200]),
-      // NOT the summed-across-directions totalCapacity — the sum let sub-1200
-      // segments (e.g. 700+700) through that the map hides, so the table showed
-      // links the map had filtered out.
+      // Major-roads filter: match the map's predicate exactly (MAJOR_ROADS_FILTER
+      // tests the segment's representative properties, not summed-across-direction
+      // totals — a sum would let segment pairs through that the map hides).
       if (showMajorRoadsOnly) {
-        filtered = filtered.filter((r) => {
-          const cap = Number(r.featureProps?.capacity ?? r.capacity);
-          return Number.isFinite(cap) && cap > 1200;
-        });
+        filtered = filtered.filter((r) => isMajorRoad(r.featureProps ?? r));
       }
       return filtered.slice(0, maxRows);
     }, [baseRows, selectedModes, maxRows, showMajorRoadsOnly]);

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { booleanIntersects } from '@turf/turf';
+import { isMajorRoad } from '../components/map/_lib/mapboxFilters';
 
 function applyFading(map, layerIds, labelLayerIds, fadeOpacity) {
   const fade = ['case', ['boolean', ['feature-state', 'inPolygon'], false], 1, fadeOpacity];
@@ -82,7 +83,7 @@ export default function useLinePolygon({
 
       // Start from features that pass the major roads filter if active
       const candidates = showMajorRoadsOnly
-        ? featureGeoJSON.features.filter(f => (f.properties?.capacity ?? 0) > 1200)
+        ? featureGeoJSON.features.filter(f => isMajorRoad(f.properties))
         : featureGeoJSON.features;
 
       const filtered = candidates.filter((f) => {

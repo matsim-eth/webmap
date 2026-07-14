@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { buildComparisonFilter, getPropertyName, buildPipeDelimitedComparison } from './_lib/mapboxFilters';
+import { buildComparisonFilter, getPropertyName, buildPipeDelimitedComparison, MAJOR_ROADS_FILTER } from './_lib/mapboxFilters';
 import { safeRemoveLayer, safeRemoveSource, setOrAddSource, setFilter } from './_lib/mapbox';
 import { clearNetworkHighlightData, clearTransitStopHighlight, NETWORK_HIGHLIGHT_PAINT } from './_lib/featureSelection';
 import { measureMapPadding, clampHorizontalPadding } from '../sidebar/sidebarLayout';
@@ -805,8 +805,7 @@ export default function useFeatureSelectionFocus({
     // Volumes mode: enforce car-only (+ optional major roads)
     if (isGraphExpanded === 'Volumes') {
       const carFilter = [">=", ["index-of", ",car,", ["concat", ",", ["get", "modes"], ","]], 0];
-      const majorRoadsFilter = [">", ["get", "capacity"], 1200];
-      const volumesFilters = showMajorRoadsOnly ? [carFilter, majorRoadsFilter] : [carFilter];
+      const volumesFilters = showMajorRoadsOnly ? [carFilter, MAJOR_ROADS_FILTER] : [carFilter];
 
       combined = combined
         ? ["all", combined, ...volumesFilters]

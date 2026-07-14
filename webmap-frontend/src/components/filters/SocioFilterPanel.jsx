@@ -3,11 +3,14 @@ import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import {
     AGE_SLIDER_MAX,
+    AGE_SLIDER_MARKS,
+    INCOME_SLIDER_MAX,
+    INCOME_SLIDER_MARKS,
     DEFAULT_SOCIO_FILTERS,
     GENDER_OPTIONS,
-    INCOME_OPTIONS,
     SUBSCRIPTION_OPTIONS,
     countActiveSocioFilters,
+    incomeRangeLabel,
     isSocioDefault,
 } from './socioFilterConfig';
 import './SocioFilterPanel.css';
@@ -38,7 +41,7 @@ const Chevron = ({ open }) => (
 );
 
 const ageLabel = ([lo, hi]) =>
-    (lo <= 0 && hi >= AGE_SLIDER_MAX) ? 'All ages' : `${lo} – ${hi}`;
+    (lo <= 0 && hi >= AGE_SLIDER_MAX) ? 'All' : `${lo} – ${hi}`;
 
 /**
  * Controlled, presentational socioeconomic (person) filter panel.
@@ -58,15 +61,21 @@ const SocioFilterPanel = ({ value, onChange, bare = false }) => {
     const filters = value || DEFAULT_SOCIO_FILTERS;
     const [collapsed, setCollapsed] = useState(true);
 
-    // Drag-in-progress age handles. `onChange` (slider) updates local state so
-    // the label tracks the drag; `onChangeComplete` commits to the parent.
+    // Drag-in-progress slider handles. `onChange` (slider) updates local state
+    // so the label tracks the drag; `onChangeComplete` commits to the parent.
     const [ageDraft, setAgeDraft] = useState(filters.ageRange);
-    // Sync local draft from props via the render-time "previous value" pattern
+    const [incomeDraft, setIncomeDraft] = useState(filters.incomeRange);
+    // Sync local drafts from props via the render-time "previous value" pattern
     // (no useEffect): when the incoming prop range changes, adopt it.
     const [lastAge, setLastAge] = useState(filters.ageRange);
     if (filters.ageRange !== lastAge) {
         setLastAge(filters.ageRange);
         setAgeDraft(filters.ageRange);
+    }
+    const [lastIncome, setLastIncome] = useState(filters.incomeRange);
+    if (filters.incomeRange !== lastIncome) {
+        setLastIncome(filters.incomeRange);
+        setIncomeDraft(filters.incomeRange);
     }
 
     const activeCount = countActiveSocioFilters(filters);
@@ -125,13 +134,14 @@ const SocioFilterPanel = ({ value, onChange, bare = false }) => {
 
                     {/* Age */}
                     <div className="socio-row">
-                        <label className="socio-row-label">Age: {ageLabel(ageDraft)}</label>
+                        <label className="socio-row-label">Age · {ageLabel(ageDraft)}</label>
                         <div className="socio-slider-wrap">
                             <Slider
                                 range
                                 min={0}
                                 max={AGE_SLIDER_MAX}
                                 step={1}
+                                marks={AGE_SLIDER_MARKS}
                                 value={ageDraft}
                                 onChange={(val) => setAgeDraft(val)}
                                 onChangeComplete={(val) => emit({ ageRange: val })}
@@ -140,20 +150,24 @@ const SocioFilterPanel = ({ value, onChange, bare = false }) => {
                         </div>
                     </div>
 
-                    {/* Income */}
+                    {/* Household income (monthly, CHF). Handles snap to the
+                        microcensus class boundaries (2k steps, open 16k+ top). */}
                     <div className="socio-row">
-                        <label className="socio-row-label">Income Class</label>
-                        <div className="socio-chips">
-                            {INCOME_OPTIONS.map((opt) => (
-                                <button
-                                    key={opt.value}
-                                    type="button"
-                                    className={`socio-chip${filters.incomeClasses.includes(opt.value) ? ' active' : ''}`}
-                                    onClick={() => emit({ incomeClasses: toggleInList(filters.incomeClasses, opt.value) })}
-                                >
-                                    {opt.label}
-                                </button>
-                            ))}
+                        <label className="socio-row-label">Income · {incomeRangeLabel(incomeDraft)}</label>
+                        <div className="socio-slider-wrap">
+                            <Slider
+                                range
+                                min={0}
+                                max={INCOME_SLIDER_MAX}
+                                step={1}
+                                marks={INCOME_SLIDER_MARKS}
+                                dots
+                                value={incomeDraft}
+                                onChange={(val) => setIncomeDraft(val)}
+                                onChangeComplete={(val) => emit({ incomeRange: val })}
+                                allowCross={false}
+                                pushable={1}
+                            />
                         </div>
                     </div>
 

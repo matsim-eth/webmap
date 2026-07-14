@@ -128,19 +128,41 @@ const RightSidebar = () => {
         {isSidebarOpen && (
           <span className="right-sidebar-title">{MODULE_LABELS[isGraphExpanded]}</span>
         )}
-        <button
-          className="right-sidebar-close"
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          title={isSidebarOpen ? "Collapse" : "Expand"}
-        >
-          <FontAwesomeIcon icon={isSidebarOpen ? faXmark : faChevronLeft} />
-        </button>
+        <div className="right-sidebar-header-actions">
+          {/* Person filters — lives in the header so filter-only modules
+              don't need a toolbar row of their own */}
+          {isSidebarOpen && SOCIO_MODULES.has(isGraphExpanded) && (
+            <button
+              className={`right-sidebar-close socio-header-btn${isSocioOpen ? " active" : ""}`}
+              onClick={() => setIsSocioOpen((prev) => !prev)}
+              title="Person Filters"
+            >
+              <FontAwesomeIcon icon={faSliders} />
+              {countActiveSocioFilters(socioFilters) > 0 && (
+                <span className="socio-badge">{countActiveSocioFilters(socioFilters)}</span>
+              )}
+            </button>
+          )}
+          <button
+            className="right-sidebar-close"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            title={isSidebarOpen ? "Collapse" : "Expand"}
+          >
+            <FontAwesomeIcon icon={isSidebarOpen ? faXmark : faChevronLeft} />
+          </button>
+        </div>
       </div>
 
       {isSidebarOpen && (
         <>
-          {/* Toolbar — show table / export / polygon / filter controls */}
-          {((hasTable && canton) || isGraphExpanded === "PolygonTrips" || SOCIO_MODULES.has(isGraphExpanded)) && (
+          {/* Toolbar — show table / export / polygon / reset controls.
+              Only rendered when the module actually has toolbar buttons —
+              the person-filters toggle lives in the header, so filter-only
+              modules (ZoneFlows, Destination) get no toolbar row. */}
+          {((hasTable && canton) ||
+            isGraphExpanded === "PolygonTrips" ||
+            isGraphExpanded === "VolumeFlow" ||
+            (isGraphExpanded === "NodeFlows" && nodeFlowsData)) && (
             <div className="right-sidebar-toolbar">
               {hasTable && canton && (
                 <button
@@ -235,20 +257,6 @@ const RightSidebar = () => {
                 </button>
               )}
 
-              {/* Person filters — icon-only view toggle, right-aligned (must be
-                  last in the row so margin-left: auto pushes only itself) */}
-              {SOCIO_MODULES.has(isGraphExpanded) && (
-                <button
-                  className={`panel-toolbar-btn socio-toolbar-btn${isSocioOpen ? " active" : ""}`}
-                  onClick={() => setIsSocioOpen((prev) => !prev)}
-                  title="Person Filters"
-                >
-                  <FontAwesomeIcon icon={faSliders} />
-                  {countActiveSocioFilters(socioFilters) > 0 && (
-                    <span className="socio-badge">{countActiveSocioFilters(socioFilters)}</span>
-                  )}
-                </button>
-              )}
             </div>
           )}
 

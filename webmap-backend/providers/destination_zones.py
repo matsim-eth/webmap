@@ -11,9 +11,10 @@ trip counts bucketed into 15-minute bins — the exact array shape
     [{ role, origin, destination, mode, purpose, time_bins: {"HH:MM": count} }]
 
 ``role="origin"`` rows are outflow (C → other); ``role="destination"`` rows are
-inflow (other → C). Intra-canton trips (other == C) are excluded — the module
-visualizes flows *between* cantons (its destination list/arcs already drop the
-hub). ``purpose`` is the trip's destination activity (``following_purpose``),
+inflow (other → C). Intra-canton trips (other == C) are included in both role
+branches — the frontend shows them as a pinned "Within C" list row and scales
+the hub marker by them (its arcs still drop the hub, so no self-loop arc is
+drawn). ``purpose`` is the trip's destination activity (``following_purpose``),
 which is what the frontend's purpose filter expects (work/education/shop/leisure).
 
 Query params
@@ -108,8 +109,10 @@ class DestinationZonesProvider(DataProvider):
         socio_join, socio_where = socio_trip_filter(params, trip_alias="t")
 
         # One scan, both directions. Each row is tagged with the hub's role and
-        # the "other" canton; intra-canton trips and rows missing a canton id are
-        # excluded. 15-min bin index = floor(departure_time / 900).
+        # the "other" canton; rows missing a canton id are excluded. Intra-canton
+        # trips (other == hub) appear once per role branch, which is once per
+        # direction view since the frontend filters by role. 15-min bin index =
+        # floor(departure_time / 900).
         query = f"""
             SELECT role, other_id, main_mode, following_purpose, bin15,
                    COUNT(*)::INTEGER AS cnt
@@ -120,7 +123,6 @@ class DestinationZonesProvider(DataProvider):
                 FROM trips t
                 {socio_join}
                 WHERE t.{ocol} = ? AND t.{dcol} IS NOT NULL
-                  AND t.{dcol} <> ?
                   {socio_where}
                 UNION ALL
                 SELECT 'destination' AS role, t.{ocol} AS other_id,
@@ -129,13 +131,12 @@ class DestinationZonesProvider(DataProvider):
                 FROM trips t
                 {socio_join}
                 WHERE t.{dcol} = ? AND t.{ocol} IS NOT NULL
-                  AND t.{ocol} <> ?
                   {socio_where}
             )
             GROUP BY role, other_id, main_mode, following_purpose, bin15
         """
         try:
-            rows = cur.execute(query, [cid, cid, cid, cid]).fetchall()
+            rows = cur.execute(query, [cid, cid]).fetchall()
         except Exception as exc:
             return {"error": str(exc)}
 

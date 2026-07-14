@@ -50,7 +50,12 @@ const SELECTED_VIVID = 'rgba(234,88,12,1)';
 const HUB_GLOW_SRC = 'destination-hub-glow-src';
 const HUB_GLOW_LAYER = 'destination-hub-glow';
 const HUB_DOT_LAYER = 'destination-hub-dot';
+// Fixed hub radius when internal trips are hidden (the original look). With
+// "Show internal trips" on, the hub is data-scaled by intra-polygon trips
+// (same factor curve as the periphery dots) with a floor so it stays
+// visible/clickable at zero trips.
 const HUB_DOT_RADIUS = 11;
+const HUB_DOT_MIN_RADIUS = 8;
 const HUB_GLOW_RADIUS = 60;
 
 const ARROWS_SRC = 'destination-arrows-src';
@@ -97,20 +102,29 @@ const removeAll = (map) => {
     safeRemoveSource(map, MODULE_SOURCES);
 };
 
+// Sum a per-canton totals bucket over the selected modes; empty selection
+// means "all modes". Mirrors sumModes in DestinationZones.jsx.
+const sumModes = (totals, modes) =>
+    modes.length
+        ? modes.reduce((s, m) => s + (Number(totals?.[m]) || 0), 0)
+        : Number(totals?.all) || 0;
+
 // Build line + dot features. Lines always run "source → destination of flow",
 // so in outflow the line goes clicked → other and in inflow it goes other →
 // clicked. The line-gradient paint expression then naturally brightens
-// toward the destination end regardless of direction.
-const buildFeatures = (originCanton, perCanton, selectedMode, isOriginMode, centroidOf) => {
+// toward the destination end regardless of direction. The hub itself gets no
+// arc; its intra-polygon volume/share are returned so the caller can scale
+// the hub marker. Shares use the polygon's full trip total (inter + within).
+const buildFeatures = (originCanton, perCanton, selectedModes, isOriginMode, centroidOf) => {
     const origin = centroidOf(originCanton);
-    if (!origin) return { lines: [], dots: [] };
+    if (!origin) return { lines: [], dots: [], withinVolume: 0, withinShare: 0 };
 
-    const mode = selectedMode || 'all';
     const entries = Object.entries(perCanton)
-        .map(([canton, data]) => [canton, Number(data?.[mode]) || 0])
+        .map(([canton, data]) => [canton, sumModes(data, selectedModes)])
         .filter(([canton, v]) => v > 0 && canton !== originCanton && centroidOf(canton));
 
-    const total = entries.reduce((s, [, v]) => s + v, 0);
+    const withinVolume = sumModes(perCanton[originCanton], selectedModes);
+    const total = entries.reduce((s, [, v]) => s + v, 0) + withinVolume;
 
     const lines = [];
     const dots = [];
@@ -155,7 +169,7 @@ const buildFeatures = (originCanton, perCanton, selectedMode, isOriginMode, cent
         });
     });
 
-    return { lines, dots };
+    return { lines, dots, withinVolume, withinShare: total > 0 ? withinVolume / total : 0 };
 };
 
 export default function useDestinationZones({ mapRef, selectedDestinationData, isGraphExpanded }) {
@@ -167,6 +181,15 @@ export default function useDestinationZones({ mapRef, selectedDestinationData, i
     } = useData();
     const centroidOf = makeCentroidOf(zoneByName);
     const { isSidebarOpen, isLeftSidebarCollapsed } = useMap();
+
+    // Sidebar flags as refs so the zoom-out effect reads the latest values
+    // without re-triggering on sidebar open/collapse — the pull-back to the
+    // study area should run once per canton click, not on every resize
+    // (usePadding's easeTo already compensates padding on resize).
+    const isSidebarOpenRef = useRef(isSidebarOpen);
+    isSidebarOpenRef.current = isSidebarOpen;
+    const isLeftSidebarCollapsedRef = useRef(isLeftSidebarCollapsed);
+    isLeftSidebarCollapsedRef.current = isLeftSidebarCollapsed;
 
     // canton → feature id map, used by the hover/select effects.
     const cantonIdMapRef = useRef(new Map());
@@ -195,18 +218,21 @@ export default function useDestinationZones({ mapRef, selectedDestinationData, i
             return;
         }
 
-        const { perCanton, selectedMode, selectedPurpose, isOriginMode = true, sizingMode = 'volume' } = selectedDestinationData;
-        const { lines, dots } = buildFeatures(clickedCanton, perCanton, selectedMode, isOriginMode, centroidOf);
-        // Purpose color wins over mode if a specific purpose is selected.
-        const palette = (selectedPurpose && selectedPurpose !== 'all' && PURPOSE_PALETTE[selectedPurpose])
-            || MODE_PALETTE[selectedMode]
+        const { perCanton, selectedModes = [], selectedPurposes = [], isOriginMode = true, sizingMode = 'volume', showInternalTrips = false } = selectedDestinationData;
+        const { lines, dots, withinVolume, withinShare } = buildFeatures(clickedCanton, perCanton, selectedModes, isOriginMode, centroidOf);
+        // Color rule (shared with the sidebar/legend): exactly one purpose
+        // selected wins, else exactly one mode, else the "all" palette.
+        const palette = (selectedPurposes.length === 1 && PURPOSE_PALETTE[selectedPurposes[0]])
+            || (selectedModes.length === 1 && MODE_PALETTE[selectedModes[0]])
             || MODE_PALETTE.all;
 
         const hubCoord = centroidOf(clickedCanton);
         const hubFC = hubCoord
             ? { type: 'FeatureCollection', features: [{
                 type: 'Feature',
+                id: 0,
                 geometry: { type: 'Point', coordinates: hubCoord },
+                properties: { dz_canton: clickedCanton, dz_volume: withinVolume, dz_share: withinShare },
             }] }
             : { type: 'FeatureCollection', features: [] };
         const linesFC = { type: 'FeatureCollection', features: lines };
@@ -253,6 +279,15 @@ export default function useDestinationZones({ mapRef, selectedDestinationData, i
         const dotRadiusCase = ['case',
             ['boolean', ['feature-state', 'hovered'], false], ['*', dotRadius, 1.25],
             dotRadius];
+        // Hub dot: fixed radius with internal trips hidden; otherwise the same
+        // size scale as the periphery dots, driven by the intra-polygon
+        // volume/share and floored so it never disappears.
+        const hubRadius = ['max', dotRadius, HUB_DOT_MIN_RADIUS];
+        const hubRadiusCase = showInternalTrips
+            ? ['case',
+                ['boolean', ['feature-state', 'hovered'], false], ['*', hubRadius, 1.25],
+                hubRadius]
+            : HUB_DOT_RADIUS;
         // Color: orange for the selected feature, otherwise the mode palette.
         const dotColorCase = ['case',
             ['boolean', ['feature-state', 'selected'], false], SELECTED_COLOR,
@@ -274,9 +309,8 @@ export default function useDestinationZones({ mapRef, selectedDestinationData, i
             : ['==', ['get', 'dz_canton'], '__none__'];
 
         // ── Layers (insertion order = paint order, bottom → top) ──
-        // Hub glow and hub dot have only static paint, so addLayerOnce is
-        // sufficient. The other three layers have dynamic paint that's
-        // re-applied below.
+        // Only the hub glow has purely static paint; every other layer's
+        // dynamic paint is re-applied below.
 
         addLayerOnce(map, {
             id: HUB_GLOW_LAYER,
@@ -343,11 +377,12 @@ export default function useDestinationZones({ mapRef, selectedDestinationData, i
             source: HUB_GLOW_SRC,
             paint: {
                 'circle-color': HUB_COLOR,
-                'circle-radius': HUB_DOT_RADIUS,
+                'circle-radius': hubRadiusCase,
                 'circle-stroke-color': '#ffffff',
                 'circle-stroke-width': 3,
             },
         });
+        map.setPaintProperty(HUB_DOT_LAYER, 'circle-radius', hubRadiusCase);
     }, [mapRef, selectedDestinationData, isGraphExpanded, clickedCanton, destinationSelectedCanton, zoneByName]);
 
     // ── EFFECT 2: apply hovered + selected feature-state when they change ──
@@ -362,7 +397,14 @@ export default function useDestinationZones({ mapRef, selectedDestinationData, i
             map.setFeatureState({ source: ARROWS_SRC, id }, { hovered, selected });
             map.setFeatureState({ source: DOTS_SRC, id }, { hovered, selected });
         }
-    }, [destinationHoveredCanton, destinationSelectedCanton, mapRef, selectedDestinationData]);
+        // Hub marker mirrors the "Within" list row (dz_canton == the hub).
+        if (clickedCanton && map.getSource(HUB_GLOW_SRC)) {
+            map.setFeatureState({ source: HUB_GLOW_SRC, id: 0 }, {
+                hovered: clickedCanton === destinationHoveredCanton,
+                selected: clickedCanton === destinationSelectedCanton,
+            });
+        }
+    }, [destinationHoveredCanton, destinationSelectedCanton, mapRef, selectedDestinationData, clickedCanton]);
 
     // ── EFFECT 3b: zoom into canton then back out to full Switzerland ──
     // useCantons.js already kicks off a fitBounds-to-canton animation when
@@ -380,21 +422,22 @@ export default function useDestinationZones({ mapRef, selectedDestinationData, i
         const HOLD_MS = 250;         // brief pause at the canton before pulling back
         const ZOOM_OUT_MS = 1400;    // gentle pull-back
 
-        // Same sidebar-compensated padding useCantons/usePadding apply, with
-        // a slightly larger vertical margin for the arc spread.
-        const padding = {
-            ...computeMapPadding({
-                isGraphExpanded: 'Destination',
-                isSidebarOpen,
-                isLeftSidebarOpen: !isLeftSidebarCollapsed,
-            }),
-            top: 60,
-            bottom: 60,
-        };
-
         const studyAreaBounds = toBoundsPair(studyArea?.bbox);
         const timer = setTimeout(() => {
             if (!studyAreaBounds) return;
+            // Same sidebar-compensated padding useCantons/usePadding apply, with
+            // a slightly larger vertical margin for the arc spread. Read from
+            // refs at fire time so the padding matches the sidebar state the
+            // map is actually in when the pull-back starts.
+            const padding = {
+                ...computeMapPadding({
+                    isGraphExpanded: 'Destination',
+                    isSidebarOpen: isSidebarOpenRef.current,
+                    isLeftSidebarOpen: !isLeftSidebarCollapsedRef.current,
+                }),
+                top: 60,
+                bottom: 60,
+            };
             map.fitBounds(studyAreaBounds, {
                 padding,
                 duration: ZOOM_OUT_MS,
@@ -403,7 +446,7 @@ export default function useDestinationZones({ mapRef, selectedDestinationData, i
         }, ZOOM_IN_MS + HOLD_MS);
 
         return () => clearTimeout(timer);
-    }, [clickedCanton, isGraphExpanded, mapRef, isSidebarOpen, isLeftSidebarCollapsed, studyArea]);
+    }, [clickedCanton, isGraphExpanded, mapRef, studyArea]);
 
     // ── EFFECT 3: map → sidebar hover + click sync ──
     useEffect(() => {
@@ -431,7 +474,11 @@ export default function useDestinationZones({ mapRef, selectedDestinationData, i
             setDestinationSelectedCanton((prev) => (prev === next ? null : next));
         };
 
+        // HUB_DOT_LAYER only participates when internal trips are shown: its
+        // feature carries dz_canton == the hub, so hovering/clicking it syncs
+        // with the sidebar's "Within" row (which only exists then).
         const layers = [DOTS_LAYER, ARROW_LINE_LAYER, SELECTED_LINE_LAYER];
+        if (selectedDestinationData?.showInternalTrips) layers.push(HUB_DOT_LAYER);
         const cleanups = [];
         for (const id of layers) {
             cleanups.push(
@@ -442,6 +489,6 @@ export default function useDestinationZones({ mapRef, selectedDestinationData, i
             );
         }
         return () => cleanups.forEach((fn) => fn());
-    }, [mapRef, isGraphExpanded, setDestinationHoveredCanton, setDestinationSelectedCanton]);
+    }, [mapRef, isGraphExpanded, setDestinationHoveredCanton, setDestinationSelectedCanton, selectedDestinationData?.showInternalTrips]);
 
 }
