@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import useAntPath from './useAntPath';
 import { safeRemoveLayer, safeRemoveSource, setVisibility, setFilter } from './_lib/mapbox';
-import { parsePipeList, decoratePerIdMinMax, decorateLineVolumesFromPerId, mergeSegmentsByGeometry } from './_lib/pipeProps';
+import { parsePipeList } from './_lib/pipeProps';
 import { CLICKABLE_ROAD_FILTER, MAJOR_ROADS_FILTER } from './_lib/mapboxFilters';
+import { loadNetworkGeometry, clearNetworkGeometryCache } from './_lib/networkGeometry';
 
 export default function useNetworkLayers({
   mapRef,
@@ -195,12 +196,13 @@ export default function useNetworkLayers({
     setIsLoading(true);
     setSelectedNetworkFeature(null);
     
-    // NEW: fixed filename you gave
-    const relativePath = `matsim/${cantonName}_merged_segments.geojson`;
-    
+    // Shared per-(dataset, canton) geometry: fetched, merged (the stripped
+    // per-link CDN format → one feature per visual segment) and decorated once,
+    // then handed to every module that symbolises these links — including
+    // Transit Volumes, which used to fetch its own copy of the same file.
     let networkGeojson;
     try {
-      networkGeojson = await loadWithFallback(relativePath);
+      networkGeojson = await loadNetworkGeometry(loadWithFallback, datasetId, cantonName);
     } catch (error) {
       console.warn(`Failed to load network`, error);
       setFeatureGeoJSON?.(null);
@@ -212,20 +214,8 @@ export default function useNetworkLayers({
       setIsLoading(false);
       return;
     }
-    
-    // The webmap backend now serves merged_segments already merged (one feature
-    // per visual segment carrying per_id_keys/per_id_arrows), so this is a no-op
-    // on the authoritative path. It still merges the *stripped* per-link format
-    // (one feature per directed link, singular `link_id`, no per_id_*) that the
-    // GitHub-CDN fallback / legacy datasets ship, so the downstream hooks
-    // (VolumeFlow dropdown, LinkSpeeds/NodeFlows offset) work regardless of
-    // source. No-op whenever features already carry per_id_keys.
-    networkGeojson.features = mergeSegmentsByGeometry(networkGeojson.features);
 
     originalNetworkGeoJSON.current = networkGeojson;
-
-    decorateLineVolumesFromPerId(networkGeojson.features);
-    decoratePerIdMinMax(networkGeojson.features);
 
     setFeatureGeoJSON?.(networkGeojson);
     
@@ -668,7 +658,11 @@ export default function useNetworkLayers({
             'network-label-left','network-label-right',
           ]);
           safeRemoveSource(map, ['network-source','ant-path','network-highlight']);
-          
+
+          // Reset is the user's "start clean" action, so let go of the shared
+          // geometry too (Transit Volumes reads the same cache) — the next
+          // canton selection refetches it.
+          clearNetworkGeometryCache();
           originalNetworkGeoJSON.current = null;
           setLinkVolumeData(null);
           setFeatureGeoJSON?.(null); 

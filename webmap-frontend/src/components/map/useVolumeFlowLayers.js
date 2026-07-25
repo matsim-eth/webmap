@@ -7,6 +7,7 @@ import { handle401 } from '../../utils/auth';
 import { safeRemoveLayer, safeRemoveSource, setFilter } from './_lib/mapbox';
 import { parsePipeList } from './_lib/pipeProps';
 import { CLICKABLE_ROAD_FILTER } from './_lib/mapboxFilters';
+import { fetchLinkVolumes } from './_lib/linkVolumes';
 import { socioFiltersToParams } from '../filters/socioFilterConfig';
 
 // Spider overlay source + layers (separate from the shared network-source)
@@ -35,42 +36,6 @@ export function resetVolumeFlowOverlay(map) {
     if (map.getLayer('network-layer')) {
         map.setPaintProperty('network-layer', 'line-opacity', 0.4);
     }
-}
-
-// Per-link daily volumes, keyed by `${datasetId}:${canton}`. Value is a
-// Promise<Map<linkId, volume>|null> so concurrent callers dedupe. The new v2
-// per-link geometry asset has no baked volume attribute, so VolumeFlow derives
-// it from the link_volumes endpoint to hide links that carry no trips.
-// Deliberately NOT socio-filtered: link_volumes.json comes from the precomputed
-// link_speeds table, which has no person dimension — only the spider
-// in/outflow overlay honors the socio filters.
-const linkVolumesCache = new Map();
-
-function fetchLinkVolumes(datasetId, canton) {
-    const key = `${datasetId}:${canton}`;
-    if (linkVolumesCache.has(key)) return linkVolumesCache.get(key);
-    const url = `/backend/data/${datasetId}/link_volumes.json?canton=${encodeURIComponent(canton)}`;
-    const p = (async () => {
-        try {
-            let res = await fetch(url);
-            if (res.status === 401) {
-                const ok = await handle401();
-                if (!ok) return null;
-                res = await fetch(url);
-            }
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const data = await res.json();
-            if (data.error) { console.warn('link_volumes error:', data.error); return null; }
-            const links = data.links || {};
-            return new Map(Object.entries(links).map(([k, v]) => [String(k), Number(v)]));
-        } catch (err) {
-            console.warn('Failed to fetch link volumes:', err);
-            linkVolumesCache.delete(key);
-            return null;
-        }
-    })();
-    linkVolumesCache.set(key, p);
-    return p;
 }
 
 export default function useVolumeFlowLayers({ mapRef, mapReady }) {

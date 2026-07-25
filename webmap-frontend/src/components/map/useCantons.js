@@ -55,6 +55,7 @@ export default function useCantons({
   // 1) load zones + add layers (reloads on dataset switch)
   useEffect(() => {
     if (!mapReady) return; // only run when map is ready
+    if (datasetId == null) return; // wait for the dataset to resolve
     const map = mapRef.current;
     if (!map) return;
 

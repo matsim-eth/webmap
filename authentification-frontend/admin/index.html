@@ -67,6 +67,19 @@
             </div>
           </div>
 
+          <!-- System-wide default dataset -->
+          <div class="ds-default-bar">
+            <label class="ds-default-label" for="defaultDatasetSelect">Default dataset</label>
+            <select class="form-select ds-default-select" id="defaultDatasetSelect">
+              <option value="">None (lowest ID)</option>
+            </select>
+            <span class="ds-default-status" id="defaultDatasetStatus"></span>
+            <p class="form-hint ds-default-hint">
+              Opened by the webmap and dashboard on a fresh load, and warmed first by
+              the webmap backend. Only public, active datasets can be chosen.
+            </p>
+          </div>
+
           <!-- Public datasets -->
           <h6 class="section-title">Public Datasets</h6>
           <div style="overflow-x: auto; margin-bottom: 16px;">

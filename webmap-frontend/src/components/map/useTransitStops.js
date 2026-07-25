@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { safeRemoveLayer, safeRemoveSource, setFilter } from './_lib/mapbox';
+import { lineServesDirection } from '../../utils/directionUtils';
 
 export default function useTransitStops({
   mapRef,
@@ -126,20 +127,17 @@ export default function useTransitStops({
             ? [...new Set(lines.map(l => l.line_id).filter(Boolean))]
             : [];
 
-          // Direction-filtered line_ids: only include line_ids served by
-          // routes matching the selected direction (H=outbound, R=return)
-          const dir = selectedDirection || 'total';
-          let directionLineIds;
-          if (dir !== 'total') {
-            const suffix = dir === 'outbound' ? '.H' : '.R';
-            directionLineIds = [...new Set(
-              lines
-                .filter(l => l.route_id && l.route_id.endsWith(suffix))
-                .map(l => l.line_id)
-            )];
-          } else {
-            directionLineIds = lineIds;
-          }
+          // Per-direction line membership (H=outbound, R=return), computed for
+          // BOTH directions up front so a direction toggle needs no refetch —
+          // the mask effect just switches which property it matches against.
+          // lineServesDirection prefers the v2 `dirs` array (from the
+          // pt_link_volumes table); entries with no direction info stay in both.
+          const lineIdsH = [...new Set(
+            lines.filter(l => lineServesDirection(l, 'outbound')).map(l => l.line_id)
+          )];
+          const lineIdsR = [...new Set(
+            lines.filter(l => lineServesDirection(l, 'return')).map(l => l.line_id)
+          )];
           
           // Create searchable text for "All columns" search (lowercase, pipe-delimited)
           const stopName = f.properties.name || "";
@@ -163,7 +161,8 @@ export default function useTransitStops({
               boardings: totalBoardings,
               alightings: totalAlightings,
               line_ids: lineIds,
-              direction_line_ids: directionLineIds,
+              line_ids_h: lineIdsH,
+              line_ids_r: lineIdsR,
               searchable_text: searchableText
             }
           };
@@ -434,7 +433,8 @@ export default function useTransitStops({
       );
       if (hasLineHere) {
         const applyMask = () => {
-          const lineIdsProp = (selectedDirection && selectedDirection !== 'total') ? "direction_line_ids" : "line_ids";
+          const lineIdsProp = selectedDirection === 'outbound' ? "line_ids_h"
+            : selectedDirection === 'return' ? "line_ids_r" : "line_ids";
           const matchLineExpr = ["in", highlightedLineId, ["get", lineIdsProp]];
           if (map.getLayer("transit-stops-layer")) {
             map.setPaintProperty("transit-stops-layer", "circle-opacity", ["case", matchLineExpr, 1, 0.2]);
@@ -454,7 +454,12 @@ export default function useTransitStops({
   .catch(err => {
     console.error("Error loading transit data:", err);
   });
-}, [isGraphExpanded, searchCanton, datasetId, showStopVolumeSymbology, selectedTransitModes, timeRange, selectedDirection]);
+// NOTE: selectedDirection is deliberately NOT a dep — both directions' line
+// memberships are injected up front, so a direction toggle needs no refetch.
+// (Re-running here also raced the mask effect: this effect's trailing
+// opacity reset wiped the just-applied direction mask, which read as the
+// line being de-selected.)
+}, [isGraphExpanded, searchCanton, datasetId, showStopVolumeSymbology, selectedTransitModes, timeRange]);
 
 
 useEffect(() => {
@@ -468,7 +473,8 @@ useEffect(() => {
     if (!map.getLayer(STOP_LAYER_ID) || !map.getLayer(LABEL_LAYER_ID)) return;
 
     if (highlightedLineId) {
-      const lineIdsProp = (selectedDirection && selectedDirection !== 'total') ? "direction_line_ids" : "line_ids";
+      const lineIdsProp = selectedDirection === 'outbound' ? "line_ids_h"
+        : selectedDirection === 'return' ? "line_ids_r" : "line_ids";
       const matchLineExpr = ["in", highlightedLineId, ["get", lineIdsProp]];
       
       map.setPaintProperty(STOP_LAYER_ID, "circle-opacity", [

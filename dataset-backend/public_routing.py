@@ -7,7 +7,7 @@ from pathlib import Path
 
 from AuthAPI import RequireUser, RequireAdminUser
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from dependencies import (
@@ -24,6 +24,7 @@ from schemas import (
     DatasetListOut,
     DatasetOut,
     DatasetUpdate,
+    DefaultDatasetIn,
     FileListOut,
     GrantIn,
     GrantOut,
@@ -59,6 +60,7 @@ def _dataset_to_out(ds: Dataset) -> DatasetOut:
         owner_username=ds.owner_username,
         status=ds.status.value if isinstance(ds.status, DatasetStatus) else ds.status,
         is_public=ds.is_public,
+        is_default=bool(ds.is_default),
         has_synthetic=ds.has_synthetic,
         has_microcensus=ds.has_microcensus,
         has_json_preview=ds.has_json_preview,
@@ -79,10 +81,23 @@ async def list_datasets(
 ):
     uid = user.id
 
+    # The admin-chosen default dataset first, then ascending id.
+    #
+    # id (not created_at) because a dataset *directory* is named after its id, so
+    # this is the one ordering the webmap backend can reproduce from the
+    # filesystem alone — its prewarm has no DB access at startup. Both services
+    # sorting the same way is what makes the default dataset also the first one
+    # prewarmed; under the old `created_at DESC` they disagreed, and the dataset
+    # the frontend opened could be the last one warmed (minutes of cold builds).
+    #
+    # `is_default` leads so the frontends' "first entry" *is* the default with no
+    # extra lookup; they also read the flag explicitly, so this is belt-and-braces.
+    order = (Dataset.is_default.desc(), Dataset.id.asc())
+
     # Private
     own = (
         await db.scalars(
-            select(Dataset).where(Dataset.owner_id == uid, Dataset.is_public == False).order_by(Dataset.created_at.desc())
+            select(Dataset).where(Dataset.owner_id == uid, Dataset.is_public == False).order_by(*order)
         )
     ).all()
 
@@ -94,14 +109,14 @@ async def list_datasets(
             .where(DatasetGrant.user_id == uid,
                    Dataset.owner_id != uid,
                    Dataset.is_public == False)
-            .order_by(Dataset.created_at.desc())
+            .order_by(*order)
         )
     ).all()
 
     # Public
     public = (
         await db.scalars(
-            select(Dataset).where(Dataset.is_public == True).order_by(Dataset.created_at.desc())
+            select(Dataset).where(Dataset.is_public == True).order_by(*order)
         )
     ).all()
 
@@ -504,7 +519,8 @@ async def admin_list_all_datasets(
     db: AsyncSession = Depends(get_db),
 ):
     """List ALL datasets in the system, optionally filtered by owner. Admin only."""
-    query = select(Dataset).order_by(Dataset.created_at.desc())
+    # Default first, then id — same ordering as list_datasets.
+    query = select(Dataset).order_by(Dataset.is_default.desc(), Dataset.id.asc())
     if owner_id is not None:
         query = query.where(Dataset.owner_id == owner_id)
     all_ds = (await db.scalars(query)).all()
@@ -519,6 +535,7 @@ async def admin_list_all_datasets(
                 "owner_username": ds.owner_username,
                 "status": ds.status.value if isinstance(ds.status, DatasetStatus) else ds.status,
                 "is_public": ds.is_public,
+                "is_default": bool(ds.is_default),
                 "has_synthetic": ds.has_synthetic,
                 "has_microcensus": ds.has_microcensus,
                 "has_json_preview": ds.has_json_preview,
@@ -530,6 +547,55 @@ async def admin_list_all_datasets(
             for ds in all_ds
         ]
     }
+
+
+@router.put("/admin/datasets/default", response_model=dict)
+async def admin_set_default_dataset(
+    body: DefaultDatasetIn,
+    admin=Depends(RequireAdminUser()),
+    db: AsyncSession = Depends(get_db),
+):
+    """Set (or clear, with ``dataset_id: null``) the system-wide default dataset.
+
+    The default is what both frontends open on a fresh load and what the webmap
+    backend prewarms first, so it is restricted to **public + active** datasets:
+    a private default would 403 for everyone but its owner, and an inactive one
+    403s for everyone (`dependencies.require_dataset_access`), leaving every user
+    staring at a dataset they cannot read.
+    """
+    target: Dataset | None = None
+    if body.dataset_id is not None:
+        target = await db.get(Dataset, body.dataset_id)
+        if not target:
+            raise HTTPException(status_code=404, detail="dataset not found")
+        st = target.status.value if isinstance(target.status, DatasetStatus) else target.status
+        if not target.is_public:
+            raise HTTPException(
+                status_code=400,
+                detail="only a public dataset can be the default (a private one "
+                       "is unreadable for everyone but its owner)",
+            )
+        if st != DatasetStatus.ACTIVE.value:
+            raise HTTPException(
+                status_code=400,
+                detail="only an active dataset can be the default (inactive "
+                       "datasets are rejected for every user)",
+            )
+
+    # Clear first, then set, in one transaction — the partial unique index
+    # (uq_datasets_single_default) would reject the second true row otherwise.
+    await db.execute(
+        update(Dataset).where(Dataset.is_default == True).values(is_default=False)
+    )
+    if target is not None:
+        await db.execute(
+            update(Dataset).where(Dataset.id == target.id).values(is_default=True)
+        )
+    await db.commit()
+
+    logger.info("default dataset set to %s by admin %s",
+                target.id if target else None, getattr(admin, "id", "?"))
+    return {"default_dataset_id": target.id if target else None}
 
 
 @router.delete("/admin/datasets/{dataset_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -642,6 +708,18 @@ async def admin_update_dataset(
             )
     if body.is_public is not None:
         ds.is_public = body.is_public
+
+    # A dataset that is no longer public+active can't stay the default —
+    # admin_set_default_dataset refuses to *set* one, and every user would 403 on
+    # it (require_dataset_access), so the frontends would open a dataset nobody
+    # can read. Clearing here keeps that guarantee enforced from both directions.
+    if ds.is_default:
+        st = ds.status.value if isinstance(ds.status, DatasetStatus) else ds.status
+        if not ds.is_public or st != DatasetStatus.ACTIVE.value:
+            ds.is_default = False
+            logger.info("dataset %s cleared as default (now public=%s status=%s)",
+                        ds.id, ds.is_public, st)
+
     new_id = None
     if body.id is not None and body.id != dataset_id:
         existing = await db.get(Dataset, body.id)
@@ -674,6 +752,7 @@ async def admin_update_dataset(
         "owner_username": ds.owner_username,
         "status": ds.status.value if isinstance(ds.status, DatasetStatus) else ds.status,
         "is_public": ds.is_public,
+        "is_default": bool(ds.is_default),
         "created_at": ds.created_at.isoformat() if ds.created_at else None,
         "updated_at": ds.updated_at.isoformat() if ds.updated_at else None,
     }

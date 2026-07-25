@@ -1,6 +1,7 @@
 import React, { useMemo, useRef } from "react";
 import Plot from "react-plotly.js";
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
+import { lineServesDirection, directionLetter } from "../../utils/directionUtils";
 import { useData } from "../../context/DataContext";
 import { useQuery } from "@tanstack/react-query";
 
@@ -30,20 +31,38 @@ const TransitStopHistogram = ({ stopIds, canton, lineId, onVolumeUpdate, timeRan
           let stopData = data.filter(d => cleanedIds.includes(String(d.stop_id)));
           if (lineId) stopData = stopData.filter(d => d.line_id === lineId);
 
-          // Filter by direction: only include line_ids that serve the selected direction
-          if (selectedDirection && selectedDirection !== 'total' && Array.isArray(stopLines)) {
-            const suffix = selectedDirection === 'outbound' ? '.H' : '.R';
+          const dirLetter = selectedDirection && selectedDirection !== 'total'
+            ? directionLetter(selectedDirection) : null;
+
+          // v2 rows carry a per-direction breakdown (`data_by_direction`) per
+          // (line, stop); when a direction is active we rescale those rows to
+          // that direction's own bins (a row serving only the other direction
+          // then contributes 0). Rows WITHOUT the field can't be rescaled, so
+          // exclude the ones whose line doesn't serve the selected direction —
+          // otherwise they'd leak their full both-direction total. Applied per
+          // row (not gated on all rows carrying the field) so a partially
+          // populated export can't overcount the direction-less rows.
+          // lineServesDirection keeps lines with no direction info, so the
+          // filter stays inert when the dataset genuinely can't answer.
+          if (dirLetter && Array.isArray(stopLines)) {
             const dirLineIds = new Set(
               stopLines
-                .filter(l => l.route_id && l.route_id.endsWith(suffix))
+                .filter(l => lineServesDirection(l, selectedDirection))
                 .map(l => l.line_id)
             );
-            stopData = stopData.filter(d => dirLineIds.has(d.line_id));
+            stopData = stopData.filter(
+              d => d.data_by_direction || dirLineIds.has(d.line_id)
+            );
           }
 
           const allTimeBins = [];
           for (const row of stopData) {
-            for (const t of row.data) {
+            // Prefer the active direction's own bins when present; else the
+            // direction-less total.
+            const bins = (dirLetter && row.data_by_direction)
+              ? (row.data_by_direction[dirLetter] || [])
+              : (row.data || []);
+            for (const t of bins) {
               allTimeBins.push({
                 time_bin: t.time_bin,
                 boardings: t.boardings,

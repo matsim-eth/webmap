@@ -7,7 +7,8 @@ import { useDebounced } from '../../hooks/useDebounced';
 import { handle401 } from '../../utils/auth';
 import { safeRemoveLayer, safeRemoveSource, setFilter } from './_lib/mapbox';
 import { parsePipeList } from './_lib/pipeProps';
-import { CLICKABLE_ROAD_FILTER } from './_lib/mapboxFilters';
+import { CLICKABLE_ROAD_FILTER, isArtificialLink } from './_lib/mapboxFilters';
+import { fetchLinkVolumes } from './_lib/linkVolumes';
 import { socioFiltersToParams } from '../filters/socioFilterConfig';
 
 // Layer/source IDs
@@ -188,6 +189,11 @@ export default function useNodeFlowLayers({ mapRef, mapReady }) {
         if (!features) return new Map();
         const lookup = new Map();
         for (const f of features) {
+            // Skip artificial (synthetic connector) links so they never appear
+            // in the turning-movement overlay — links looked up here are what
+            // renderOverlay draws for the clicked node's entering/exiting arms.
+            if (isArtificialLink(f.properties)) continue;
+
             const keys = parsePipeList(f.properties.per_id_keys);
             const arrows = parsePipeList(f.properties.per_id_arrows);
             for (let i = 0; i < keys.length; i++) {
@@ -708,6 +714,62 @@ export default function useNodeFlowLayers({ mapRef, mapReady }) {
         };
     }, [mapReady, isGraphExpanded, clickedCanton, featureGeoJSON, mapRef,
         setNodeFlowsData, setHoveredMatrixCell, loadNodes, fetchNodeFlows, renderOverlay]);
+
+    // -- Volume filter: hide the grayed base-network links with no trips --
+    // Same approach as VolumeFlow: the v2 per-link geometry carries no baked
+    // volume, so fetch per-link daily volumes, bake daily_avg_volume onto the
+    // shared network features, and filter the base network to volume > 0. This
+    // declutters the map to real roads carrying traffic and drops the artificial
+    // (synthetic connector) links, which carry no volume. Falls back to the
+    // show-all clickable filter if volumes are unavailable. Node clicks are on
+    // the nodes layer, so this only affects the visual base network.
+    useEffect(() => {
+        if (!mapReady || !mapRef.current) return;
+        if (isGraphExpanded !== 'NodeFlows') return;
+        if (!clickedCanton || !datasetId || !featureGeoJSON?.features) return;
+        const map = mapRef.current;
+
+        let cancelled = false;
+        (async () => {
+            const volMap = await fetchLinkVolumes(datasetId, clickedCanton);
+            if (cancelled || isGraphExpanded !== 'NodeFlows') return;
+            if (!map.getLayer('network-layer-hitbox')) return;
+
+            if (!volMap || volMap.size === 0) {
+                setFilter(map, ['network-layer', 'network-layer-hitbox'], CLICKABLE_ROAD_FILTER);
+                return;
+            }
+
+            const fc = featureGeoJSONRef.current;
+            if (fc?.features) {
+                for (const f of fc.features) {
+                    const keys = parsePipeList(f.properties.per_id_keys);
+                    let total = 0;
+                    for (const k of keys) total += volMap.get(k) || 0;
+                    f.properties.daily_avg_volume = total;
+                }
+                const src = map.getSource('network-source');
+                if (src) src.setData(fc);
+            }
+
+            setFilter(map, ['network-layer', 'network-layer-hitbox'],
+                ['>', ['get', 'daily_avg_volume'], 0]);
+        })();
+
+        return () => {
+            cancelled = true;
+            // Restore the show-all clickable filter on teardown. Cleanup runs
+            // before the next run's async fetch resolves, so this covers both a
+            // canton switch (no stale volume>0 filter — keyed to the previous
+            // canton's baked volumes — while the new canton loads) and a module
+            // exit (the next module doesn't inherit our volume>0 filter on the
+            // shared base network).
+            const m = mapRef.current;
+            if (m && m.getLayer('network-layer-hitbox')) {
+                setFilter(m, ['network-layer', 'network-layer-hitbox'], CLICKABLE_ROAD_FILTER);
+            }
+        };
+    }, [mapReady, mapRef, isGraphExpanded, clickedCanton, datasetId, featureGeoJSON]);
 
     return null;
 }

@@ -26,7 +26,7 @@ const featureCoords = (f) => {
  * otherwise "→". Lets offset rendering split a merged segment into its two
  * opposing directions.
  */
-const arrowForCoords = (coords) => {
+export const arrowForCoords = (coords) => {
   if (!coords || coords.length < 2) return '→';
   const [sLon, sLat] = coords[0];
   const [eLon, eLat] = coords[coords.length - 1];

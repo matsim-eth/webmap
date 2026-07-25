@@ -1,9 +1,12 @@
 import { useEffect, useRef } from "react";
 import { nearestPointOnLine, lineString, point } from "@turf/turf";
 import { safeRemoveLayer, safeRemoveSource, setFilter } from './_lib/mapbox';
-import { parsePipeList, pipeMinMax, mergeSegmentsByGeometry } from './_lib/pipeProps';
+import { parsePipeList, pipeMinMax } from './_lib/pipeProps';
+import { loadNetworkGeometry } from './_lib/networkGeometry';
 import { clearNetworkHighlightData, clearAntLine } from './_lib/featureSelection';
+import { directionLetter } from '../../utils/directionUtils';
 import { useData } from '../../context/DataContext';
+import useRouteDirections from '../../hooks/useRouteDirections';
 
 // ---------------------------------------------------------------------------
 // Split-link rendering constants (mirrors useNetworkSplitLayers for the road
@@ -42,6 +45,17 @@ const LABEL_RIGHT_ID = "transit-volumes-label-left";
 const LABEL_LEFT_ID = "transit-volumes-label-right";
 const MERGED_LAYER_ID = "transit-volumes-layer";
 const MERGED_HITBOX_ID = "transit-volumes-hitbox";
+
+// Terminus marker shown while a direction (outbound/return) is selected on the
+// highlighted line — mirrors the Transit Stops module (useTransitLines). The
+// terminus stop's coord + name come straight from route_directions.json, so no
+// route geometry is needed (Transit Volumes only loads merged network segments).
+const TERMINUS_SOURCE = "transit-volumes-terminus";
+const TERMINUS_LAYERS = ["transit-volumes-terminus-circle", "transit-volumes-terminus-label"];
+const removeTerminusMarker = (map) => {
+  safeRemoveLayer(map, TERMINUS_LAYERS);
+  safeRemoveSource(map, TERMINUS_SOURCE);
+};
 
 // Green transit ramp/width on the per-direction windowed volume (`ns_volume`) —
 // identical stops to the merged transit-volumes-layer (which colours by
@@ -95,7 +109,7 @@ const LABEL_OFFSET_LEFT = [0, ["case",
 // per_id_* / the min-max scalars all carry over and the existing filter
 // expressions work unchanged) and sets ns_volume from the parent's windowed
 // right_sum/left_sum for the colour ramp + labels. Directions use the MATCHED
-// pt ids (right_ids/left_ids from computeFilteredFeatures) when present — the
+// pt ids (right_ids/left_ids from prepareFeatures) when present — the
 // backend merges ALL links sharing a geometry, so regrouping raw per_id_keys
 // would drag car link ids into a transit selection; the per_id_keys regroup
 // remains as a fallback for features computed before those props existed.
@@ -190,6 +204,7 @@ export default function useTransitVolumesLayer({
   highlightedLineId,
   setFeatureGeoJSON,
   tableFilterQuery,
+  selectedDirection,
   labelSize,
   drawRef
 }) {
@@ -197,6 +212,10 @@ export default function useTransitVolumesLayer({
   // Per-link volume lookup for the sidebar (see DataContext) — published here
   // because this hook is the only place the raw volume JSON is available.
   const { setTransitVolumesByLink } = useData();
+  // Per-line H/R terminus names + coords for the direction terminus marker
+  // (null until route_directions.json resolves; legacy datasets stay null and
+  // the marker simply doesn't render — the direction filter is inert there too).
+  const routeDirections = useRouteDirections();
 
   // ----- helpers -------------------------------------------------------------
 
@@ -229,6 +248,7 @@ export default function useTransitVolumesLayer({
           timeBins: { ...bins },
           line_name: l.line_name ?? null,
           mode: l.mode ?? null,
+          directions: l.directions ?? null,
           total
         };
 
@@ -260,6 +280,7 @@ export default function useTransitVolumesLayer({
           timeBins: bins,
           line_name: l.line_name ?? null,
           mode: l.mode ?? null,
+          directions: l.directions ?? null,
           total: Object.values(bins).reduce((a, v) => a + (Number(v) || 0), 0),
         };
       }
@@ -270,6 +291,7 @@ export default function useTransitVolumesLayer({
           timeBins: bins,
           line_name: line.line_name ?? line.lineName ?? line.name ?? null,
           mode: line.mode ?? null,
+          directions: line.directions ?? null,
           total: Number(line.total) || Object.values(bins).reduce((a, v) => a + (Number(v) || 0), 0),
         };
       }
@@ -277,11 +299,11 @@ export default function useTransitVolumesLayer({
     return out;
   };
 
-  // merge { [lineId]: { timeBins, line_name, mode, total } } into accumulator
+  // merge { [lineId]: { timeBins, line_name, mode, directions, total } } into accumulator
   const mergeLines = (acc, src) => {
     for (const [lineId, line] of Object.entries(src || {})) {
       if (!acc[lineId]) {
-        acc[lineId] = { timeBins: {}, line_name: line.line_name ?? null, mode: line.mode ?? null, total: 0 };
+        acc[lineId] = { timeBins: {}, line_name: line.line_name ?? null, mode: line.mode ?? null, directions: null, total: 0 };
       }
       // keep name/mode if missing
       if (!acc[lineId].line_name && line.line_name) acc[lineId].line_name = line.line_name;
@@ -294,6 +316,15 @@ export default function useTransitVolumesLayer({
       const dstBins = acc[lineId].timeBins;
       const srcBins = line.timeBins || {};
       for (const k in srcBins) dstBins[k] = (dstBins[k] ?? 0) + (Number(srcBins[k]) || 0);
+
+      // merge per-direction (.H/.R) bins when the source carries them
+      if (line.directions) {
+        const dstDirs = acc[lineId].directions || (acc[lineId].directions = {});
+        for (const [d, bins] of Object.entries(line.directions)) {
+          const dst = dstDirs[d] || (dstDirs[d] = {});
+          for (const k in bins) dst[k] = (dst[k] ?? 0) + (Number(bins[k]) || 0);
+        }
+      }
     }
   };
 
@@ -334,96 +365,186 @@ export default function useTransitVolumesLayer({
     return (Math.atan2(y1 - y0, x1 - x0) * 180) / Math.PI;
   }
 
-  // NEW: compute left/right like roads, and also keep your filtered_volume
-  function computeFilteredFeatures(networkGeo, rawVolumeJSON, timeRange, filterLineId) {
-    const volumeJSON = toVolumeById(rawVolumeJSON);
-
-    const startTick = timeRange?.[0] ?? 0;
-    const endTick = timeRange?.[1] ?? 96;
-    const isFullDay = startTick === 0 && endTick === 96;
-
-    const features = [];
+  // Invariant per-canton prep (run ONCE per canton in init). Parses each merged
+  // segment's link ids/arrows, matches them to the volume index, and builds
+  // everything that does NOT depend on the time window / highlighted line /
+  // direction: the merged per-line bins for the sidebar, H/R line membership,
+  // full-day totals, direction id buckets, and the filterable min/max scalars.
+  // recomputeWindows() then only re-sums the windowed directional volumes on each
+  // interaction — the expensive parse/match/merge here is done once and reused.
+  // Returns [{ f, links: [{id, arrow}], invariant: {...props} }].
+  function prepareFeatures(networkGeo, volumeById) {
+    const prepared = [];
+    // volume_min/max drive the table's numeric "Total Volume" map filter and are
+    // read off the geometry's own `per_id_daily_avgs` (road volumes — present on
+    // the legacy CDN asset, absent on v2). The shared geometry is also handed to
+    // the road modules, which bake their backend traffic volumes into that same
+    // property, so honour the loader's source flag: without it, whether a
+    // v2 dataset's transit filter saw 0 or road volumes would depend on whether
+    // the user had visited the Volumes module first.
+    const useSourceVolumes = networkGeo.sourceHasDailyAvgs !== false;
 
     for (const f of networkGeo.features) {
-      // Parse pipe-separated strings
       const keys = parsePipeList(f?.properties?.per_id_keys);
       const arrows = parsePipeList(f?.properties?.per_id_arrows);
-
       if (keys.length === 0) continue;
 
-      // Build a lookup map for arrows by key
       const arrowMap = {};
-      keys.forEach((key, index) => {
-        arrowMap[key] = arrows[index];
-      });
+      keys.forEach((key, index) => { arrowMap[key] = arrows[index]; });
 
-      // match only ids present in volumeJSON (try raw id; if not found, try cleaned)
+      // match only ids present in the volume index (raw id, else cleaned)
       const matchedIds = [];
       for (const raw of keys) {
         const rawStr = String(raw);
-        if (volumeJSON[rawStr]) matchedIds.push(rawStr);
+        if (volumeById[rawStr]) matchedIds.push(rawStr);
         else {
           const c = cleanLinkId(rawStr);
-          if (volumeJSON[c]) matchedIds.push(c);
+          if (volumeById[c]) matchedIds.push(c);
         }
       }
       if (matchedIds.length === 0) continue;
 
-      // aggregate across matched ids
-      let totalAllBins = 0;       // sum across all bins and lines (full day)
-      let windowSum = 0;          // sum across window (used for filtered_volume)
-      let left = 0, right = 0;    // directional window sums
+      let totalAllBins = 0;              // full-day sum across all bins/lines
       let totalLeft = 0, totalRight = 0; // directional full-day sums
       const leftIds = [], rightIds = []; // matched pt ids per direction (split overlay)
-
-      const mergedLines = {};     // { lineId: { timeBins: { 'HH:MM': sum } } }
+      const mergedLines = {};            // { lineId: { timeBins, directions, ... } }
       const modesUnion = new Set();
+      // Per-link {id, arrow} plan consumed by recomputeWindows (order-independent).
+      const links = [];
 
       for (const id of matchedIds) {
-        const entry = volumeJSON[id];
+        const entry = volumeById[id];
         if (!entry) continue;
 
-        // Build per-line bins (all lines) and merge for sidebar
-        const allLines = linesToObject(entry);
-        mergeLines(mergedLines, allLines);
+        // Merge per-line bins (all lines on this link) for the sidebar.
+        mergeLines(mergedLines, linesToObject(entry));
 
-        // Which lines contribute to map symbology/labels?
-        const activeLines = filterLineId
-          ? (allLines[filterLineId] ? { [filterLineId]: allLines[filterLineId] } : {})
-          : allLines;
-
-        // Get the arrow for this link ID
-        const arrow =
-          arrowMap[id] ??
-          arrowMap[cleanLinkId(id)] ??
-          null;
+        const arrow = arrowMap[id] ?? arrowMap[cleanLinkId(id)] ?? null;
+        links.push({ id, arrow });
 
         // Direction id buckets for the split overlay (unknown arrow → right,
         // matching buildSplitFeatures' regroup bias).
         (arrow === "←" ? leftIds : rightIds).push(id);
 
-        // Sum full-day total
         const linkTotal = Number(entry.linkTotal ?? 0);
         totalAllBins += linkTotal;
-
-        // Split full-day total by direction
         if (arrow === "←") totalLeft += linkTotal;
         else if (arrow === "→") totalRight += linkTotal;
-        else {
-          // fallback: split evenly if arrow missing
-          totalLeft += linkTotal / 2;
-          totalRight += linkTotal / 2;
-        }
+        else { totalLeft += linkTotal / 2; totalRight += linkTotal / 2; }
 
-        // Sum window across ACTIVE lines only (selected line if set)
+        // Unfiltered (segment-level) mode union — the filtered case derives its
+        // single mode from mergedLines in recomputeWindows.
+        unionModes(modesUnion, entry.modes_list);
+      }
+
+      // Per-direction line membership for the H/R map filter. Lines with no
+      // direction data are listed in both so the filter can't hide them.
+      const lineIdsH = [], lineIdsR = [];
+      for (const [lid, line] of Object.entries(mergedLines)) {
+        const d = line.directions;
+        if (!d) { lineIdsH.push(lid); lineIdsR.push(lid); continue; }
+        if (d.H && Object.keys(d.H).length) lineIdsH.push(lid);
+        if (d.R && Object.keys(d.R).length) lineIdsR.push(lid);
+      }
+
+      const props = f.properties;
+      const cap = pipeMinMax(props.per_id_capacities);
+      const len = pipeMinMax(props.per_id_lengths);
+      const fre = pipeMinMax(props.per_id_freespeeds);
+      const vol = useSourceVolumes ? pipeMinMax(props.per_id_daily_avgs) : { min: null, max: null };
+
+      // matchedIds sorted in place → link_ids + link_key_join match the previous
+      // (mutating) behaviour; links/leftIds/rightIds were built before this.
+      matchedIds.sort();
+
+      const invariant = {
+        ...f.properties,
+        // Bearing for the split offset + direction labels (derive if absent).
+        angle: computeAngle(f),
+
+        // full-day totals + directional split (window-independent)
+        total_volume: totalAllBins,
+        total_left: totalLeft,
+        total_right: totalRight,
+
+        // Matched pt ids per direction — consumed by buildSplitFeatures so the
+        // split overlay's ls_link_ids only ever carry transit links.
+        right_ids: rightIds.join("|"),
+        left_ids: leftIds.join("|"),
+
+        // min/max for filtering (default 0 when empty, matching the old fallthrough)
+        capacity_min: cap.min ?? 0,
+        capacity_max: cap.max ?? 0,
+        length_min: len.min ?? 0,
+        length_max: len.max ?? 0,
+        freespeed_min: fre.min ?? 0,
+        freespeed_max: fre.max ?? 0,
+        volume_min: vol.min ?? 0,
+        volume_max: vol.max ?? 0,
+
+        // filtering & sidebar
+        modes: Array.from(modesUnion),
+        lines: mergedLines,
+        line_ids: Object.keys(mergedLines),
+        line_ids_h: lineIdsH,
+        line_ids_r: lineIdsR,
+        link_ids: matchedIds,
+        link_key_join: matchedIds.join(","),
+      };
+
+      prepared.push({ f, links, invariant });
+    }
+
+    return prepared;
+  }
+
+  // Per-interaction recompute (run on every time / line / direction change).
+  // Only the windowed directional sums vary, so this reuses the prepared
+  // invariant props + the volume index and never re-parses / re-merges. Output
+  // feature shape is identical to the old computeFilteredFeatures.
+  function recomputeWindows(prepared, volumeById, timeRange, filterLineId, direction) {
+    const startTick = timeRange?.[0] ?? 0;
+    const endTick = timeRange?.[1] ?? 96;
+    const isFullDay = startTick === 0 && endTick === 96;
+
+    // Route-direction (.H/.R) filter — only meaningful with a line selected.
+    // Lines without direction data (CDN files) keep their total bins so the
+    // filter stays inert on legacy data.
+    const dirLetter = filterLineId ? directionLetter(direction) : null;
+    const lineWindowBins = (line) => {
+      if (dirLetter && line?.directions) return line.directions[dirLetter] || {};
+      return line?.timeBins || {};
+    };
+    const lineFullTotal = (line) => {
+      if (dirLetter && line?.directions) {
+        const bins = line.directions[dirLetter] || {};
+        return Object.values(bins).reduce((a, v) => a + (Number(v) || 0), 0);
+      }
+      return Number(line?.total) || 0;
+    };
+
+    const features = [];
+
+    for (const p of prepared) {
+      let windowSum = 0, left = 0, right = 0;
+
+      for (const { id, arrow } of p.links) {
+        const entry = volumeById[id];
+        if (!entry) continue;
+        const allLines = entry.lines; // { lineId: { timeBins, directions, total, mode } }
+
+        // Which lines contribute to the window? (selected line if set)
+        const activeLines = filterLineId
+          ? (allLines[filterLineId] ? { [filterLineId]: allLines[filterLineId] } : null)
+          : allLines;
+        if (!activeLines) continue; // line not on this link → contributes 0
+
         let thisWindow = 0;
         if (isFullDay) {
-          for (const lid in activeLines) {
-            thisWindow += Number(activeLines[lid]?.total) || 0;
-          }
+          for (const lid in activeLines) thisWindow += lineFullTotal(activeLines[lid]);
         } else {
           for (const lid in activeLines) {
-            const tb = activeLines[lid]?.timeBins || {};
+            const tb = lineWindowBins(activeLines[lid]);
             for (let tick = startTick; tick < endTick; tick++) {
               thisWindow += Number(tb[tickKey(tick)]) || 0;
             }
@@ -431,77 +552,28 @@ export default function useTransitVolumesLayer({
         }
         windowSum += thisWindow;
 
-        // Modes: from active lines when filtered; otherwise link-level
-        if (filterLineId) {
-          for (const lid in activeLines) {
-            const m = activeLines[lid]?.mode;
-            if (m) modesUnion.add(String(m));
-          }
-        } else {
-          unionModes(modesUnion, entry.modes_list);
-        }
-
-        // Split window into left/right using the arrow
         if (arrow === "←") left += thisWindow;
         else if (arrow === "→") right += thisWindow;
-        else {
-          // fallback: split evenly if arrow missing
-          left += thisWindow / 2;
-          right += thisWindow / 2;
-        }
+        else { left += thisWindow / 2; right += thisWindow / 2; } // arrow missing → split evenly
       }
 
-      // Build updated feature (shallow clone props)
-      const props = f.properties;
-
-      // Pipe-delimited min/max for filterable scalar properties
-      const cap = pipeMinMax(props.per_id_capacities);
-      const len = pipeMinMax(props.per_id_lengths);
-      const fre = pipeMinMax(props.per_id_freespeeds);
-      const vol = pipeMinMax(props.per_id_daily_avgs);
+      // Filtered selection shows only the highlighted line's mode; unfiltered
+      // keeps the segment's full mode union (both precomputed in prepare).
+      const filteredMode = filterLineId ? p.invariant.lines[filterLineId]?.mode : null;
+      const modes = filterLineId
+        ? (filteredMode ? [String(filteredMode)] : [])
+        : p.invariant.modes;
 
       features.push({
-        ...f,
+        ...p.f,
         properties: {
-          ...f.properties,
-          // Bearing for the split offset + direction labels (derive if absent).
-          angle: computeAngle(f),
-          // like the road module: color/width use "daily_avg_volume" of the current window
+          ...p.invariant,
+          // color/width use "daily_avg_volume" of the current window (road-style)
           daily_avg_volume: left + right,
           left_sum: left,
           right_sum: right,
-
-          // keep what your working version already used
-          total_volume: totalAllBins,
           filtered_volume: windowSum,
-
-          // Add directional total volumes for table
-          total_left: totalLeft,
-          total_right: totalRight,
-
-          // Matched pt ids per direction — consumed by buildSplitFeatures so the
-          // split overlay's ls_link_ids only ever carry transit links.
-          right_ids: rightIds.join("|"),
-          left_ids: leftIds.join("|"),
-
-          // Add min/max properties for filtering (default to 0 when empty,
-          // matching the previous behavior that fell through to Math.min/max
-          // on an empty array → produced 0).
-          capacity_min: cap.min ?? 0,
-          capacity_max: cap.max ?? 0,
-          length_min: len.min ?? 0,
-          length_max: len.max ?? 0,
-          freespeed_min: fre.min ?? 0,
-          freespeed_max: fre.max ?? 0,
-          volume_min: vol.min ?? 0,
-          volume_max: vol.max ?? 0,
-
-          // keep these for filtering & sidebar
-          modes: Array.from(modesUnion),
-          lines: mergedLines,
-          line_ids: Object.keys(mergedLines),
-          link_ids: matchedIds,
-          link_key_join: matchedIds.sort().join(","),
+          modes,
         },
       });
     }
@@ -538,6 +610,7 @@ export default function useTransitVolumesLayer({
         "ant-line",
       ]);
       safeRemoveSource(map, ["transit-volumes-source", SPLIT_SOURCE_ID, SPLIT_HIGHLIGHT_ID, "ant-path"]);
+      removeTerminusMarker(map);
 
       // Clear network-highlight instead of removing it (shared with network)
       clearNetworkHighlightData(map);
@@ -798,27 +871,41 @@ export default function useTransitVolumesLayer({
       try {
         setIsLoading(true);
 
-        const networkPath = `matsim/${searchCanton}_merged_segments.geojson`;
         const volumePath = `matsim/transit/volumes_by_link_line/pt_link_volumes_by_link_line_${searchCanton}.json`;
 
-        const networkGeo = await loadWithFallback(networkPath);
-        const volumeJSON = await loadWithFallback(volumePath);
+        // Same MATSim geometry the road modules render — PT volumes are keyed on
+        // `network_links.link_id`, so this module only changes the symbology.
+        // The shared loader fetches/merges/decorates it once per (dataset,
+        // canton) and hands out the same FeatureCollection to useNetworkLayers
+        // and to us, so entering Transit Volumes after (or before) a network
+        // module no longer re-downloads and re-parses tens of MB. It also does
+        // the CDN-format merge this hook used to do inline: the fallback ships
+        // one feature per directed link with a singular `link_id` and no
+        // per_id_* arrays, which prepareFeatures would otherwise skip wholesale.
+        // Independent requests → run them together; on a warm geometry cache
+        // only the volume JSON is actually on the wire.
+        const [networkGeo, volumeJSON] = await Promise.all([
+          loadNetworkGeometry(loadWithFallback, datasetId, searchCanton),
+          loadWithFallback(volumePath),
+        ]);
+        if (!networkGeo?.features) {
+          console.warn("No network geometry for transit volumes", searchCanton);
+          setIsLoading(false);
+          return;
+        }
 
-        // The backend serves merged_segments pre-merged (per_id_keys present →
-        // no-op), but the GitHub-CDN fallback ships one feature per directed
-        // link with a singular `link_id` and NO per_id_* arrays. Without this
-        // merge (which useNetworkLayers already does for the road modules) every
-        // CDN feature is skipped by computeFilteredFeatures (no per_id_keys) or,
-        // worse, direction pairs render as two unmerged overlapping features.
-        networkGeo.features = mergeSegmentsByGeometry(networkGeo.features);
-
-        originalGeoJSON.current = { geo: networkGeo, volumes: volumeJSON };
+        // Index the volume JSON + do the invariant per-feature prep ONCE per
+        // canton (the expensive full sweeps), then cache both — every subsequent
+        // line/direction/time recompute reuses them via recomputeWindows().
+        const volumeById = toVolumeById(volumeJSON);
+        const prepared = prepareFeatures(networkGeo, volumeById);
+        originalGeoJSON.current = { geo: networkGeo, volumes: volumeJSON, volumeById, prepared };
         setTransitVolumesByLink(buildVolumesByLink(volumeJSON));
 
         // Always pass null for filterLineId on init — highlightedLineId is reset
         // on canton change by TransitVolumesModule, but this async closure captures
         // the stale value. Effects #2/#3 will apply the correct filter once layers exist.
-        const updatedFeatures = computeFilteredFeatures(networkGeo, volumeJSON, timeRange, null);
+        const updatedFeatures = recomputeWindows(prepared, volumeById, timeRange, null, 'total');
 
         // Export the GeoJSON for the feature table
         if (setFeatureGeoJSON) {
@@ -976,8 +1063,12 @@ export default function useTransitVolumesLayer({
     const map = mapRef.current;
     if (!map || isGraphExpanded !== "TransitVolumes" || !originalGeoJSON.current) return;
 
-    const { geo, volumes } = originalGeoJSON.current;
-    const updatedFeatures = computeFilteredFeatures(geo, volumes, timeRange, highlightedLineId);
+    const { volumeById, prepared } = originalGeoJSON.current;
+    // A ref left over from an older code shape (e.g. after an HMR swap that
+    // preserved this ref) can be truthy but lack `prepared`. Bail until the init
+    // effect repopulates it rather than crashing recomputeWindows on undefined.
+    if (!prepared || !volumeById) return;
+    const updatedFeatures = recomputeWindows(prepared, volumeById, timeRange, highlightedLineId, selectedDirection);
 
     const source = map.getSource("transit-volumes-source");
     if (source) {
@@ -1025,7 +1116,7 @@ export default function useTransitVolumesLayer({
         features: updatedHighlight,
       });
     }
-  }, [timeRange, highlightedLineId]);
+  }, [timeRange, highlightedLineId, selectedDirection]);
 
   // ----- label size slider → update split label text-size in place -----------
   useEffect(() => {
@@ -1051,9 +1142,13 @@ export default function useTransitVolumesLayer({
         ]
         : null;
 
-    // 2) Build the optional "only this line" filter
+    // 2) Build the optional "only this line" filter. With a route-direction
+    // (.H/.R) active, match against that direction's line membership so
+    // segments the line only serves in the other direction drop out.
+    const dirLetter = directionLetter(selectedDirection);
+    const lineProp = dirLetter === 'H' ? 'line_ids_h' : dirLetter === 'R' ? 'line_ids_r' : 'line_ids';
     const lineFilter = highlightedLineId
-      ? ["in", highlightedLineId, ["get", "line_ids"]]
+      ? ["in", highlightedLineId, ["get", lineProp]]
       : null;
 
     // 3) Combine them
@@ -1064,7 +1159,7 @@ export default function useTransitVolumesLayer({
 
     // Apply to merged + split line/hitbox layers and the direction labels.
     applyLayerFilters(map, combinedFilter);
-  }, [selectedTransitModes, highlightedLineId, isGraphExpanded]);
+  }, [selectedTransitModes, highlightedLineId, isGraphExpanded, selectedDirection]);
 
   // ----- respond to table filter changes --------------------------------------
   useEffect(() => {
@@ -1080,9 +1175,11 @@ export default function useTransitVolumesLayer({
         ]
         : null;
 
-    // 2) Build the line filter
+    // 2) Build the line filter (direction-aware, same as the effect above)
+    const dirLetter = directionLetter(selectedDirection);
+    const lineProp = dirLetter === 'H' ? 'line_ids_h' : dirLetter === 'R' ? 'line_ids_r' : 'line_ids';
     const lineFilter = highlightedLineId
-      ? ["in", highlightedLineId, ["get", "line_ids"]]
+      ? ["in", highlightedLineId, ["get", lineProp]]
       : null;
 
     // 3) Build the table filter
@@ -1253,6 +1350,111 @@ export default function useTransitVolumesLayer({
 
     // Apply to merged + split line/hitbox layers and the direction labels.
     applyLayerFilters(map, combinedFilter);
-  }, [selectedTransitModes, highlightedLineId, isGraphExpanded, tableFilterQuery]);
+  }, [selectedTransitModes, highlightedLineId, isGraphExpanded, tableFilterQuery, selectedDirection]);
+
+  // ----- direction terminus marker -------------------------------------------
+  // With a line highlighted and a direction (outbound/return) selected, mark the
+  // selected direction's terminus stop (red dot + label) so the travel direction
+  // reads straight off the map — same marker as the Transit Stops module. The
+  // stop's coord + name come from route_directions.json (routeDirections); on
+  // legacy datasets without that asset there's no coord, so no marker is drawn.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (isGraphExpanded !== "TransitVolumes") {
+      removeTerminusMarker(map);
+      return;
+    }
+
+    removeTerminusMarker(map);
+
+    const dirLetter = highlightedLineId ? directionLetter(selectedDirection) : null;
+    if (!dirLetter) return;
+
+    const info = routeDirections?.[highlightedLineId] || null;
+    const endInfo = dirLetter === "H" ? info?.H : info?.R;
+    const end = endInfo?.coord;
+    if (!end) return;
+
+    // Gate on the line actually being served in this direction within the loaded
+    // canton — the terminus in route_directions.json is line-global, so without
+    // this a red dot could appear for a direction whose segments are all filtered
+    // out here (the line only runs the other way in this canton). Mirrors how the
+    // Transit Stops marker (useTransitLines) is tied to the drawn route geometry.
+    // Read the per-direction line membership off the prepared invariant props
+    // (the same data the map source is built from) rather than mapbox's private
+    // GeoJSONSource._data, whose presence/shape isn't guaranteed.
+    const lineProp = dirLetter === "H" ? "line_ids_h" : "line_ids_r";
+    const prepared = originalGeoJSON.current?.prepared || [];
+    const servesHere = prepared.some((p) =>
+      (p?.invariant?.[lineProp] || []).includes(highlightedLineId)
+    );
+    if (!servesHere) return;
+
+    const endName = endInfo?.terminus || "Terminus";
+    const drawMarker = () => {
+      map.addSource(TERMINUS_SOURCE, {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: [
+            { type: "Feature", geometry: { type: "Point", coordinates: end }, properties: { name: endName } },
+          ],
+        },
+      });
+      map.addLayer({
+        id: "transit-volumes-terminus-circle",
+        type: "circle",
+        source: TERMINUS_SOURCE,
+        paint: {
+          "circle-radius": 7,
+          "circle-color": "#ef4444",
+          "circle-stroke-color": "#ffffff",
+          "circle-stroke-width": 2,
+        },
+      });
+      map.addLayer({
+        id: "transit-volumes-terminus-label",
+        type: "symbol",
+        source: TERMINUS_SOURCE,
+        layout: {
+          "text-field": ["get", "name"],
+          "text-size": 12,
+          "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+          "text-offset": [0, -1.1],
+          "text-anchor": "bottom",
+          "text-allow-overlap": true,
+        },
+        paint: {
+          "text-color": "#b91c1c",
+          "text-halo-color": "#ffffff",
+          "text-halo-width": 1.5,
+        },
+      });
+    };
+
+    // Draw immediately: addSource/addLayer only need the style's initial load,
+    // NOT a fully-settled style. The old `if (!map.isStyleLoaded()) return;`
+    // guard bailed whenever the style had pending changes — which is the NORMAL
+    // state right here, because the sibling effects (setData + applyLayerFilters)
+    // dirty the style in the same commit when a direction is toggled. That made
+    // the marker silently never appear on the very interaction that needs it.
+    // Only a genuine mid-setStyle reload throws; retry that once on idle.
+    try {
+      drawMarker();
+    } catch {
+      const retry = () => {
+        removeTerminusMarker(map);
+        try { drawMarker(); } catch (err) {
+          console.warn("Failed to add transit-volumes terminus marker", err);
+        }
+      };
+      map.once("idle", retry);
+      return () => map.off("idle", retry);
+    }
+    // datasetId: re-evaluate on dataset switch. routeDirections: draw/relabel
+    // once the async route_directions.json resolves.
+  }, [isGraphExpanded, highlightedLineId, selectedDirection, routeDirections, datasetId]);
 
 }

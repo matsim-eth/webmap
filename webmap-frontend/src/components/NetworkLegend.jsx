@@ -48,11 +48,12 @@ const Legend = () => {
   const isVolumes = selectedGraph === "Volumes";
   const isNetwork = selectedGraph === "Network";
   const isTransit = selectedGraph === "Transit";
+  const isTransitVolumes = selectedGraph === "TransitVolumes";
   const isVolumeFlow = selectedGraph === "VolumeFlow";
   const isLinkSpeeds = selectedGraph === "LinkSpeeds";
   const isDestination = selectedGraph === "Destination";
 
-  if (!isVolumes && !isNetwork && !isVolumeFlow && !isLinkSpeeds && !isDestination && !(isTransit && showStopVolumeSymbology)) return null;
+  if (!isVolumes && !isNetwork && !isTransitVolumes && !isVolumeFlow && !isLinkSpeeds && !isDestination && !(isTransit && showStopVolumeSymbology)) return null;
 
   const destModes = destinationData?.selectedModes || [];
   const destPurposes = destinationData?.selectedPurposes || [];
@@ -153,6 +154,27 @@ const Legend = () => {
           </div>
         </div>
       )}
+      {/* Transit Volumes Legend — mirrors the green ramp + volume-driven width
+          in useTransitVolumesLayer.js (VOLUME_RAMP/WIDTH_EXPR on ns_volume). */}
+      {isTransitVolumes && (
+        <div className="network-legend-section">
+          <div className="network-legend-title">Transit Volume [passengers]</div>
+          <div className="network-legend-bar">
+            <span className="network-legend-label">0</span>
+            <span className="network-legend-label">10</span>
+            <span className="network-legend-label">50</span>
+            <span className="network-legend-label">100</span>
+            <span className="network-legend-label">250+</span>
+          </div>
+          <div
+            className="network-legend-gradient"
+            style={{
+              background: "linear-gradient(to right, #a1d99b, #74c476, #41ab5d, #238b45, #005a32)",
+            }}
+          />
+        </div>
+      )}
+
       {/* Link Speeds Legend */}
       {isLinkSpeeds && (
         <div className="network-legend-section">

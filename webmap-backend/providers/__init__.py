@@ -38,6 +38,7 @@ from .frequent_sequences import FrequentSequencesProvider
 
 # --- Special providers ---
 from .modes_by_canton import ModesByCantonProvider
+from .network_modes import NetworkModesProvider
 from .boarding_data import BoardingDataProvider
 from .stop_transfer_data import StopTransferDataProvider
 from .stop_municipality import StopMunicipalityProvider
@@ -83,6 +84,9 @@ ALL_PROVIDERS = [
     StackedBarDistanceProvider(),
     # Special
     ModesByCantonProvider(),
+    # Network-link modes (per zone) — feeds the Network/Volumes mode filter
+    # without waiting on the merged_segments geometry rebuild
+    NetworkModesProvider(),
     BoardingDataProvider(),
     StopTransferDataProvider(),
     StopMunicipalityProvider(),

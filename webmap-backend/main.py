@@ -94,14 +94,93 @@ def _ttl_seconds_from_exp(exp: int | None) -> int | None:
 # App
 # ---------------------------------------------------------------------------
 
+def _dataset_service_order() -> list[str]:
+    """Dataset ids from the dataset service, default-first then ascending id.
+
+    Empty list on any failure (service not up yet, no internal secret configured,
+    timeout) — the caller then falls back to the filesystem id sort, which agrees
+    with this apart from not knowing which dataset the admin marked default.
+    """
+    import httpx
+
+    # Send the secret when configured. When it is unset the dataset service
+    # skips the check entirely (relying on network isolation), so still make the
+    # call — bailing out here would disable default-first prewarming on every
+    # deployment that hasn't set the secret, which includes the dev stack.
+    secret = os.getenv("INTERNAL_SERVICE_SECRET", "").strip()
+    headers = {"X-Internal-Secret": secret} if secret else {}
+    url = os.getenv("DATASET_SERVICE_URL", "http://dataset_backend:5033")
+    try:
+        resp = httpx.get(
+            f"{url}/internal/datasets/order",
+            headers=headers,
+            timeout=5.0,
+        )
+        if resp.status_code != 200:
+            return []
+        return [str(i) for i in resp.json().get("dataset_ids", [])]
+    except Exception as exc:
+        logger.info("dataset order lookup failed, using id order: %s", exc)
+        return []
+
+
+def _prewarm_order(db_paths: list[str]) -> list[str]:
+    """Dataset roots in the order the prewarm should walk them: the admin-chosen
+    **default dataset first**, then ascending dataset id.
+
+    Ordering matters because each dataset costs ~70-100 s for the transit-stops
+    build, so whichever dataset is warmed last spends minutes cold — and if that
+    is the one the frontends open by default, the first user to touch Transit
+    Stops runs the whole country-wide build inside their request, contending with
+    the prewarm thread. (The `sorted()` this replaced ordered *paths as strings*,
+    so `1`, `2`, `3` preceded `7318579365` purely by string length, and under the
+    old `created_at DESC` list order the default landed last.)
+
+    The default comes from the dataset service (`/internal/datasets/order`); when
+    that is unreachable — it may not be up yet at startup — this degrades to
+    ascending id, which is the same order minus the default's promotion. A
+    dataset directory's name *is* its id, so that fallback needs no DB access.
+
+    `WEBMAP_PREWARM_ORDER` (comma-separated ids) overrides both, pinning datasets
+    to the front; unlisted ones follow, and unknown ids are ignored.
+    """
+    roots = {os.path.dirname(p) for p in db_paths}
+
+    def id_key(root: str) -> tuple:
+        """(0, id) for numeric dir names, (1, name) for anything else — so a
+        non-dataset directory sorts last instead of raising on int()."""
+        name = os.path.basename(root)
+        return (0, int(name), "") if name.isdigit() else (1, 0, name)
+
+    ordered = sorted(roots, key=id_key)
+
+    # Promote in the dataset service's order (default first). Only reorders what
+    # is already on disk; ids with no directory are ignored, and directories the
+    # service doesn't know about keep their id-sorted place at the back.
+    service_ids = _dataset_service_order()
+    if service_ids:
+        by_name = {os.path.basename(r): r for r in ordered}
+        front = [by_name[i] for i in service_ids if i in by_name]
+        ordered = front + [r for r in ordered if r not in set(front)]
+
+    pinned = [p.strip() for p in os.getenv("WEBMAP_PREWARM_ORDER", "").split(",") if p.strip()]
+    if pinned:
+        by_name = {os.path.basename(r): r for r in ordered}
+        front = [by_name[n] for n in pinned if n in by_name]
+        ordered = front + [r for r in ordered if r not in set(front)]
+    return ordered
+
+
 def _prewarm_caches() -> None:
     """Background: precompute the two slow, parameter-less builds for every
     dataset so the first user never waits on a cold scan:
       • speed_dashboard — a 50M-row link_speeds scan (~30s, minutes cold);
       • transit stops    — a country-wide _build() over boarding_data + the
-        1.7M-row network (~seconds, much worse on a cold mmap), which otherwise
-        fires on the first stops_by_canton request.
-    Runs one dataset at a time in a daemon thread; disable with WEBMAP_PREWARM=0.
+        1.7M-row network (~70-100 s per dataset), which otherwise fires on the
+        first stops_by_canton request.
+    Runs one dataset at a time in a daemon thread, in `_prewarm_order` (the
+    admin-chosen default dataset first, then ascending id — matching the order the
+    dataset service serves to the frontends); disable with WEBMAP_PREWARM=0.
     Errors are swallowed (incompatible datasets just skip)."""
     import glob
     import time
@@ -121,7 +200,8 @@ def _prewarm_caches() -> None:
         time.sleep(delay_s)
 
     base = os.getenv("WEBMAP_ROOT", "/data/datasets/public")
-    roots = sorted({os.path.dirname(p) for p in glob.glob(os.path.join(base, "*", "synthetic.duckdb"))})
+    roots = _prewarm_order(glob.glob(os.path.join(base, "*", "synthetic.duckdb")))
+    logger.info("prewarm order: %s", ", ".join(os.path.basename(r) for r in roots))
     from providers.study_area import study_area_dict, zones_fc_bytes
 
     for root in roots:
@@ -243,6 +323,9 @@ _TRAFFIC_SUFFIX = "_link_traffic_volumes.json"
 _COUNTS_RE = _re.compile(r"transit/per_canton_counts/(.+)_counts\.json$")
 _STOPS_RE = _re.compile(r"transit/stops_by_canton/(.+)_stops\.geojson$")
 _ROUTES_BY_LINE_RE = _re.compile(r"transit/routes/by_line/(.+)\.geojson$")
+_PT_VOLUMES_RE = _re.compile(
+    r"transit/volumes_by_link_line/pt_link_volumes_by_link_line_(.+)\.json$"
+)
 
 
 def _canton_id_from(name: str) -> int | None:
@@ -312,6 +395,29 @@ async def matsim_asset(dataset_id: int, asset_path: str, request: Request):
                     min_capacity = None
             rows = await _asyncio.to_thread(link_traffic_volumes, cid, min_capacity, major)
             return JSONResponse(rows)
+
+        # Per-canton PT link volumes (per link/line 15-min bins with a .H/.R
+        # direction split) from the pt_link_volumes table. Datasets without the
+        # table 404 → frontend falls back to the CDN's preprocessed file.
+        mv = _PT_VOLUMES_RE.match(asset_path)
+        if mv:
+            cid = _canton_id_from(mv.group(1))
+            if cid is None:
+                return JSONResponse({"error": "not found"}, status_code=404)
+            from providers.pt_link_volumes import volumes_by_link_line
+            rows = await _asyncio.to_thread(volumes_by_link_line, cid)
+            if rows is None:
+                return JSONResponse({"error": "not found"}, status_code=404)
+            return JSONResponse(rows)
+
+        # Per-line .H/.R direction metadata (most common terminus stop name per
+        # direction) — labels the direction filter in the transit modules.
+        if asset_path == "transit/route_directions.json":
+            from providers.transit_routes import route_directions
+            rd = await _asyncio.to_thread(route_directions)
+            if rd is None:
+                return JSONResponse({"error": "not found"}, status_code=404)
+            return JSONResponse(rd)
 
         # A single transit line's route geometry — a slice of `transit_routes`
         # by line_id (tens of KB vs the full ~76 MB asset). The map overlay

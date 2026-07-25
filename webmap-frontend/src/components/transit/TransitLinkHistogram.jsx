@@ -1,6 +1,7 @@
 import React from "react";
 import Plot from "react-plotly.js";
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
+import { directionLetter } from "../../utils/directionUtils";
 import { useData } from "../../context/DataContext";
 import { useQuery } from "@tanstack/react-query";
 
@@ -9,7 +10,8 @@ const TransitLinkHistogram = ({
   highlightedLineId,
   timeRange = [0, 96],
   canton,
-  triggerVisualize
+  triggerVisualize,
+  selectedDirection
 }) => {
   const loadWithFallback = useLoadWithFallback();
   const { datasetId } = useData();
@@ -42,6 +44,7 @@ const TransitLinkHistogram = ({
               timeBins: l.hourly_avg_volumes || {},
               line_name: l.line_name ?? null,
               mode: l.mode ?? null,
+              directions: l.directions ?? null,
             };
           }
           return { ...entry, lines: linesObj };
@@ -70,9 +73,15 @@ const TransitLinkHistogram = ({
   const values = Array(96).fill(0);
   const lines  = volumeData.lines || {};
   const lineIds = highlightedLineId ? [highlightedLineId] : Object.keys(lines);
+  // Route-direction (.H/.R) filter — only with a line selected and per-
+  // direction bins present (v2 backend data); CDN files fall back to totals.
+  const dirLetter = highlightedLineId ? directionLetter(selectedDirection) : null;
 
   for (const id of lineIds) {
-    const bins = lines[id]?.timeBins || {};
+    const line = lines[id];
+    const bins = (dirLetter && line?.directions)
+      ? (line.directions[dirLetter] || {})
+      : (line?.timeBins || {});
     for (let h = 0; h < 96; h++) {
       const hour   = String(Math.floor(h / 4)).padStart(2, "0");
       const minute = String((h % 4) * 15).padStart(2, "0");

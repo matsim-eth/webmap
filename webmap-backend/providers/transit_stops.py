@@ -39,6 +39,11 @@ _ds_cache: dict[str, dict] = {}
 # (thundering herd). The first request builds; the rest wait and reuse it.
 _build_lock = threading.Lock()
 
+# dataset_key → {canton_name: [mode, ...]}. Populated by the *light* modes-only
+# path (see transit_modes) so the mode dropdown never waits on a full _build().
+_modes_cache: dict[str, dict] = {}
+_modes_lock = threading.Lock()
+
 
 def _linkid(stop_id: str) -> str | None:
     """The network link id embedded after '.link:' in a stop_id."""
@@ -75,8 +80,14 @@ def _build() -> dict:
     canton, resolve coordinates, and return a per-dataset bundle
     ``{"stops": {cid: FeatureCollection}, "modes": {...}, "inter": None}``."""
     from .boarding_data import BoardingDataProvider
+    from .pt_link_volumes import stop_line_directions
 
     lines = BoardingDataProvider()._load()
+
+    # (stop pt-link, line_id) → {"H","R"} route directions calling there, from
+    # the pt_link_volumes table. Empty for datasets without that table — the
+    # frontend treats missing/empty dirs as "no direction data" (filter inert).
+    dirmap = stop_line_directions() or {}
 
     # canton_id -> station_key -> station dict
     by_canton: dict[int, dict[str, dict]] = defaultdict(dict)
@@ -107,18 +118,24 @@ def _build() -> dict:
                     "lines": {},
                     "modes": set(),
                 }
+            lk = _linkid(sid)
             if sid not in station["stop_ids"]:
                 station["stop_ids"].append(sid)
-                lk = _linkid(sid)
                 if lk:
                     station["linkids"].append(lk)
-            if lid not in station["lines"]:
-                station["lines"][lid] = {
+            line_entry = station["lines"].get(lid)
+            if line_entry is None:
+                line_entry = station["lines"][lid] = {
                     "line_id": lid,
                     "line_name": lname,
                     "mode": mode,
                     "route_id": lid,
+                    "dirs": set(),
                 }
+            # Union over the station's platforms: which route directions of
+            # this line call at this station (drives the direction filter).
+            if lk:
+                line_entry["dirs"] |= dirmap.get((lk, lid), set())
             if mode:
                 station["modes"].add(mode)
 
@@ -147,7 +164,10 @@ def _build() -> dict:
                 "properties": {
                     "name": st["name"],
                     "stop_id": st["stop_ids"],
-                    "lines": list(st["lines"].values()),
+                    "lines": [
+                        {**l, "dirs": sorted(l["dirs"])}
+                        for l in st["lines"].values()
+                    ],
                     "modes_list": sorted(st["modes"]),
                 },
             })
@@ -182,9 +202,60 @@ def stops_by_canton(canton_id: int) -> dict:
     return _bundle()["stops"].get(canton_id, {"type": "FeatureCollection", "features": []})
 
 
+def _build_modes_only() -> dict:
+    """``{canton_name: [mode, ...]}`` from the boarding asset alone.
+
+    The mode dropdown needs only each line's mode + the cantons it serves. The
+    full :func:`_build` additionally walks every stop entry (~116k), calls
+    ``stop_line_directions()`` (a pt_link_volumes scan) and runs the
+    coord-resolution join that :func:`_resolve_coords` documents as the dominant
+    cost — none of which the mode list depends on. Skipping all three turns a
+    multi-second cold build into ~1 s (essentially just the 24 MB blob fetch and
+    JSON parse), so the dropdown populates while the stops are still loading.
+
+    Deliberately reuses ``BoardingDataProvider._load()`` rather than reading the
+    blob directly: ``_load`` is what normalises v2's ``modes`` array into the
+    single ``vehicle`` field and canton ids into names. Deriving the vocabulary
+    any other way risks emitting mode strings the map's ``modes`` filter can
+    never match.
+    """
+    from .boarding_data import BoardingDataProvider
+
+    modes_by_canton: dict[str, set] = defaultdict(set)
+    for line in BoardingDataProvider()._load():
+        mode = line.get("vehicle")
+        if not mode:
+            continue
+        for cname in line.get("cantons") or []:
+            modes_by_canton[cname].add(mode)
+    return {k: sorted(v) for k, v in modes_by_canton.items()}
+
+
 def transit_modes() -> dict:
-    """``{canton_name: [mode, ...]}`` for the line mode filter."""
-    return _bundle()["modes"]
+    """``{canton_name: [mode, ...]}`` for the line mode filter.
+
+    Prefers the full bundle when it happens to be built already (free — the
+    prewarm thread or an earlier stops request got there first); otherwise takes
+    the light modes-only path instead of forcing a full build. Both produce the
+    identical mapping; they only differ in how much unrelated work they do.
+    """
+    dk = dataset_key()
+    bundle = _ds_cache.get(dk)
+    if bundle is not None:
+        return bundle["modes"]
+
+    hit = _modes_cache.get(dk)
+    if hit is not None:
+        return hit
+
+    with _modes_lock:
+        hit = _modes_cache.get(dk)
+        if hit is None:
+            # Re-check the bundle: it may have finished while we waited.
+            bundle = _ds_cache.get(dk)
+            hit = bundle["modes"] if bundle is not None else _build_modes_only()
+            _modes_cache[dk] = hit
+        return hit
 
 
 def inter_cantonal_stops() -> dict:

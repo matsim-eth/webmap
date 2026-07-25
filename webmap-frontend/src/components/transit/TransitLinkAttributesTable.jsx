@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import "../Table.css";
+import DirectionToggle from "./DirectionToggle";
+import { directionLetter } from "../../utils/directionUtils";
 
-const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLineId, timeRange, linkFilter, volumesByLink }) => {
+const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLineId, timeRange, linkFilter, volumesByLink, selectedDirection, setSelectedDirection, directionLabels }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   if (!propertiesList || !Array.isArray(propertiesList) || propertiesList.length === 0) return null;
 
@@ -92,6 +94,7 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
         allLines[lineId] = {
           total: 0,
           timeBins: {},
+          directions: null,
           line_name: lineName,
           mode
         };
@@ -107,6 +110,15 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
       const dest = allLines[lineId].timeBins;
       const src = line.timeBins || {};
       for (const key in src) dest[key] = (dest[key] ?? 0) + (src[key] ?? 0);
+
+      // Merge per-direction (.H/.R) bins when present
+      if (line.directions) {
+        const dstDirs = allLines[lineId].directions || (allLines[lineId].directions = {});
+        for (const [d, bins] of Object.entries(line.directions)) {
+          const dst = dstDirs[d] || (dstDirs[d] = {});
+          for (const key in bins) dst[key] = (dst[key] ?? 0) + (bins[key] ?? 0);
+        }
+      }
     }
   };
   if (useByLink) {
@@ -125,14 +137,19 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
     : propertiesList.reduce((sum, p) => sum + (p.total_volume ?? 0), 0);
   
   let filteredVolume = 0;
-  
+
   const lineFilter = highlightedLineId ? [highlightedLineId] : Object.keys(allLines);
-  
+  // Route-direction (.H/.R) filter — applies with a line selected and per-
+  // direction bins available (v2 backend data); otherwise total bins.
+  const dirLetter = highlightedLineId ? directionLetter(selectedDirection) : null;
+
   for (const lineId of lineFilter) {
     const line = allLines[lineId];
     if (!line) continue;
-    
-    const timeBins = line.timeBins || {};
+
+    const timeBins = (dirLetter && line.directions)
+      ? (line.directions[dirLetter] || {})
+      : (line.timeBins || {});
     for (let h = startTick; h < endTick; h++) {
       const hour = Math.floor(h / 4).toString().padStart(2, '0');
       const minute = ((h % 4) * 15).toString().padStart(2, '0');
@@ -273,6 +290,20 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
     </div>
     </td>
     </tr>
+    {/* Route-direction filter (.H/.R) — only meaningful with a line selected;
+        labels show each direction's most common terminus stop when known. */}
+    {highlightedLineId && setSelectedDirection && (
+    <tr>
+    <td>Direction</td>
+    <td>
+      <DirectionToggle
+        value={selectedDirection}
+        onChange={setSelectedDirection}
+        labels={directionLabels}
+      />
+    </td>
+    </tr>
+    )}
     </tbody>
     </table>
     )}

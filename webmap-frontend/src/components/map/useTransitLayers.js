@@ -69,7 +69,8 @@ export default function useTransitLayers({
     setHighlightedRouteIds,
     setSelectedTransitStop,
     suppressNextSearchZoom,
-    datasetId
+    datasetId,
+    selectedDirection
   )
   
   useTransitVolumesLayer({
@@ -85,6 +86,7 @@ export default function useTransitLayers({
     highlightedLineId,
     setFeatureGeoJSON,
     tableFilterQuery,
+    selectedDirection,
     labelSize,
     drawRef
   });

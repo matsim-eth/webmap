@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo, useState } from 'react';
 import { useStudyArea } from '../hooks/useStudyArea';
+import { useDefaultDataset } from '../hooks/useDefaultDataset';
 
 const DataContext = createContext(null);
 
@@ -9,8 +10,12 @@ const DataContext = createContext(null);
  * the per-module data buckets (node flows, link speeds, zone flows, etc).
  */
 export const DataProvider = ({ children }) => {
-  const [datasetId, setDatasetId] = useState(1);
+  // Starts null and resolves to the user's first available active dataset (see
+  // useDefaultDataset) rather than hardcoding an id — so nothing fetches against
+  // a dataset the user may not own before they've picked one.
+  const [datasetId, setDatasetId] = useState(null);
   const [dataURL, setDataURL] = useState('https://matsim-eth.github.io/webmap/data/');
+  useDefaultDataset(datasetId, setDatasetId);
   const [cantonList, setCantonList] = useState([]);
 
   // Per-dataset study area (zone labels, zone list, map extent). Re-fetches on
