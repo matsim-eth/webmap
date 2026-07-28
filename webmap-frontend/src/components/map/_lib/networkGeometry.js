@@ -17,9 +17,11 @@
  * callers await the same in-flight promise; failures are not cached so a retry
  * can still succeed.
  *
- * Only the newest (dataset, canton) is kept. A canton network is tens of MB
- * parsed, and the previous behaviour already peaked at two copies (one per
- * hook), so a single entry is strictly cheaper than what it replaces.
+ * Two entries are kept, because the road Volumes module asks for the major-roads
+ * subset (~1/5 the size) while every other module needs the full network — one
+ * entry would make each switch between them a refetch. A canton network is tens
+ * of MB parsed, and the pre-cache behaviour already peaked at two copies (one
+ * per hook), so this is not a memory regression.
  */
 
 import {
@@ -28,10 +30,21 @@ import {
   decoratePerIdMinMax,
 } from './pipeProps';
 
-// { key, geo, promise } — `geo` set once resolved, `promise` while in flight.
-let entry = { key: null, geo: null, promise: null };
+// Entries keyed `dataset:canton:variant`, newest last (LRU). Two are kept so the
+// road Volumes module's major-roads subset and the full network other modules
+// need can both stay warm — toggling "major roads only", or hopping Volumes ↔
+// Network, then costs no download.
+const MAX_ENTRIES = 2;
+const entries = new Map(); // key → { geo, promise }
 
-const cacheKey = (datasetId, canton) => `${datasetId ?? ''}:${canton ?? ''}`;
+const cacheKey = (datasetId, canton, major) =>
+  `${datasetId ?? ''}:${canton ?? ''}:${major ? 'major' : 'all'}`;
+
+const touch = (key, value) => {
+  entries.delete(key);
+  entries.set(key, value);
+  while (entries.size > MAX_ENTRIES) entries.delete(entries.keys().next().value);
+};
 
 /**
  * Load (or return the cached) merged network geometry for a canton.
@@ -48,15 +61,21 @@ const cacheKey = (datasetId, canton) => `${datasetId ?? ''}:${canton ?? ''}`;
  * @returns {Promise<object|null>} the FeatureCollection, or whatever falsy
  *   value the loader produced (never cached)
  */
-export async function loadNetworkGeometry(loadWithFallback, datasetId, canton) {
-  const key = cacheKey(datasetId, canton);
-  if (entry.key === key) {
-    if (entry.geo) return entry.geo;
-    if (entry.promise) return entry.promise;
+export async function loadNetworkGeometry(loadWithFallback, datasetId, canton, major = false) {
+  const key = cacheKey(datasetId, canton, major);
+  const hit = entries.get(key);
+  if (hit) {
+    touch(key, hit);
+    if (hit.geo) return hit.geo;
+    if (hit.promise) return hit.promise;
   }
 
   const promise = (async () => {
-    const geo = await loadWithFallback(`matsim/${canton}_merged_segments.geojson`);
+    // ?major=1 asks the backend for only the links MAJOR_ROADS_FILTER shows.
+    // The CDN fallback ignores the query string and serves the full network,
+    // which is still correct — just larger; the map filter narrows it anyway.
+    const path = `matsim/${canton}_merged_segments.geojson${major ? '?major=1' : ''}`;
+    const geo = await loadWithFallback(path);
     if (!geo?.features?.length) return geo;
 
     // Does the SOURCE file ship per-link daily volumes? Recorded before any
@@ -78,18 +97,15 @@ export async function loadNetworkGeometry(loadWithFallback, datasetId, canton) {
     return geo;
   })();
 
-  entry = { key, geo: null, promise };
+  touch(key, { geo: null, promise });
 
   try {
     const geo = await promise;
-    if (entry.key === key) {
-      entry = geo?.features?.length
-        ? { key, geo, promise: null }
-        : { key: null, geo: null, promise: null };
-    }
+    if (geo?.features?.length) touch(key, { geo, promise: null });
+    else entries.delete(key); // nothing usable — don't cache it
     return geo;
   } catch (err) {
-    if (entry.key === key) entry = { key: null, geo: null, promise: null };
+    entries.delete(key); // failures aren't cached, so a retry can still succeed
     throw err;
   }
 }
@@ -97,13 +113,14 @@ export async function loadNetworkGeometry(loadWithFallback, datasetId, canton) {
 /**
  * Drop the cached geometry so the next load refetches — the escape hatch behind
  * the sidebar's Reset button, for when a dataset's assets changed underneath a
- * live session (the cache key only tracks dataset + canton).
+ * live session (the cache key only tracks dataset, canton and variant).
  *
- * An in-flight load is left alone: its awaiting callers still need it, and
- * clearing it would only make the next consumer refetch the file already on the
- * wire.
+ * In-flight loads are left alone: their awaiting callers still need them, and
+ * dropping one would only make the next consumer refetch the file already on
+ * the wire.
  */
 export function clearNetworkGeometryCache() {
-  if (entry.promise) return;
-  entry = { key: null, geo: null, promise: null };
+  for (const [key, value] of entries) {
+    if (!value.promise) entries.delete(key);
+  }
 }

@@ -37,3 +37,43 @@ export function fetchLinkVolumes(datasetId, canton) {
     linkVolumesCache.set(key, p);
     return p;
 }
+
+// Per-link routed-trip counts, keyed by `${datasetId}:${canton}:${socioQuery}`.
+// Same shape as fetchLinkVolumes (Promise<Map<linkId, count>|null>), but the
+// number is the spider "Total Trips" for that link — the count VolumeFlow shows
+// in Segment Info — rather than the link_speeds vehicle volume. VolumeFlow
+// filters the displayed network on it so every clickable link actually has a
+// spider to draw; volume > 0 was a weaker test (link_speeds counts vehicles that
+// have no entry in the spider index, so those links opened an empty spider).
+// Socio-filtered, unlike volumes: the spider queries are, so the two must agree.
+const linkTripsCache = new Map();
+
+export function fetchLinkTripCounts(datasetId, canton, socioParams = {}) {
+    const query = new URLSearchParams({ canton });
+    for (const [k, v] of Object.entries(socioParams)) query.set(k, v);
+    const socioKey = new URLSearchParams(socioParams).toString();
+    const key = `${datasetId}:${canton}:${socioKey}`;
+    if (linkTripsCache.has(key)) return linkTripsCache.get(key);
+    const url = `/backend/data/${datasetId}/spider_link_trips.json?${query.toString()}`;
+    const p = (async () => {
+        try {
+            let res = await fetch(url);
+            if (res.status === 401) {
+                const ok = await handle401();
+                if (!ok) return null;
+                res = await fetch(url);
+            }
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            if (data.error) { console.warn('spider_link_trips error:', data.error); return null; }
+            const links = data.links || {};
+            return new Map(Object.entries(links).map(([k, v]) => [String(k), Number(v)]));
+        } catch (err) {
+            console.warn('Failed to fetch link trip counts:', err);
+            linkTripsCache.delete(key);
+            return null;
+        }
+    })();
+    linkTripsCache.set(key, p);
+    return p;
+}

@@ -3,7 +3,13 @@ import useAntPath from './useAntPath';
 import { safeRemoveLayer, safeRemoveSource, setVisibility, setFilter } from './_lib/mapbox';
 import { parsePipeList } from './_lib/pipeProps';
 import { CLICKABLE_ROAD_FILTER, MAJOR_ROADS_FILTER } from './_lib/mapboxFilters';
-import { loadNetworkGeometry, clearNetworkGeometryCache } from './_lib/networkGeometry';
+import { loadNetworkGeometry } from './_lib/networkGeometry';
+
+// Modules that aren't "network modules" but render the SAME MATSim links with
+// their own symbology. Their layers replace the road network's on screen, so
+// the base layers are hidden rather than destroyed — see the module-switch
+// effect. Keep in sync with the modules that call loadNetworkGeometry.
+const SHARES_NETWORK_GEOMETRY = new Set(['TransitVolumes']);
 
 export default function useNetworkLayers({
   mapRef,
@@ -37,6 +43,22 @@ export default function useNetworkLayers({
   // default view) and the full variant (fetched lazily when "major roads only"
   // is unchecked). Keyed by `${datasetId}:${canton}`.
   const volCacheRef = useRef({ key: null, major: null, full: null });
+  // Which geometry variant is currently in `network-source`. Only the road
+  // Volumes module shows the major-roads subset; every other network module
+  // needs the full set (CLICKABLE_ROAD_FILTER is all car links, LinkSpeeds and
+  // the Network view are all links), so switching between them has to reload.
+  // Tracked here rather than derived, so both the module-switch and the
+  // major-toggle effect can tell "already loaded" from "needs a reload".
+  const loadedMajorRef = useRef(null);
+  const wantMajorGeometry = () =>
+    graphExpandedRef.current === 'Volumes' && !!showMajorRoadsOnly;
+  // Serialises loads. A module switch can run the major-toggle effect and the
+  // module-switch effect in the same commit, and both may decide to load; the
+  // geometry cache dedupes the fetch, but two resolutions would both reach
+  // addSource and the second would throw on the duplicate id. Only the newest
+  // load is allowed past its await. Also covers a canton change mid-load.
+  const loadTokenRef = useRef(0);
+
   const selectedNetworkModesRef = useRef(selectedNetworkModes);
   
   useEffect(() => {
@@ -196,20 +218,32 @@ export default function useNetworkLayers({
     setIsLoading(true);
     setSelectedNetworkFeature(null);
     
-    // Shared per-(dataset, canton) geometry: fetched, merged (the stripped
-    // per-link CDN format → one feature per visual segment) and decorated once,
-    // then handed to every module that symbolises these links — including
-    // Transit Volumes, which used to fetch its own copy of the same file.
+    // Shared per-(dataset, canton, variant) geometry: fetched, merged (the
+    // stripped per-link CDN format → one feature per visual segment) and
+    // decorated once, then handed to every module that symbolises these links —
+    // including Transit Volumes, which used to fetch its own copy of the file.
+    // Claim the variant before the await so the sibling effect can see what is
+    // being loaded and doesn't kick off a duplicate load for the same view.
+    const major = wantMajorGeometry();
+    loadedMajorRef.current = major;
+    const token = ++loadTokenRef.current;
+
     let networkGeojson;
     try {
-      networkGeojson = await loadNetworkGeometry(loadWithFallback, datasetId, cantonName);
+      networkGeojson = await loadNetworkGeometry(loadWithFallback, datasetId, cantonName, major);
     } catch (error) {
+      if (token !== loadTokenRef.current) return;
       console.warn(`Failed to load network`, error);
+      loadedMajorRef.current = null; // nothing loaded — let a retry through
       setFeatureGeoJSON?.(null);
       setIsLoading(false);
       return;
     }
+    // Superseded by a newer load — that one owns the map now, so stop before
+    // touching any source or layer.
+    if (token !== loadTokenRef.current) return;
     if (!networkGeojson) {
+      loadedMajorRef.current = null;
       setFeatureGeoJSON?.(null);
       setIsLoading(false);
       return;
@@ -424,6 +458,17 @@ export default function useNetworkLayers({
     const map = mapRef.current;
     if (!map || !(graphExpandedRef.current === 'Volumes' || graphExpandedRef.current === 'VolumeFlow' || graphExpandedRef.current === 'NodeFlows' || graphExpandedRef.current === 'LinkSpeeds')) return;
 
+    // Toggling "major roads only" changes which geometry variant we want, not
+    // just which links are drawn: ticked, Volumes fetches the major-roads subset
+    // (~5× smaller); unticked, it needs the full network back. Reload and let
+    // loadNetworkForCanton reapply the filters — both variants stay cached, so
+    // flipping the box back and forth costs no download.
+    if (searchCanton && loadedMajorRef.current !== null
+        && loadedMajorRef.current !== wantMajorGeometry()) {
+      loadNetworkForCanton(searchCanton);
+      return;
+    }
+
     // Exact match for "car" mode (prevents matching "cable car")
     const carFilter = ['>=', ['index-of', ',car,', ['concat', ',', ['get', 'modes'], ',']], 0];
     let fullFilter;
@@ -472,9 +517,9 @@ export default function useNetworkLayers({
     if (!map || !canton) return;
     
     // Fully remove network layers + source. Used when switching to a module
-    // (e.g. TransitVolumes) that renders its own styling off the same network
-    // geometry — leaving hidden network layers around causes z-order issues
-    // because other hooks insert their layers below `canton-highlight`.
+    // that has nothing to do with the road network — leaving hidden layers
+    // around caused z-order issues, because other hooks insert their layers
+    // below `canton-highlight` while these sit above it.
     const NETWORK_LAYERS = ['network-layer','network-layer-hitbox','network-highlight',
       'network-label-left','network-label-right'];
 
@@ -483,10 +528,15 @@ export default function useNetworkLayers({
       safeRemoveSource(map, ['network-source','network-highlight','ant-path']);
     };
 
-      const show = () => setVisibility(map, NETWORK_LAYERS, true);
+    const show = () => setVisibility(map, NETWORK_LAYERS, true);
+    const hide = () => setVisibility(map, NETWORK_LAYERS, false);
         
         if (isGraphExpanded === 'Network' || isGraphExpanded === 'Volumes' || isGraphExpanded === 'VolumeFlow' || isGraphExpanded === 'NodeFlows' || isGraphExpanded === 'LinkSpeeds') {
-          if (map.getLayer('network-layer')) {
+          // A loaded network is only reusable if it's the variant this module
+          // needs — coming out of Volumes' major-roads view into VolumeFlow with
+          // the major subset still in the source would hide every minor road
+          // from a module that is supposed to show them all.
+          if (map.getLayer('network-layer') && loadedMajorRef.current === wantMajorGeometry()) {
             show();
             // Always re-sync featureGeoJSON on entry to any network module — the
             // context value may have been cleared by another module (e.g. Transit
@@ -494,7 +544,13 @@ export default function useNetworkLayers({
             // NodeFlows, LinkSpeeds) read it via a ref and break silently if null.
             const source = map.getSource('network-source');
             if (source && originalNetworkGeoJSON.current) {
-              source.setData(originalNetworkGeoJSON.current);
+              // Only push data the source doesn't already hold. setData forces
+              // Mapbox to re-tile every feature, which on a big canton is the
+              // whole cost of re-entering a module — and coming back from
+              // Transit Volumes the source still holds this exact object.
+              if (source._data !== originalNetworkGeoJSON.current) {
+                source.setData(originalNetworkGeoJSON.current);
+              }
               setFeatureGeoJSON?.(originalNetworkGeoJSON.current);
             } else if (source && !originalNetworkGeoJSON.current) {
               loadNetworkForCanton(canton);
@@ -511,9 +567,26 @@ export default function useNetworkLayers({
               applyLabelCarAndMajorFilter(map, showMajorRoadsOnly);
             }
           }
+        } else if (SHARES_NETWORK_GEOMETRY.has(isGraphExpanded)) {
+          // Transit Volumes styles these very links by PT volume, so it takes
+          // the map over but the geometry stays relevant. Tearing the source
+          // down here meant coming back re-added ~180k features to Mapbox and
+          // put "Loading network..." on screen for something that isn't a load
+          // at all — the inconsistency being that switching *between* network
+          // modules never does this. Hide instead: the return trip is a show().
+          // Hidden layers are neither drawn nor hit-tested, so they can't cover
+          // or steal clicks from the transit layers.
+          hide();
+          // featureGeoJSON belongs to whoever owns the map — Transit Volumes
+          // publishes its own — but originalNetworkGeoJSON/linkVolumeData stay
+          // so the return trip needs neither a fetch nor a re-tile.
+          setFeatureGeoJSON?.(null);
+          setSelectedNetworkFeature(null);
+          return;
         } else {
           removeAll();
           originalNetworkGeoJSON.current = null;
+          loadedMajorRef.current = null; // source gone → next entry must reload
           setLinkVolumeData(null);
           setFeatureGeoJSON?.(null);
           setSelectedNetworkFeature(null);
@@ -643,6 +716,7 @@ export default function useNetworkLayers({
           safeRemoveLayer(map, ['network-layer','network-layer-hitbox','network-highlight',
             'network-label-left','network-label-right']);
           safeRemoveSource(map, ['network-source','network-highlight','ant-path']);
+          loadedMajorRef.current = null;
           }
         // datasetId: on a dataset switch, reload the active network module's
         // geometry for the current canton from the new dataset (loadNetworkForCanton
@@ -659,13 +733,10 @@ export default function useNetworkLayers({
           ]);
           safeRemoveSource(map, ['network-source','ant-path','network-highlight']);
 
-          // Reset is the user's "start clean" action, so let go of the shared
-          // geometry too (Transit Volumes reads the same cache) — the next
-          // canton selection refetches it.
-          clearNetworkGeometryCache();
           originalNetworkGeoJSON.current = null;
+          loadedMajorRef.current = null;
           setLinkVolumeData(null);
-          setFeatureGeoJSON?.(null); 
+          setFeatureGeoJSON?.(null);
           setSelectedNetworkFeature(null);
         }, [resetMapTrigger]);
       }

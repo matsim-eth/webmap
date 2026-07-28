@@ -1,10 +1,19 @@
-"""Per-canton network geometry, built on demand from the ``network_links`` table.
+"""Per-canton network geometry: the dataset's precomputed asset when it has one,
+otherwise rebuilt on demand from the ``network_links`` table.
 
-The v2 duckdb also ships a precomputed ``merged_segments:{cid}`` static_asset,
-but that blob is *thin* — only ``link_id``/``road_type``/``freespeed``. The road
-"Volumes" and "MATSim Network" modules need ``modes`` (the car-only mode filter)
-and ``capacity`` (line-width + the major-roads toggle); without them the Volumes
-car filter matches nothing and the map renders blank.
+**v3 datasets** ship a *fat* ``merged_segments:{cid}`` static_asset — already
+merged, carrying the full property set — and it is served straight through
+(~1.8 s for a 50 MB canton, vs ~24 s to rebuild the identical bytes).
+
+**v2 datasets** ship a *thin* blob of the same name: only
+``link_id``/``road_type``/``freespeed``, one unmerged feature per directed link.
+The road "Volumes" and "MATSim Network" modules need ``modes`` (the car-only mode
+filter) and ``capacity`` (line-width + the major-roads toggle); without them the
+Volumes car filter matches nothing and the map renders blank. So a thin asset is
+rejected by :func:`_is_fat` and the rebuild below runs instead.
+
+The rebuild is **transitional** — see the note on :func:`merged_segments_geojson`
+for what to delete once every dataset ships the fat asset.
 
 ``network_links`` already has ``modes``/``capacity``/``length`` plus the LV95
 geometry, so we rebuild the FeatureCollection the frontend expects. Forward and
@@ -108,21 +117,161 @@ def _js_num(v) -> str:
     return str(int(f)) if f == int(f) else repr(f)
 
 
-def merged_segments_geojson(canton_id: int) -> bytes | None:
+# Markers that identify a *fat* (v3) ``merged_segments:{cid}`` asset — one that
+# already carries the merge and the full property set. The legacy thin export
+# has none of them (it is one unmerged feature per directed link with only
+# link_id/road_type/freespeed), so any one would do; all three are checked so a
+# half-migrated export can't be mistaken for a complete one.
+_FAT_MARKERS = (b'"per_id_keys"', b'"modes"', b'"capacity"')
+# The first feature's properties sit at the head of the document, well inside
+# this window (~500 bytes in practice). Sniffing a bounded slice keeps the check
+# O(1) instead of parsing 50 MB of JSON just to answer "is this the new format?".
+_SNIFF_BYTES = 65536
+
+
+def _is_fat(payload: bytes) -> bool:
+    head = payload[:_SNIFF_BYTES]
+    return all(m in head for m in _FAT_MARKERS)
+
+
+def _stored_merged_segments(canton_id: int) -> bytes | None:
+    """The precomputed ``merged_segments:{cid}`` asset, if this dataset ships the
+    fat (v3) version. None → dataset predates the export change, rebuild instead."""
+    from .helpers import load_static_asset_bytes
+
+    try:
+        payload = load_static_asset_bytes("synthetic", f"merged_segments:{canton_id}")
+    except Exception:
+        return None
+    if payload is None or not _is_fat(payload):
+        return None
+    return payload
+
+
+def merged_segments_geojson(canton_id: int, major: bool = False) -> bytes | None:
     """Return the zone (canton)'s network as serialized GeoJSON bytes, or None if
-    the ``network_links`` table is unavailable (older datasets → caller falls
-    back to the thin static_asset blob). ``canton_id`` is the primary zone id."""
-    ckey = (dataset_key(), canton_id)
+    the network is unavailable for this dataset. ``canton_id`` is the primary
+    zone id.
+
+    ``major=True`` returns only major roads, the same subset the frontend's
+    ``MAJOR_ROADS_FILTER`` displays (see :func:`major_road_clause`). The road
+    "Volumes" module defaults to that view, and it is ~5× less of everything —
+    Zürich: 33,756 features / 3.8 MB of geometry against 180,719 / 20.4 MB — so
+    the browser downloads, parses and tiles a fraction of the network for the
+    view it actually shows. Variants are cached separately.
+
+    Prefers the dataset's precomputed ``merged_segments:{cid}`` asset, which v3
+    exports ship already merged and fully propertied — verified byte-identical to
+    :func:`_rebuild_from_network_links` output, at ~1.8 s instead of ~24 s.
+
+    .. note:: **The rebuild path below is transitional.** It exists only for
+       datasets exported before the merged_segments export was fixed (datasets
+       1–3 still carry the thin 3-property blob). Once every dataset in use ships
+       the fat asset, delete ``_rebuild_from_network_links`` and everything it
+       pulls in (``_round_coords``, ``_flat_coords``, ``_arrow_for_coords``,
+       ``_geometry_key``, ``_js_num``) — this module then collapses to a cached
+       blob read. Check for thin assets before removing it: an asset is thin if
+       ``features[0].properties`` lacks ``per_id_keys``/``modes``/``capacity``.
+    """
+    ckey = (dataset_key(), canton_id, major)
     with _LOCK:
         hit = _CACHE.get(ckey)
         if hit is not None:
             _CACHE.move_to_end(ckey)
             return hit
 
+    payload = _stored_merged_segments(canton_id)
+    if payload is not None:
+        # The stored asset is always the whole network; subset it here. Costs one
+        # parse + re-serialise, paid once per (dataset, zone) because the result
+        # is cached below — still far cheaper than shipping 5× the features.
+        if major:
+            payload = _filter_major(payload)
+    else:
+        payload = _rebuild_from_network_links(canton_id, major=major)
+    if payload is None:
+        return None
+
+    with _LOCK:
+        _CACHE[ckey] = payload
+        _CACHE.move_to_end(ckey)
+        while len(_CACHE) > _CACHE_MAX:
+            _CACHE.popitem(last=False)
+    return payload
+
+
+def _filter_major(payload: bytes) -> bytes | None:
+    """Major-roads subset of an already-serialized FeatureCollection.
+
+    Used for the fat (v3) stored asset, which ships the whole network. Its
+    features are already merged, so the test applies to the segment's scalar
+    props exactly as the client's MAJOR_ROADS_FILTER does — `road_type` when
+    usable, else the `capacity > 1200` fallback — and whole segments are kept or
+    dropped together, matching the rebuild path's node-pair grouping.
+    """
+    from .link_speeds import MAJOR_ROAD_TYPES
+
+    try:
+        fc = json.loads(payload)
+    except Exception:
+        return None
+    major = set(MAJOR_ROAD_TYPES)
+
+    def keep(props: dict) -> bool:
+        rt = props.get("road_type")
+        if isinstance(rt, str) and rt and rt != "unknown":
+            return rt in major
+        cap = props.get("capacity")
+        return isinstance(cap, (int, float)) and cap > 1200
+
+    fc["features"] = [f for f in fc.get("features", []) if keep(f.get("properties") or {})]
+    return json.dumps(fc).encode()
+
+
+def _rebuild_from_network_links(canton_id: int, major: bool = False) -> bytes | None:
+    """Rebuild the merged FeatureCollection from ``network_links``.
+
+    TRANSITIONAL — see the note on :func:`merged_segments_geojson`. Returns None
+    when the table is unavailable/incompatible.
+
+    ``major`` narrows the query to major roads. Everything downstream (the
+    ST_AsGeoJSON, the Python merge loop, the json.dumps) scales with row count,
+    so the filtered rebuild is roughly 5× cheaper rather than more expensive.
+
+    The filter keeps every link sharing an (undirected) node pair with a major
+    link, not merely the major links themselves. Merging is by geometry and
+    links with the same geometry necessarily share endpoints, so the node pair
+    is a superset of each merge group — which is what makes the subset agree
+    *exactly* with the client's MAJOR_ROADS_FILTER. That filter tests a merged
+    segment's representative link (the first in row order), so it keeps whole
+    segments; filtering per link instead would strip the non-major members of a
+    mixed segment, e.g. the `service` link that shares a geometry with a
+    `primary` pair. Zürich: 45 of 80,859 merge groups are mixed, so the wider
+    rule costs 31 extra links and ~0.1 s.
+    """
+    from .link_speeds import major_road_clause
+
     try:
         cur = get_source_cursor("synthetic")
         zcol = zone_col("synthetic", "network_links", "zone")
         crs = get_registry().crs
+        if major:
+            clause, major_args = major_road_clause()
+            # Flag whole node-pair groups, then keep them. The window runs over
+            # plain columns, so the geometry transform below only touches rows
+            # that survive.
+            source = f"""(
+                SELECT *, MAX(CASE WHEN {clause} THEN 1 ELSE 0 END) OVER (
+                    PARTITION BY least(from_node, to_node), greatest(from_node, to_node)
+                ) AS grp_major
+                FROM network_links WHERE {zcol} = ?
+            )"""
+            where = "grp_major = 1"
+            params = [*major_args, canton_id]
+        else:
+            source = "network_links"
+            where = f"{zcol} = ?"
+            params = [canton_id]
         rows = cur.execute(
             f"""
             -- Some PT links carry freespeed = Infinity (and other columns could
@@ -143,10 +292,10 @@ def merged_segments_geojson(canton_id: int) -> bytes | None:
                    ST_AsGeoJSON(
                        ST_Transform(geom, '{crs}', 'EPSG:4326', always_xy := true)
                    ) AS gj
-            FROM network_links
-            WHERE {zcol} = ?
+            FROM {source}
+            WHERE {where}
             """,
-            [canton_id],
+            params,
         ).fetchall()
     except Exception:
         return None  # table absent / incompatible dataset → fall back to blob
@@ -210,13 +359,8 @@ def merged_segments_geojson(canton_id: int) -> bytes | None:
         })
     features.extend(singletons)
 
-    payload = json.dumps(
+    # Caching is the caller's job (merged_segments_geojson) so the stored-asset
+    # and rebuilt paths share one cache entry per (dataset, zone).
+    return json.dumps(
         {"type": "FeatureCollection", "features": features}
     ).encode("utf-8")
-
-    with _LOCK:
-        _CACHE[ckey] = payload
-        _CACHE.move_to_end(ckey)
-        while len(_CACHE) > _CACHE_MAX:
-            _CACHE.popitem(last=False)
-    return payload

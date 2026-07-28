@@ -358,17 +358,18 @@ async def matsim_asset(dataset_id: int, asset_path: str, request: Request):
             cid = _canton_id_from(asset_path[: -len(_MERGED_SUFFIX)])
             if cid is None:
                 return JSONResponse({"error": "not found"}, status_code=404)
-            # Build the network from network_links so it carries modes/capacity/
-            # length (the precomputed merged_segments blob is thin — link_id/
-            # road_type/freespeed only — which blanks the Volumes car filter and
-            # breaks capacity line-width). Fall back to the static blob for older
-            # datasets that lack the network_links table.
+            # merged_segments_geojson owns the source choice: it serves the
+            # dataset's precomputed merged_segments asset when that asset is the
+            # fat (v3) one, and otherwise rebuilds from network_links for older
+            # datasets whose asset is thin. Both paths share its per-(dataset,
+            # zone) LRU, so repeat visits are cache hits either way.
+            # ?major=1 returns only the links the frontend's MAJOR_ROADS_FILTER
+            # displays — the road Volumes module's default view — which is ~5×
+            # fewer features to transfer, parse and tile. Same flag and same
+            # predicate as the traffic-volumes asset below.
+            major = request.query_params.get("major") in ("1", "true", "True")
             from providers.network_geometry import merged_segments_geojson
-            payload = await _asyncio.to_thread(merged_segments_geojson, cid)
-            if payload is None:
-                payload = await _asyncio.to_thread(
-                    load_static_asset_bytes, "synthetic", f"merged_segments:{cid}"
-                )
+            payload = await _asyncio.to_thread(merged_segments_geojson, cid, major)
             if payload is None:
                 return JSONResponse({"error": "not found"}, status_code=404)
             return _Response(content=payload, media_type="application/geo+json")

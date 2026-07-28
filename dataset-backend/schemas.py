@@ -40,7 +40,11 @@ class DefaultDatasetIn(BaseModel):
     operation is inherently *exclusive* — setting one default clears the other —
     so it can't be expressed as an independent per-dataset field without making
     "is_default: false" ambiguous (clear this one? or clear everything?)."""
-    dataset_id: int | None = None  # None clears the default entirely
+
+    # Required but nullable: an explicit `null` clears the default, while an
+    # empty body is a 422 rather than a silent clear. Without `Field(...)` a
+    # client that dropped the field would wipe the system default and get a 200.
+    dataset_id: int | None = Field(...)
 
 
 class RezoneIn(BaseModel):

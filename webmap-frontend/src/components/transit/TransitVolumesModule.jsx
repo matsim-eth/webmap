@@ -35,7 +35,10 @@ import { useQuery } from "@tanstack/react-query";
 const TRANSIT_EXTRA_STATE_SOURCES = ['transit-volumes-split-source'];
 
 const TransitVolumesModule = ({ transitFeatureTableRef }) => {
-  const { dataURL, datasetId, isFeatureTableOpen, featureGeoJSON, setTableFilterQuery, transitVolumesByLink } = useData();
+  const {
+    dataURL, datasetId, isFeatureTableOpen, featureGeoJSON, setTableFilterQuery,
+    transitVolumesByLink, transitVolumesDetailPending,
+  } = useData();
   const {
     selectedTransitModes, setSelectedTransitModes,
     showLineSymbology, setShowLineSymbology,
@@ -382,10 +385,15 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
         the road Volumes module's control row. */}
     <div className="right-sidebar-control-row">
 
-    {/* Slider and label */}
+    {/* Slider and label. The links are on the map as soon as the network
+        geometry resolves, but the time window needs the per-line volume
+        payload — disable it until that lands rather than letting it look
+        active while doing nothing. */}
     <div style={{ flex: 1 }}>
     <label className="right-sidebar-label" style={{ marginLeft: "7%" }}>
-    Time: {formatTimeLabel(timeRange[0])} - {formatTimeLabel(timeRange[1])}
+    {transitVolumesDetailPending
+      ? "Loading volumes…"
+      : `Time: ${formatTimeLabel(timeRange[0])} - ${formatTimeLabel(timeRange[1])}`}
     </label>
     <Slider
     range
@@ -396,6 +404,7 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
     value={timeRange}
     onChange={(val) => setTimeRange(val)}
     allowCross={false}
+    disabled={transitVolumesDetailPending}
     style={{ marginLeft: "10%", width: "80%" }}
     />
     </div>

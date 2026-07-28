@@ -2,6 +2,24 @@ import { useEffect } from "react";
 import { safeRemoveLayer, safeRemoveSource, setFilter } from './_lib/mapbox';
 import { lineServesDirection } from '../../utils/directionUtils';
 
+const STOP_LAYER_ID = "transit-stops-layer";
+const LABEL_LAYER_ID = "transit-stops-label";
+
+// Dim every stop that the highlighted line does not serve. The direction toggle
+// only switches which membership property is matched — both are injected up front.
+const applyLineMask = (map, lineId, direction) => {
+  const lineIdsProp = direction === 'outbound' ? "line_ids_h"
+    : direction === 'return' ? "line_ids_r" : "line_ids";
+  const matchLineExpr = ["in", lineId, ["get", lineIdsProp]];
+  if (map.getLayer(STOP_LAYER_ID)) {
+    map.setPaintProperty(STOP_LAYER_ID, "circle-opacity", ["case", matchLineExpr, 1, 0.2]);
+    map.setPaintProperty(STOP_LAYER_ID, "circle-stroke-opacity", ["case", matchLineExpr, 1.0, 0.2]);
+  }
+  if (map.getLayer(LABEL_LAYER_ID)) {
+    map.setPaintProperty(LABEL_LAYER_ID, "text-opacity", ["case", matchLineExpr, 1.0, 0.2]);
+  }
+};
+
 export default function useTransitStops({
   mapRef,
   searchCanton,
@@ -419,9 +437,18 @@ export default function useTransitStops({
     // Skip opacity reset if polygon fading is active (hook will re-apply)
     const hasPolygons = drawRef?.current?.getAll?.()?.features?.length > 0;
     if (!hasPolygons) {
-      map.setPaintProperty("transit-stops-layer", "circle-opacity", 1);
-      map.setPaintProperty("transit-stops-layer", "circle-stroke-opacity", 1.0);
-      map.setPaintProperty("transit-stops-label", "text-opacity", 1.0);
+      // A line highlight outlives a re-run of this effect (stop-volume toggle,
+      // mode filter, time range), so re-apply its mask instead of blanket
+      // resetting — the reset un-dimmed every stop in the canton, which read as
+      // the line having been de-selected. The mask effect below can't repair it:
+      // this effect resolves asynchronously, so it lands last.
+      if (highlightedLineId) {
+        applyLineMask(map, highlightedLineId, selectedDirection);
+      } else {
+        map.setPaintProperty(STOP_LAYER_ID, "circle-opacity", 1);
+        map.setPaintProperty(STOP_LAYER_ID, "circle-stroke-opacity", 1.0);
+        map.setPaintProperty(LABEL_LAYER_ID, "text-opacity", 1.0);
+      }
     }
 
     // If this canton load was triggered by an inter-cantonal stop click and a line is selected,
@@ -432,18 +459,7 @@ export default function useTransitStops({
         (f) => Array.isArray(f.properties.line_ids) && f.properties.line_ids.includes(highlightedLineId)
       );
       if (hasLineHere) {
-        const applyMask = () => {
-          const lineIdsProp = selectedDirection === 'outbound' ? "line_ids_h"
-            : selectedDirection === 'return' ? "line_ids_r" : "line_ids";
-          const matchLineExpr = ["in", highlightedLineId, ["get", lineIdsProp]];
-          if (map.getLayer("transit-stops-layer")) {
-            map.setPaintProperty("transit-stops-layer", "circle-opacity", ["case", matchLineExpr, 1, 0.2]);
-            map.setPaintProperty("transit-stops-layer", "circle-stroke-opacity", ["case", matchLineExpr, 1.0, 0.2]);
-          }
-          if (map.getLayer("transit-stops-label")) {
-            map.setPaintProperty("transit-stops-label", "text-opacity", ["case", matchLineExpr, 1.0, 0.2]);
-          }
-        };
+        const applyMask = () => applyLineMask(map, highlightedLineId, selectedDirection);
         map.once("idle", applyMask);
         setTimeout(applyMask, 500);
       }
@@ -466,37 +482,11 @@ useEffect(() => {
   const map = mapRef.current;
   if (!map || isGraphExpanded !== "Transit") return;
   
-  const STOP_LAYER_ID = "transit-stops-layer";
-  const LABEL_LAYER_ID = "transit-stops-label";
-  
   function updateStopMask() {
     if (!map.getLayer(STOP_LAYER_ID) || !map.getLayer(LABEL_LAYER_ID)) return;
 
     if (highlightedLineId) {
-      const lineIdsProp = selectedDirection === 'outbound' ? "line_ids_h"
-        : selectedDirection === 'return' ? "line_ids_r" : "line_ids";
-      const matchLineExpr = ["in", highlightedLineId, ["get", lineIdsProp]];
-      
-      map.setPaintProperty(STOP_LAYER_ID, "circle-opacity", [
-        "case",
-        matchLineExpr,
-        1,
-        0.2,
-      ]);
-      
-      map.setPaintProperty(STOP_LAYER_ID, "circle-stroke-opacity", [
-        "case",
-        matchLineExpr,
-        1.0,
-        0.2,
-      ]);
-      
-      map.setPaintProperty(LABEL_LAYER_ID, "text-opacity", [
-        "case",
-        matchLineExpr,
-        1.0,
-        0.2,
-      ]);
+      applyLineMask(map, highlightedLineId, selectedDirection);
     } else {
       // Re-apply polygon fading if polygons are drawn, otherwise reset to full opacity
       const hasPolygons = drawRef?.current?.getAll?.()?.features?.length > 0;

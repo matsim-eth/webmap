@@ -1,8 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { nearestPointOnLine, lineString, point } from "@turf/turf";
 import { safeRemoveLayer, safeRemoveSource, setFilter } from './_lib/mapbox';
 import { parsePipeList, pipeMinMax } from './_lib/pipeProps';
 import { loadNetworkGeometry } from './_lib/networkGeometry';
+import { loadPtVolumeBundle } from './_lib/ptVolumes';
+import { filterTransitFeatures, transitModesOf } from './_lib/transitLinks';
 import { clearNetworkHighlightData, clearAntLine } from './_lib/featureSelection';
 import { directionLetter } from '../../utils/directionUtils';
 import { useData } from '../../context/DataContext';
@@ -56,6 +58,24 @@ const removeTerminusMarker = (map) => {
   safeRemoveLayer(map, TERMINUS_LAYERS);
   safeRemoveSource(map, TERMINUS_SOURCE);
 };
+
+// Stage-1 width: by capacity, exactly like the road network's base rendering in
+// useNetworkLayers. The colour stays on the volume ramp (everything reads 0, so
+// the whole network comes up at the ramp's low end and then fills in) — same
+// placeholder the road Volumes module shows before its volumes arrive.
+// `coalesce` because PT-only links (rail, tram, funicular) often carry no
+// capacity, and a null would make the interpolation error out per feature.
+const PENDING_WIDTH_EXPR = ["interpolate", ["linear"],
+  ["coalesce", ["get", "capacity"], 1000], 300, 1, 4000, 8];
+
+// Merged-layer ramp/width on the windowed segment total (`daily_avg_volume`),
+// mirroring the road "Volumes" module.
+const MERGED_RAMP = ["interpolate", ["linear"], ["get", "daily_avg_volume"],
+  0, "#a1d99b", 10, "#74c476", 50, "#41ab5d", 100, "#238b45", 250, "#005a32"];
+const MERGED_WIDTH_EXPR = ["interpolate", ["linear"], ["get", "daily_avg_volume"],
+  0, 3, 10, 5, 50, 7, 100, 9, 250, 11];
+const MERGED_HITBOX_WIDTH_EXPR = ["interpolate", ["linear"], ["get", "daily_avg_volume"],
+  0, 6, 10, 8, 50, 10, 100, 11, 250, 11];
 
 // Green transit ramp/width on the per-direction windowed volume (`ns_volume`) —
 // identical stops to the merged transit-volumes-layer (which colours by
@@ -179,6 +199,56 @@ function pickByClickSide(hits, clickLngLat) {
   return hits.find(h => offsetSign(h.properties.ls_arrow, h.properties.angle) === want) || ref;
 }
 
+// Re-point the highlight sources at the equivalent features in a freshly
+// computed set — same segment via link_key_join, same direction via ls_arrow.
+// Used on every recompute (time / line / direction) and on the stage-2 handover,
+// where the user may have clicked a link while only the geometry was loaded.
+// Returns the matched features so the caller can refresh the sidebar from them.
+function syncHighlights(map, features, splitFeatures) {
+  const matchedSplit = [];
+  const splitHighlight = map.getSource(SPLIT_HIGHLIGHT_ID);
+  if (splitHighlight) {
+    const prev = splitHighlight._data?.features || [];
+    for (const f of splitFeatures) {
+      const hit = prev.some(
+        (p) =>
+          p?.properties?.link_key_join === f?.properties?.link_key_join &&
+          p?.properties?.ls_arrow === f?.properties?.ls_arrow
+      );
+      if (hit) matchedSplit.push(f);
+    }
+    splitHighlight.setData({ type: "FeatureCollection", features: matchedSplit });
+  }
+
+  const matchedMerged = [];
+  const highlightSource = map.getSource("network-highlight");
+  if (highlightSource) {
+    const prevKeys = new Set(
+      (highlightSource._data?.features || [])
+        .map((f) => f?.properties?.link_key_join)
+        .filter(Boolean)
+    );
+    for (const f of features) {
+      if (prevKeys.has(f?.properties?.link_key_join)) matchedMerged.push(f);
+    }
+    highlightSource.setData({ type: "FeatureCollection", features: matchedMerged });
+  }
+
+  return { merged: matchedMerged, split: matchedSplit };
+}
+
+// "Only this line" map filter, direction-aware: with a route-direction (.H/.R)
+// active it matches that direction's line membership so segments the line only
+// serves the other way drop out. Returns null while the volume data is still
+// loading — line membership is derived from it, so filtering the stage-1
+// features by line would match nothing and blank the map.
+function buildLineFilter(highlightedLineId, selectedDirection, detailReady) {
+  if (!highlightedLineId || !detailReady) return null;
+  const dirLetter = directionLetter(selectedDirection);
+  const lineProp = dirLetter === 'H' ? 'line_ids_h' : dirLetter === 'R' ? 'line_ids_r' : 'line_ids';
+  return ["in", highlightedLineId, ["get", lineProp]];
+}
+
 // Apply the combined mode/line/table filter to every line + hitbox layer, and to
 // the two direction-label layers with their ls_arrow constraint AND-ed in (the
 // labels live on the split source now, so each must stay pinned to its own
@@ -211,7 +281,25 @@ export default function useTransitVolumesLayer({
   const originalGeoJSON = useRef(null);
   // Per-link volume lookup for the sidebar (see DataContext) — published here
   // because this hook is the only place the raw volume JSON is available.
-  const { setTransitVolumesByLink } = useData();
+  // `setTransitVolumesDetailPending` drives the module's "loading volumes"
+  // affordance while stage 2 is in flight.
+  const { setTransitVolumesByLink, setTransitVolumesDetailPending: setDetailPending } = useData();
+
+  // Two-stage load bookkeeping. `detailReady` is state (not a ref) because the
+  // filter effects must re-run when the volume data lands — the line filter is
+  // volume-derived and stays off until then. `runIdRef` invalidates a stage
+  // still in flight when the canton/dataset/module changes under it.
+  const [detailReady, setDetailReady] = useState(false);
+  const runIdRef = useRef(0);
+
+  // Live filter state for stage 2, which resolves long after init's closure was
+  // created and must honour whatever the user has since selected.
+  const timeRangeRef = useRef(timeRange);
+  timeRangeRef.current = timeRange;
+  const highlightedLineIdRef = useRef(highlightedLineId);
+  highlightedLineIdRef.current = highlightedLineId;
+  const selectedDirectionRef = useRef(selectedDirection);
+  selectedDirectionRef.current = selectedDirection;
   // Per-line H/R terminus names + coords for the direction terminus marker
   // (null until route_directions.json resolves; legacy datasets stay null and
   // the marker simply doesn't render — the direction filter is inert there too).
@@ -245,7 +333,10 @@ export default function useTransitVolumesLayer({
         const total = Object.values(bins).reduce((a, v) => a + (Number(v) || 0), 0);
 
         linesObj[String(l.line_id)] = {
-          timeBins: { ...bins },
+          // No defensive copy: `bins` comes straight from the freshly parsed
+          // payload and nothing downstream mutates it (mergeLines accumulates
+          // into its own objects).
+          timeBins: bins,
           line_name: l.line_name ?? null,
           mode: l.mode ?? null,
           directions: l.directions ?? null,
@@ -334,11 +425,16 @@ export default function useTransitVolumesLayer({
       modes.split(",").forEach((m) => m && acc.add(m.trim()));
   };
 
-  // Normalize the raw volume JSON into { link_id: { lines, linkTotal,
-  // modes_list } } with linesToObject-shaped lines (timeBins/total always
-  // present) — the DataContext bucket the attributes table narrows by link.
-  const buildVolumesByLink = (rawVolumeJSON) => {
-    const byId = toVolumeById(rawVolumeJSON);
+  // Normalize a volume index into { link_id: { lines, linkTotal, modes_list } }
+  // with linesToObject-shaped lines (timeBins/total always present) — the shape
+  // prepareFeatures/recomputeWindows read AND the DataContext bucket the
+  // attributes table narrows by link.
+  //
+  // toVolumeById already emits exactly this for the normal array payload, so
+  // re-deriving it was a second full sweep of every link-line pair for no
+  // change in value. Only the legacy object-keyed payload needs the pass.
+  const normalizeVolumeIndex = (byId, alreadyNormalized) => {
+    if (alreadyNormalized) return byId;
     const out = Object.create(null);
     for (const [id, entry] of Object.entries(byId)) {
       const lines = linesToObject(entry);
@@ -373,8 +469,28 @@ export default function useTransitVolumesLayer({
   // recomputeWindows() then only re-sums the windowed directional volumes on each
   // interaction — the expensive parse/match/merge here is done once and reused.
   // Returns [{ f, links: [{id, arrow}], invariant: {...props} }].
-  function prepareFeatures(networkGeo, volumeById) {
+  //
+  // `features` is the PT-capable subset (see transitLinks.js), NOT the whole
+  // canton — the road links can never appear in the volume index, so sweeping
+  // them was ~3.5× wasted work.
+  //
+  // A link with no volume rows is dropped, EXCEPT when its transit modes are
+  // ones this dataset can never express on geometry. Some modes record their
+  // volumes only against `pt_*` stop pseudo-links rather than the network links
+  // they run over — in dataset 3 that is every ferry (127) and subway (79)
+  // link, so those modes could never render in any canton. Those are kept at
+  // zero; a bus-allowed residential street with no service is not, because bus
+  // volumes DO land on geometry, so its absence from the index is real
+  // information (in Zürich that distinction is 13k links of noise).
+  function prepareFeatures(features, volumeById, hasSourceVolumes) {
     const prepared = [];
+    // Modes the volume payload actually attaches to real network links. Built
+    // from the index alone (ids, not geometry), so it costs one cheap pass.
+    const servedModes = new Set();
+    for (const [id, entry] of Object.entries(volumeById)) {
+      if (id.startsWith("pt_")) continue;
+      for (const m of entry?.modes_list || []) servedModes.add(String(m));
+    }
     // volume_min/max drive the table's numeric "Total Volume" map filter and are
     // read off the geometry's own `per_id_daily_avgs` (road volumes — present on
     // the legacy CDN asset, absent on v2). The shared geometry is also handed to
@@ -382,9 +498,9 @@ export default function useTransitVolumesLayer({
     // property, so honour the loader's source flag: without it, whether a
     // v2 dataset's transit filter saw 0 or road volumes would depend on whether
     // the user had visited the Volumes module first.
-    const useSourceVolumes = networkGeo.sourceHasDailyAvgs !== false;
+    const useSourceVolumes = hasSourceVolumes !== false;
 
-    for (const f of networkGeo.features) {
+    for (const f of features) {
       const keys = parsePipeList(f?.properties?.per_id_keys);
       const arrows = parsePipeList(f?.properties?.per_id_arrows);
       if (keys.length === 0) continue;
@@ -402,7 +518,6 @@ export default function useTransitVolumesLayer({
           if (volumeById[c]) matchedIds.push(c);
         }
       }
-      if (matchedIds.length === 0) continue;
 
       let totalAllBins = 0;              // full-day sum across all bins/lines
       let totalLeft = 0, totalRight = 0; // directional full-day sums
@@ -416,8 +531,10 @@ export default function useTransitVolumesLayer({
         const entry = volumeById[id];
         if (!entry) continue;
 
-        // Merge per-line bins (all lines on this link) for the sidebar.
-        mergeLines(mergedLines, linesToObject(entry));
+        // Merge per-line bins (all lines on this link) for the sidebar. The
+        // index is already normalised (see normalizeVolumeIndex), so re-running
+        // linesToObject per link here only re-allocated identical objects.
+        mergeLines(mergedLines, entry.lines);
 
         const arrow = arrowMap[id] ?? arrowMap[cleanLinkId(id)] ?? null;
         links.push({ id, arrow });
@@ -435,6 +552,22 @@ export default function useTransitVolumesLayer({
         // Unfiltered (segment-level) mode union — the filtered case derives its
         // single mode from mergedLines in recomputeWindows.
         unionModes(modesUnion, entry.modes_list);
+      }
+
+      // No matched links. Keep the link only if none of its transit modes are
+      // ones the payload puts on geometry — i.e. it is unrenderable-by-data
+      // (ferry/subway), not simply unserved. Then fall back to the geometry's
+      // own ids/arrows/modes so it still renders, still splits by direction at
+      // high zoom, and still answers the mode filter. Without the direction
+      // fallback buildSplitFeatures would see defined-but-empty right_ids/
+      // left_ids, trust them, and drop the link past SPLIT_ZOOM.
+      if (!matchedIds.length) {
+        const linkModes = transitModesOf(f.properties?.modes);
+        if (!linkModes.length || linkModes.some((m) => servedModes.has(m))) continue;
+        for (const raw of keys) {
+          (arrowMap[raw] === "←" ? leftIds : rightIds).push(String(raw));
+        }
+        for (const m of linkModes) modesUnion.add(m);
       }
 
       // Per-direction line membership for the H/R map filter. Lines with no
@@ -456,6 +589,10 @@ export default function useTransitVolumesLayer({
       // matchedIds sorted in place → link_ids + link_key_join match the previous
       // (mutating) behaviour; links/leftIds/rightIds were built before this.
       matchedIds.sort();
+      // Identity used for click + highlight matching. A link with no matched
+      // ids falls back to its own, otherwise every unserved feature would share
+      // an empty key and clicking one would select all of them at once.
+      const identityIds = matchedIds.length ? matchedIds : keys.map(String).sort();
 
       const invariant = {
         ...f.properties,
@@ -488,8 +625,8 @@ export default function useTransitVolumesLayer({
         line_ids: Object.keys(mergedLines),
         line_ids_h: lineIdsH,
         line_ids_r: lineIdsR,
-        link_ids: matchedIds,
-        link_key_join: matchedIds.join(","),
+        link_ids: identityIds,
+        link_key_join: identityIds.join(","),
       };
 
       prepared.push({ f, links, invariant });
@@ -581,6 +718,60 @@ export default function useTransitVolumesLayer({
     return features;
   }
 
+  // Stage-1 features: the PT-capable network, drawn before the volume payload
+  // lands. Same shape recomputeWindows emits, with every volume-derived number
+  // zeroed — so the layers, the split overlay, clicking and the feature table
+  // all work immediately and only the numbers are missing. Volumes then replace
+  // this wholesale (the served links are a subset of these, see transitLinks.js).
+  function buildPendingFeatures(features, hasSourceVolumes) {
+    const out = [];
+    for (const f of features) {
+      const props = f.properties || {};
+      const keys = parsePipeList(props.per_id_keys);
+      if (!keys.length) continue;
+
+      const cap = pipeMinMax(props.per_id_capacities);
+      const len = pipeMinMax(props.per_id_lengths);
+      const fre = pipeMinMax(props.per_id_freespeeds);
+      const vol = hasSourceVolumes ? pipeMinMax(props.per_id_daily_avgs) : { min: null, max: null };
+      // Array form, matching the invariant's `modes` — the mode filter and the
+      // module's boundary aggregate both accept either, but staying consistent
+      // across the two stages keeps `["in", mode, ["get","modes"]]` exact.
+      const modes = Array.isArray(props.modes)
+        ? props.modes
+        : String(props.modes || "").split(",").map((m) => m.trim()).filter(Boolean);
+      const ids = keys.slice().sort();
+
+      out.push({
+        ...f,
+        properties: {
+          ...props,
+          angle: computeAngle(f),
+          modes,
+          // Volume-derived, unknown until stage 2.
+          total_volume: 0,
+          total_left: 0,
+          total_right: 0,
+          daily_avg_volume: 0,
+          left_sum: 0,
+          right_sum: 0,
+          filtered_volume: 0,
+          capacity_min: cap.min ?? 0,
+          capacity_max: cap.max ?? 0,
+          length_min: len.min ?? 0,
+          length_max: len.max ?? 0,
+          freespeed_min: fre.min ?? 0,
+          freespeed_max: fre.max ?? 0,
+          volume_min: vol.min ?? 0,
+          volume_max: vol.max ?? 0,
+          link_ids: ids,
+          link_key_join: ids.join(","),
+        },
+      });
+    }
+    return out;
+  }
+
   // ----- initial load --------------------------------------------------------
 
   useEffect(() => {
@@ -617,6 +808,13 @@ export default function useTransitVolumesLayer({
 
       setSelectedTransitLink(null);
       setTransitVolumesByLink(null);
+      setDetailReady(false);
+      setDetailPending?.(false);
+      // Own the spinner's *off* switch as well as its on switch. Teardown runs
+      // on module exit, which can land while a stage is still in flight — the
+      // in-flight run then bails on its superseded check and would otherwise
+      // leave "Loading network..." on screen over whatever the user switched to.
+      setIsLoading(false);
       originalGeoJSON.current = null;
     };
 
@@ -865,194 +1063,229 @@ export default function useTransitVolumesLayer({
     const onSplitEnter = () => { map.getCanvas().style.cursor = "pointer"; };
     const onSplitLeave = () => { map.getCanvas().style.cursor = ""; };
 
+    // Create the sources + layers for a feature set. Called once, from stage 1 —
+    // stage 2 only swaps the data in and repaints, so the map never flickers
+    // between the two.
+    const createLayers = (features, pending) => {
+      map.addSource("transit-volumes-source", {
+        type: "geojson",
+        generateId: true,
+        data: { type: "FeatureCollection", features },
+      });
+
+      // Visible merged line layer — mirrors the road “Volumes” colour ramp
+      // (daily_avg_volume). Shown only below SPLIT_ZOOM (capped further down).
+      // While volumes are pending every feature reads 0, which the ramp would
+      // paint a uniform pale green — indistinguishable from "this line really
+      // carries nobody" — so it starts neutral grey and applyDetail() swaps in
+      // the ramp when the numbers arrive.
+      map.addLayer(
+        {
+          id: MERGED_LAYER_ID,
+          type: "line",
+          source: "transit-volumes-source",
+          layout: { "line-join": "round", "line-cap": "round" },
+          paint: {
+            "line-color": MERGED_RAMP,
+            "line-width": pending ? PENDING_WIDTH_EXPR : MERGED_WIDTH_EXPR,
+          },
+        },
+        "canton-highlight"
+      );
+
+      // Merged hitbox
+      map.addLayer(
+        {
+          id: MERGED_HITBOX_ID,
+          type: "line",
+          source: "transit-volumes-source",
+          paint: { "line-opacity": 0, "line-width": MERGED_HITBOX_WIDTH_EXPR },
+        },
+        MERGED_LAYER_ID
+      );
+
+      // Per-direction split overlay (offset lines) for zoom >= SPLIT_ZOOM,
+      // built from the same features regrouped by direction.
+      map.addSource(SPLIT_SOURCE_ID, {
+        type: "geojson",
+        data: { type: "FeatureCollection", features: buildSplitFeatures(features) },
+      });
+
+      map.addLayer({
+        id: SPLIT_LAYER_ID,
+        type: "line",
+        source: SPLIT_SOURCE_ID,
+        minzoom: SPLIT_ZOOM,
+        layout: { "line-join": "round", "line-cap": "round" },
+        paint: {
+          "line-color": VOLUME_RAMP,
+          "line-width": pending ? PENDING_WIDTH_EXPR : WIDTH_EXPR,
+          "line-opacity": 1,
+          "line-offset": LINE_OFFSET_EXPR,
+        },
+      });
+
+      // Invisible wide hitbox over the split lines — click + hover bind here.
+      map.addLayer({
+        id: SPLIT_HITBOX_ID,
+        type: "line",
+        source: SPLIT_SOURCE_ID,
+        minzoom: SPLIT_ZOOM,
+        paint: {
+          "line-width": HITBOX_WIDTH_EXPR,
+          "line-color": "#000",
+          "line-opacity": 0,
+          "line-offset": LINE_OFFSET_EXPR,
+        },
+      });
+
+      // Direction labels (on the split source, on top of every line layer).
+      // Their text is "" while ns_volume is 0, so nothing is drawn until the
+      // volumes land — no special casing needed for the pending stage.
+      addLabelLayersIfMissing();
+
+      // Hand off merged ↔ split: merged only below SPLIT_ZOOM, split overlay
+      // only at/above it (its minzoom). Prevents the merged line drawing under
+      // the offset pair.
+      if (map.getLayer(MERGED_LAYER_ID)) map.setLayerZoomRange(MERGED_LAYER_ID, 0, SPLIT_ZOOM);
+
+      // Mode filter applies to every line/hitbox/label layer. The line filter is
+      // deliberately NOT applied here: line membership is volume-derived, so
+      // while pending it would match nothing and blank the map (see the filter
+      // effects, which gate the line clause on detailReady).
+      if (selectedTransitModes && !selectedTransitModes.includes("all")) {
+        applyLayerFilters(map, [
+          "any",
+          ...selectedTransitModes.map((mode) => ["in", mode, ["get", "modes"]]),
+        ]);
+      }
+
+      const handleIdle = () => {
+        setIsLoading(false);
+        map.off("idle", handleIdle);
+      };
+      map.on("idle", handleIdle);
+
+      // Bind click/hover handlers (idempotent — remove any stale binding first).
+      map.off("click", MERGED_HITBOX_ID, handleTransitVolumeClick);
+      map.on("click", MERGED_HITBOX_ID, handleTransitVolumeClick);
+      map.off("click", SPLIT_HITBOX_ID, handleSplitClick);
+      map.on("click", SPLIT_HITBOX_ID, handleSplitClick);
+      map.on("mouseenter", SPLIT_HITBOX_ID, onSplitEnter);
+      map.on("mouseleave", SPLIT_HITBOX_ID, onSplitLeave);
+    };
+
+    // Stage 2 landed: swap the volume-bearing features in and turn the ramp on.
+    // Reads the LIVE time window / line / direction (via refs) rather than the
+    // values captured when init started, because the user can have moved all
+    // three while the payload was in flight.
+    const applyDetail = ({ volumeById, prepared }) => {
+      const features = recomputeWindows(
+        prepared, volumeById,
+        timeRangeRef.current, highlightedLineIdRef.current, selectedDirectionRef.current
+      );
+      const splitFeatures = buildSplitFeatures(features);
+
+      map.getSource("transit-volumes-source")?.setData({ type: "FeatureCollection", features });
+      map.getSource(SPLIT_SOURCE_ID)?.setData({ type: "FeatureCollection", features: splitFeatures });
+      setFeatureGeoJSON?.({ type: "FeatureCollection", features });
+
+      // A link clicked during stage 1 was selected from a feature that carried
+      // no volumes and no per-line breakdown, so re-select its volume-bearing
+      // twin — otherwise the sidebar sits empty until the user clicks again.
+      const matched = syncHighlights(map, features, splitFeatures);
+      const refreshed = matched.split.length ? matched.split : matched.merged;
+      if (refreshed.length) setSelectedTransitLink(refreshed.map((f) => f.properties));
+
+      // Widths move off capacity and onto the volumes now that we have them;
+      // the colour ramp was already live (reading 0) so it needs no swap.
+      if (map.getLayer(MERGED_LAYER_ID)) {
+        map.setPaintProperty(MERGED_LAYER_ID, "line-width", MERGED_WIDTH_EXPR);
+      }
+      if (map.getLayer(SPLIT_LAYER_ID)) {
+        map.setPaintProperty(SPLIT_LAYER_ID, "line-width", WIDTH_EXPR);
+      }
+    };
+
     const init = async () => {
       removeLayers();
+      const runId = ++runIdRef.current;
+      const superseded = () => runId !== runIdRef.current;
 
       try {
         setIsLoading(true);
+        setDetailReady(false);
+        setDetailPending?.(true);
 
-        const volumePath = `matsim/transit/volumes_by_link_line/pt_link_volumes_by_link_line_${searchCanton}.json`;
-
+        // ---- Stage 1: geometry only -------------------------------------
         // Same MATSim geometry the road modules render — PT volumes are keyed on
         // `network_links.link_id`, so this module only changes the symbology.
         // The shared loader fetches/merges/decorates it once per (dataset,
-        // canton) and hands out the same FeatureCollection to useNetworkLayers
-        // and to us, so entering Transit Volumes after (or before) a network
-        // module no longer re-downloads and re-parses tens of MB. It also does
-        // the CDN-format merge this hook used to do inline: the fallback ships
-        // one feature per directed link with a singular `link_id` and no
-        // per_id_* arrays, which prepareFeatures would otherwise skip wholesale.
-        // Independent requests → run them together; on a warm geometry cache
-        // only the volume JSON is actually on the wire.
-        const [networkGeo, volumeJSON] = await Promise.all([
-          loadNetworkGeometry(loadWithFallback, datasetId, searchCanton),
-          loadWithFallback(volumePath),
-        ]);
+        // canton) and hands the same FeatureCollection to useNetworkLayers and
+        // to us, so entering Transit Volumes after (or before) a network module
+        // costs no download. It also does the CDN-format merge this hook used to
+        // do inline (one feature per directed link, no per_id_* arrays).
+        const networkGeo = await loadNetworkGeometry(loadWithFallback, datasetId, searchCanton);
+        if (superseded()) return;
         if (!networkGeo?.features) {
           console.warn("No network geometry for transit volumes", searchCanton);
           setIsLoading(false);
+          setDetailPending?.(false);
           return;
         }
 
-        // Index the volume JSON + do the invariant per-feature prep ONCE per
-        // canton (the expensive full sweeps), then cache both — every subsequent
-        // line/direction/time recompute reuses them via recomputeWindows().
-        const volumeById = toVolumeById(volumeJSON);
-        const prepared = prepareFeatures(networkGeo, volumeById);
-        originalGeoJSON.current = { geo: networkGeo, volumes: volumeJSON, volumeById, prepared };
-        setTransitVolumesByLink(buildVolumesByLink(volumeJSON));
+        // Which links can carry transit is answerable from the geometry alone,
+        // so draw them now instead of waiting on the volume payload. Verified
+        // against the duckdb: this misses none of the links that carry service
+        // and over-selects by ~1.5×; the extras vanish when stage 2 replaces
+        // the feature set with the served subset.
+        const hasSourceVolumes = networkGeo.sourceHasDailyAvgs !== false;
+        const transitFeatures = filterTransitFeatures(networkGeo.features);
+        const pendingFeatures = buildPendingFeatures(transitFeatures, hasSourceVolumes);
+        createLayers(pendingFeatures, true);
+        setFeatureGeoJSON?.({ type: "FeatureCollection", features: pendingFeatures });
 
-        // Always pass null for filterLineId on init — highlightedLineId is reset
-        // on canton change by TransitVolumesModule, but this async closure captures
-        // the stale value. Effects #2/#3 will apply the correct filter once layers exist.
-        const updatedFeatures = recomputeWindows(prepared, volumeById, timeRange, null, 'total');
-
-        // Export the GeoJSON for the feature table
-        if (setFeatureGeoJSON) {
-          setFeatureGeoJSON({
-            type: "FeatureCollection",
-            features: updatedFeatures,
-          });
+        // ---- Stage 2: the volume payload --------------------------------
+        // Cached per (dataset, canton) so re-entering the module never redoes
+        // any of this. `prepare` runs only on a cache miss.
+        const bundle = await loadPtVolumeBundle(
+          loadWithFallback, datasetId, searchCanton,
+          (volumeJSON) => {
+            const volumeById = normalizeVolumeIndex(
+              toVolumeById(volumeJSON), Array.isArray(volumeJSON)
+            );
+            return {
+              volumeById,
+              prepared: prepareFeatures(transitFeatures, volumeById, hasSourceVolumes),
+            };
+          }
+        );
+        if (superseded()) return;
+        if (!bundle) {
+          console.warn("No transit volume data for", searchCanton);
+          setDetailPending?.(false);
+          return;
         }
 
-        map.addSource("transit-volumes-source", {
-          type: "geojson",
-          generateId: true,
-          data: {
-            type: "FeatureCollection",
-            features: updatedFeatures,
-          },
-        });
-
-        // Visible merged line layer — mirror the road “Volumes” color ramp
-        // (daily_avg_volume). Shown only below SPLIT_ZOOM (capped further down).
-        map.addLayer(
-          {
-            id: MERGED_LAYER_ID,
-            type: "line",
-            source: "transit-volumes-source",
-            layout: { "line-join": "round", "line-cap": "round" },
-            paint: {
-              "line-color": [
-                "interpolate",
-                ["linear"],
-                ["get", "daily_avg_volume"],
-                0, "#a1d99b",
-                10, "#74c476",
-                50, "#41ab5d",
-                100, "#238b45",
-                250, "#005a32",
-              ],
-              "line-width": [
-                "interpolate",
-                ["linear"],
-                ["get", "daily_avg_volume"],
-                0, 3,
-                10, 5,
-                50, 7,
-                100, 9,
-                250, 11,
-              ],
-            },
-          },
-          "canton-highlight"
-        );
-
-        // Merged hitbox
-        map.addLayer(
-          {
-            id: MERGED_HITBOX_ID,
-            type: "line",
-            source: "transit-volumes-source",
-            paint: {
-              "line-opacity": 0,
-              "line-width": [
-                "interpolate",
-                ["linear"],
-                ["get", "daily_avg_volume"],
-                0, 6,
-                10, 8,
-                50, 10,
-                100, 11,
-                250, 11,
-              ],
-            },
-          },
-          MERGED_LAYER_ID
-        );
-
-        // Per-direction split overlay (offset lines) for zoom >= SPLIT_ZOOM,
-        // built from the same features regrouped by direction.
-        map.addSource(SPLIT_SOURCE_ID, {
-          type: "geojson",
-          data: { type: "FeatureCollection", features: buildSplitFeatures(updatedFeatures) },
-        });
-
-        map.addLayer({
-          id: SPLIT_LAYER_ID,
-          type: "line",
-          source: SPLIT_SOURCE_ID,
-          minzoom: SPLIT_ZOOM,
-          layout: { "line-join": "round", "line-cap": "round" },
-          paint: {
-            "line-color": VOLUME_RAMP,
-            "line-width": WIDTH_EXPR,
-            "line-opacity": 1,
-            "line-offset": LINE_OFFSET_EXPR,
-          },
-        });
-
-        // Invisible wide hitbox over the split lines — click + hover bind here.
-        map.addLayer({
-          id: SPLIT_HITBOX_ID,
-          type: "line",
-          source: SPLIT_SOURCE_ID,
-          minzoom: SPLIT_ZOOM,
-          paint: {
-            "line-width": HITBOX_WIDTH_EXPR,
-            "line-color": "#000",
-            "line-opacity": 0,
-            "line-offset": LINE_OFFSET_EXPR,
-          },
-        });
-
-        // Direction labels (on the split source, on top of every line layer).
-        addLabelLayersIfMissing();
-
-        // Hand off merged ↔ split: merged only below SPLIT_ZOOM, split overlay
-        // only at/above it (its minzoom). Prevents the merged line drawing under
-        // the offset pair.
-        if (map.getLayer(MERGED_LAYER_ID)) map.setLayerZoomRange(MERGED_LAYER_ID, 0, SPLIT_ZOOM);
-
-        // Mode filter applies to every line/hitbox/label layer.
-        if (selectedTransitModes && !selectedTransitModes.includes("all")) {
-          const filter = [
-            "any",
-            ...selectedTransitModes.map((mode) => ["in", mode, ["get", "modes"]]),
-          ];
-          applyLayerFilters(map, filter);
-        }
-
-        const handleIdle = () => {
-          setIsLoading(false);
-          map.off("idle", handleIdle);
-        };
-        map.on("idle", handleIdle);
-
-        // Bind click/hover handlers (idempotent — remove any stale binding first).
-        map.off("click", MERGED_HITBOX_ID, handleTransitVolumeClick);
-        map.on("click", MERGED_HITBOX_ID, handleTransitVolumeClick);
-        map.off("click", SPLIT_HITBOX_ID, handleSplitClick);
-        map.on("click", SPLIT_HITBOX_ID, handleSplitClick);
-        map.on("mouseenter", SPLIT_HITBOX_ID, onSplitEnter);
-        map.on("mouseleave", SPLIT_HITBOX_ID, onSplitLeave);
+        originalGeoJSON.current = { geo: networkGeo, ...bundle };
+        setTransitVolumesByLink(bundle.volumeById);
+        applyDetail(bundle);
+        setDetailReady(true);
+        setDetailPending?.(false);
       } catch (err) {
         console.warn("Failed to load transit volumes layer", err);
+        if (!superseded()) {
+          setIsLoading(false);
+          setDetailPending?.(false);
+        }
       }
     };
 
     init();
     return () => {
+      // Invalidate any in-flight stage so a late resolution can't paint over
+      // the module the user has since switched to.
+      runIdRef.current++;
       removeLayers();
     };
   }, [isGraphExpanded, searchCanton, datasetId]);
@@ -1083,39 +1316,11 @@ export default function useTransitVolumesLayer({
       splitSource.setData({ type: "FeatureCollection", features: splitFeatures });
     }
 
-    // Keep a split-direction highlight in sync too (same link_key_join refresh
-    // the shared network-highlight gets below, plus the ls_arrow match).
-    const splitHighlight = map.getSource(SPLIT_HIGHLIGHT_ID);
-    if (splitHighlight) {
-      const prev = splitHighlight._data?.features || [];
-      const updatedHl = splitFeatures.filter((f) =>
-        prev.some(
-          (p) =>
-            p?.properties?.link_key_join === f?.properties?.link_key_join &&
-            p?.properties?.ls_arrow === f?.properties?.ls_arrow
-        )
-      );
-      splitHighlight.setData({ type: "FeatureCollection", features: updatedHl });
-    }
+    // Keep both highlight sources pointing at the recomputed features.
+    syncHighlights(map, updatedFeatures, splitFeatures);
 
     // Also update the table GeoJSON so filteredVolume shows correct values
     setFeatureGeoJSON?.({ type: "FeatureCollection", features: updatedFeatures });
-
-    // keep highlights "in sync" with new props (using shared network-highlight)
-    const highlightSource = map.getSource("network-highlight");
-    if (highlightSource) {
-      const prevHighlight = highlightSource._data?.features || [];
-      const prevKeys = new Set(
-        prevHighlight.map((f) => f?.properties?.link_key_join).filter(Boolean)
-      );
-      const updatedHighlight = updatedFeatures.filter((f) =>
-        prevKeys.has(f?.properties?.link_key_join)
-      );
-      highlightSource.setData({
-        type: "FeatureCollection",
-        features: updatedHighlight,
-      });
-    }
   }, [timeRange, highlightedLineId, selectedDirection]);
 
   // ----- label size slider → update split label text-size in place -----------
@@ -1145,11 +1350,10 @@ export default function useTransitVolumesLayer({
     // 2) Build the optional "only this line" filter. With a route-direction
     // (.H/.R) active, match against that direction's line membership so
     // segments the line only serves in the other direction drop out.
-    const dirLetter = directionLetter(selectedDirection);
-    const lineProp = dirLetter === 'H' ? 'line_ids_h' : dirLetter === 'R' ? 'line_ids_r' : 'line_ids';
-    const lineFilter = highlightedLineId
-      ? ["in", highlightedLineId, ["get", lineProp]]
-      : null;
+    // Skipped until the volume data lands: line membership comes from it, so a
+    // line filter over the stage-1 features would match nothing and blank the
+    // map. detailReady is a dep, so the filter is applied as soon as it does.
+    const lineFilter = buildLineFilter(highlightedLineId, selectedDirection, detailReady);
 
     // 3) Combine them
     const combinedFilter =
@@ -1159,7 +1363,7 @@ export default function useTransitVolumesLayer({
 
     // Apply to merged + split line/hitbox layers and the direction labels.
     applyLayerFilters(map, combinedFilter);
-  }, [selectedTransitModes, highlightedLineId, isGraphExpanded, selectedDirection]);
+  }, [selectedTransitModes, highlightedLineId, isGraphExpanded, selectedDirection, detailReady]);
 
   // ----- respond to table filter changes --------------------------------------
   useEffect(() => {
@@ -1176,11 +1380,7 @@ export default function useTransitVolumesLayer({
         : null;
 
     // 2) Build the line filter (direction-aware, same as the effect above)
-    const dirLetter = directionLetter(selectedDirection);
-    const lineProp = dirLetter === 'H' ? 'line_ids_h' : dirLetter === 'R' ? 'line_ids_r' : 'line_ids';
-    const lineFilter = highlightedLineId
-      ? ["in", highlightedLineId, ["get", lineProp]]
-      : null;
+    const lineFilter = buildLineFilter(highlightedLineId, selectedDirection, detailReady);
 
     // 3) Build the table filter
     let tableFilter = null;
@@ -1350,7 +1550,7 @@ export default function useTransitVolumesLayer({
 
     // Apply to merged + split line/hitbox layers and the direction labels.
     applyLayerFilters(map, combinedFilter);
-  }, [selectedTransitModes, highlightedLineId, isGraphExpanded, tableFilterQuery, selectedDirection]);
+  }, [selectedTransitModes, highlightedLineId, isGraphExpanded, tableFilterQuery, selectedDirection, detailReady]);
 
   // ----- direction terminus marker -------------------------------------------
   // With a line highlighted and a direction (outbound/return) selected, mark the
@@ -1454,7 +1654,8 @@ export default function useTransitVolumesLayer({
       return () => map.off("idle", retry);
     }
     // datasetId: re-evaluate on dataset switch. routeDirections: draw/relabel
-    // once the async route_directions.json resolves.
-  }, [isGraphExpanded, highlightedLineId, selectedDirection, routeDirections, datasetId]);
+    // once the async route_directions.json resolves. detailReady: the
+    // serves-here test reads `prepared`, which only exists after stage 2.
+  }, [isGraphExpanded, highlightedLineId, selectedDirection, routeDirections, datasetId, detailReady]);
 
 }

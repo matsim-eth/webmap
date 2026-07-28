@@ -488,10 +488,13 @@ async function loadDatasets(ownerFilter, ownerName) {
   _currentOwnerFilter = ownerFilter || null;
   _currentOwnerName = ownerName || null;
 
-  let url = "/admin/datasets";
-  if (ownerFilter) {
-    url += `?owner_id=${ownerFilter}`;
-  }
+  // Always fetch UNFILTERED and narrow client-side. The owner filter is a view
+  // over the tables, but the default-dataset dropdown is a system-wide setting
+  // that must see every dataset: filtering server-side (?owner_id=) drops the
+  // current default from the payload whenever it belongs to another owner, and
+  // the dropdown then reads "None" even though a default is set. Admin dataset
+  // counts are small, so the saved bytes aren't worth that failure mode.
+  const url = "/admin/datasets";
 
   const filterDiv = el("datasetOwnerFilter");
   const filterBadge = el("datasetFilterBadge");
@@ -515,8 +518,13 @@ async function loadDatasets(ownerFilter, ownerName) {
   const data = await res.json();
   _allDatasets = data.datasets || [];
 
-  const publicDatasets = _allDatasets.filter((ds) => ds.is_public);
-  const privateDatasets = _allDatasets.filter((ds) => !ds.is_public);
+  // Owner filter applied here, not server-side — see the note on `url` above.
+  const visible = ownerFilter
+    ? _allDatasets.filter((ds) => String(ds.owner_id) === String(ownerFilter))
+    : _allDatasets;
+
+  const publicDatasets = visible.filter((ds) => ds.is_public);
+  const privateDatasets = visible.filter((ds) => !ds.is_public);
 
   _renderDatasetRows(el("publicDatasetsBody"), publicDatasets, ownerFilter, ownerName);
   _renderDatasetRows(el("privateDatasetsBody"), privateDatasets, ownerFilter, ownerName);
@@ -533,9 +541,9 @@ async function loadDatasets(ownerFilter, ownerName) {
  * owner, and an inactive one 403s for everyone, so it must not be offered here.
  *
  * Rebuilt from `_allDatasets` on every load so the "DEFAULT" badge in the table
- * and the dropdown selection can never drift apart. Note `_allDatasets` may be
- * filtered by owner; the current default is added back explicitly below so it
- * stays visible (and doesn't silently look unset) while a filter is active.
+ * and the dropdown selection can never drift apart. `_allDatasets` is always the
+ * UNFILTERED list (loadDatasets narrows by owner only for the tables), which is
+ * what lets this see a default owned by someone other than the filtered user.
  */
 function renderDefaultDatasetSelect() {
   const select = el("defaultDatasetSelect");
@@ -557,8 +565,9 @@ function renderDefaultDatasetSelect() {
     select.appendChild(opt);
   }
 
-  // An owner filter can hide the default from `eligible`; keep it selectable so
-  // the control still reflects reality instead of appearing to be "None".
+  // A default that is no longer eligible (demoted to private/inactive by another
+  // admin between loads) still has to be selectable, or the control would claim
+  // "None" while the backend still holds it.
   if (current && !eligible.some((ds) => ds.id === current.id)) {
     const opt = document.createElement("option");
     opt.value = String(current.id);
@@ -568,6 +577,8 @@ function renderDefaultDatasetSelect() {
 
   select.value = current ? String(current.id) : "";
   select._lastValue = select.value;
+  // Cleared here, then re-set by saveDefaultDataset *after* its reload finishes —
+  // setting it before that reload wiped the confirmation within the same tick.
   setDefaultDatasetStatus("");
 }
 
@@ -599,9 +610,10 @@ async function saveDefaultDataset(select) {
   }
 
   select._lastValue = raw;
-  setDefaultDatasetStatus(raw === "" ? "Default cleared." : "Saved.");
-  // Reload so the DEFAULT badge moves to the new row.
+  // Reload so the DEFAULT badge moves to the new row, THEN report — the reload
+  // re-renders the select and resets its status line.
   await loadDatasets(_currentOwnerFilter, _currentOwnerName);
+  setDefaultDatasetStatus(raw === "" ? "Default cleared." : "Saved.");
 }
 
 // ── Add Dataset Modal ────────────────────────────────────────────

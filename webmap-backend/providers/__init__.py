@@ -45,7 +45,12 @@ from .stop_municipality import StopMunicipalityProvider
 from .municipalities import MunicipalitiesProvider
 
 # --- Spider analysis ---
-from .spider_analysis import SpiderInflowProvider, SpiderOutflowProvider, SpiderOverlayProvider
+from .spider_analysis import (
+    SpiderInflowProvider,
+    SpiderLinkTripsProvider,
+    SpiderOutflowProvider,
+    SpiderOverlayProvider,
+)
 from .node_flows import NodeFlowsProvider
 from .nodes_geojson import NodesGeoJSONProvider
 from .zone_flows import ZoneFlowsProvider
@@ -101,6 +106,8 @@ ALL_PROVIDERS = [
     SpiderInflowProvider(),
     SpiderOutflowProvider(),
     SpiderOverlayProvider(),
+    # Per-link trip counts for a zone (VolumeFlow's "has trips" display filter)
+    SpiderLinkTripsProvider(),
     # Node flows (turning-movement matrix)
     NodeFlowsProvider(),
     # Nodes GeoJSON (per-canton point features)

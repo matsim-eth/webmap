@@ -145,6 +145,30 @@ MAJOR_ROAD_TYPES = (
 )
 
 
+def major_road_clause(alias: str = "") -> tuple[str, list]:
+    """SQL predicate for "major road", plus its bind parameters.
+
+    The exact twin of the frontend's ``MAJOR_ROADS_FILTER``: hierarchy class
+    when the link carries a usable ``road_type``, else the legacy
+    ``capacity > 1200`` threshold for untagged links.
+
+    Shared by the per-link volumes and by the network geometry subset so the two
+    can never disagree — a geometry subset narrower than the map filter would
+    silently drop links the user expects to see.
+
+    ``alias`` qualifies the columns (e.g. ``"nl"``); omit it for an unaliased
+    ``FROM network_links``.
+    """
+    p = f"{alias}." if alias else ""
+    placeholders = ", ".join("?" * len(MAJOR_ROAD_TYPES))
+    clause = (
+        f"({p}road_type IN ({placeholders}) "
+        f"OR (({p}road_type IS NULL OR {p}road_type IN ('unknown', '')) "
+        f"AND {p}capacity > 1200))"
+    )
+    return clause, list(MAJOR_ROAD_TYPES)
+
+
 def link_traffic_volumes(
     canton_id: int, min_capacity: float | None = None, major: bool = False
 ) -> list:
@@ -180,13 +204,8 @@ def link_traffic_volumes(
     rows = None
     if major or min_capacity is not None:
         if major:
-            placeholders = ", ".join("?" * len(MAJOR_ROAD_TYPES))
-            link_clause = (
-                f"(nl.road_type IN ({placeholders}) "
-                "OR ((nl.road_type IS NULL OR nl.road_type IN ('unknown', '')) "
-                "AND nl.capacity > 1200))"
-            )
-            args = [canton_id, *MAJOR_ROAD_TYPES]
+            link_clause, major_args = major_road_clause("nl")
+            args = [canton_id, *major_args]
         else:
             link_clause = "nl.capacity > ?"
             args = [canton_id, min_capacity]

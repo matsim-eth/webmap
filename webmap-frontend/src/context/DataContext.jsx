@@ -63,6 +63,11 @@ export const DataProvider = ({ children }) => {
   // the geojson sources because it would roughly double them (Zurich's volume
   // file is ~24 MB, and the split overlay spreads feature props twice).
   const [transitVolumesByLink, setTransitVolumesByLink] = useState(null);
+  // True while Transit Volumes has drawn its links (picked by mode from the
+  // shared network geometry) but the per-line volume payload is still loading.
+  // The module disables the controls that need it — time window, line/direction
+  // filters — instead of leaving them silently inert.
+  const [transitVolumesDetailPending, setTransitVolumesDetailPending] = useState(false);
 
   const [polygonTripsData, setPolygonTripsData] = useState(null);
   const [polygonTripsLoading, setPolygonTripsLoading] = useState(false);
@@ -88,6 +93,7 @@ export const DataProvider = ({ children }) => {
     zoneFlowData, setZoneFlowData,
     zoneFlowLoading, setZoneFlowLoading,
     transitVolumesByLink, setTransitVolumesByLink,
+    transitVolumesDetailPending, setTransitVolumesDetailPending,
     polygonTripsData, setPolygonTripsData,
     polygonTripsLoading, setPolygonTripsLoading,
   }), [
@@ -98,7 +104,7 @@ export const DataProvider = ({ children }) => {
     nodeFlowsData,
     linkSpeedsLinksMap, linkSpeedsSummary,
     zoneFlowData, zoneFlowLoading,
-    transitVolumesByLink,
+    transitVolumesByLink, transitVolumesDetailPending,
     polygonTripsData, polygonTripsLoading,
   ]);
 
