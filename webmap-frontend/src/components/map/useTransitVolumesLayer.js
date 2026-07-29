@@ -4,6 +4,7 @@ import { safeRemoveLayer, safeRemoveSource, setFilter } from './_lib/mapbox';
 import { parsePipeList, pipeMinMax } from './_lib/pipeProps';
 import { loadNetworkGeometry } from './_lib/networkGeometry';
 import { loadPtVolumeBundle } from './_lib/ptVolumes';
+import { paddingSettled } from './_lib/paddingGate';
 import { filterTransitFeatures, transitModesOf } from './_lib/transitLinks';
 import { clearNetworkHighlightData, clearAntLine } from './_lib/featureSelection';
 import { directionLetter } from '../../utils/directionUtils';
@@ -1216,6 +1217,12 @@ export default function useTransitVolumesLayer({
         setIsLoading(true);
         setDetailReady(false);
         setDetailPending?.(true);
+
+        // Wait out the sidebar-driven camera padding ease before doing anything
+        // that blocks the main thread — see _lib/paddingGate.js. Resolves
+        // immediately when no padding shift is in flight.
+        await paddingSettled();
+        if (superseded()) return;
 
         // ---- Stage 1: geometry only -------------------------------------
         // Same MATSim geometry the road modules render — PT volumes are keyed on

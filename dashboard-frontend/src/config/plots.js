@@ -32,9 +32,16 @@ import SpeedByRoadType from '../components/plots/SpeedByRoadType';
 import SpeedByTime from '../components/plots/SpeedByTime';
 import SpeedByTimePerRoadType from '../components/plots/SpeedByTimePerRoadType';
 
-// All speed plots share a single unfiltered backend fetch — road_type filter
-// is applied client-side so switching filters is instant (no re-fetch).
-const SPEED_URL = '/backend/data/{datasetId}/speed_dashboard.json';
+// All speed plots share a single backend fetch — the road_type filter is
+// applied client-side so switching filters is instant (no re-fetch).
+//
+// `modes=car` keeps it to the road network. The `link_speeds` table also holds
+// the PT alignments (bus,pt / pt,rail,tram / artificial,tram / ferry /
+// funicular) with real volume — 5,040 links and 556k volume in dataset 3's
+// Zürich alone — and a tram running its own right-of-way at line speed is not a
+// road-congestion observation. Same filter the webmap's Link Speeds module
+// sends; see providers/link_speeds.py:_build_filters.
+const SPEED_URL = '/backend/data/{datasetId}/speed_dashboard.json?modes=car';
 
 const MODE_PLOTS = [
   {

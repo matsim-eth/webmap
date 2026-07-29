@@ -1,5 +1,7 @@
 import logging
 import os
+import threading
+import time
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
@@ -171,19 +173,101 @@ def _prewarm_order(db_paths: list[str]) -> list[str]:
     return ordered
 
 
+# ─── Prewarm traffic gate ─────────────────────────────────────────────────
+# The prewarm necessarily runs inside the *serving* process — its whole point is
+# to fill in-process caches — so its long pure-Python stretches (parsing the
+# ~76 MB boarding asset, walking ~116k stops) contend with the request
+# threadpool for the GIL and the CPU. Measured: a cold `destination_zones.json`
+# that costs 0.1 s warm took **88 s** when it landed inside a transit-stops
+# build, and it completed 3 s after that build finished.
+#
+# So the prewarm waits for a gap in live traffic before starting each unit of
+# work. NOTE this *defers* work, it does not preempt it — a request arriving
+# after a build has begun still contends with it. What bounds that exposure is
+# WEBMAP_PREWARM_LIMIT: prewarming one dataset instead of every dataset on disk
+# turns an ~11-minute window of heavy background work into ~2 minutes.
+
+_traffic_lock = threading.Lock()
+_traffic_inflight = 0        # data requests currently being served
+_traffic_last_end = 0.0      # time.monotonic() when the last one finished
+
+# Seconds of no data traffic before a prewarm unit may start.
+_PREWARM_QUIET_S = float(os.getenv("WEBMAP_PREWARM_QUIET", "3"))
+# Cap on deferring a single unit, so continuous traffic can't starve the prewarm
+# forever — past this we accept the contention and build anyway.
+_PREWARM_MAX_WAIT_S = float(os.getenv("WEBMAP_PREWARM_MAX_WAIT", "300"))
+# Breather after each unit, so anything queued behind it is served before the
+# next unit grabs the CPU.
+_PREWARM_YIELD_S = float(os.getenv("WEBMAP_PREWARM_YIELD", "1"))
+
+
+def _traffic_begin() -> None:
+    global _traffic_inflight
+    with _traffic_lock:
+        _traffic_inflight += 1
+
+
+def _traffic_end() -> None:
+    global _traffic_inflight, _traffic_last_end
+    with _traffic_lock:
+        _traffic_inflight -= 1
+        _traffic_last_end = time.monotonic()
+
+
+def _await_quiet(label: str) -> None:
+    """Block the prewarm thread until no data request has been in flight for
+    `_PREWARM_QUIET_S`, or `_PREWARM_MAX_WAIT_S` elapses."""
+    if _PREWARM_QUIET_S <= 0:
+        return
+    deadline = time.monotonic() + _PREWARM_MAX_WAIT_S
+    deferred = False
+    while time.monotonic() < deadline:
+        with _traffic_lock:
+            idle_for = 0.0 if _traffic_inflight else time.monotonic() - _traffic_last_end
+        if idle_for >= _PREWARM_QUIET_S:
+            if deferred:
+                logger.info("prewarm resuming (%s): traffic idle", label)
+            return
+        if not deferred:
+            logger.info("prewarm deferring %s: serving requests", label)
+            deferred = True
+        time.sleep(0.25)
+    logger.info("prewarm starting %s anyway after %.0fs of traffic", label, _PREWARM_MAX_WAIT_S)
+
+
+def _prewarm_step(label: str, fn, root: str) -> None:
+    """Run one prewarm unit behind the traffic gate. Errors are swallowed —
+    an incompatible dataset just skips that step."""
+    _await_quiet(label)
+    try:
+        fn()
+        logger.info("prewarmed %s for %s", label, root)
+    except Exception as exc:
+        logger.warning("%s prewarm skipped for %s: %s", label, root, exc)
+    if _PREWARM_YIELD_S > 0:
+        time.sleep(_PREWARM_YIELD_S)
+
+
 def _prewarm_caches() -> None:
-    """Background: precompute the two slow, parameter-less builds for every
-    dataset so the first user never waits on a cold scan:
-      • speed_dashboard — a 50M-row link_speeds scan (~30s, minutes cold);
+    """Background: precompute the slow, parameter-less builds so the first user
+    never waits on a cold scan:
+      • zones/study_area — cheap, but on the critical path of the first render;
+      • speed_dashboard  — a 50M-row link_speeds scan (~30s, minutes cold);
       • transit stops    — a country-wide _build() over boarding_data + the
         1.7M-row network (~70-100 s per dataset), which otherwise fires on the
         first stops_by_canton request.
+
     Runs one dataset at a time in a daemon thread, in `_prewarm_order` (the
     admin-chosen default dataset first, then ascending id — matching the order the
-    dataset service serves to the frontends); disable with WEBMAP_PREWARM=0.
-    Errors are swallowed (incompatible datasets just skip)."""
+    dataset service serves to the frontends).
+
+    By default only the **first** dataset in that order is warmed. Warming every
+    dataset on disk costs ~2 min each and mostly buys nothing: the frontends open
+    the default dataset, and the minutes of background CPU actively slow down the
+    requests of the user who is already here (see the traffic gate above). Raise
+    WEBMAP_PREWARM_LIMIT to warm more, or set it to 0 for all of them. Disable
+    the prewarm entirely with WEBMAP_PREWARM=0."""
     import glob
-    import time
     from providers.paths import set_root_override
     from providers.link_speeds import SpeedDashboardProvider
     from providers.transit_stops import inter_cantonal_stops
@@ -201,7 +285,21 @@ def _prewarm_caches() -> None:
 
     base = os.getenv("WEBMAP_ROOT", "/data/datasets/public")
     roots = _prewarm_order(glob.glob(os.path.join(base, "*", "synthetic.duckdb")))
-    logger.info("prewarm order: %s", ", ".join(os.path.basename(r) for r in roots))
+
+    # Warm only the first N datasets (default 1 — the one the frontends open).
+    # 0/negative means all; a non-numeric value falls back to the default rather
+    # than crashing the prewarm thread.
+    try:
+        limit = int(os.getenv("WEBMAP_PREWARM_LIMIT", "1").strip() or 1)
+    except ValueError:
+        limit = 1
+    skipped = roots[limit:] if limit > 0 else []
+    if limit > 0:
+        roots = roots[:limit]
+
+    logger.info("prewarm order: %s%s",
+                ", ".join(os.path.basename(r) for r in roots) or "(none)",
+                f" (skipping {len(skipped)}: raise WEBMAP_PREWARM_LIMIT to include)" if skipped else "")
     from providers.study_area import study_area_dict, zones_fc_bytes
 
     for root in roots:
@@ -210,22 +308,14 @@ def _prewarm_caches() -> None:
             # Zone layer + study-area meta: cheap, but on the critical path of
             # the very first map render (simplify + reproject + per-zone bbox
             # scan of every primary polygon) — warm them before the slow scans.
-            try:
+            def _zones():
                 study_area_dict()
                 zones_fc_bytes(False)
-                logger.info("prewarmed zones/study_area for %s", root)
-            except Exception as exc:
-                logger.warning("zones prewarm skipped for %s: %s", root, exc)
-            try:
-                SpeedDashboardProvider().deliver({})
-                logger.info("prewarmed speed_dashboard for %s", root)
-            except Exception as exc:
-                logger.warning("speed prewarm skipped for %s: %s", root, exc)
-            try:
-                inter_cantonal_stops()  # triggers the per-dataset transit _build()
-                logger.info("prewarmed transit stops for %s", root)
-            except Exception as exc:
-                logger.warning("transit prewarm skipped for %s: %s", root, exc)
+
+            _prewarm_step("zones/study_area", _zones, root)
+            _prewarm_step("speed_dashboard", lambda: SpeedDashboardProvider().deliver({}), root)
+            # inter_cantonal_stops() triggers the per-dataset transit _build().
+            _prewarm_step("transit stops", inter_cantonal_stops, root)
             # NB: the per-line transit_routes index (providers/transit_routes.py)
             # is intentionally NOT prewarmed — it parses the ~76 MB routes asset
             # and would hold it in RAM for every dataset at startup. It builds
@@ -238,7 +328,6 @@ def _prewarm_caches() -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     if os.getenv("WEBMAP_PREWARM", "1").strip().lower() in {"1", "true"}:
-        import threading
         threading.Thread(target=_prewarm_caches, name="prewarm", daemon=True).start()
     yield
 
@@ -279,7 +368,29 @@ class AuthMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
+class TrafficMiddleware(BaseHTTPMiddleware):
+    """Count in-flight data requests so the prewarm thread can stay out of the
+    way (see `_await_quiet`).
+
+    `_PUBLIC_PATHS` is excluded deliberately: the container healthcheck polls
+    `/health` every ~10 s, which — with a 3 s quiet threshold — would read as
+    permanent traffic and starve the prewarm completely."""
+
+    async def dispatch(self, request: Request, call_next):
+        if request.url.path in _PUBLIC_PATHS:
+            return await call_next(request)
+        _traffic_begin()
+        try:
+            return await call_next(request)
+        finally:
+            _traffic_end()
+
+
 # --- Middleware (order matters: added last = outermost) --------------------
+
+# Inner relative to AuthMiddleware, so rejected (401) requests aren't counted
+# as traffic — only real work the prewarm should yield to.
+app.add_middleware(TrafficMiddleware)
 
 app.add_middleware(AuthMiddleware)
 

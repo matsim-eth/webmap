@@ -4,9 +4,11 @@ import { useModule } from '../../context/ModuleContext';
 import { useSelection } from '../../context/SelectionContext';
 import { useData } from '../../context/DataContext';
 import { useFilters } from '../../context/FilterContext';
+import { useMap } from '../../context/MapContext';
 import { handle401 } from '../../utils/auth';
 import { safeRemoveLayer, safeRemoveSource, setVisibility } from './_lib/mapbox';
 import { parsePipeList } from './_lib/pipeProps';
+import { ownsBaseNetwork } from './_lib/networkModules';
 
 const SPEEDS_SOURCE_ID = 'link-speeds-source';
 const SPEEDS_LAYER_ID = 'link-speeds-layer';
@@ -156,6 +158,7 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
         setLinkSpeedsLinksMap,
     } = useData();
     const { timeRange, linkSpeedsMetric, linkSpeedsRoadTypes } = useFilters();
+    const { resetMapTrigger } = useMap();
 
     // Cache fetched links keyed by canton+timeRange+dataset so that road-type
     // and metric changes don't trigger a re-fetch from the backend.
@@ -171,15 +174,27 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
     // the same cacheKey so the build effect can skip stale data.
     const [linksState, setLinksState] = useState({ key: null, links: null });
 
-    const removeOverlay = useCallback((map) => {
+    const removeOverlay = useCallback((map, nextModule) => {
         safeRemoveLayer(map, [SPEEDS_LABELS_RIGHT, SPEEDS_LABELS_LEFT, SPEEDS_LAYER_ID, SPEEDS_AGG_LAYER_ID]);
         safeRemoveSource(map, [SPEEDS_SOURCE_ID, SPEEDS_AGG_SOURCE_ID]);
         // Restore base network-layer visibility (we hide it while in LinkSpeeds
-        // since the colored speed lines cover the same geometry).
-        setVisibility(map, 'network-layer', true);
-        // Invalidate the links cache so re-entering the module re-fetches/re-builds
-        // features (prevents stale symbology when swapping modules).
-        cacheRef.current = { key: null, links: null };
+        // since the colored speed lines cover the same geometry) — but ONLY when
+        // the module we're leaving for is one the road network belongs to.
+        // useNetworkLayers owns that visibility and runs earlier in the same
+        // commit; for Transit Volumes it deliberately hides the base layers
+        // (they're kept, not destroyed, so the return trip needs no re-tile).
+        // Unconditionally re-showing here ran *after* that hide and put the
+        // freespeed-coloured road network back on top of the transit links —
+        // covering them, and swallowing every click that didn't happen to land
+        // on a PT link underneath.
+        if (ownsBaseNetwork(nextModule)) setVisibility(map, 'network-layer', true);
+        // The fetched links are deliberately KEPT. They used to be dropped here
+        // "to prevent stale symbology", but every input that can make them stale
+        // is already in the cache key (dataset, canton, time window) — and the
+        // road-type filter is applied client-side in the build effect, not baked
+        // into the payload. Dropping them only meant that re-entering LinkSpeeds
+        // always refetched link_speeds.json for a canton, spinner and all, when
+        // the module switch is really just a change of symbology.
     }, []);
 
     // Synchronously set up empty sources + layers so the symbology is present
@@ -282,7 +297,7 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
         if (!mapReady || !mapRef.current) return;
         if (isGraphExpanded === 'LinkSpeeds') return;
         const map = mapRef.current;
-        removeOverlay(map);
+        removeOverlay(map, isGraphExpanded);
         setLinkSpeedsSummary(null);
         setLinkSpeedsSelected(null);
         setLinkSpeedsSelectedLink(null);
@@ -293,6 +308,15 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
     }, [isGraphExpanded, mapReady, mapRef, removeOverlay,
         setLinkSpeedsSummary, setLinkSpeedsSelected, setLinkSpeedsSelectedLink,
         setLinkSpeedsLinksMap, setIsLoading]);
+
+    // Sidebar Reset: drop the fetched speeds so the next entry refetches. The
+    // cache is keyed by (dataset, canton, time window) and so survives module
+    // switches on purpose — Reset is the one action that means "this session's
+    // data may be stale", the same contract as clearNetworkGeometryCache().
+    useEffect(() => {
+        cacheRef.current = { key: null, links: null };
+        setLinksState({ key: null, links: null });
+    }, [resetMapTrigger]);
 
     // Per-direction click on the split layer (zoom >= SPLIT_ZOOM). Sets
     // featureSelection with only that direction's link ids so downstream
@@ -414,6 +438,13 @@ export default function useLinkSpeedsLayers({ mapRef, mapReady, setIsLoading }) 
             canton: String(clickedCanton),
             minute_start: String(minuteStart),
             minute_end: String(minuteEnd),
+            // Road speeds only. `link_speeds` also carries the PT alignments
+            // (bus,pt / pt,rail,tram / artificial,tram / ferry / funicular) with
+            // real volume, so without this the map drew tram and rail lines, the
+            // table listed them, and they were averaged into the module's speed
+            // and congestion summary. Constant, so deliberately not part of
+            // cacheKey — change it and the key needs it too.
+            modes: 'car',
         });
         const url = `/backend/data/${datasetId}/link_speeds.json?${qs.toString()}`;
 

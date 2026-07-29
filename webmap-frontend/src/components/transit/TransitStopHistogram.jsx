@@ -14,7 +14,7 @@ const TransitStopHistogram = ({ stopIds, canton, lineId, onVolumeUpdate, timeRan
 
   // Fetch and process passenger data. datasetId in the key: refetch when the
   // dataset switches instead of serving the previous dataset's cached counts.
-  const { data: hourlyCounts } = useQuery({
+  const { data: hourlyCounts, isLoading, isError } = useQuery({
     queryKey: ['transit-stop-histogram', datasetId, canton, stopIdsKey, lineId, selectedDirection],
     queryFn: () => {
       return loadWithFallback(`matsim/transit/per_canton_counts/${encodeURIComponent(canton)}_counts.json`)
@@ -132,7 +132,12 @@ const filteredAlightings = paddedAlightings.slice(timeRange?.[0] ?? 0, timeRange
     }
   }
 
-  if (!hourlyCounts) return <p>Loading passenger data...</p>;
+  // Same placeholder the road Volumes module's SegmentVolumeHistogram shows,
+  // but only while the payload is actually in flight. A failed fetch says so
+  // instead of rendering an empty panel — the old code showed "Loading…"
+  // forever in that case, which at least told you something was there.
+  if (isLoading) return <p className="plot-empty">Loading volume data…</p>;
+  if (isError || !hourlyCounts) return <p className="plot-empty">No volume data for this stop.</p>;
 
   return (
     <div className="plot-container">

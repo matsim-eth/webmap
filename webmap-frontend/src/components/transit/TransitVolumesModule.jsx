@@ -626,7 +626,7 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
 
       {/* One histogram per effective link id (split direction / dropdown-narrowed
           / all links). */}
-      {effectiveLinkIds.map(id => (
+      {effectiveLinkIds.map((id, i) => (
         <TransitLinkHistogram
         key={`transit-hist-${id}`}
         linkId={id}
@@ -635,6 +635,7 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
         canton={canton}
         triggerVisualize={triggerVisualize}
         selectedDirection={selectedDirection}
+        showLoadingPlaceholder={i === 0}
         />
       ))}
 

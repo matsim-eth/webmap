@@ -1,6 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { useData } from '../../context/DataContext';
 import { computeMapPadding } from '../sidebar/sidebarLayout';
+import { beginPaddingShift, endPaddingShift } from './_lib/paddingGate';
+
+const PADDING_EASE_MS = 600;
+
+// Mapbox stores padding as floats; treat sub-pixel differences as "already there".
+const samePadding = (a, b) =>
+  !!a && ['top', 'bottom', 'left', 'right'].every(k => Math.abs((a[k] ?? 0) - b[k]) < 0.5);
 
 export default function usePadding({
   mapRef,
@@ -40,10 +47,22 @@ export default function usePadding({
     const map = mapRef.current;
     if (!map) return;
 
-    map.easeTo({
-      padding: computeMapPadding({ isGraphExpanded, isSidebarOpen, isFeatureTableOpen, isLeftSidebarOpen }),
-      duration: 600,
-    });
+    const padding = computeMapPadding({ isGraphExpanded, isSidebarOpen, isFeatureTableOpen, isLeftSidebarOpen });
+
+    // Most module switches keep the same sidebar width (both 'expanded'), so
+    // there is nothing to animate. Bail before opening the gate — otherwise
+    // every such switch would make its data load wait out a no-op ease.
+    if (samePadding(map.getPadding?.(), padding)) {
+      endPaddingShift();
+      return;
+    }
+
+    // Hold back the module's heavy load until the camera has finished moving:
+    // the ease is rAF-driven, and a load that blocks the main thread starves it
+    // and strands the map at a half-applied padding. See _lib/paddingGate.js.
+    beginPaddingShift(PADDING_EASE_MS);
+    map.easeTo({ padding, duration: PADDING_EASE_MS });
+    map.once('moveend', endPaddingShift);
   }, [mapRef, mapReady, isSidebarOpen, isGraphExpanded, isFeatureTableOpen, isLeftSidebarOpen]);
 
   // 2) zoom to canton on search (with correct padding)

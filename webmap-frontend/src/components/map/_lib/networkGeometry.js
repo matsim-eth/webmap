@@ -111,6 +111,50 @@ export async function loadNetworkGeometry(loadWithFallback, datasetId, canton, m
 }
 
 /**
+ * Is this variant already parsed and in the cache — i.e. would `loadNetworkGeometry`
+ * resolve without a download? Lets callers tell "fetch a canton's network" from
+ * "hand the same object to Mapbox again" and skip the loading overlay for the
+ * latter. In-flight loads count as a miss: the caller still has to wait.
+ */
+export const hasNetworkGeometry = (datasetId, canton, major = false) =>
+  !!entries.get(cacheKey(datasetId, canton, major))?.geo;
+
+/**
+ * Warm a variant into the cache in the background, without blocking the caller.
+ *
+ * The road Volumes module opens on the major-roads subset (~1/5 the payload),
+ * which is what makes its first paint fast — but every other network module
+ * needs the full network, so leaving Volumes used to pay a full download right
+ * when the user was mid-interaction. Kicking the full variant off once the map
+ * has settled moves that download into dead time: by the time the user switches,
+ * `loadNetworkGeometry` is a cache hit and the switch costs only a re-tile.
+ *
+ * Best-effort by design: no-op when the key is already cached or in flight,
+ * errors are swallowed (the real load will surface them), and it is scheduled
+ * through `requestIdleCallback` so it never competes with the first paint. Note
+ * the parse + merge of a big canton is still main-thread work that can't be
+ * preempted once started — idle time only decides *when* it starts.
+ */
+export function prefetchNetworkGeometry(loadWithFallback, datasetId, canton, major = false) {
+  if (!loadWithFallback || !canton) return;
+  const key = cacheKey(datasetId, canton, major);
+  if (entries.has(key)) return; // already cached, or a load is in flight
+
+  const start = () => {
+    if (entries.has(key)) return; // someone asked for it for real in the meantime
+    loadNetworkGeometry(loadWithFallback, datasetId, canton, major).catch(() => {});
+  };
+
+  if (typeof requestIdleCallback === 'function') {
+    // The timeout keeps a permanently busy tab from starving the prefetch
+    // forever; 10 s is well past the point where the initial render settled.
+    requestIdleCallback(start, { timeout: 10000 });
+  } else {
+    setTimeout(start, 2000);
+  }
+}
+
+/**
  * Drop the cached geometry so the next load refetches — the escape hatch behind
  * the sidebar's Reset button, for when a dataset's assets changed underneath a
  * live session (the cache key only tracks dataset, canton and variant).

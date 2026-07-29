@@ -11,7 +11,13 @@ const TransitLinkHistogram = ({
   timeRange = [0, 96],
   canton,
   triggerVisualize,
-  selectedDirection
+  selectedDirection,
+  // A selection can render one of these per link, and they all resolve from the
+  // same canton payload at roughly the same time — so only the first shows the
+  // loading placeholder, or the sidebar stacks N identical boxes. The road
+  // Volumes module gets this for free: its histogram takes the whole id array
+  // and maps internally, so it has a single early return.
+  showLoadingPlaceholder = true
 }) => {
   const loadWithFallback = useLoadWithFallback();
   const { datasetId } = useData();
@@ -24,7 +30,7 @@ const TransitLinkHistogram = ({
 
   // datasetId in the key: refetch when the dataset switches instead of
   // serving the previous dataset's cached volumes.
-  const { data: volumeData } = useQuery({
+  const { data: volumeData, isLoading } = useQuery({
     queryKey: ['transit-link-volume', datasetId, canton, String(linkId)],
     queryFn: () => {
       const key = String(linkId);
@@ -59,6 +65,15 @@ const TransitLinkHistogram = ({
     enabled: !!linkId && !!canton,
   });
 
+  // Same placeholder the road Volumes module's SegmentVolumeHistogram shows —
+  // only while the payload is actually in flight. A link that legitimately
+  // carries no volumes still renders nothing (one chart per link id, and an
+  // unserved link shouldn't add an empty card).
+  if (isLoading) {
+    return showLoadingPlaceholder
+      ? <p className="plot-empty">Loading volume data…</p>
+      : null;
+  }
   if (!volumeData) return null;
 
   const all15MinLabels = Array.from({ length: 96 }, (_, h) => {
