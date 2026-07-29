@@ -181,13 +181,15 @@ def merged_segments_geojson(canton_id: int, major: bool = False) -> bytes | None
             return hit
 
     payload = _stored_merged_segments(canton_id)
-    if payload is not None:
+    if payload is not None and major:
         # The stored asset is always the whole network; subset it here. Costs one
         # parse + re-serialise, paid once per (dataset, zone) because the result
         # is cached below — still far cheaper than shipping 5× the features.
-        if major:
-            payload = _filter_major(payload)
-    else:
+        # A corrupt/truncated asset makes this return None; fall through to the
+        # rebuild rather than 404ing, so a bad blob can't kill the major-roads
+        # view for a zone whose unfiltered view still works.
+        payload = _filter_major(payload)
+    if payload is None:
         payload = _rebuild_from_network_links(canton_id, major=major)
     if payload is None:
         return None

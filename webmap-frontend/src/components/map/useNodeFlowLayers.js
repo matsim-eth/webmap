@@ -752,8 +752,14 @@ export default function useNodeFlowLayers({ mapRef, mapReady }) {
                 if (src) src.setData(fc);
             }
 
-            setFilter(map, ['network-layer', 'network-layer-hitbox'],
-                ['>', ['get', 'daily_avg_volume'], 0]);
+            // AND onto the road filter, don't replace it: link_volumes.json is
+            // built from link_speeds, which carries PT alignments with real
+            // volume (~5k non-car links in Zurich), so a bare volume>0 test
+            // would draw and hit-test tram/rail links on the road base layer.
+            setFilter(map, ['network-layer', 'network-layer-hitbox'], ['all',
+                CLICKABLE_ROAD_FILTER,
+                ['>', ['get', 'daily_avg_volume'], 0],
+            ]);
         })();
 
         return () => {

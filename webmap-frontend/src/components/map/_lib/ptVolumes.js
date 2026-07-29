@@ -21,6 +21,11 @@
 // { key, bundle, promise } — `bundle` set once resolved, `promise` while in flight.
 let entry = { key: null, bundle: null, promise: null };
 
+// Bumped by clearPtVolumeCache. A load that started in an earlier epoch derived
+// its bundle from geometry that has since been discarded, so its result must not
+// be cached even though its awaiting callers still get it.
+let epoch = 0;
+
 const cacheKey = (datasetId, canton) => `${datasetId ?? ''}:${canton ?? ''}`;
 
 /**
@@ -37,6 +42,7 @@ export async function loadPtVolumeBundle(loadWithFallback, datasetId, canton, pr
     if (entry.promise) return entry.promise;
   }
 
+  const loadEpoch = epoch;
   const promise = (async () => {
     const path = `matsim/transit/volumes_by_link_line/pt_link_volumes_by_link_line_${canton}.json`;
     const volumeJSON = await loadWithFallback(path);
@@ -46,16 +52,20 @@ export async function loadPtVolumeBundle(loadWithFallback, datasetId, canton, pr
 
   entry = { key, bundle: null, promise };
 
+  // Identity, not key equality: after a clear, a *newer* load for the same
+  // canton may already own the entry, and this (now stale) one must not touch it.
+  const owned = () => entry.promise === promise;
+
   try {
     const bundle = await promise;
-    if (entry.key === key) {
-      entry = bundle
+    if (owned()) {
+      entry = bundle && loadEpoch === epoch
         ? { key, bundle, promise: null }
         : { key: null, bundle: null, promise: null };
     }
     return bundle;
   } catch (err) {
-    if (entry.key === key) entry = { key: null, bundle: null, promise: null };
+    if (owned()) entry = { key: null, bundle: null, promise: null };
     throw err;
   }
 }
@@ -63,10 +73,14 @@ export async function loadPtVolumeBundle(loadWithFallback, datasetId, canton, pr
 /**
  * Drop the cached bundle. Called from `useFullReset` alongside
  * `clearNetworkGeometryCache` — the bundle points into that geometry, so the
- * two must never be cleared independently. An in-flight load is left alone;
- * its awaiting callers still need it.
+ * two must never be cleared independently.
+ *
+ * An in-flight load keeps running (its awaiting callers still need a result),
+ * but the epoch bump stops its bundle from being *cached*: it was derived from
+ * geometry the companion clear has already discarded, so caching it would leave
+ * the next entry reusing features detached from the freshly refetched geometry.
  */
 export function clearPtVolumeCache() {
-  if (entry.promise) return;
+  epoch++;
   entry = { key: null, bundle: null, promise: null };
 }

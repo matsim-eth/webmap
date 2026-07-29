@@ -201,11 +201,20 @@ function pickByClickSide(hits, clickLngLat) {
 }
 
 // Re-point the highlight sources at the equivalent features in a freshly
-// computed set — same segment via link_key_join, same direction via ls_arrow.
+// computed set — same segment via seg_key, same direction via ls_arrow.
 // Used on every recompute (time / line / direction) and on the stage-2 handover,
 // where the user may have clicked a link while only the geometry was loaded.
 // Returns the matched features so the caller can refresh the sidebar from them.
+//
+// Matching is on seg_key, NOT link_key_join: link_key_join is the *click*
+// identity within one stage and is volume-derived at stage 2 (only the ids the
+// payload knows, possibly cleanLinkId-normalised), so it does not survive the
+// stage-1 → stage-2 handover for a segment where only one direction carries
+// service. seg_key is the geometry's own sorted link ids and is stamped
+// identically by both stages.
 function syncHighlights(map, features, splitFeatures) {
+  const segKeyOf = (f) => f?.properties?.seg_key ?? f?.properties?.link_key_join;
+
   const matchedSplit = [];
   const splitHighlight = map.getSource(SPLIT_HIGHLIGHT_ID);
   if (splitHighlight) {
@@ -213,7 +222,7 @@ function syncHighlights(map, features, splitFeatures) {
     for (const f of splitFeatures) {
       const hit = prev.some(
         (p) =>
-          p?.properties?.link_key_join === f?.properties?.link_key_join &&
+          segKeyOf(p) === segKeyOf(f) &&
           p?.properties?.ls_arrow === f?.properties?.ls_arrow
       );
       if (hit) matchedSplit.push(f);
@@ -226,11 +235,11 @@ function syncHighlights(map, features, splitFeatures) {
   if (highlightSource) {
     const prevKeys = new Set(
       (highlightSource._data?.features || [])
-        .map((f) => f?.properties?.link_key_join)
+        .map(segKeyOf)
         .filter(Boolean)
     );
     for (const f of features) {
-      if (prevKeys.has(f?.properties?.link_key_join)) matchedMerged.push(f);
+      if (prevKeys.has(segKeyOf(f))) matchedMerged.push(f);
     }
     highlightSource.setData({ type: "FeatureCollection", features: matchedMerged });
   }
@@ -628,6 +637,11 @@ export default function useTransitVolumesLayer({
         line_ids_r: lineIdsR,
         link_ids: identityIds,
         link_key_join: identityIds.join(","),
+        // Stage-independent segment identity (the geometry's own ids, not the
+        // volume-matched subset) — the only key syncHighlights can use to carry
+        // a stage-1 selection across the handover. Must stay identical to
+        // buildPendingFeatures' seg_key.
+        seg_key: keys.map(String).sort().join(","),
       };
 
       prepared.push({ f, links, invariant });
@@ -767,6 +781,8 @@ export default function useTransitVolumesLayer({
           volume_max: vol.max ?? 0,
           link_ids: ids,
           link_key_join: ids.join(","),
+          // Same value prepareFeatures stamps — see syncHighlights.
+          seg_key: ids.join(","),
         },
       });
     }

@@ -313,7 +313,11 @@ def _prewarm_caches() -> None:
                 zones_fc_bytes(False)
 
             _prewarm_step("zones/study_area", _zones, root)
-            _prewarm_step("speed_dashboard", lambda: SpeedDashboardProvider().deliver({}), root)
+            # NB: must match the params the frontends actually send — the cache
+            # keys on (route, dataset, sorted params), so warming {} would leave
+            # the real ?modes=car request to pay the full cold scan anyway.
+            _prewarm_step("speed_dashboard",
+                          lambda: SpeedDashboardProvider().deliver({"modes": "car"}), root)
             # inter_cantonal_stops() triggers the per-dataset transit _build().
             _prewarm_step("transit stops", inter_cantonal_stops, root)
             # NB: the per-line transit_routes index (providers/transit_routes.py)
@@ -481,6 +485,16 @@ async def matsim_asset(dataset_id: int, asset_path: str, request: Request):
             major = request.query_params.get("major") in ("1", "true", "True")
             from providers.network_geometry import merged_segments_geojson
             payload = await _asyncio.to_thread(merged_segments_geojson, cid, major)
+            if payload is None:
+                # Neither a fat asset nor a usable network_links table. Serve the
+                # thin stored blob rather than 404ing: falling through to the CDN
+                # would hand this dataset another dataset's network, which is the
+                # failure the backend-first fallback chain exists to prevent. The
+                # thin blob has no capacity, so it is served unfiltered and the
+                # client's own MAJOR_ROADS_FILTER does the ?major subsetting.
+                payload = await _asyncio.to_thread(
+                    load_static_asset_bytes, "synthetic", f"merged_segments:{cid}"
+                )
             if payload is None:
                 return JSONResponse({"error": "not found"}, status_code=404)
             return _Response(content=payload, media_type="application/geo+json")
