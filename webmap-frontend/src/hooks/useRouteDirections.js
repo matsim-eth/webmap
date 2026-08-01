@@ -15,11 +15,11 @@ import { useLoadWithFallback } from "../utils/useLoadWithFallback";
  * generic Outbound/Return labels.
  */
 export default function useRouteDirections() {
-  const { datasetId, dataURL } = useData();
-  const loadWithFallback = useLoadWithFallback(dataURL);
+  const { datasetId } = useData();
+  const loadWithFallback = useLoadWithFallback();
 
   const { data } = useQuery({
-    queryKey: ["transit-route-directions", datasetId, dataURL],
+    queryKey: ["transit-route-directions", datasetId],
     // Let a fetch failure surface as a query error (not a swallowed null) so
     // React Query retries it — otherwise a single transient/cold-start miss got
     // cached as `null` under `staleTime: Infinity` and the terminus labels never

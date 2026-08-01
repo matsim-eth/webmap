@@ -163,3 +163,19 @@ class DestinationZonesProvider(DataProvider):
         result = list(records.values())
         _cput(ckey, result)
         return result
+
+
+def warm() -> None:
+    """Prime the module for the dataset currently in scope (called by
+    ``warmup.WARM_STEPS``).
+
+    Runs the real query for the lowest-numbered zone rather than a synthetic
+    "touch the columns" scan: the WHERE is on the origin/dest id, so DuckDB
+    reads the whole ``trips`` table either way, and using an actual hub
+    additionally leaves that hub's result in the cache. Every *other* hub is
+    fast afterwards too — what makes the first request expensive is paging the
+    trips columns in, not the group-by."""
+    zones = get_registry().zones_sorted()
+    if not zones:
+        return
+    DestinationZonesProvider().deliver({"canton": str(zones[0][0])})

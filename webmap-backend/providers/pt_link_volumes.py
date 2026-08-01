@@ -5,8 +5,8 @@ Replaces the CDN's preprocessed
 historically the only webmap asset that could NOT be rebuilt from the dataset's
 own duckdb (link_speeds/spider are car-only). Datasets built with the
 `pt_link_volumes` table (one row per link/line/route/15-min bin) now serve it
-themselves; older datasets raise → the matsim bridge 404s → the frontend falls
-back to the CDN as before.
+themselves; older datasets raise → the matsim bridge 404s → Transit Volumes
+shows no numbers for that dataset (the CDN fallback is gone).
 
 Output matches the CDN shape the frontend already parses
 (`useTransitVolumesLayer.toVolumeById` / `TransitLinkHistogram`):
@@ -28,6 +28,7 @@ from collections import OrderedDict
 
 from .connection import get_source_cursor
 from .paths import dataset_key
+from .zone_registry import zone_col
 
 # Bounded per-(dataset, canton) LRU — a large canton's result is tens of MB of
 # Python objects (Zurich ~31k links / ~59k link-line pairs), so keep few.
@@ -39,10 +40,11 @@ _TICK_KEYS = [f"{b // 4:02d}:{(b % 4) * 15:02d}" for b in range(96)]
 
 
 def volumes_by_link_line(canton_id: int) -> list | None:
-    """Rebuild the per-canton PT link volume rows from `pt_link_volumes`.
+    """Rebuild the per-zone PT link volume rows from `pt_link_volumes`.
 
     Returns None when the dataset has no `pt_link_volumes` table (older
-    duckdbs) so the caller can 404 and let the frontend fall back to the CDN.
+    duckdbs) so the caller can 404 — the Transit Volumes module then has no
+    numbers for that dataset.
     """
     key = (dataset_key(), canton_id)
     hit = _VOL_CACHE.get(key)
@@ -51,15 +53,20 @@ def volumes_by_link_line(canton_id: int) -> list | None:
         return hit
 
     cur = get_source_cursor("synthetic")
+    # v3 (re-zoned) datasets carry `zone_id` here; v2 only `canton_id`. Probing
+    # matters — a gemeinde-zoned dataset keeps the source's `canton_id` column
+    # untouched, so filtering on it would answer "gemeinde 1" with the whole of
+    # canton 1 rather than failing visibly.
+    zcol = zone_col("synthetic", "pt_link_volumes", "zone")
     try:
         rows = cur.execute(
-            r"""
+            rf"""
             SELECT link_id, line_id,
                    any_value(line_name), any_value(mode),
                    regexp_extract(route_id, '\.([HR])$', 1) AS dir,
                    time_bin, SUM(volume)
             FROM pt_link_volumes
-            WHERE canton_id = ?
+            WHERE {zcol} = ?
             GROUP BY link_id, line_id, dir, time_bin
             """,
             [canton_id],

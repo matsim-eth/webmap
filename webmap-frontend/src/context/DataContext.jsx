@@ -14,7 +14,6 @@ export const DataProvider = ({ children }) => {
   // useDefaultDataset) rather than hardcoding an id — so nothing fetches against
   // a dataset the user may not own before they've picked one.
   const [datasetId, setDatasetId] = useState(null);
-  const [dataURL, setDataURL] = useState('https://matsim-eth.github.io/webmap/data/');
   useDefaultDataset(datasetId, setDatasetId);
   const [cantonList, setCantonList] = useState([]);
 
@@ -74,7 +73,6 @@ export const DataProvider = ({ children }) => {
 
   const value = useMemo(() => ({
     datasetId, setDatasetId,
-    dataURL, setDataURL,
     cantonList, setCantonList,
     studyArea, zoneLabel, zoneLabelPlural, zones, zoneByName,
     studyAreaIsFallback,
@@ -97,7 +95,7 @@ export const DataProvider = ({ children }) => {
     polygonTripsData, setPolygonTripsData,
     polygonTripsLoading, setPolygonTripsLoading,
   }), [
-    datasetId, dataURL, cantonList,
+    datasetId, cantonList,
     studyArea, zoneLabel, zoneLabelPlural, zones, zoneByName, studyAreaIsFallback,
     featureGeoJSON, tableFilterQuery, isFeatureTableOpen, polygonStopIds, polygonLinkIds,
     destinationData, destinationHoveredCanton, destinationSelectedCanton, boardingData,

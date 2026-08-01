@@ -1,7 +1,5 @@
 import logging
 import os
-import threading
-import time
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
@@ -17,6 +15,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from providers import ALL_PROVIDERS
 from providers.base import mount_provider
+from providers import warmup
 
 # ---------------------------------------------------------------------------
 # Environment / config
@@ -96,243 +95,12 @@ def _ttl_seconds_from_exp(exp: int | None) -> int | None:
 # App
 # ---------------------------------------------------------------------------
 
-def _dataset_service_order() -> list[str]:
-    """Dataset ids from the dataset service, default-first then ascending id.
-
-    Empty list on any failure (service not up yet, no internal secret configured,
-    timeout) — the caller then falls back to the filesystem id sort, which agrees
-    with this apart from not knowing which dataset the admin marked default.
-    """
-    import httpx
-
-    # Send the secret when configured. When it is unset the dataset service
-    # skips the check entirely (relying on network isolation), so still make the
-    # call — bailing out here would disable default-first prewarming on every
-    # deployment that hasn't set the secret, which includes the dev stack.
-    secret = os.getenv("INTERNAL_SERVICE_SECRET", "").strip()
-    headers = {"X-Internal-Secret": secret} if secret else {}
-    url = os.getenv("DATASET_SERVICE_URL", "http://dataset_backend:5033")
-    try:
-        resp = httpx.get(
-            f"{url}/internal/datasets/order",
-            headers=headers,
-            timeout=5.0,
-        )
-        if resp.status_code != 200:
-            return []
-        return [str(i) for i in resp.json().get("dataset_ids", [])]
-    except Exception as exc:
-        logger.info("dataset order lookup failed, using id order: %s", exc)
-        return []
-
-
-def _prewarm_order(db_paths: list[str]) -> list[str]:
-    """Dataset roots in the order the prewarm should walk them: the admin-chosen
-    **default dataset first**, then ascending dataset id.
-
-    Ordering matters because each dataset costs ~70-100 s for the transit-stops
-    build, so whichever dataset is warmed last spends minutes cold — and if that
-    is the one the frontends open by default, the first user to touch Transit
-    Stops runs the whole country-wide build inside their request, contending with
-    the prewarm thread. (The `sorted()` this replaced ordered *paths as strings*,
-    so `1`, `2`, `3` preceded `7318579365` purely by string length, and under the
-    old `created_at DESC` list order the default landed last.)
-
-    The default comes from the dataset service (`/internal/datasets/order`); when
-    that is unreachable — it may not be up yet at startup — this degrades to
-    ascending id, which is the same order minus the default's promotion. A
-    dataset directory's name *is* its id, so that fallback needs no DB access.
-
-    `WEBMAP_PREWARM_ORDER` (comma-separated ids) overrides both, pinning datasets
-    to the front; unlisted ones follow, and unknown ids are ignored.
-    """
-    roots = {os.path.dirname(p) for p in db_paths}
-
-    def id_key(root: str) -> tuple:
-        """(0, id) for numeric dir names, (1, name) for anything else — so a
-        non-dataset directory sorts last instead of raising on int()."""
-        name = os.path.basename(root)
-        return (0, int(name), "") if name.isdigit() else (1, 0, name)
-
-    ordered = sorted(roots, key=id_key)
-
-    # Promote in the dataset service's order (default first). Only reorders what
-    # is already on disk; ids with no directory are ignored, and directories the
-    # service doesn't know about keep their id-sorted place at the back.
-    service_ids = _dataset_service_order()
-    if service_ids:
-        by_name = {os.path.basename(r): r for r in ordered}
-        front = [by_name[i] for i in service_ids if i in by_name]
-        ordered = front + [r for r in ordered if r not in set(front)]
-
-    pinned = [p.strip() for p in os.getenv("WEBMAP_PREWARM_ORDER", "").split(",") if p.strip()]
-    if pinned:
-        by_name = {os.path.basename(r): r for r in ordered}
-        front = [by_name[n] for n in pinned if n in by_name]
-        ordered = front + [r for r in ordered if r not in set(front)]
-    return ordered
-
-
-# ─── Prewarm traffic gate ─────────────────────────────────────────────────
-# The prewarm necessarily runs inside the *serving* process — its whole point is
-# to fill in-process caches — so its long pure-Python stretches (parsing the
-# ~76 MB boarding asset, walking ~116k stops) contend with the request
-# threadpool for the GIL and the CPU. Measured: a cold `destination_zones.json`
-# that costs 0.1 s warm took **88 s** when it landed inside a transit-stops
-# build, and it completed 3 s after that build finished.
-#
-# So the prewarm waits for a gap in live traffic before starting each unit of
-# work. NOTE this *defers* work, it does not preempt it — a request arriving
-# after a build has begun still contends with it. What bounds that exposure is
-# WEBMAP_PREWARM_LIMIT: prewarming one dataset instead of every dataset on disk
-# turns an ~11-minute window of heavy background work into ~2 minutes.
-
-_traffic_lock = threading.Lock()
-_traffic_inflight = 0        # data requests currently being served
-_traffic_last_end = 0.0      # time.monotonic() when the last one finished
-
-# Seconds of no data traffic before a prewarm unit may start.
-_PREWARM_QUIET_S = float(os.getenv("WEBMAP_PREWARM_QUIET", "3"))
-# Cap on deferring a single unit, so continuous traffic can't starve the prewarm
-# forever — past this we accept the contention and build anyway.
-_PREWARM_MAX_WAIT_S = float(os.getenv("WEBMAP_PREWARM_MAX_WAIT", "300"))
-# Breather after each unit, so anything queued behind it is served before the
-# next unit grabs the CPU.
-_PREWARM_YIELD_S = float(os.getenv("WEBMAP_PREWARM_YIELD", "1"))
-
-
-def _traffic_begin() -> None:
-    global _traffic_inflight
-    with _traffic_lock:
-        _traffic_inflight += 1
-
-
-def _traffic_end() -> None:
-    global _traffic_inflight, _traffic_last_end
-    with _traffic_lock:
-        _traffic_inflight -= 1
-        _traffic_last_end = time.monotonic()
-
-
-def _await_quiet(label: str) -> None:
-    """Block the prewarm thread until no data request has been in flight for
-    `_PREWARM_QUIET_S`, or `_PREWARM_MAX_WAIT_S` elapses."""
-    if _PREWARM_QUIET_S <= 0:
-        return
-    deadline = time.monotonic() + _PREWARM_MAX_WAIT_S
-    deferred = False
-    while time.monotonic() < deadline:
-        with _traffic_lock:
-            idle_for = 0.0 if _traffic_inflight else time.monotonic() - _traffic_last_end
-        if idle_for >= _PREWARM_QUIET_S:
-            if deferred:
-                logger.info("prewarm resuming (%s): traffic idle", label)
-            return
-        if not deferred:
-            logger.info("prewarm deferring %s: serving requests", label)
-            deferred = True
-        time.sleep(0.25)
-    logger.info("prewarm starting %s anyway after %.0fs of traffic", label, _PREWARM_MAX_WAIT_S)
-
-
-def _prewarm_step(label: str, fn, root: str) -> None:
-    """Run one prewarm unit behind the traffic gate. Errors are swallowed —
-    an incompatible dataset just skips that step."""
-    _await_quiet(label)
-    try:
-        fn()
-        logger.info("prewarmed %s for %s", label, root)
-    except Exception as exc:
-        logger.warning("%s prewarm skipped for %s: %s", label, root, exc)
-    if _PREWARM_YIELD_S > 0:
-        time.sleep(_PREWARM_YIELD_S)
-
-
-def _prewarm_caches() -> None:
-    """Background: precompute the slow, parameter-less builds so the first user
-    never waits on a cold scan:
-      • zones/study_area — cheap, but on the critical path of the first render;
-      • speed_dashboard  — a 50M-row link_speeds scan (~30s, minutes cold);
-      • transit stops    — a country-wide _build() over boarding_data + the
-        1.7M-row network (~70-100 s per dataset), which otherwise fires on the
-        first stops_by_canton request.
-
-    Runs one dataset at a time in a daemon thread, in `_prewarm_order` (the
-    admin-chosen default dataset first, then ascending id — matching the order the
-    dataset service serves to the frontends).
-
-    By default only the **first** dataset in that order is warmed. Warming every
-    dataset on disk costs ~2 min each and mostly buys nothing: the frontends open
-    the default dataset, and the minutes of background CPU actively slow down the
-    requests of the user who is already here (see the traffic gate above). Raise
-    WEBMAP_PREWARM_LIMIT to warm more, or set it to 0 for all of them. Disable
-    the prewarm entirely with WEBMAP_PREWARM=0."""
-    import glob
-    from providers.paths import set_root_override
-    from providers.link_speeds import SpeedDashboardProvider
-    from providers.transit_stops import inter_cantonal_stops
-
-    # Debounce for dev: uvicorn --reload restarts the process on every file
-    # save, and each restart would immediately kick off full table scans of
-    # every dataset — misery on a laptop. Waiting a bit first means rapid
-    # edit-reload cycles kill the (daemon) thread before it does heavy work;
-    # the cache still warms once the code settles. Prod (ENV != dev) starts
-    # immediately. Override with WEBMAP_PREWARM_DELAY (seconds).
-    delay = os.getenv("WEBMAP_PREWARM_DELAY", "").strip()
-    delay_s = float(delay) if delay else (15.0 if ENV == "dev" else 0.0)
-    if delay_s > 0:
-        time.sleep(delay_s)
-
-    base = os.getenv("WEBMAP_ROOT", "/data/datasets/public")
-    roots = _prewarm_order(glob.glob(os.path.join(base, "*", "synthetic.duckdb")))
-
-    # Warm only the first N datasets (default 1 — the one the frontends open).
-    # 0/negative means all; a non-numeric value falls back to the default rather
-    # than crashing the prewarm thread.
-    try:
-        limit = int(os.getenv("WEBMAP_PREWARM_LIMIT", "1").strip() or 1)
-    except ValueError:
-        limit = 1
-    skipped = roots[limit:] if limit > 0 else []
-    if limit > 0:
-        roots = roots[:limit]
-
-    logger.info("prewarm order: %s%s",
-                ", ".join(os.path.basename(r) for r in roots) or "(none)",
-                f" (skipping {len(skipped)}: raise WEBMAP_PREWARM_LIMIT to include)" if skipped else "")
-    from providers.study_area import study_area_dict, zones_fc_bytes
-
-    for root in roots:
-        set_root_override(root)
-        try:
-            # Zone layer + study-area meta: cheap, but on the critical path of
-            # the very first map render (simplify + reproject + per-zone bbox
-            # scan of every primary polygon) — warm them before the slow scans.
-            def _zones():
-                study_area_dict()
-                zones_fc_bytes(False)
-
-            _prewarm_step("zones/study_area", _zones, root)
-            # NB: must match the params the frontends actually send — the cache
-            # keys on (route, dataset, sorted params), so warming {} would leave
-            # the real ?modes=car request to pay the full cold scan anyway.
-            _prewarm_step("speed_dashboard",
-                          lambda: SpeedDashboardProvider().deliver({"modes": "car"}), root)
-            # inter_cantonal_stops() triggers the per-dataset transit _build().
-            _prewarm_step("transit stops", inter_cantonal_stops, root)
-            # NB: the per-line transit_routes index (providers/transit_routes.py)
-            # is intentionally NOT prewarmed — it parses the ~76 MB routes asset
-            # and would hold it in RAM for every dataset at startup. It builds
-            # lazily on the first line selection instead (one ~6 s parse per
-            # dataset per worker, then cached).
-        finally:
-            set_root_override(None)
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if os.getenv("WEBMAP_PREWARM", "1").strip().lower() in {"1", "true"}:
-        threading.Thread(target=_prewarm_caches, name="prewarm", daemon=True).start()
+    # Startup prewarm of the default dataset. Every *other* dataset is warmed on
+    # demand instead, the first time a request for it reaches this worker — see
+    # providers/warmup.py.
+    warmup.start()
     yield
 
 
@@ -373,8 +141,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
 
 class TrafficMiddleware(BaseHTTPMiddleware):
-    """Count in-flight data requests so the prewarm thread can stay out of the
-    way (see `_await_quiet`).
+    """Count in-flight data requests so the warm thread can stay out of the
+    way (see `warmup.await_quiet`).
 
     `_PUBLIC_PATHS` is excluded deliberately: the container healthcheck polls
     `/health` every ~10 s, which — with a 3 s quiet threshold — would read as
@@ -383,11 +151,11 @@ class TrafficMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         if request.url.path in _PUBLIC_PATHS:
             return await call_next(request)
-        _traffic_begin()
+        warmup.traffic_begin()
         try:
             return await call_next(request)
         finally:
-            _traffic_end()
+            warmup.traffic_end()
 
 
 # --- Middleware (order matters: added last = outermost) --------------------
@@ -466,6 +234,7 @@ async def matsim_asset(dataset_id: int, asset_path: str, request: Request):
         access_token = request.cookies.get(ACCESS_COOKIE_NAME, "")
         root = await _resolve_dataset_root(dataset_id, user_id, access_token)
         _set_root_override(root)
+        warmup.request_warm(root, warmup.profile_from_referer(request.headers.get("referer")))
     except Exception:
         return JSONResponse({"error": "dataset resolution failed"}, status_code=400)
     try:
@@ -473,11 +242,9 @@ async def matsim_asset(dataset_id: int, asset_path: str, request: Request):
             cid = _canton_id_from(asset_path[: -len(_MERGED_SUFFIX)])
             if cid is None:
                 return JSONResponse({"error": "not found"}, status_code=404)
-            # merged_segments_geojson owns the source choice: it serves the
-            # dataset's precomputed merged_segments asset when that asset is the
-            # fat (v3) one, and otherwise rebuilds from network_links for older
-            # datasets whose asset is thin. Both paths share its per-(dataset,
-            # zone) LRU, so repeat visits are cache hits either way.
+            # merged_segments_geojson serves the dataset's precomputed
+            # merged_segments asset out of a per-(dataset, zone) LRU, so repeat
+            # visits are cache hits.
             # ?major=1 returns only the links the frontend's MAJOR_ROADS_FILTER
             # displays — the road Volumes module's default view — which is ~5×
             # fewer features to transfer, parse and tile. Same flag and same
@@ -485,16 +252,6 @@ async def matsim_asset(dataset_id: int, asset_path: str, request: Request):
             major = request.query_params.get("major") in ("1", "true", "True")
             from providers.network_geometry import merged_segments_geojson
             payload = await _asyncio.to_thread(merged_segments_geojson, cid, major)
-            if payload is None:
-                # Neither a fat asset nor a usable network_links table. Serve the
-                # thin stored blob rather than 404ing: falling through to the CDN
-                # would hand this dataset another dataset's network, which is the
-                # failure the backend-first fallback chain exists to prevent. The
-                # thin blob has no capacity, so it is served unfiltered and the
-                # client's own MAJOR_ROADS_FILTER does the ?major subsetting.
-                payload = await _asyncio.to_thread(
-                    load_static_asset_bytes, "synthetic", f"merged_segments:{cid}"
-                )
             if payload is None:
                 return JSONResponse({"error": "not found"}, status_code=404)
             return _Response(content=payload, media_type="application/geo+json")

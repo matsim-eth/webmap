@@ -18,7 +18,7 @@ import { clearPtVolumeCache } from '../components/map/_lib/ptVolumes';
 export function useFullReset() {
   const { setIsGraphExpanded } = useModule();
   const { setResetMapTrigger, resetMapView, setIsSidebarOpen } = useMap();
-  const { setIsFeatureTableOpen, setDataURL } = useData();
+  const { setIsFeatureTableOpen } = useData();
   const { setSelectedNetworkModes, setSelectedTransitModes } = useFilters();
   const {
     setHighlightedLineId, setHighlightedRouteIds,
@@ -50,13 +50,11 @@ export function useFullReset() {
     setIsGraphExpanded(null);
     setIsFeatureTableOpen(false);
 
-    setDataURL('https://matsim-eth.github.io/webmap/data/');
-
     setIsSidebarOpen(false);
   }, [
     setResetMapTrigger, setSelectedDataset, setSelectedMode,
     setSelectedNetworkModes, setSelectedTransitModes, updateMapChoropleth,
     resetMapView, setHighlightedLineId, setHighlightedRouteIds,
-    setIsGraphExpanded, setIsFeatureTableOpen, setDataURL, setIsSidebarOpen,
+    setIsGraphExpanded, setIsFeatureTableOpen, setIsSidebarOpen,
   ]);
 }

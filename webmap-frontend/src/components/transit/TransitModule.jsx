@@ -21,7 +21,7 @@ import { useMap } from "../../context/MapContext";
 
 
 const TransitModule = ({ featureTableRef }) => {
-    const { dataURL, datasetId, isFeatureTableOpen, featureGeoJSON, setTableFilterQuery, setPolygonStopIds } = useData();
+    const { datasetId, isFeatureTableOpen, featureGeoJSON, setTableFilterQuery, setPolygonStopIds } = useData();
     const {
         selectedTransitModes, setSelectedTransitModes,
         showStopVolumeSymbology, setShowStopVolumeSymbology,
@@ -42,12 +42,12 @@ const TransitModule = ({ featureTableRef }) => {
 
     const [filteredStopVolumes, setFilteredStopVolumes] = useState(null); // total filtered volumes per stop
     const [polygonFilteredVolumes, setPolygonFilteredVolumes] = useState(null);
-    const loadWithFallback = useLoadWithFallback(dataURL);
+    const loadWithFallback = useLoadWithFallback();
 
     // Per-canton transit mode list — drives the multi-select dropdown.
     // datasetId in the key: refetch when the dataset switches.
     const { data: transitModesByCanton = {} } = useQuery({
-        queryKey: ['transit-modes-by-canton', datasetId, dataURL],
+        queryKey: ['transit-modes-by-canton', datasetId],
         queryFn: () => loadWithFallback("matsim/transit/transit_modes_by_canton.json"),
     });
     // clickedCanton is the polygon display NAME ('Zürich'); the modes map is keyed

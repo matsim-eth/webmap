@@ -1,9 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useData } from '../../context/DataContext';
-import { computeMapPadding } from '../sidebar/sidebarLayout';
+import { computeMapPadding, clampHorizontalPadding } from '../sidebar/sidebarLayout';
 import { beginPaddingShift, endPaddingShift } from './_lib/paddingGate';
 
 const PADDING_EASE_MS = 600;
+const SEARCH_ZOOM_MS = 1000;
 
 // Mapbox stores padding as floats; treat sub-pixel differences as "already there".
 const samePadding = (a, b) =>
@@ -29,8 +30,17 @@ export default function usePadding({
   const zoneByNameRef = useRef(zoneByName);
   zoneByNameRef.current = zoneByName;
 
-  // avoid changing padding when we select new canton
-  const suppressPaddingRef = useRef(false);
+  // Avoid fighting the zoom-to-zone fitBounds with a padding ease: effect 2
+  // suppresses effect 1 for the duration of that animation.
+  //
+  // This is *state*, not a ref, on purpose. As a ref, a module switch that
+  // landed inside the ~1 s zoom window was dropped for good — effect 1 bailed,
+  // and clearing the ref afterwards re-rendered nothing, so the new module's
+  // padding was never applied and the map kept the previous module's. As state,
+  // clearing it re-runs effect 1, which then applies whatever padding the
+  // current sidebar state calls for (a no-op via `samePadding` when the zoom
+  // already left the map correctly padded).
+  const [paddingSuppressed, setPaddingSuppressed] = useState(false);
 
   // avoid re-running search-zoom effect on every sidebar toggle —
   // use refs so fitBounds always reads the latest values without re-triggering
@@ -47,7 +57,7 @@ export default function usePadding({
   useEffect(() => {
 
     if (!mapReady) return;
-    if (suppressPaddingRef.current) return;
+    if (paddingSuppressed) return;
     const map = mapRef.current;
     if (!map) return;
 
@@ -59,7 +69,13 @@ export default function usePadding({
       gateListenerRef.current = null;
     }
 
-    const padding = computeMapPadding({ isGraphExpanded, isSidebarOpen, isFeatureTableOpen, isLeftSidebarOpen });
+    // Clamped on the same basis as the zoom-to-zone fitBounds below, so the two
+    // agree on narrow windows — otherwise every zone zoom would be followed by
+    // an ease back to the unclamped value.
+    const padding = clampHorizontalPadding(
+      computeMapPadding({ isGraphExpanded, isSidebarOpen, isFeatureTableOpen, isLeftSidebarOpen }),
+      map.getContainer?.()?.clientWidth,
+    );
 
     // Most module switches keep the same sidebar width (both 'expanded'), so
     // there is nothing to animate. Bail before opening the gate — otherwise
@@ -80,7 +96,7 @@ export default function usePadding({
     gateListenerRef.current = closeGate;
     map.easeTo({ padding, duration: PADDING_EASE_MS });
     map.once('moveend', closeGate);
-  }, [mapRef, mapReady, isSidebarOpen, isGraphExpanded, isFeatureTableOpen, isLeftSidebarOpen]);
+  }, [mapRef, mapReady, isSidebarOpen, isGraphExpanded, isFeatureTableOpen, isLeftSidebarOpen, paddingSuppressed]);
 
   // 2) zoom to canton on search (with correct padding)
   useEffect(() => {
@@ -97,29 +113,51 @@ export default function usePadding({
     }
 
     setIsFeatureTableOpen(false);
-    suppressPaddingRef.current = true
 
+    // Resolve the bbox BEFORE suppressing padding. Suppressing first meant a
+    // zone the study area carries no bbox for (or a name that isn't in
+    // zoneByName) returned here with padding disabled for the rest of the
+    // session — nothing but the `moveend` below ever cleared it.
     const bbox = zoneByNameRef.current?.get(searchCanton)?.bbox;
     if (!bbox) return;
     setClickedCanton(searchCanton);
     map.setFilter('selected-canton-border',['==','NAME',searchCanton]);
 
-    map.fitBounds(bbox, {
+    // Clamp like useFeatureSelectionFocus does: mapbox's cameraForBounds
+    // returns nothing when left+right padding exceeds the canvas (265 + 650 =
+    // 915px with the sidebar expanded), and fitBounds then does nothing at all
+    // — no camera move, no `moveend`, so the un-suppress below never runs.
+    const padding = clampHorizontalPadding(
       // isFeatureTableOpen: false — the table was closed just above, so pad
       // for the sidebar width it is animating to, not the one it had.
-      padding: computeMapPadding({
+      computeMapPadding({
         isGraphExpanded: graphExpandedRef.current,
         isSidebarOpen: isSidebarOpenRef.current,
         isFeatureTableOpen: false,
         isLeftSidebarOpen: isLeftSidebarOpenRef.current,
       }),
-      maxZoom: 10,
-      duration: 1000,
-    });
+      map.getContainer?.()?.clientWidth,
+    );
 
-    map.once('moveend', () => {                  // re-enable after animation
-      suppressPaddingRef.current = false;
-    });
+    setPaddingSuppressed(true);
 
-  }, [mapRef, searchCanton, setClickedCanton, suppressNextSearchZoom]);
+    map.fitBounds(bbox, { padding, maxZoom: 10, duration: SEARCH_ZOOM_MS });
+
+    // Registered after fitBounds: flyTo calls map.stop() first, which fires a
+    // `moveend` for whatever animation it interrupted — listening earlier would
+    // catch that one and un-suppress before this zoom has even started.
+    let timer = null;
+    const done = () => {
+      clearTimeout(timer);
+      map.off('moveend', done);
+      setPaddingSuppressed(false);
+    };
+    map.once('moveend', done);
+    // Safety net for the cases where `moveend` never comes (fitBounds refusing
+    // to move, or an interrupted/no-op camera change), so suppression can't
+    // outlive the animation it belongs to.
+    timer = setTimeout(done, SEARCH_ZOOM_MS + 300);
+    return done;
+
+  }, [mapRef, searchCanton, setClickedCanton, suppressNextSearchZoom, setIsFeatureTableOpen]);
 }
