@@ -6,7 +6,11 @@ export const useLoadWithFallback = () => {
 
   const BACKEND_DATA_URL = `/backend/data/${datasetId}/`;
 
-  const loadWithFallback = async (relativePath) => {
+  // `opts.signal` lets a caller cancel a load whose result is no longer wanted
+  // (e.g. the user switched canton mid-fetch). Aborts are rethrown as-is rather
+  // than folded into the generic "all attempts failed" error, so callers can
+  // tell "I cancelled this" apart from "the backend has no data".
+  const loadWithFallback = async (relativePath, opts = {}) => {
     // The dataset-versioned backend is the ONLY source. There used to be a
     // fixed GitHub CDN behind it, which served dataset-INDEPENDENT reference
     // data: whenever a dataset's own asset failed, that CDN answered and every
@@ -18,16 +22,18 @@ export const useLoadWithFallback = () => {
     // empty/error for that specific dataset instead of being masked.
     const candidates = [BACKEND_DATA_URL];
 
+    const { signal } = opts;
+
     for (const base of candidates) {
       const finalURL = base + relativePath;
       try {
-        let res = await fetch(finalURL);
+        let res = await fetch(finalURL, { signal });
 
         // 401 from our backend → try token refresh, then retry
         if (res.status === 401 && finalURL.startsWith("/backend/")) {
           const refreshed = await handle401();
           if (!refreshed) return null; // redirecting to login
-          res = await fetch(finalURL);
+          res = await fetch(finalURL, { signal });
         }
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -35,7 +41,8 @@ export const useLoadWithFallback = () => {
         console.log(`Loaded from remote URL: ${finalURL}`);
 
         return json;
-      } catch {
+      } catch (err) {
+        if (err?.name === "AbortError") throw err;
         // silently try next
       }
     }

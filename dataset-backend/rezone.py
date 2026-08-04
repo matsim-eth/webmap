@@ -31,10 +31,19 @@ Semantics (verified against the source builder's own aggregate rows):
     oh_hex_res9 copy-filtered (its away_h* columns are unused by providers)
   * static assets: new ``study_area`` (v3), boarding stops re-tagged to the
     zone id via their ``bfs`` field (bezirk level maps bfs → parent bezirk),
-    transit_routes/stop_municipality/municipalities filtered;
+    stop_transfer_data_by_canton regrouped per zone the same way (per-stop
+    counts copied verbatim — see ``_build_stop_transfer_data``),
+    transit_routes/route_directions/stop_municipality/municipalities filtered;
     ``merged_segments:{zone_id}`` rebuilt per primary zone from the re-zoned
-    ``network_links`` (see below); stop_transfer_data_by_canton dropped
-    (canton-level aggregate).
+    ``network_links`` (see below).
+
+Known divergence from the source, deliberate: the three hex tables
+``flow_hex_res9``, ``spider_link_volumes_by_hex_res6`` and
+``zone_flow_link_volumes_hex_res6`` are **not** carried over (audited
+2026-08-04 against 7036833688 → 4186945268). No provider reads them — they are
+documented in ``docs/duckdb-format.md`` for future custom-polygon spider and
+zone-flow work — and together they are ~18M rows whose H3 cells would each need
+a point-in-study-area test. Add them here when something starts reading them.
 
 The legacy ``canton_id``-spelled columns are kept unchanged; the backend's
 ``zone_col()`` probe prefers the new ``zone_id`` spellings.
@@ -48,7 +57,7 @@ import logging
 import os
 import threading
 import traceback
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -550,24 +559,33 @@ def _build_source(src_path: Path, out_path: Path, canton_id: int | None,
 
     con.execute("DROP VIEW gem")
 
-    # bfs → primary zone id map for transit re-tagging (stops carry `bfs`):
-    # gemeinde level: identity; bezirk level: gemeinde bfs → parent bezirk id.
+    bfs_to_zone, zone_ids = _bfs_zone_map(con, zone_type)
+    return {"con": con, "bfs_to_zone": bfs_to_zone, "zone_ids": zone_ids}
+
+
+def _bfs_zone_map(con, zone_type: str) -> tuple[dict | None, set]:
+    """bfs → primary zone id map for transit re-tagging (stops carry ``bfs``).
+
+    gemeinde level: identity; bezirk level: gemeinde bfs → parent bezirk id;
+    canton level: None, meaning "keep the original stop canton_id".
+
+    Reads only ``hot_polygons``, so it works both mid-build and against an
+    already re-zoned dataset (which is what the backfills need).
+    """
     zone_ids = {r[0] for r in con.execute(
-        f"SELECT CAST(SPLIT_PART(polygon_id, ':', 2) AS INT) FROM hot_polygons "
-        f"WHERE polygon_type = '{zone_type}'").fetchall()}
+        "SELECT CAST(SPLIT_PART(polygon_id, ':', 2) AS INT) FROM hot_polygons "
+        "WHERE polygon_type = ?", [zone_type]).fetchall()}
     if zone_type == "gemeinde":
-        bfs_to_zone = {z: z for z in zone_ids}
-    elif zone_type == "bezirk":
+        return {z: z for z in zone_ids}, zone_ids
+    if zone_type == "bezirk":
         rows = con.execute("""
             SELECT CAST(SPLIT_PART(g.polygon_id, ':', 2) AS INT),
                    CAST(SPLIT_PART(g.parent_id, ':', 2) AS INT)
             FROM hot_polygons g
             WHERE g.polygon_type = 'gemeinde' AND g.parent_id LIKE 'bezirk:%'
         """).fetchall()
-        bfs_to_zone = {bfs: bz for bfs, bz in rows if bz in zone_ids}
-    else:
-        bfs_to_zone = None  # canton level: keep original stop canton_id
-    return {"con": con, "bfs_to_zone": bfs_to_zone, "zone_ids": zone_ids}
+        return {bfs: bz for bfs, bz in rows if bz in zone_ids}, zone_ids
+    return None, zone_ids
 
 
 # ─── merged network segments, one asset per primary zone ───────────────────
@@ -782,6 +800,89 @@ def _load_src_asset(con, key: str):
     return json.loads(bytes(row[0])) if row and row[0] is not None else None
 
 
+def _build_stop_transfer_data(con, bfs_to_zone) -> int:
+    """Re-zone ``stop_transfer_data_by_canton`` (the dashboard's Transfer Matrix
+    and Transfer Destinations plots). Returns the number of stops kept.
+
+    Only the asset's *top-level grouping* is canton-level; the payload is
+    per-stop and every stop carries ``bfs``, so re-zoning is the same re-tag
+    used for ``boarding_data_by_line``: flatten the cantons, keep the stops
+    whose ``bfs`` falls in the study area, regroup under the mapped zone id.
+    The provider reads ``entry["canton_id"]`` through the zone registry, so the
+    key stays spelled ``canton_id`` — same convention as the boarding stops.
+
+    **Per-stop counts are copied verbatim, and that is deliberate.** They are
+    full-model figures attributed to a stop, exactly like the boardings beside
+    them: a stop inside the study area keeps the transfers it recorded in the
+    Swiss-wide run, including transfers onward to stops outside it. Rescaling
+    them would make transfers the only transit number in the dataset that does
+    not mean what its neighbours mean.
+
+    Two consequences of that, both intended:
+
+    * ``stop_transfers`` / ``line_transfers`` keep destination stop ids and line
+      ids that may lie outside the area. The frontend resolves destination names
+      via ``inter_cantonal_stops``, which is derived from the (now filtered)
+      boarding asset — so an out-of-area destination renders as a raw stop id
+      rather than a name. A missing label is better than a dropped transfer.
+    * ``total_transfers`` is re-summed over the kept stops rather than copied,
+      since the source value counts a whole canton. No frontend reads it (the
+      plots use the per-stop fields), so it is recomputed for coherence only.
+    """
+    raw = _load_src_asset(con, "stop_transfer_data_by_canton")
+    if raw is None:
+        return 0
+    if bfs_to_zone is None:            # canton level: nothing to re-tag
+        _insert_asset(con, "stop_transfer_data_by_canton", raw)
+        return sum(len(e.get("stops") or []) for e in raw)
+
+    by_zone: dict[int, list] = defaultdict(list)
+    for entry in raw:
+        for stop in entry.get("stops") or []:
+            zid = bfs_to_zone.get(stop.get("bfs"))
+            if zid is not None:
+                by_zone[zid].append(stop)
+
+    out = [{"canton_id": zid,
+            "total_transfers": sum(int(s.get("transfers") or 0) for s in stops),
+            "stops": stops}
+           for zid, stops in sorted(by_zone.items())]
+    _insert_asset(con, "stop_transfer_data_by_canton", out)
+    return sum(len(e["stops"]) for e in out)
+
+
+def _build_route_directions(con, kept_line_ids: set) -> int:
+    """Re-zone ``route_directions`` — the per-line `.H`/`.R` terminus metadata
+    that labels the transit direction toggle. Returns the number of lines kept.
+
+    Keyed by ``line_id``, so re-zoning is a **key filter and nothing else**:
+    keep the lines that survived the boarding filter, copy each direction's
+    payload verbatim. Same rule as ``transit_routes`` right above, and for the
+    same reason — a line that stops once inside the study area keeps its real
+    terminus even when that terminus is outside. Clipping the metadata to the
+    area would name some intermediate stop as the end of the line, which is
+    simply wrong, and the toggle would read "→ Wallisellen" for a train to
+    Chur.
+
+    Dropping it entirely (the behaviour before this existed) was not fatal but
+    was silently degrading: ``transit_routes.route_directions()`` falls back to
+    a runtime vote over the most common end-of-route stop name, which loses the
+    departure-frequency weighting and every field the vote cannot produce —
+    ``origin``/``origin_coord`` (so the green origin marker disappears),
+    ``n_departures``, ``share`` and ``alternates``. Verified missing on dataset
+    4186945268, which was re-zoned from 7036833688 before this was added.
+    """
+    rd = _load_src_asset(con, "route_directions")
+    if rd is None:
+        return 0
+    kept = {lid: dirs for lid, dirs in rd.items()
+            if not kept_line_ids or lid in kept_line_ids}
+    if not kept:
+        return 0
+    _insert_asset(con, "route_directions", kept)
+    return len(kept)
+
+
 def _build_static_assets(info: dict, zone_type: str, name: str, zoom: float,
                          progress=None) -> None:
     con, bfs_to_zone, zone_ids = info["con"], info["bfs_to_zone"], info["zone_ids"]
@@ -837,6 +938,9 @@ def _build_static_assets(info: dict, zone_type: str, name: str, zoom: float,
                       {"type": "FeatureCollection", "features": feats},
                       content_type="application/geo+json")
 
+    n_dirs = _build_route_directions(con, kept_line_ids)
+    logger.info("rezone: kept route_directions for %d lines", n_dirs)
+
     sm = _load_src_asset(con, "stop_municipality")
     if sm is not None:
         lookup = bfs_to_zone if bfs_to_zone is not None else {}
@@ -853,7 +957,8 @@ def _build_static_assets(info: dict, zone_type: str, name: str, zoom: float,
         _insert_asset(con, "municipalities",
                       {"type": "FeatureCollection", "features": feats},
                       content_type="application/geo+json")
-    # stop_transfer_data_by_canton: canton-level aggregate — dropped on purpose.
+    n_transfer_stops = _build_stop_transfer_data(con, bfs_to_zone)
+    logger.info("rezone: kept %d stop_transfer_data stops", n_transfer_stops)
 
     # Per-zone network geometry. The source assets are canton-keyed, so they are
     # rebuilt rather than copied; without this the webmap has no network for the
@@ -957,6 +1062,98 @@ def backfill_pt_link_volumes(dataset_dir: str | Path,
         con.close()
 
 
+def backfill_stop_transfers(dataset_dir: str | Path,
+                            source_dir: str | Path) -> int:
+    """Add the ``stop_transfer_data_by_canton`` asset to a re-zoned dataset.
+
+    Datasets re-zoned before this asset was carried over have no transfer data
+    at all, so the provider 200s with an ``{"error": …}`` body and the
+    dashboard's Transfer Matrix / Transfer Destinations plots come up empty.
+    Needs the original Swiss-wide *source* dataset, since the asset only exists
+    there. Idempotent (any existing row is replaced).
+
+    ``webmap_backend`` must be stopped: DuckDB refuses a read-write open while
+    it holds the read lock — same constraint as the other backfills.
+    """
+    import duckdb
+
+    db = Path(dataset_dir) / "synthetic.duckdb"
+    src = Path(source_dir) / "synthetic.duckdb"
+    for p in (db, src):
+        if not p.exists():
+            raise FileNotFoundError(f"{p} not present")
+    con = duckdb.connect(str(db))
+    try:
+        con.execute("INSTALL spatial; LOAD spatial;")
+        con.execute(f"ATTACH '{src.as_posix()}' AS src (READ_ONLY)")
+        if _load_src_asset(con, "stop_transfer_data_by_canton") is None:
+            raise ValueError(f"{src} has no stop_transfer_data_by_canton asset to copy")
+
+        # The zone level is the dataset's own; read it back rather than asking
+        # the caller to remember what it was re-zoned to.
+        sa = con.execute(
+            "SELECT payload FROM static_assets WHERE key = 'study_area'").fetchone()
+        zone_type = (json.loads(bytes(sa[0])).get("primary_zone_type")
+                     if sa and sa[0] is not None else None) or "canton"
+        bfs_to_zone, _ = _bfs_zone_map(con, zone_type)
+
+        con.execute("DELETE FROM static_assets WHERE key = 'stop_transfer_data_by_canton'")
+        n = _build_stop_transfer_data(con, bfs_to_zone)
+        con.execute("DETACH src")
+        logger.info("backfill: wrote %d stop_transfer_data stops (%s) to %s",
+                    n, zone_type, db)
+        return n
+    finally:
+        con.close()
+
+
+def backfill_route_directions(dataset_dir: str | Path,
+                              source_dir: str | Path) -> int:
+    """Add the ``route_directions`` asset to a re-zoned dataset built before
+    :func:`_build_route_directions` existed. Returns the number of lines written.
+
+    Needs the original Swiss-wide *source*, since the asset only exists there.
+    Pass the dataset's real source — ``.rezone.json`` records
+    ``source_dataset_id``. Idempotent (any existing row is replaced).
+
+    ``webmap_backend`` must be stopped: DuckDB refuses a read-write open while
+    it holds the read lock — same constraint as the other backfills.
+
+    The surviving line set is read back out of the dataset's **own** filtered
+    ``boarding_data_by_line`` rather than recomputed from a bfs map, so the
+    result matches whatever the original re-zone kept even if the study area's
+    definition has drifted since.
+    """
+    import duckdb
+
+    db = Path(dataset_dir) / "synthetic.duckdb"
+    src = Path(source_dir) / "synthetic.duckdb"
+    for p in (db, src):
+        if not p.exists():
+            raise FileNotFoundError(f"{p} not present")
+    con = duckdb.connect(str(db))
+    try:
+        con.execute("INSTALL spatial; LOAD spatial;")
+        con.execute(f"ATTACH '{src.as_posix()}' AS src (READ_ONLY)")
+        if _load_src_asset(con, "route_directions") is None:
+            raise ValueError(f"{src} has no route_directions asset to copy")
+
+        row = con.execute(
+            "SELECT payload FROM static_assets WHERE key = 'boarding_data_by_line'"
+        ).fetchone()
+        if row is None or row[0] is None:
+            raise ValueError(f"{db} has no boarding_data_by_line to take line ids from")
+        kept_line_ids = {l.get("line_id") for l in json.loads(bytes(row[0]))}
+
+        con.execute("DELETE FROM static_assets WHERE key = 'route_directions'")
+        n = _build_route_directions(con, kept_line_ids)
+        con.execute("DETACH src")
+        logger.info("backfill: wrote route_directions for %d lines to %s", n, db)
+        return n
+    finally:
+        con.close()
+
+
 def run_rezone_job(source_dir, out_dir, canton_id, zone_type, name,
                    source_dataset_id=None) -> None:
     """Thread target: run the build and persist the outcome to .rezone.json."""
@@ -1038,6 +1235,14 @@ if __name__ == "__main__":
                     help="Only rebuild the pt_link_volumes table of an existing "
                          "re-zoned dataset, in place; needs --source-dir (the "
                          "Swiss-wide dataset it was re-zoned from)")
+    ap.add_argument("--backfill-stop-transfers", metavar="DATASET_DIR", default=None,
+                    help="Only rebuild the stop_transfer_data_by_canton asset of "
+                         "an existing re-zoned dataset, in place; needs "
+                         "--source-dir (the Swiss-wide dataset it came from)")
+    ap.add_argument("--backfill-route-directions", metavar="DATASET_DIR", default=None,
+                    help="Only rebuild the route_directions asset of an existing "
+                         "re-zoned dataset, in place; needs --source-dir (the "
+                         "Swiss-wide dataset it came from)")
     ap.add_argument("--source-dir")
     ap.add_argument("--out-dir")
     ap.add_argument("--canton-id", type=int, default=None,
@@ -1055,6 +1260,18 @@ if __name__ == "__main__":
             ap.error("--backfill-pt-link-volumes needs --source-dir")
         n = backfill_pt_link_volumes(args.backfill_pt_link_volumes, args.source_dir)
         print(f"done: {n} pt_link_volumes rows in {args.backfill_pt_link_volumes}")
+        raise SystemExit(0)
+    if args.backfill_stop_transfers:
+        if not args.source_dir:
+            ap.error("--backfill-stop-transfers needs --source-dir")
+        n = backfill_stop_transfers(args.backfill_stop_transfers, args.source_dir)
+        print(f"done: {n} transfer stops in {args.backfill_stop_transfers}")
+        raise SystemExit(0)
+    if args.backfill_route_directions:
+        if not args.source_dir:
+            ap.error("--backfill-route-directions needs --source-dir")
+        n = backfill_route_directions(args.backfill_route_directions, args.source_dir)
+        print(f"done: route_directions for {n} lines in {args.backfill_route_directions}")
         raise SystemExit(0)
     if not args.source_dir or not args.out_dir:
         ap.error("--source-dir and --out-dir are required")

@@ -29,20 +29,50 @@ from .zone_registry import get_registry
 # "8593773:0:1.link:pt_8593773:0:1" and "8593773:0:2.link:..." → station 8593773.
 _STATION_RE = re.compile(r"^(\d+)")
 
-# dataset_key → {"stops": {canton_id: FeatureCollection}, "modes": {...},
-#                "inter": FeatureCollection|None}. Keyed per dataset so a worker
-# serving several datasets never mixes one dataset's stops into another.
+# dataset_key → bundle, keyed per dataset so a worker serving several datasets
+# never mixes one dataset's stops into another:
+#   "by_zone"  {zone_id: {station_key: station}} — the *skeleton*: every station
+#              of every zone, with its stop_ids/linkids/lines, but no coords.
+#   "modes"    {zone_name: [mode, ...]}
+#   "coords"   {link_id: (lon, lat)} — filled incrementally, zone by zone.
+#   "fc"       {zone_id: FeatureCollection} — built on demand from the two above.
+#   "inter"    FeatureCollection | None
+#   "all_coords"  True once every link has been resolved (so `inter` is buildable)
 _ds_cache: dict[str, dict] = {}
 
-# Serialises the (expensive, ~seconds) _build() so N concurrent first-requests
-# for different cantons don't each kick off a full country-wide build at once
+# Serialises skeleton construction and coordinate fills, so N concurrent
+# first-requests for different zones don't each kick off the same scan
 # (thundering herd). The first request builds; the rest wait and reuse it.
-_build_lock = threading.Lock()
+#
+# **Per dataset**, not global. A single shared lock meant one dataset's build
+# blocked every other dataset's: the warm thread holding it for the 139 s
+# `inter_cantonal_stops()` of one dataset stalled a user opening a *different*
+# one for the whole duration, which reads exactly like "transit stops are slow"
+# even though that user's own dataset builds in ~1.5 s. Datasets share nothing
+# here — separate bundles, separate duckdb files — so they must not share a lock.
+_locks: dict[str, threading.Lock] = {}
+_locks_guard = threading.Lock()
+
+
+def _lock_for(dk: str) -> threading.Lock:
+    with _locks_guard:
+        lk = _locks.get(dk)
+        if lk is None:
+            lk = _locks[dk] = threading.Lock()
+        return lk
 
 # dataset_key → {canton_name: [mode, ...]}. Populated by the *light* modes-only
 # path (see transit_modes) so the mode dropdown never waits on a full _build().
 _modes_cache: dict[str, dict] = {}
 _modes_lock = threading.Lock()
+
+
+def _zone_col() -> str:
+    """Primary-zone id column on ``network_links`` (v3 ``zone_id`` / legacy
+    ``canton_id``), probed and cached by the registry."""
+    from .zone_registry import zone_col
+
+    return zone_col("synthetic", "network_links")
 
 
 def _linkid(stop_id: str) -> str | None:
@@ -52,15 +82,61 @@ def _linkid(stop_id: str) -> str | None:
     return stop_id.split(".link:", 1)[1]
 
 
-def _resolve_coords(cur, linkids: list[str]) -> dict[str, tuple]:
+def _resolve_coords(cur, linkids: list[str], prune: bool = False) -> dict[str, tuple]:
     """link_id → (lon, lat) via the link's to_node geometry (EPSG:2056→4326).
 
     One query (``IN (SELECT UNNEST(?))``) instead of chunked 800-id batches, so
-    the 1.7M-row ``network_links`` scan happens once rather than ~75 times — the
-    dominant cost of the build (cuts it roughly in half on a cold dataset)."""
+    the ``network_links`` scan happens once rather than ~75 times.
+
+    That scan is the whole cost of a cold stops build, and it is **I/O, not
+    CPU**: measured on the Zurich gemeinde dataset (193k links) it is ~13 s cold
+    and ~0.13 s warm — paging in `network_links`/`network_nodes`. Restricting
+    the id list does nothing, because the scan is full either way; only a
+    predicate on the *zone* column lets DuckDB skip row groups.
+
+    ``prune=True`` does that in two steps:
+      1. a narrow ``link_id, zone_id`` lookup (no ``geom``, so cheap) to learn
+         which zones these links actually live in;
+      2. the geometry join restricted to exactly those zones.
+
+    Step 1 is what keeps this correct. The stop's zone (from the boarding asset)
+    and its link's ``zone_id`` disagree for a minority of stops — 27 of 7,293 on
+    the Zurich dataset — so filtering on the *caller's* zone would silently drop
+    those stops from the map (they'd resolve no geometry and be skipped below).
+    Asking the database which zones to open instead is exact: the pruned result
+    is identical to the unpruned one, while touching 4 zones instead of 160.
+
+    Left off (``prune=False``) for callers that resolve every link anyway, where
+    step 1 would return every zone and buy nothing."""
     if not linkids:
         return {}
+    linkids = list(linkids)
     crs = get_registry().crs
+    where = "l.link_id IN (SELECT UNNEST(?))"
+    args: list = [linkids]
+    if prune:
+        col = _zone_col()
+        found = [
+            z for (z,) in cur.execute(
+                f"SELECT DISTINCT {col} FROM network_links "
+                "WHERE link_id IN (SELECT UNNEST(?))",
+                [linkids],
+            ).fetchall()
+        ]
+        zones = [z for z in found if z is not None]
+        if zones:
+            # A NULL zone must be carried explicitly: `IN (...)` never matches
+            # NULL, so without this the pruned query silently drops those links
+            # — and a station whose platforms are partly NULL-zoned would keep
+            # its feature but average the coordinates of only the survivors.
+            # 36,903 of 1.86M links are NULL-zoned on dataset 7036833688 (120
+            # stops lost in canton 2 alone), 0 on the rezoned Zurich one, which
+            # is why this only shows up on some datasets.
+            pred = f"l.{col} IN (SELECT UNNEST(?))"
+            if len(zones) != len(found):
+                pred = f"({pred} OR l.{col} IS NULL)"
+            where = f"{pred} AND {where}"
+            args = [zones, linkids]
     rows = cur.execute(
         f"""
         SELECT l.link_id,
@@ -68,17 +144,24 @@ def _resolve_coords(cur, linkids: list[str]) -> dict[str, tuple]:
                ST_Y(ST_Transform(n.geom, '{crs}', 'EPSG:4326', always_xy := true))
         FROM network_links l
         JOIN network_nodes n ON n.node_id = l.to_node
-        WHERE l.link_id IN (SELECT UNNEST(?))
+        WHERE {where}
         """,
-        [list(linkids)],
+        args,
     ).fetchall()
     return {lid: (x, y) for lid, x, y in rows if x is not None and y is not None}
 
 
-def _build() -> dict:
+def _build_skeleton() -> dict:
     """Single pass over boarding_data: aggregate platforms into stations per
-    canton, resolve coordinates, and return a per-dataset bundle
-    ``{"stops": {cid: FeatureCollection}, "modes": {...}, "inter": None}``."""
+    zone. Returns the bundle with `by_zone`/`modes` filled and no coordinates.
+
+    This is the *cheap* half of what used to be one `_build()`: the blob parse
+    and the per-stop walk. Measured on the Zurich gemeinde dataset it is ~0.2 s
+    (3.7 MB blob, 471 lines, 16,701 stop entries) against ~13 s for the coord
+    resolution it no longer does. It covers **every** zone at once, because the
+    boarding asset is keyed by line rather than by zone — there is no way to
+    read out one zone's stops without walking all of them — so the ladder splits
+    here: walk once, then pay for coordinates only where they are asked for."""
     from .boarding_data import BoardingDataProvider
     from .pt_link_volumes import stop_line_directions
 
@@ -139,79 +222,128 @@ def _build() -> dict:
             if mode:
                 station["modes"].add(mode)
 
-    # Resolve all stop coordinates in one go.
-    cur = get_source_cursor("synthetic")
-    all_links = list(
-        {lk for cmap in by_canton.values() for st in cmap.values() for lk in st["linkids"]}
-    )
-    coords = _resolve_coords(cur, all_links)
-
-    stops_by_cid: dict[int, dict] = {}
-    for cid, cmap in by_canton.items():
-        features = []
-        for st in cmap.values():
-            pts = [coords[lk] for lk in st["linkids"] if lk in coords]
-            if not pts:
-                # No geometry → would crash handleSelectStop (reads
-                # geometry.coordinates); skip from the searchable set. Its
-                # boardings still count in the canton-wide per_canton_counts.
-                continue
-            lon = sum(p[0] for p in pts) / len(pts)
-            lat = sum(p[1] for p in pts) / len(pts)
-            features.append({
-                "type": "Feature",
-                "geometry": {"type": "Point", "coordinates": [lon, lat]},
-                "properties": {
-                    "name": st["name"],
-                    "stop_id": st["stop_ids"],
-                    "lines": [
-                        {**l, "dirs": sorted(l["dirs"])}
-                        for l in st["lines"].values()
-                    ],
-                    "modes_list": sorted(st["modes"]),
-                },
-            })
-        stops_by_cid[cid] = {"type": "FeatureCollection", "features": features}
-
     return {
-        "stops": stops_by_cid,
+        "by_zone": dict(by_canton),
         "modes": {k: sorted(v) for k, v in modes_by_canton.items()},
+        "coords": {},
+        "fc": {},
         "inter": None,
+        "all_coords": False,
     }
 
 
+def _feature(st: dict, coords: dict) -> dict | None:
+    """One station → GeoJSON point at the mean of its platforms' coordinates."""
+    pts = [coords[lk] for lk in st["linkids"] if lk in coords]
+    if not pts:
+        # No geometry → would crash handleSelectStop (reads
+        # geometry.coordinates); skip from the searchable set. Its
+        # boardings still count in the zone-wide per_canton_counts.
+        return None
+    return {
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": [
+                sum(p[0] for p in pts) / len(pts),
+                sum(p[1] for p in pts) / len(pts),
+            ],
+        },
+        "properties": {
+            "name": st["name"],
+            "stop_id": st["stop_ids"],
+            "lines": [
+                {**l, "dirs": sorted(l["dirs"])} for l in st["lines"].values()
+            ],
+            "modes_list": sorted(st["modes"]),
+        },
+    }
+
+
+def _fill_coords(b: dict, links: set[str], prune: bool) -> None:
+    """Resolve any of *links* not already in the bundle's coord cache.
+
+    **The query runs unlocked**; only the dict read and the merge are guarded.
+    Holding a lock across the scan is what made one slow build stall every other
+    request on the same dataset: the warm thread's whole-dataset
+    `inter_cantonal_stops()` took 79.8 s, and four per-zone requests (Bern,
+    Schwyz, Zug, Aargau) that each needed ~2 s of their own sat behind it and
+    all completed the instant it finished.
+
+    The cost of not holding it is that two builds overlapping in time may both
+    resolve some of the same links — bounded duplicate work, and `dict.update`
+    is idempotent since the dataset is read-only. That is strictly better than
+    serialising a 2 s request behind an 80 s one. Callers still take a lock
+    keyed to *their own unit* (this zone, or `inter`), so the same zone is never
+    built twice concurrently.
+
+    Coordinates accumulate across calls, so the zones a user visits after the
+    first cost only their own new links."""
+    lock = _lock_for(dataset_key())
+    with lock:
+        missing = [lk for lk in links if lk not in b["coords"]]
+    if not missing:
+        return
+    resolved = _resolve_coords(get_source_cursor("synthetic"), missing, prune=prune)
+    with lock:
+        b["coords"].update(resolved)
+
+
 def _bundle() -> dict:
-    """Return (building if needed) the cached bundle for the current dataset.
+    """Return (building if needed) the cached skeleton for the current dataset.
 
     Double-checked locking: the common case (already built) is lock-free; only
-    the first request per dataset takes the lock and runs _build(), so parallel
-    first-requests collapse onto a single build instead of stampeding the DB."""
+    the first request per dataset takes the lock, so parallel first-requests
+    collapse onto a single build instead of stampeding the DB."""
     dk = dataset_key()
     b = _ds_cache.get(dk)
     if b is not None:
         return b
-    with _build_lock:
+    with _lock_for(dk):
         b = _ds_cache.get(dk)
         if b is None:
-            b = _ds_cache[dk] = _build()
+            b = _ds_cache[dk] = _build_skeleton()
         return b
 
 
 def stops_by_canton(canton_id: int) -> dict:
-    """GeoJSON FeatureCollection of transit stations in *canton_id*."""
-    return _bundle()["stops"].get(canton_id, {"type": "FeatureCollection", "features": []})
+    """GeoJSON FeatureCollection of transit stations in *canton_id*.
+
+    Rung one of the ladder: builds the skeleton once, then resolves coordinates
+    for **this zone only**, pruned to the zones its links actually live in. The
+    whole-dataset coord scan is never triggered from here — opening a zone costs
+    ~1.3 s cold on the Zurich gemeinde dataset instead of ~13 s, and later zones
+    reuse whatever `coords` already holds."""
+    b = _bundle()
+    hit = b["fc"].get(canton_id)
+    if hit is not None:
+        return hit
+    stations = b["by_zone"].get(canton_id)
+    if not stations:
+        return {"type": "FeatureCollection", "features": []}
+    # Keyed to this zone, not the dataset: two users opening different zones
+    # build in parallel, and neither waits on the whole-dataset `inter` build.
+    with _lock_for(f"{dataset_key()}|zone:{canton_id}"):
+        hit = b["fc"].get(canton_id)
+        if hit is None:
+            _fill_coords(
+                b, {lk for st in stations.values() for lk in st["linkids"]}, prune=True
+            )
+            feats = [f for f in (_feature(st, b["coords"]) for st in stations.values()) if f]
+            hit = b["fc"][canton_id] = {"type": "FeatureCollection", "features": feats}
+        return hit
 
 
 def _build_modes_only() -> dict:
     """``{canton_name: [mode, ...]}`` from the boarding asset alone.
 
-    The mode dropdown needs only each line's mode + the cantons it serves. The
-    full :func:`_build` additionally walks every stop entry (~116k), calls
-    ``stop_line_directions()`` (a pt_link_volumes scan) and runs the
-    coord-resolution join that :func:`_resolve_coords` documents as the dominant
-    cost — none of which the mode list depends on. Skipping all three turns a
-    multi-second cold build into ~1 s (essentially just the 24 MB blob fetch and
-    JSON parse), so the dropdown populates while the stops are still loading.
+    The mode dropdown needs only each line's mode + the cantons it serves.
+    :func:`_build_skeleton` additionally walks every stop entry (~116k on a
+    Swiss-wide dataset) and calls ``stop_line_directions()`` — neither of which
+    the mode list depends on — so this stays the lighter path even now that the
+    coord-resolution join has moved out of the skeleton and behind
+    :func:`stops_by_canton`. Cost is essentially the blob fetch and JSON parse,
+    so the dropdown populates while the stops are still loading.
 
     Deliberately reuses ``BoardingDataProvider._load()`` rather than reading the
     blob directly: ``_load`` is what normalises v2's ``modes`` array into the
@@ -262,18 +394,55 @@ def inter_cantonal_stops() -> dict:
     """All transit stations across every canton in one FeatureCollection, each
     feature tagged with ``assigned_canton`` (its canton name). The frontend uses
     this to discover which cantons a line touches and to render the stops of a
-    cross-canton line."""
+    cross-canton line.
+
+    Rung two of the ladder. This one genuinely needs every zone, so it does pay
+    the whole-dataset coord scan — but it is requested on *line selection*
+    (`useTransitLines.loadRoutes`), not on opening a zone, so it is off the
+    first-paint path. Resolving unpruned is deliberate: at this point we want
+    every link anyway, and the two-step pruning of :func:`_resolve_coords` would
+    just enumerate every zone before doing the same work.
+
+    Whatever `stops_by_canton` already resolved is reused, and the per-zone
+    FeatureCollections it built are filled in for the zones still missing, so
+    reaching this rung also completes rung one for free."""
     b = _bundle()
     if b["inter"] is not None:
         return b["inter"]
-    reg = get_registry()
-    feats = []
-    for cid, fc in b["stops"].items():
-        cname = reg.zone_name(cid)
-        for f in fc["features"]:
-            feats.append({
-                **f,
-                "properties": {**f["properties"], "assigned_canton": cname},
-            })
-    b["inter"] = {"type": "FeatureCollection", "features": feats}
+    # Its own key, so this long build blocks only other `inter` callers — never
+    # the per-zone requests a user is making while the warm thread runs it.
+    with _lock_for(f"{dataset_key()}|inter"):
+        if b["inter"] is None:
+            if not b["all_coords"]:
+                _fill_coords(
+                    b,
+                    {
+                        lk
+                        for stations in b["by_zone"].values()
+                        for st in stations.values()
+                        for lk in st["linkids"]
+                    },
+                    prune=False,
+                )
+                b["all_coords"] = True
+            reg = get_registry()
+            feats = []
+            for cid, stations in b["by_zone"].items():
+                fc = b["fc"].get(cid)
+                if fc is None:
+                    fc = b["fc"][cid] = {
+                        "type": "FeatureCollection",
+                        "features": [
+                            f
+                            for f in (_feature(st, b["coords"]) for st in stations.values())
+                            if f
+                        ],
+                    }
+                cname = reg.zone_name(cid)
+                for f in fc["features"]:
+                    feats.append({
+                        **f,
+                        "properties": {**f["properties"], "assigned_canton": cname},
+                    })
+            b["inter"] = {"type": "FeatureCollection", "features": feats}
     return b["inter"]

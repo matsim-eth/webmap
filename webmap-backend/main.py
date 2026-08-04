@@ -250,6 +250,13 @@ async def matsim_asset(dataset_id: int, asset_path: str, request: Request):
             # fewer features to transfer, parse and tile. Same flag and same
             # predicate as the traffic-volumes asset below.
             major = request.query_params.get("major") in ("1", "true", "True")
+            # First sighting of this zone → start building its per-zone volume
+            # payloads behind the traffic gate. Hooked here rather than on the
+            # volume assets themselves: this request is what a network module
+            # issues on entering a zone, and the user is typically seconds away
+            # from switching to Volumes or Transit Volumes, which otherwise pay
+            # a 3-10 s build inline.
+            warmup.request_zone_warm(root, cid)
             from providers.network_geometry import merged_segments_geojson
             payload = await _asyncio.to_thread(merged_segments_geojson, cid, major)
             if payload is None:
@@ -333,21 +340,34 @@ async def matsim_asset(dataset_id: int, asset_path: str, request: Request):
 
         ms = _STOPS_RE.match(asset_path)
         if ms:
-            # A canton's stops just loaded → start building the per-line route
-            # index in the background so the line draws instantly when the user
-            # clicks a stop+line moments later (instead of waiting on the parse).
             from providers.transit_routes import ensure_warm
-            ensure_warm()
             name = ms.group(1)
             if name == "inter_cantonal":
                 from providers.transit_stops import inter_cantonal_stops
                 fc = await _asyncio.to_thread(inter_cantonal_stops)
+                ensure_warm()
                 return JSONResponse(fc)
             cid = _canton_id_from(name)
             if cid is None:
                 return JSONResponse({"error": "not found"}, status_code=404)
+            # The transit modules' equivalent of the merged_segments hook above:
+            # this is the request a zone open issues here, and Transit Volumes is
+            # one click away.
+            warmup.request_zone_warm(root, cid)
             from providers.transit_stops import stops_by_canton
             fc = await _asyncio.to_thread(stops_by_canton, cid)
+            # Only *after* the stops are in hand: start building the per-line
+            # route index in the background, so the line draws instantly when
+            # the user clicks a stop+line moments later.
+            #
+            # Deliberately not before. `ensure_warm` parses a ~34 MB JSON asset
+            # on a background thread, and that parse holds the GIL against the
+            # stops build it was racing — measured on the Zurich gemeinde
+            # dataset, kicking it off first turned a 1.72 s first load into
+            # 6.42 s. The route index is wanted seconds later (on the first line
+            # click), the stops are wanted now, so the cheap fix is to order
+            # them that way rather than let them contend.
+            ensure_warm()
             return JSONResponse(fc)
 
         if asset_path == "transit/transit_modes_by_canton.json":

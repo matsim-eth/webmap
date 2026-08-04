@@ -8,11 +8,14 @@ Two producers feed **one** background worker thread:
 * :func:`request_warm` — called from the request path (``providers/base.py``
   and ``main.py:matsim_asset``) the first time this worker process resolves a
   given dataset root. **This is what covers a dataset switch:** waiting for the
-  startup pass to reach your dataset means the first click on Transit Stops can
-  still run the whole ~70-100 s country-wide build inside your request. Any
-  ``/data/{id}/…`` request for a dataset — the zone layer, the network geometry,
-  anything the map loads on switch — marks it **urgent**, which both queues it if
-  it wasn't and moves it to the front if it was.
+  startup pass to reach your dataset means the first heavy click runs its whole
+  build inside your request. Any ``/data/{id}/…`` request for a dataset — the
+  zone layer, the network geometry, anything the map loads on switch — marks it
+  **urgent**, which both queues it if it wasn't and moves it to the front if it
+  was.
+* :func:`request_zone_warm` — the same idea one level down, for the assets that
+  are per *zone* and so have nothing to warm until a zone is known. See
+  :data:`ZONE_STEPS`.
 
 One queue, one worker, so two datasets can never build at once. The worker
 schedules **one step at a time** (not one dataset at a time): after each step it
@@ -126,7 +129,10 @@ def _step_zones() -> None:
 
 
 def _step_transit_stops() -> None:
-    # inter_cantonal_stops() triggers the per-dataset transit _build().
+    # Only `inter_cantonal_stops()` still needs warming. The per-zone path
+    # (`stops_by_canton`) resolves coordinates for one zone at a time and costs
+    # ~1.3 s cold, so it serves itself; this step exists for the whole-dataset
+    # coord scan behind the inter-cantonal bundle, which a line click wants.
     from .transit_stops import inter_cantonal_stops
 
     inter_cantonal_stops()
@@ -173,37 +179,91 @@ WARM_STEPS: dict[str, object] = {
     "dashboard assets": _step_dashboard_assets,
 }
 
+
+# ─── Zone-scoped steps ────────────────────────────────────────────────────
+# The two heaviest per-zone assets. Unlike everything in WARM_STEPS these can't
+# be warmed per *dataset*, because there is nothing to warm until a zone is
+# known: the webmap opens with no zone selected (`clickedCanton` is null), and a
+# dataset can have 26 cantons or 160 gemeinden, so warming them all would cost
+# minutes and pin gigabytes. Instead :func:`request_zone_warm` queues these the
+# moment a request reveals which zone the user is actually in — see the call
+# sites in ``main.py:matsim_asset``.
+#
+# Measured on dataset 7036833688 (Swiss-wide), cold → warm:
+#   {canton}_link_traffic_volumes.json?major=1   Aargau 3.2 s → 0.15 s
+#   pt_link_volumes_by_link_line_{canton}.json   Zurich 10.3 s → 0.82 s
+#                                                Bern    7.8 s
+# Both were previously warmed by nothing at all, so every first visit to the
+# Road Volumes / Transit Volumes module in a zone paid the full build inline.
+
+def _step_zone_link_volumes(zone_id: int) -> None:
+    """Per-link hourly car volumes for one zone — the road Volumes module.
+
+    Only the ``major=True`` variant, which is what the module requests by
+    default (`useNetworkLayers`: `?major=1` unless "major roads only" is
+    unticked). The unfiltered variant is ~4× the payload and ~3× the build, and
+    is reached only by unticking the box or opening a segment histogram — a
+    deliberate second action, not the first paint. Warming both would double the
+    memory this pins for a case the LRU already covers on the way back."""
+    from .link_speeds import link_traffic_volumes
+
+    link_traffic_volumes(zone_id, None, True)
+
+
+def _step_zone_pt_volumes(zone_id: int) -> None:
+    """Per-link/line/15-min PT volumes for one zone — the Transit Volumes module.
+
+    Returns None (not raises) on a dataset with no `pt_link_volumes` table, so
+    older datasets just warm nothing here."""
+    from .pt_link_volumes import volumes_by_link_line
+
+    volumes_by_link_line(zone_id)
+
+
+ZONE_STEPS: dict[str, object] = {
+    "link volumes": _step_zone_link_volumes,
+    "pt link volumes": _step_zone_pt_volumes,
+}
+
+# Cheapest and most-used first: the road Volumes module is the commoner
+# destination and builds in ~2-3 s, against ~8-10 s for the PT payload.
+ZONE_ORDER = ["link volumes", "pt link volumes"]
+
 # Every profile runs every step — only the order differs, because a warm that is
 # still running when the user clicks is worth exactly as much as what it has
 # finished. So whichever frontend asked gets its own blocking builds first.
 #
 #   zones/study_area  — cheap, but on the critical path of the very first render
 #                       (simplify + reproject + per-zone bbox scan). Both.
-#   transit stops     — the country-wide _build() over boarding_data + the
-#                       1.7M-row network (~70-100 s): the single longest thing a
-#                       click can land on. Webmap's Transit Stops module and the
-#                       dashboard's Transit Stops tab. Also fills
-#                       BoardingDataProvider._data_cache, which is what makes
-#                       per_canton_counts / transit_modes cheap for both.
 #   destination zones — pages in the `trips` columns. Webmap only.
-#   speed_dashboard   — a ~50M-row link_speeds scan. Dashboard's Speed tab only,
-#                       so nothing on the map waits on it.
 #   dashboard assets  — stop_transfer_data + stop_municipality blob parses.
 #                       Dashboard's Transit tabs only; seconds, not tens of them,
-#                       so it goes ahead of the speed scan (shortest first) and
-#                       dead last for the map.
+#                       so it goes ahead of the speed scan (shortest first).
+#   speed_dashboard   — a ~50M-row link_speeds scan. Dashboard's Speed tab only,
+#                       so nothing on the map waits on it.
+#   transit stops     — the whole-dataset coord scan behind inter_cantonal_stops
+#                       (~12 s on a gemeinde-zoned dataset, ~70-100 s Swiss-wide):
+#                       still the single longest step, and now **last in both
+#                       orders**. It used to run second on the map because the
+#                       whole per-dataset stops build sat in front of the first
+#                       Transit Stops click; since that build was split, opening
+#                       a zone resolves only that zone's coordinates (~1.3 s
+#                       cold) and no longer touches this. What is left needs a
+#                       *line* click, which is several interactions in, so
+#                       spending the first minute of every dataset's warm on it
+#                       just delayed the steps something actually waits on.
 #
 # The per-line transit_routes index is deliberately in none of them: it parses
 # the ~76 MB routes asset and would hold that in RAM for every warmed dataset. It
 # builds lazily on the first line selection (transit_routes.ensure_warm(), which
-# the stops request kicks off in the background).
+# the stops request kicks off in the background *after* answering).
 MAP_ORDER = [
-    "zones/study_area", "transit stops", "destination zones",
-    "speed_dashboard", "dashboard assets",
+    "zones/study_area", "destination zones", "dashboard assets",
+    "speed_dashboard", "transit stops",
 ]
 DASHBOARD_ORDER = [
     "zones/study_area", "dashboard assets", "speed_dashboard",
-    "transit stops", "destination zones",
+    "destination zones", "transit stops",
 ]
 
 # Default (unknown caller, and the startup prewarm) = map order: the webmap is
@@ -229,21 +289,29 @@ def profile_from_referer(referer: str | None) -> str | None:
     return None
 
 
-def _run_step(root: str, label: str, quiet: float) -> None:
-    """Run one warm step for one dataset, behind the traffic gate.
+def _run_step(root: str, label: str, quiet: float, zone: int | None = None) -> None:
+    """Run one warm step for one dataset, behind the traffic gate. *zone* selects
+    a :data:`ZONE_STEPS` entry instead of a :data:`WARM_STEPS` one.
 
     Errors are swallowed — an incompatible dataset just skips that step and the
-    job carries on with the rest."""
+    job carries on with the rest.
+
+    The traffic gate is also what keeps a zone warm from duplicating work the
+    request that triggered it is already doing: entering the Volumes module
+    fetches the geometry and the volumes at once, so the volumes request is
+    in flight when the warm is queued, the gate defers past it, and the step
+    then finds its own cache already filled and returns immediately."""
     name = os.path.basename(root)
-    await_quiet(f"{label} [{name}]", quiet)
+    tag = name if zone is None else f"{name} zone {zone}"
+    await_quiet(f"{label} [{tag}]", quiet)
     set_root_override(root)
     t0 = time.monotonic()
     try:
-        WARM_STEPS[label]()
+        ZONE_STEPS[label](zone) if zone is not None else WARM_STEPS[label]()
     except Exception as exc:
-        logger.warning("%s warm skipped for %s: %s", label, name, exc)
+        logger.warning("%s warm skipped for %s: %s", label, tag, exc)
     else:
-        logger.info("warmed %s for %s in %.1fs", label, name, time.monotonic() - t0)
+        logger.info("warmed %s for %s in %.1fs", label, tag, time.monotonic() - t0)
     finally:
         set_root_override(None)
     if YIELD_S > 0:
@@ -252,30 +320,50 @@ def _run_step(root: str, label: str, quiet: float) -> None:
 
 # ─── Queue + worker ───────────────────────────────────────────────────────
 
+def _job_key(root: str, zone: int | None) -> str:
+    """Identity of a job in the queue. A dataset job and each of its zone jobs
+    are separate units of work, so they must not dedupe against each other."""
+    return root if zone is None else f"{root}#zone:{zone}"
+
+
 class _Job:
-    """One dataset's remaining warm steps.
+    """One dataset's remaining warm steps, or one *zone*'s when `zone` is set.
 
     `urgent` marks a dataset somebody actually has open (see `request_warm`) as
     opposed to one the startup pass queued speculatively; it is what lets the
-    worker hand the CPU over between steps."""
+    worker hand the CPU over between steps. Zone jobs are always urgent — they
+    exist only because a request just named that zone."""
 
-    __slots__ = ("root", "quiet", "profile", "urgent", "steps")
+    __slots__ = ("root", "zone", "quiet", "profile", "urgent", "steps")
 
-    def __init__(self, root: str, quiet: float, profile: str | None, urgent: bool):
+    def __init__(self, root: str, quiet: float, profile: str | None, urgent: bool,
+                 zone: int | None = None):
         self.root = root
+        self.zone = zone
         self.quiet = quiet
         self.profile = profile
         self.urgent = urgent
-        self.steps = list(_ORDERS.get(profile or "", MAP_ORDER))
+        self.steps = (
+            list(ZONE_ORDER) if zone is not None
+            else list(_ORDERS.get(profile or "", MAP_ORDER))
+        )
+
+    @property
+    def key(self) -> str:
+        return _job_key(self.root, self.zone)
 
     def reprofile(self, profile: str | None, quiet: float, urgent: bool) -> None:
         """Re-order the steps this job has **left** for a new caller, keeping
         whatever it already built. Called when the client that asked changes —
         a dataset queued by the dashboard that the webmap then opens should
-        finish map-first."""
-        remaining = set(self.steps)
-        self.steps = [l for l in _ORDERS.get(profile or "", MAP_ORDER) if l in remaining]
-        self.profile = profile or self.profile
+        finish map-first.
+
+        A zone job has one fixed order and only two steps, so there is nothing
+        to re-order; it just takes the shorter quiet window."""
+        if self.zone is None:
+            remaining = set(self.steps)
+            self.steps = [l for l in _ORDERS.get(profile or "", MAP_ORDER) if l in remaining]
+            self.profile = profile or self.profile
         self.quiet = quiet
         self.urgent = self.urgent or urgent
 
@@ -283,8 +371,37 @@ class _Job:
 _q_cv = threading.Condition()
 _pending: list[_Job] = []          # front = next up
 _current: _Job | None = None       # the job whose step is running right now
-_seen: set[str] = set()            # roots queued, running or already warmed
+_seen: set[str] = set()            # job keys queued, running or already warmed
 _worker: threading.Thread | None = None
+
+
+def _rank(job: "_Job") -> int:
+    """Scheduling tier, lowest first. Three tiers, in order of how sure we are
+    the work is about to be wanted:
+
+    0. **zone job** — a request just named this zone; the user is one module
+       switch from needing it, and it costs seconds, not a minute.
+    1. **urgent dataset job** — somebody has this dataset open (`request_warm`).
+    2. **speculative dataset job** — queued by the startup prewarm; nobody has
+       asked for it.
+    """
+    if job.zone is not None:
+        return 0
+    return 1 if job.urgent else 2
+
+
+def _insert(job: "_Job") -> None:
+    """Put *job* at the front of its own tier (caller holds `_q_cv`).
+
+    Ahead of everything of lower priority, behind everything of equal or higher
+    — so a job resuming between steps gets the CPU straight back unless a more
+    targeted one arrived meanwhile. This generalises the two hardcoded cases it
+    replaced: an urgent job used to re-insert at 0 unconditionally (which let it
+    jump a zone job that a live request had just queued), and a speculative one
+    stepped aside past the urgent jobs, which is what tier 2 does here."""
+    r = _rank(job)
+    idx = next((i for i, j in enumerate(_pending) if _rank(j) >= r), len(_pending))
+    _pending.insert(idx, job)
 
 
 def _run() -> None:
@@ -296,24 +413,18 @@ def _run() -> None:
             job = _pending.pop(0)
             _current = job
             label = job.steps.pop(0)
-            quiet, root = job.quiet, job.root
+            quiet, root, zone = job.quiet, job.root, job.zone
 
-        _run_step(root, label, quiet)
+        _run_step(root, label, quiet, zone)
 
         with _q_cv:
             _current = None
             if not job.steps:
                 continue
-            if not job.urgent and any(j.urgent for j in _pending):
-                # Someone opened another dataset while this speculative job was
-                # mid-build. Step aside — but only past the urgent jobs, so the
-                # rest of the startup pass keeps its default-first id order.
-                idx = max(i for i, j in enumerate(_pending) if j.urgent) + 1
-                _pending.insert(idx, job)
-                logger.info("warm yielding %s to a dataset in use",
+            if _pending and _rank(_pending[0]) < _rank(job):
+                logger.info("warm yielding %s to higher-priority work",
                             os.path.basename(job.root))
-            else:
-                _pending.insert(0, job)
+            _insert(job)
             _q_cv.notify()
 
 
@@ -325,31 +436,33 @@ def _ensure_worker() -> None:
         _worker.start()
 
 
-def _enqueue(root: str, quiet: float, profile: str | None, urgent: bool) -> bool:
-    """Queue *root*, or re-prioritise it if it is already queued/running.
-    Returns whether a new job was created.
+def _enqueue(root: str, quiet: float, profile: str | None, urgent: bool,
+             zone: int | None = None) -> bool:
+    """Queue *root* (or one of its zones), or re-prioritise it if it is already
+    queued/running. Returns whether a new job was created.
 
-    Three cases beyond "new job": the root is **running** (upgrade it in place
+    Three cases beyond "new job": the unit is **running** (upgrade it in place
     so its remaining steps follow this caller and it stops being preemptable),
-    **pending** (same, plus move to the front), or **done** (`_seen` without a
-    job — nothing to do)."""
+    **pending** (same, plus re-file it at its tier's front), or **done**
+    (`_seen` without a job — nothing to do)."""
+    key = _job_key(root, zone)
     with _q_cv:
-        if _current is not None and _current.root == root:
+        if _current is not None and _current.key == key:
             if urgent and not (_current.urgent and _current.profile == profile):
                 _current.reprofile(profile, quiet, urgent)
             return False
         for i, job in enumerate(_pending):
-            if job.root == root:
+            if job.key == key:
                 if urgent:
                     job.reprofile(profile, quiet, urgent)
-                    _pending.insert(0, _pending.pop(i))
+                    _insert(_pending.pop(i))
                     _q_cv.notify()
                 return False
-        if root in _seen:
+        if key in _seen:
             return False
-        _seen.add(root)
-        job = _Job(root, quiet, profile, urgent)
-        _pending.insert(0, job) if urgent else _pending.append(job)
+        _seen.add(key)
+        job = _Job(root, quiet, profile, urgent, zone)
+        _insert(job) if _rank(job) < 2 else _pending.append(job)
         _ensure_worker()
         _q_cv.notify()
     return True
@@ -370,6 +483,31 @@ def request_warm(root: str, profile: str | None = None) -> None:
                         os.path.basename(root), profile or "unknown client")
     except Exception as exc:      # warming is best-effort; never break a request
         logger.debug("warm request failed for %s: %s", root, exc)
+
+
+def request_zone_warm(root: str, zone_id: int | None) -> None:
+    """Mark *zone_id* of *root* as the zone someone is looking at: build its
+    Road Volumes and Transit Volumes payloads (see :data:`ZONE_STEPS`) in the
+    background so the first switch into either module doesn't pay for them.
+
+    Called from ``main.py:matsim_asset`` on the assets that identify a zone the
+    user just opened — the network geometry and the transit stops — rather than
+    on the volume assets themselves, since by then the wait has already started.
+
+    Queued **urgent** (front of the queue, short quiet window): unlike the
+    startup prewarm this is not speculative, somebody is one click away from
+    wanting it. Each zone is queued at most once per worker; if its LRU entry is
+    later evicted, the re-fetch pays the build again rather than re-warming.
+
+    Never raises and never blocks the request."""
+    if not WARM_ON_SWITCH or not root or zone_id is None:
+        return
+    try:
+        if _enqueue(root, SWITCH_QUIET_S, None, urgent=True, zone=zone_id):
+            logger.info("zone warm requested for %s zone %s",
+                        os.path.basename(root), zone_id)
+    except Exception as exc:      # warming is best-effort; never break a request
+        logger.debug("zone warm request failed for %s zone %s: %s", root, zone_id, exc)
 
 
 # ─── Startup prewarm ──────────────────────────────────────────────────────
@@ -404,11 +542,11 @@ def prewarm_order(db_paths: list[str]) -> list[str]:
     """Dataset roots in the order the prewarm should walk them: the admin-chosen
     **default dataset first**, then ascending dataset id.
 
-    Ordering matters because each dataset costs ~70-100 s for the transit-stops
-    build, so whichever dataset is warmed last spends minutes cold — and if that
-    is the one the frontends open by default, the first user to touch Transit
-    Stops runs the whole country-wide build inside their request, contending with
-    the warm thread. (The `sorted()` this replaced ordered *paths as strings*,
+    Ordering matters because a dataset's steps run to tens of seconds, so
+    whichever dataset is warmed last spends minutes cold — and if that is the
+    one the frontends open by default, the first user to touch it runs those
+    builds inside their request, contending with the warm thread. (The
+    `sorted()` this replaced ordered *paths as strings*,
     so `1`, `2`, `3` preceded `7318579365` purely by string length, and under the
     old `created_at DESC` list order the default landed last.)
 
