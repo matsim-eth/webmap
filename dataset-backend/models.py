@@ -48,6 +48,12 @@ class Dataset(Base):
     has_json_preview = Column(Boolean, default=False, nullable=False)
     has_spider_db = Column(Boolean, default=False, nullable=False)
     is_public = Column(Boolean, default=False, server_default="false", nullable=False)
+    # The system-wide default dataset: what both frontends open on a fresh load
+    # and what the webmap backend prewarms first. At most one row may be true —
+    # enforced by the partial unique index created in main.py's lifespan, so a
+    # concurrent double-set fails loudly instead of leaving two defaults for the
+    # frontends to pick between. Admin-managed via PUT /admin/datasets/default.
+    is_default = Column(Boolean, default=False, server_default="false", nullable=False)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(
         DateTime(timezone=True),

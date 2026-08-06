@@ -2,6 +2,9 @@ import React, { useCallback, useMemo, useState } from "react";
 import Plot from "react-plotly.js";
 import TransitLinkAttributesTable from "./TransitLinkAttributesTable";
 import TransitLinkHistogram from "./TransitLinkHistogram";
+import DirectionToggle from "./DirectionToggle";
+import { directionLetter } from "../../utils/directionUtils";
+import useRouteDirections, { directionLabelsForLine } from "../../hooks/useRouteDirections";
 import FeatureTable from "../table/FeatureTable";
 import Slider from "rc-slider";
 import { marks, formatTimeLabel } from "../../utils/timeSliderUtils";
@@ -11,9 +14,11 @@ import useLinePolygon from "../../hooks/useLinePolygon";
 import useDrawPolygons from "../../hooks/useDrawPolygons";
 import { useTransitVolumeHighlightSync } from "../../hooks/useTransitVolumeHighlightSync";
 import { useTransitVolumeLinkReset } from "../../hooks/useTransitVolumeLinkReset";
+import { useResetDirectionOnLineChange } from "../../hooks/useResetDirectionOnLineChange";
 import { computeBoundaryFlow } from "../../utils/boundaryFlow";
 import { buildSelectionPayload } from "../table/_lib/rowSearch";
 import { parsePipeList } from "../map/_lib/pipeProps";
+import { lookupByName } from "../../utils/nameMatch";
 import { useData } from "../../context/DataContext";
 import { useFilters } from "../../context/FilterContext";
 import { useSelection } from "../../context/SelectionContext";
@@ -30,11 +35,15 @@ import { useQuery } from "@tanstack/react-query";
 const TRANSIT_EXTRA_STATE_SOURCES = ['transit-volumes-split-source'];
 
 const TransitVolumesModule = ({ transitFeatureTableRef }) => {
-  const { dataURL, datasetId, isFeatureTableOpen, featureGeoJSON, setTableFilterQuery, transitVolumesByLink } = useData();
+  const {
+    datasetId, isFeatureTableOpen, featureGeoJSON, setTableFilterQuery,
+    transitVolumesByLink, transitVolumesDetailPending,
+  } = useData();
   const {
     selectedTransitModes, setSelectedTransitModes,
     showLineSymbology, setShowLineSymbology,
     timeRange, setTimeRange,
+    selectedDirection, setSelectedDirection,
   } = useFilters();
   const {
     clickedCanton: canton,
@@ -46,7 +55,7 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
   const { highlightedLineId, setHighlightedLineId } = useChoropleth();
   const { isGraphExpanded } = useModule();
   const { mapRef, drawRef, labelSize, setLabelSize } = useMap();
-  const loadWithFallback = useLoadWithFallback(dataURL);
+  const loadWithFallback = useLoadWithFallback();
 
   const selectedGraph = isGraphExpanded;
 
@@ -87,19 +96,26 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
   // Per-canton transit mode list — drives the multi-select dropdown.
   // datasetId in the key: refetch when the dataset switches.
   const { data: transitModesByCanton = {} } = useQuery({
-    queryKey: ['transit-modes-by-canton', datasetId, dataURL],
+    queryKey: ['transit-modes-by-canton', datasetId],
     queryFn: () => loadWithFallback("matsim/transit/transit_modes_by_canton.json"),
   });
-  const availableTransitModes = useMemo(() => {
-    if (canton && transitModesByCanton[canton]) return transitModesByCanton[canton];
-    return [];
-  }, [canton, transitModesByCanton]);
+  // clickedCanton is the polygon display NAME ('Zürich'); the modes map is keyed
+  // by the registry's ASCII spelling ('Zurich'). Match accent/space-insensitively.
+  const availableTransitModes = useMemo(
+    () => (canton ? lookupByName(transitModesByCanton, canton) : null) || [],
+    [canton, transitModesByCanton]
+  );
 
-  // Reset highlightedLineId on canton change AND when the feature table opens.
-  // Clearing on table-open lets row clicks happen with no line filter active,
-  // so the resulting setFeatureGeoJSON cascade can't race with DataTables
-  // (which previously crashed with Node.removeChild). See the hook for context.
-  useTransitVolumeHighlightSync({ canton, isFeatureTableOpen, setHighlightedLineId });
+  // Terminus names labelling the .H/.R direction filter for the selected line.
+  const routeDirections = useRouteDirections();
+  const directionLabels = directionLabelsForLine(routeDirections, highlightedLineId);
+
+  // A different line's H/R point at different termini — reset the direction
+  // filter whenever the highlighted line changes. In a hook (not a render-phase
+  // ref compare) because setSelectedDirection targets FilterContext, an ancestor
+  // provider — updating it during render warns "cannot update a component while
+  // rendering a different component".
+  useResetDirectionOnLineChange(highlightedLineId, selectedDirection, setSelectedDirection);
 
   // Polygon selection
   const handlePolygonChange = useCallback(() => {
@@ -130,6 +146,16 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
     drawRef,
     isGraphExpanded,
     activeModule: 'TransitVolumes',
+  });
+
+  // Reset highlightedLineId on canton change AND when the feature table opens.
+  // Also clears selectedTransitLink when the table closes while a polygon is
+  // active — a row click sets selectedTransitLink, but the polygon view requires
+  // it to be null, so without clearing the sidebar goes blank after close.
+  useTransitVolumeHighlightSync({
+    canton, isFeatureTableOpen, setHighlightedLineId,
+    hasPolygon: polygonFeatures.length > 0,
+    setSelectedTransitLink,
   });
 
   // Boundary aggregate: same longitude-based directionality as road volumes.
@@ -187,6 +213,7 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
         if (!mergedLines[lineId]) {
           mergedLines[lineId] = {
             timeBins: {},
+            directions: null,
             line_name: line.line_name ?? null,
             mode: line.mode ?? null,
             total: 0,
@@ -199,6 +226,15 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
         const srcBins = line.timeBins || {};
         const dstBins = mergedLines[lineId].timeBins;
         for (const k in srcBins) dstBins[k] = (dstBins[k] ?? 0) + (Number(srcBins[k]) || 0);
+
+        // Merge per-direction (.H/.R) bins when present (v2 backend data)
+        if (line.directions) {
+          const dstDirs = mergedLines[lineId].directions || (mergedLines[lineId].directions = {});
+          for (const [d, bins] of Object.entries(line.directions)) {
+            const dst = dstDirs[d] || (dstDirs[d] = {});
+            for (const k in bins) dst[k] = (dst[k] ?? 0) + (Number(bins[k]) || 0);
+          }
+        }
       }
     }
 
@@ -224,16 +260,21 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
     };
   }, [polygonFeatures, timeRange]);
 
-  // Polygon aggregate histogram data — sum all lines' timeBins into 96 bins
+  // Polygon aggregate histogram data — sum all lines' timeBins into 96 bins.
+  // With a line + .H/.R direction selected, use that direction's bins.
   const polygonHistogramData = useMemo(() => {
     if (!polygonAggregate) return null;
 
     const values = new Array(96).fill(0);
     const lines = polygonAggregate.mergedLines;
     const lineIds = highlightedLineId ? [highlightedLineId] : Object.keys(lines);
+    const dirLetter = highlightedLineId ? directionLetter(selectedDirection) : null;
 
     for (const id of lineIds) {
-      const bins = lines[id]?.timeBins || {};
+      const line = lines[id];
+      const bins = (dirLetter && line?.directions)
+        ? (line.directions[dirLetter] || {})
+        : (line?.timeBins || {});
       for (let h = 0; h < 96; h++) {
         const hour = String(Math.floor(h / 4)).padStart(2, '0');
         const minute = String((h % 4) * 15).padStart(2, '0');
@@ -242,7 +283,7 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
     }
 
     return values;
-  }, [polygonAggregate, highlightedLineId]);
+  }, [polygonAggregate, highlightedLineId, selectedDirection]);
 
   // ========= FEATURE TABLE LOGIC =========
   const polygonFeaturesSet = useMemo(() => new Set(polygonFeatures), [polygonFeatures]);
@@ -302,6 +343,7 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
   }, [highlightedLineId, setHighlightedLineId]);
 
   const [isPolygonSelectionCollapsed, setIsPolygonSelectionCollapsed] = useState(false);
+  const [isBoundaryCollapsed, setIsBoundaryCollapsed] = useState(false);
 
   return (
     <div className="plot-container">
@@ -341,13 +383,22 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
       </option>
     ))}
     </select>
-    {/* Time Range + Checkbox Row */}
+    </div>
+
+    {/* Time Range + Checkbox Row — standalone row (not boxed inside the
+        mode-filter card) so the sliders + checkbox sit in the same position as
+        the road Volumes module's control row. */}
     <div className="right-sidebar-control-row">
 
-    {/* Slider and label */}
+    {/* Slider and label. The links are on the map as soon as the network
+        geometry resolves, but the time window needs the per-line volume
+        payload — disable it until that lands rather than letting it look
+        active while doing nothing. */}
     <div style={{ flex: 1 }}>
     <label className="right-sidebar-label" style={{ marginLeft: "7%" }}>
-    Time: {formatTimeLabel(timeRange[0])} - {formatTimeLabel(timeRange[1])}
+    {transitVolumesDetailPending
+      ? "Loading volumes…"
+      : `Time: ${formatTimeLabel(timeRange[0])} - ${formatTimeLabel(timeRange[1])}`}
     </label>
     <Slider
     range
@@ -358,6 +409,7 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
     value={timeRange}
     onChange={(val) => setTimeRange(val)}
     allowCross={false}
+    disabled={transitVolumesDetailPending}
     style={{ marginLeft: "10%", width: "80%" }}
     />
     </div>
@@ -389,12 +441,10 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
 
     </div>
 
-    </div>
-
     {/* Polygon aggregate view */}
     {polygonAggregate && !selectedTransitLink && (
       <>
-      <div className="canton-mode-share" style={{ position: "relative" }}>
+      <div className="canton-mode-share" style={{ position: "relative", marginTop: 15 }}>
         <span
           role="button"
           tabIndex={0}
@@ -429,7 +479,7 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
             <tr>
               <td>Volumes</td>
               <td>
-                <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
+                <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem", justifyContent: "flex-end" }}>
                   <div className="metric-card">
                     <div className="metric-label">Filtered Link Passes</div>
                     <div className="metric-value">{Math.round(polygonAggregate.filteredVolume).toLocaleString()}</div>
@@ -465,14 +515,46 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
                 </div>
               </td>
             </tr>
+            {highlightedLineId && (
+            <tr>
+              <td>Direction</td>
+              <td>
+                <DirectionToggle
+                  value={selectedDirection}
+                  onChange={setSelectedDirection}
+                  labels={directionLabels}
+                />
+              </td>
+            </tr>
+            )}
           </tbody>
         </table>
         )}
       </div>
 
       {boundaryAggregate && (
-        <div className="canton-mode-share" style={{ marginBottom: 24 }}>
+        <div className="canton-mode-share" style={{ position: "relative", marginTop: 15, marginBottom: 24 }}>
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={() => setIsBoundaryCollapsed(v => !v)}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setIsBoundaryCollapsed(v => !v); }}
+            aria-label={isBoundaryCollapsed ? "Expand" : "Collapse"}
+            style={{
+              position: "absolute",
+              top: 8,
+              right: 16,
+              cursor: "pointer",
+              fontSize: 18,
+              lineHeight: 1,
+              userSelect: "none",
+              color: "var(--color-text-secondary)",
+            }}
+          >
+            {isBoundaryCollapsed ? "+" : "−"}
+          </span>
           <h4>Polygon Inflow/Outflow</h4>
+          {!isBoundaryCollapsed && (
           <table>
             <tbody>
               <tr>
@@ -496,6 +578,7 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
               </tr>
             </tbody>
           </table>
+          )}
         </div>
       )}
 
@@ -514,18 +597,22 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
 
         return (
           <div className="plot-container">
-            <h4>Aggregate Transit Volume ({polygonAggregate.segmentCount} segments)</h4>
-            <Plot
-              data={[{ x: labels, y: values, type: "bar", marker: { color: "#17becf" } }]}
-              layout={{
-                font: { family: "Inter, sans-serif" },
-                margin: { t: 30, r: 10, l: 40, b: 100 },
-                xaxis: { title: { text: "Time", standoff: 20 }, tickangle: -45, tickvals, automargin: true },
-                yaxis: { title: "Passengers per 15 min" },
-                height: 300, width: 525,
-                paper_bgcolor: "rgba(255,255,255,0)", plot_bgcolor: "rgba(255,255,255,0)",
-              }}
-            />
+            <div className="plot-card">
+              <div className="plot-card-header">
+                <h4 style={{ margin: 0 }}>Aggregate Transit Volume ({polygonAggregate.segmentCount} segments)</h4>
+              </div>
+              <Plot
+                data={[{ x: labels, y: values, type: "bar", marker: { color: "#17becf" } }]}
+                layout={{
+                  font: { family: "Inter, sans-serif" },
+                  margin: { t: 30, r: 10, l: 40, b: 40 },
+                  xaxis: { title: { text: "Time", standoff: 8 }, tickangle: -45, tickvals, automargin: true },
+                  yaxis: { title: "Passengers per 15 min" },
+                  height: 300, width: 525,
+                  paper_bgcolor: "rgba(255,255,255,0)", plot_bgcolor: "rgba(255,255,255,0)",
+                }}
+              />
+            </div>
           </div>
         );
       })()}
@@ -536,7 +623,7 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
         than one link. Split (per-direction) selections isolate one direction
         already, so no dropdown there. */}
     {Array.isArray(selectedTransitLink) && selectedTransitLink.length > 0 && !polygonAggregate && !isSplit && allKeys.length > 1 && (
-      <div className="link-selector">
+      <div className="link-selector" style={{ marginTop: 16 }}>
         <label>Link ID:</label>
         <select
           value={transitSelectedLink || ''}
@@ -560,13 +647,16 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
       timeRange={timeRange}
       linkFilter={attrLinkFilter}
       volumesByLink={transitVolumesByLink}
+      selectedDirection={selectedDirection}
+      setSelectedDirection={setSelectedDirection}
+      directionLabels={directionLabels}
       />
 
       <div style={{ height: 12 }} />
 
       {/* One histogram per effective link id (split direction / dropdown-narrowed
           / all links). */}
-      {effectiveLinkIds.map(id => (
+      {effectiveLinkIds.map((id, i) => (
         <TransitLinkHistogram
         key={`transit-hist-${id}`}
         linkId={id}
@@ -574,6 +664,8 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
         timeRange={timeRange}
         canton={canton}
         triggerVisualize={triggerVisualize}
+        selectedDirection={selectedDirection}
+        showLoadingPlaceholder={i === 0}
         />
       ))}
 

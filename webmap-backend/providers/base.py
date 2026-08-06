@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 from starlette.responses import Response as StarletteResponse
 
 from .paths import set_root_override
+from .warmup import profile_from_referer, request_warm
 
 logger = logging.getLogger(__name__)
 
@@ -147,6 +148,12 @@ def mount_provider(app: FastAPI, provider: DataProvider, prefix: str = "/data") 
             access_token = request.cookies.get("access_token", "")
             root = await _resolve_dataset_root(dataset_id, user_id, access_token)
             set_root_override(root)
+            # First request this worker sees for a dataset (i.e. the user just
+            # switched to it) kicks off its background warm — otherwise only the
+            # startup-prewarmed default dataset is ever warm, and the first click
+            # on Transit Stops pays the full country-wide build inline. The
+            # Referer says which frontend is open, which orders the warm steps.
+            request_warm(root, profile_from_referer(request.headers.get("referer")))
         except Exception as exc:
             logger.warning("dataset resolution failed: %s", exc)
             return JSONResponse({"error": f"Dataset resolution failed: {exc}"}, status_code=400)

@@ -1,38 +1,39 @@
 import { useData } from "../context/DataContext";
 import { handle401 } from "./auth";
 
-export const useLoadWithFallback = (explicitDataURL) => {
-  const { datasetId, dataURL: contextDataURL } = useData();
+export const useLoadWithFallback = () => {
+  const { datasetId } = useData();
 
   const BACKEND_DATA_URL = `/backend/data/${datasetId}/`;
-  const DEFAULT_DATA_URL = "https://matsim-eth.github.io/webmap/data/";
 
-  const loadWithFallback = async (relativePath) => {
-    // Try remote sources in order. The dataset-versioned backend is AUTHORITATIVE
-    // and must come first: explicitDataURL/contextDataURL both default to the
-    // fixed GitHub CDN, which serves dataset-independent reference data — if it
-    // is tried first it wins for dataset-specific assets (e.g.
-    // per_canton_counts), so every dataset shows the SAME numbers (the 1% and 5%
-    // runs both reporting 50 boardings at a stop). Backend first → each dataset
-    // gets its own data; the CDN remains only as a last resort for static assets
-    // the backend doesn't serve.
-    const candidates = [
-      BACKEND_DATA_URL,
-      explicitDataURL,
-      contextDataURL,
-      DEFAULT_DATA_URL
-    ].filter(Boolean); // remove undefined/null
+  // `opts.signal` lets a caller cancel a load whose result is no longer wanted
+  // (e.g. the user switched canton mid-fetch). Aborts are rethrown as-is rather
+  // than folded into the generic "all attempts failed" error, so callers can
+  // tell "I cancelled this" apart from "the backend has no data".
+  const loadWithFallback = async (relativePath, opts = {}) => {
+    // The dataset-versioned backend is the ONLY source. There used to be a
+    // fixed GitHub CDN behind it, which served dataset-INDEPENDENT reference
+    // data: whenever a dataset's own asset failed, that CDN answered and every
+    // dataset silently showed the SAME numbers (the 1% and 5% runs both
+    // reporting 50 boardings at a stop, one dataset's network drawn for
+    // another). It was removed once every matsim/* asset was verified servable
+    // from each dataset's duckdb — see the dashboard loader, which dropped its
+    // fallback for the same reason. A backend miss must now surface as
+    // empty/error for that specific dataset instead of being masked.
+    const candidates = [BACKEND_DATA_URL];
+
+    const { signal } = opts;
 
     for (const base of candidates) {
       const finalURL = base + relativePath;
       try {
-        let res = await fetch(finalURL);
+        let res = await fetch(finalURL, { signal });
 
         // 401 from our backend → try token refresh, then retry
         if (res.status === 401 && finalURL.startsWith("/backend/")) {
           const refreshed = await handle401();
           if (!refreshed) return null; // redirecting to login
-          res = await fetch(finalURL);
+          res = await fetch(finalURL, { signal });
         }
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -40,7 +41,8 @@ export const useLoadWithFallback = (explicitDataURL) => {
         console.log(`Loaded from remote URL: ${finalURL}`);
 
         return json;
-      } catch {
+      } catch (err) {
+        if (err?.name === "AbortError") throw err;
         // silently try next
       }
     }

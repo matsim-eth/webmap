@@ -10,6 +10,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from sqlalchemy import text
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
@@ -48,11 +49,42 @@ logger = logging.getLogger(APP_NAME)
 DATASET_STORAGE_ROOT = os.getenv("DATASET_STORAGE_ROOT", "/data/datasets")
 
 
+# Schema tweaks `create_all` can't do: it creates missing *tables* but never
+# alters an existing one, so a new column would be invisible on any deployment
+# whose `datasets` table already exists. There is no Alembic in this repo, so
+# apply the delta here — every statement is idempotent and safe to re-run.
+_MIGRATIONS = (
+    # The system-wide default dataset (see models.Dataset.is_default).
+    "ALTER TABLE IF EXISTS datasets "
+    "ADD COLUMN IF NOT EXISTS is_default BOOLEAN NOT NULL DEFAULT FALSE",
+    # At most one default: a partial unique index over the true rows only.
+    # Without it, two concurrent PUT /admin/datasets/default calls could each
+    # clear-then-set and leave two defaults, and the frontends would silently
+    # disagree about which one wins.
+    "CREATE UNIQUE INDEX IF NOT EXISTS uq_datasets_single_default "
+    "ON datasets (is_default) WHERE is_default",
+)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     if os.getenv("DB_CREATE_TABLES", "0") == "1":
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
+    for stmt in _MIGRATIONS:
+        # One transaction per statement: a failure inside a shared transaction
+        # aborts it, so every *later* statement would fail too even though it
+        # was fine on its own.
+        try:
+            async with engine.begin() as conn:
+                await conn.execute(text(stmt))
+        except Exception as exc:
+            # Logged, not raised, so one bad statement doesn't block startup and
+            # the rest still apply. Note this is NOT a graceful degradation for
+            # the ADD COLUMN: `models.Dataset` declares `is_default`, so if that
+            # statement fails every SELECT against `datasets` fails too. Treat
+            # this warning as a broken deployment, not a benign skip.
+            logger.warning("migration FAILED (%s...): %s", " ".join(stmt.split()[:4]), exc)
     Path(DATASET_STORAGE_ROOT, "public").mkdir(parents=True, exist_ok=True)
     yield
     await engine.dispose()

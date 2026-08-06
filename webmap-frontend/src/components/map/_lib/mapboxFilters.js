@@ -38,6 +38,7 @@ export const CLICKABLE_ROAD_FILTER = ['any',
  */
 export const MAJOR_ROAD_TYPES = [
   'motorway', 'motorway_link',
+  'trunk', 'trunk_link',
   'primary', 'primary_link',
   'secondary', 'secondary_link',
 ];
@@ -53,6 +54,22 @@ export const MAJOR_ROADS_FILTER = ['case',
   HAS_ROAD_TYPE, ['match', RT, MAJOR_ROAD_TYPES, true, false],
   ['>', ['get', 'capacity'], 1200],
 ];
+
+/**
+ * Is this an "artificial" MATSim link (a synthetic connector, not a real road)?
+ *
+ * These carry `artificial` in their `modes` list (and often an infinite
+ * freespeed). The base network layer already hides them via
+ * CLICKABLE_ROAD_FILTER (car-only), but the flow overlays (VolumeFlow spider,
+ * NodeFlows turning movements) build their own sources straight from the full
+ * network GeoJSON, which still includes them; use this to drop them so the
+ * overlays draw only real road links.
+ */
+export const isArtificialLink = (props) => {
+  const modes = props?.modes;
+  if (typeof modes !== 'string' || modes === '') return false;
+  return (',' + modes + ',').includes(',artificial,');
+};
 
 /** JS twin of MAJOR_ROADS_FILTER for row/feature arrays outside Mapbox. */
 export const isMajorRoad = (props) => {

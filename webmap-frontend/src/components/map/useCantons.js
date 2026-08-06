@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { bbox as turfBbox } from '@turf/turf';
 import { useData } from '../../context/DataContext';
 import { handle401 } from '../../utils/auth';
-import { computeMapPadding } from '../sidebar/sidebarLayout';
+import { computeMapPadding, clampHorizontalPadding } from '../sidebar/sidebarLayout';
 
 const TLM_CDN_URL = 'https://matsim-eth.github.io/webmap/data/TLM_KANTONSGEBIET.geojson';
 
@@ -55,6 +55,7 @@ export default function useCantons({
   // 1) load zones + add layers (reloads on dataset switch)
   useEffect(() => {
     if (!mapReady) return; // only run when map is ready
+    if (datasetId == null) return; // wait for the dataset to resolve
     const map = mapRef.current;
     if (!map) return;
 
@@ -170,14 +171,20 @@ export default function useCantons({
 
         if (!cantonBbox) return;
         map.fitBounds(cantonBbox, {
-          // isFeatureTableOpen: false — the table was closed just above, so
-          // pad for the sidebar width it is animating to.
-          padding: computeMapPadding({
-            isGraphExpanded: graphExpandedRef.current,
-            isSidebarOpen: isSidebarOpenRef.current,
-            isFeatureTableOpen: false,
-            isLeftSidebarOpen: isLeftSidebarOpenRef.current,
-          }),
+          // Clamped: mapbox's cameraForBounds returns nothing when left+right
+          // padding exceeds the canvas, and fitBounds then does nothing at all
+          // — the click would select the zone but never zoom to it.
+          padding: clampHorizontalPadding(
+            // isFeatureTableOpen: false — the table was closed just above, so
+            // pad for the sidebar width it is animating to.
+            computeMapPadding({
+              isGraphExpanded: graphExpandedRef.current,
+              isSidebarOpen: isSidebarOpenRef.current,
+              isFeatureTableOpen: false,
+              isLeftSidebarOpen: isLeftSidebarOpenRef.current,
+            }),
+            map.getContainer?.()?.clientWidth,
+          ),
           maxZoom: 10,
           duration: 1000
         });

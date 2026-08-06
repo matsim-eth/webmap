@@ -8,6 +8,7 @@ import "rc-slider/assets/index.css";
 import { useTableRowBuilder } from "../../hooks/useTableRowBuilder";
 import useLinePolygon from "../../hooks/useLinePolygon";
 import useDrawPolygons from "../../hooks/useDrawPolygons";
+import { useVolumeHighlightSync } from "../../hooks/useVolumeHighlightSync";
 import { computeBoundaryFlow } from "../../utils/boundaryFlow";
 import { buildSelectionPayload } from "../table/_lib/rowSearch";
 import { parsePipeList } from "../map/_lib/pipeProps";
@@ -44,6 +45,7 @@ const VolumesModule = ({ featureTableRef }) => {
   const selectedGraph = isGraphExpanded;
 
   const [filteredVolume, setFilteredVolume] = useState(null);
+  const [isBoundaryCollapsed, setIsBoundaryCollapsed] = useState(false);
 
   // Per-link selection derived from the current selection (mirrors NetworkModule).
   //   isSplit        — per-direction (zoomed-in) selection; no dropdown.
@@ -84,6 +86,12 @@ const VolumesModule = ({ featureTableRef }) => {
     showMajorRoadsOnly,
     onPolygonChange: handlePolygonChange,
     onSelectionIds: setPolygonLinkIds,
+  });
+
+  useVolumeHighlightSync({
+    isFeatureTableOpen,
+    hasPolygon: polygonFeatures.length > 0,
+    setSelectedNetworkFeature,
   });
 
   const drawnPolygons = useDrawPolygons({
@@ -244,7 +252,7 @@ const VolumesModule = ({ featureTableRef }) => {
     {/* Polygon aggregate view */}
     {polygonAggregate && !selectedNetworkFeature && (
       <>
-      <div className="canton-mode-share">
+      <div className="canton-mode-share" style={{ marginTop: 15 }}>
         <h4>Polygon Selection</h4>
         <table>
           <tbody>
@@ -276,8 +284,28 @@ const VolumesModule = ({ featureTableRef }) => {
       </div>
 
       {boundaryAggregate && (
-        <div className="canton-mode-share" style={{ marginBottom: 24 }}>
+        <div className="canton-mode-share" style={{ position: "relative", marginTop: 15, marginBottom: 24 }}>
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={() => setIsBoundaryCollapsed(v => !v)}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setIsBoundaryCollapsed(v => !v); }}
+            aria-label={isBoundaryCollapsed ? "Expand" : "Collapse"}
+            style={{
+              position: "absolute",
+              top: 8,
+              right: 16,
+              cursor: "pointer",
+              fontSize: 18,
+              lineHeight: 1,
+              userSelect: "none",
+              color: "var(--color-text-secondary)",
+            }}
+          >
+            {isBoundaryCollapsed ? "+" : "−"}
+          </span>
           <h4>Polygon Inflow/Outflow</h4>
+          {!isBoundaryCollapsed && (
           <table>
             <tbody>
               <tr>
@@ -301,6 +329,7 @@ const VolumesModule = ({ featureTableRef }) => {
               </tr>
             </tbody>
           </table>
+          )}
         </div>
       )}
 

@@ -40,7 +40,6 @@ export default function Map() {
   } = useMap();
   const {
     datasetId,
-    dataURL,
     setIsFeatureTableOpen,
     isFeatureTableOpen,
     setFeatureGeoJSON,
@@ -83,8 +82,8 @@ export default function Map() {
     hoveredRouteId,
   } = useChoroplethState();
 
-  // load util for loading in the data (from link or local upload)
-  const loadWithFallback = useLoadWithFallback(dataURL);
+  // load util for loading the dataset's data from the backend
+  const loadWithFallback = useLoadWithFallback();
 
   // for disabling next zoom to canton (ie when click on out-of-canton transit stop)
   const suppressNextSearchZoom = useRef(false);

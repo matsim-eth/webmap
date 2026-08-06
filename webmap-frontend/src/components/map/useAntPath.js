@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { safeRemoveLayer, safeRemoveSource } from './_lib/mapbox';
-import { parsePipeList } from './_lib/pipeProps';
+import { parsePipeList, arrowForCoords } from './_lib/pipeProps';
+import { startDashAnimation } from './_lib/antAnimation';
 import { measureMapPadding } from '../sidebar/sidebarLayout';
 
 // Modules that own a Visualize button + the ant-path overlay. The ant-line
@@ -32,24 +33,19 @@ export default function useAntPath(mapRef, visualizeLinkId, graphExpandedRef, cu
 
     // --- Find the feature containing this link ID -----------------------------
     const idStr = String(visualizeLinkId);
+    // Transit link ids may arrive "cleaned" (pt_8503006:0:1_2 → pt_8503006_2,
+    // see useTransitVolumesLayer.cleanLinkId) while per_id_keys holds the raw
+    // ids — compare both forms.
+    const cleanId = (s) => String(s).split("_").map((p) => p.split(":")[0]).join("_");
+    const idClean = cleanId(idStr);
 
     const findFeatureByLinkId = () => {
       for (const f of data.features || []) {
-        // Parse pipe-separated per_id_keys and per_id_directions
         const keys = parsePipeList(f?.properties?.per_id_keys);
-        const directions = parsePipeList(f?.properties?.per_id_directions);
-        
-        // Find the index of the matching link ID
-        const index = keys.findIndex(k => String(k) === idStr);
+        let index = keys.findIndex(k => String(k) === idStr);
+        if (index === -1) index = keys.findIndex(k => cleanId(k) === idClean);
         if (index === -1) continue;
-        
-        // Get the direction for this link ID at the same index
-        const direction = directions[index];
-        
-        return { 
-          feature: f, 
-          direction: direction
-        };
+        return { feature: f, index };
       }
       return null;
     };
@@ -57,10 +53,7 @@ export default function useAntPath(mapRef, visualizeLinkId, graphExpandedRef, cu
     const hit = findFeatureByLinkId();
     if (!hit) return;
 
-    const { feature, direction } = hit;
-    
-    // Determine animation direction based on direction field
-    const animDirection = direction === 'reverse' ? 'reverse' : 'forward';
+    const { feature, index } = hit;
 
     // --- Build a single LineString for the ant path --------------------------
     const mergedCoords =
@@ -69,6 +62,20 @@ export default function useAntPath(mapRef, visualizeLinkId, graphExpandedRef, cu
       : [];
 
     if (!Array.isArray(mergedCoords) || mergedCoords.length < 2) return;
+
+    // --- Travel direction of the selected link vs the drawn geometry ---------
+    // The merged geometry runs in ONE of the bundled links' travel directions;
+    // a reverse link carries the opposite per_id_arrows glyph. Animate reverse
+    // when the selected link's glyph differs from the geometry's own glyph.
+    // (Legacy pre-merged assets may instead ship an explicit per_id_directions
+    // 'reverse' entry — honour it when present.)
+    const props = feature.properties || {};
+    const arrows = parsePipeList(props.per_id_arrows);
+    const directions = parsePipeList(props.per_id_directions);
+    const linkArrow = arrows[index];
+    const reverse =
+      directions[index] === "reverse" ||
+      (!!linkArrow && linkArrow !== arrowForCoords(mergedCoords));
 
     // Zoom to fit the link's bounding box so the user can see what's being
     // animated even when the previous viewport was far away.
@@ -120,37 +127,14 @@ export default function useAntPath(mapRef, visualizeLinkId, graphExpandedRef, cu
       },
     });
 
-    // --- Dash animation (reverse when per-id says reverse) -------------------
-    const dashArraySeq = [
-      [0, 0.3, 3, 2.7], [0, 0.6, 3, 2.4], [0, 0.9, 3, 2.1], [0, 1.2, 3, 1.8],
-      [0, 1.5, 3, 1.5], [0, 1.8, 3, 1.2], [0, 2.1, 3, 0.9], [0, 2.4, 3, 0.6],
-      [0, 2.7, 3, 0.3], [0, 3.0, 3, 0], [0.3, 3, 2.7, 0], [0.6, 3, 2.4, 0],
-      [0.9, 3, 2.1, 0], [1.2, 3, 1.8, 0], [1.5, 3, 1.5, 0], [1.8, 3, 1.2, 0],
-      [2.1, 3, 0.9, 0], [2.4, 3, 0.6, 0], [2.7, 3, 0.3, 0], [3, 3, 0, 0],
-    ];
-    const seq = animDirection === 'reverse' ? [...dashArraySeq].reverse() : dashArraySeq;
-
-    let idx = 0;
-    let last = 0;
-    let rafId = 0;
-    const frameIntervalMs = 50;
-
-    function animate(ts) {
-      if (!map.getLayer("ant-line")) return;
-      if (ts - last >= frameIntervalMs) {
-        idx = (idx + 1) % seq.length;
-        map.setPaintProperty("ant-line", "line-dasharray", seq[idx]);
-        last = ts;
-      }
-      rafId = requestAnimationFrame(animate);
-    }
-    rafId = requestAnimationFrame(animate);
+    // --- Dash animation (reverse when the link runs against the geometry) ----
+    const cancelAnts = startDashAnimation(map, "ant-line", { reverse });
 
     return () => {
       // Stop this run's animation loop before tearing the layer down, so a
       // rapid re-selection can't leave an orphaned loop repainting a new
       // ant-line that happens to reuse the same id.
-      cancelAnimationFrame(rafId);
+      cancelAnts();
       safeRemoveLayer(map, "ant-line");
       safeRemoveSource(map, "ant-path");
     };

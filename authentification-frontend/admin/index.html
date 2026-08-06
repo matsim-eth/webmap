@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./admin.css?v=5" />
+  <link rel="stylesheet" href="./admin.css?v=6" />
 </head>
 <body>
   <div class="admin-layout">
@@ -65,6 +65,19 @@
             <div style="margin-left: auto;">
               <button class="btn btn-primary btn-sm" id="addDatasetBtn" type="button">+ Add Dataset</button>
             </div>
+          </div>
+
+          <!-- System-wide default dataset -->
+          <div class="ds-default-bar">
+            <label class="ds-default-label" for="defaultDatasetSelect">Default dataset</label>
+            <select class="form-select ds-default-select" id="defaultDatasetSelect">
+              <option value="">None (lowest ID)</option>
+            </select>
+            <span class="ds-default-status" id="defaultDatasetStatus"></span>
+            <p class="form-hint ds-default-hint">
+              Opened by the webmap and dashboard on a fresh load, and warmed first by
+              the webmap backend. Only public, active datasets can be chosen.
+            </p>
           </div>
 
           <!-- Public datasets -->
@@ -341,6 +354,6 @@
     </div>
   </div>
 
-  <script src="./admin.js?v=5"></script>
+  <script src="./admin.js?v=6"></script>
 </body>
 </html>

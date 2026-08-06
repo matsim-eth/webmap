@@ -10,10 +10,31 @@ _data_cache: dict[str, list] = {}
 _counts_cache: dict[tuple, list] = {}
 
 
+def _hourly_bins(hour_rows: list) -> list:
+    """Map the boarding asset's hourly rows to the dashboard's "HH:00" bins.
+
+    The dashboard keys hourly bins on "HH:MM" labels; the boarding asset is
+    hourly, so emit the top-of-hour label."""
+    return [
+        {
+            "time_bin": f"{int(d.get('hour', 0)):02d}:00",
+            "boardings": d.get("boardings", 0),
+            "alightings": d.get("alightings", 0),
+        }
+        for d in (hour_rows or [])
+    ]
+
+
 def per_canton_counts(canton_id: int) -> list:
     """Rebuild the dashboard's ``per_canton_counts/{canton}_counts.json`` rows
     from the boarding_data static_asset: one row per (line, stop) whose stop is
-    in *canton_id*, with the per-time-bin boardings/alightings. Cached."""
+    in *canton_id*, with the per-time-bin boardings/alightings. Cached.
+
+    When the boarding asset carries the v2 ``data_by_direction`` field, it is
+    passed through per direction (same "HH:00" bins) so the Transit Stops module
+    can rescale a stop's volume by the .H/.R route direction — not just dim
+    non-serving lines. Absent on older datasets → key omitted → filter stays
+    inert (frontend falls back to the direction-less ``data``)."""
     ckey = (dataset_key(), canton_id)
     if ckey in _counts_cache:
         return _counts_cache[ckey]
@@ -24,21 +45,18 @@ def per_canton_counts(canton_id: int) -> list:
         for stop in line.get("stops", []):
             if stop.get("canton_id") != canton_id:
                 continue
-            rows.append({
+            row = {
                 "line_id": lid,
                 "line_name": line.get("line_name"),
                 "stop_id": stop.get("stop_id"),
-                "data": [
-                    {
-                        # The dashboard keys hourly bins on "HH:MM" labels; the
-                        # boarding asset is hourly, so emit the top-of-hour label.
-                        "time_bin": f"{int(d.get('hour', 0)):02d}:00",
-                        "boardings": d.get("boardings", 0),
-                        "alightings": d.get("alightings", 0),
-                    }
-                    for d in stop.get("data", [])
-                ],
-            })
+                "data": _hourly_bins(stop.get("data", [])),
+            }
+            dbd = stop.get("data_by_direction")
+            if isinstance(dbd, dict) and dbd:
+                row["data_by_direction"] = {
+                    d: _hourly_bins(hr) for d, hr in dbd.items()
+                }
+            rows.append(row)
     _counts_cache[ckey] = rows
     return rows
 

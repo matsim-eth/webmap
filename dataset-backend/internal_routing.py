@@ -76,6 +76,29 @@ async def resolve_dataset(
     )
 
 
+@router.get("/internal/datasets/order", dependencies=[Depends(require_internal_secret)])
+async def dataset_prewarm_order(db: AsyncSession = Depends(get_db)):
+    """Dataset ids in the order caches should be warmed: the admin-chosen default
+    first, then ascending id — the same order `list_datasets` serves to the
+    frontends.
+
+    Exists because the webmap backend's prewarm runs in a startup thread with no
+    user request (so no access-token cookie to forward to /resolve) and no DB
+    access of its own. It authenticates with the shared internal secret instead.
+    Only public+active datasets can be the default, so no per-user access check is
+    meaningful here — the response is just an ordering hint, no dataset content.
+    """
+    rows = (
+        await db.scalars(
+            select(Dataset).order_by(Dataset.is_default.desc(), Dataset.id.asc())
+        )
+    ).all()
+    return {
+        "dataset_ids": [ds.id for ds in rows],
+        "default_dataset_id": next((ds.id for ds in rows if ds.is_default), None),
+    }
+
+
 # ── User storage lifecycle (called by auth backend) ──────────────
 
 

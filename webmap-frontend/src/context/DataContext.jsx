@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo, useState } from 'react';
 import { useStudyArea } from '../hooks/useStudyArea';
+import { useDefaultDataset } from '../hooks/useDefaultDataset';
 
 const DataContext = createContext(null);
 
@@ -9,8 +10,11 @@ const DataContext = createContext(null);
  * the per-module data buckets (node flows, link speeds, zone flows, etc).
  */
 export const DataProvider = ({ children }) => {
-  const [datasetId, setDatasetId] = useState(1);
-  const [dataURL, setDataURL] = useState('https://matsim-eth.github.io/webmap/data/');
+  // Starts null and resolves to the user's first available active dataset (see
+  // useDefaultDataset) rather than hardcoding an id — so nothing fetches against
+  // a dataset the user may not own before they've picked one.
+  const [datasetId, setDatasetId] = useState(null);
+  useDefaultDataset(datasetId, setDatasetId);
   const [cantonList, setCantonList] = useState([]);
 
   // Per-dataset study area (zone labels, zone list, map extent). Re-fetches on
@@ -58,13 +62,17 @@ export const DataProvider = ({ children }) => {
   // the geojson sources because it would roughly double them (Zurich's volume
   // file is ~24 MB, and the split overlay spreads feature props twice).
   const [transitVolumesByLink, setTransitVolumesByLink] = useState(null);
+  // True while Transit Volumes has drawn its links (picked by mode from the
+  // shared network geometry) but the per-line volume payload is still loading.
+  // The module disables the controls that need it — time window, line/direction
+  // filters — instead of leaving them silently inert.
+  const [transitVolumesDetailPending, setTransitVolumesDetailPending] = useState(false);
 
   const [polygonTripsData, setPolygonTripsData] = useState(null);
   const [polygonTripsLoading, setPolygonTripsLoading] = useState(false);
 
   const value = useMemo(() => ({
     datasetId, setDatasetId,
-    dataURL, setDataURL,
     cantonList, setCantonList,
     studyArea, zoneLabel, zoneLabelPlural, zones, zoneByName,
     studyAreaIsFallback,
@@ -83,17 +91,18 @@ export const DataProvider = ({ children }) => {
     zoneFlowData, setZoneFlowData,
     zoneFlowLoading, setZoneFlowLoading,
     transitVolumesByLink, setTransitVolumesByLink,
+    transitVolumesDetailPending, setTransitVolumesDetailPending,
     polygonTripsData, setPolygonTripsData,
     polygonTripsLoading, setPolygonTripsLoading,
   }), [
-    datasetId, dataURL, cantonList,
+    datasetId, cantonList,
     studyArea, zoneLabel, zoneLabelPlural, zones, zoneByName, studyAreaIsFallback,
     featureGeoJSON, tableFilterQuery, isFeatureTableOpen, polygonStopIds, polygonLinkIds,
     destinationData, destinationHoveredCanton, destinationSelectedCanton, boardingData,
     nodeFlowsData,
     linkSpeedsLinksMap, linkSpeedsSummary,
     zoneFlowData, zoneFlowLoading,
-    transitVolumesByLink,
+    transitVolumesByLink, transitVolumesDetailPending,
     polygonTripsData, polygonTripsLoading,
   ]);
 

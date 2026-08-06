@@ -53,6 +53,10 @@ const SegmentAttributesTable = ({ propertiesList, selectedGraph, filteredVolume,
   const filteredTotal = hasFiltered
   ? perIdEntries.reduce((acc, [id]) => acc + (Number(filteredVolume?.[String(id)]) || 0), 0)
   : null;
+
+  const totalVolume = perIdEntries.reduce(
+    (acc, [, obj]) => acc + (Number(obj.daily_avg_volume) || 0), 0
+  );
   
   // Deduped row renderer
   const renderDedupRow = (label, field, { unit = "", useFilteredVolume = false } = {}) => {
@@ -127,14 +131,25 @@ const SegmentAttributesTable = ({ propertiesList, selectedGraph, filteredVolume,
     <td style={{ wordBreak: "break-all" }}>{keys.length ? keys.join(", ") : "-"}</td>
     </tr>
 
-    {/* Road volume (total) — highlighted second row in Volumes */}
+    {/* Road volume — Filtered = time-windowed, Total = full-day */}
     {selectedGraph === "Volumes" && (
       <tr>
-      <td><strong>Road Volume</strong></td>
+      <td><strong>Volumes</strong></td>
       <td>
-      {hasFiltered
-        ? `${fmtNum(filteredTotal)} vehicles`
-        : `${fmtNum(top.daily_avg_volume)} vehicles/day`}
+      <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem", justifyContent: "flex-end" }}>
+      <div className="metric-card">
+      <div className="metric-label">Filtered</div>
+      <div className="metric-value">
+        {hasFiltered ? fmtNum(filteredTotal) : fmtNum(top.daily_avg_volume)}
+      </div>
+      </div>
+      <div className="metric-card">
+      <div className="metric-label">Total</div>
+      <div className="metric-value">
+        {fmtNum(totalVolume)}
+      </div>
+      </div>
+      </div>
       </td>
       </tr>
     )}

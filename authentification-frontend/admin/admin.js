@@ -422,13 +422,16 @@ function _renderDatasetRows(tbody, datasets, ownerFilter, ownerName) {
 
   for (const ds of datasets) {
     const statusCls = ds.status === "active" ? "badge-success" : "badge-secondary";
+    const defaultBadge = ds.is_default
+      ? ' <span class="badge badge-dark" title="System-wide default dataset">DEFAULT</span>'
+      : "";
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><code>${ds.id}</code></td>
       <td>${esc(ds.name)}</td>
       <td>${esc(ds.description || "-")}</td>
       <td>${esc(ds.owner_username || "")} <span class="text-muted">(${ds.owner_id})</span></td>
-      <td><span class="badge ${statusCls}">${esc(ds.status)}</span></td>
+      <td><span class="badge ${statusCls}">${esc(ds.status)}</span>${defaultBadge}</td>
       <td>${ds.created_at ? new Date(ds.created_at).toLocaleDateString() : "-"}</td>
       <td class="text-nowrap">
         <div class="actions">
@@ -485,10 +488,13 @@ async function loadDatasets(ownerFilter, ownerName) {
   _currentOwnerFilter = ownerFilter || null;
   _currentOwnerName = ownerName || null;
 
-  let url = "/admin/datasets";
-  if (ownerFilter) {
-    url += `?owner_id=${ownerFilter}`;
-  }
+  // Always fetch UNFILTERED and narrow client-side. The owner filter is a view
+  // over the tables, but the default-dataset dropdown is a system-wide setting
+  // that must see every dataset: filtering server-side (?owner_id=) drops the
+  // current default from the payload whenever it belongs to another owner, and
+  // the dropdown then reads "None" even though a default is set. Admin dataset
+  // counts are small, so the saved bytes aren't worth that failure mode.
+  const url = "/admin/datasets";
 
   const filterDiv = el("datasetOwnerFilter");
   const filterBadge = el("datasetFilterBadge");
@@ -512,11 +518,102 @@ async function loadDatasets(ownerFilter, ownerName) {
   const data = await res.json();
   _allDatasets = data.datasets || [];
 
-  const publicDatasets = _allDatasets.filter((ds) => ds.is_public);
-  const privateDatasets = _allDatasets.filter((ds) => !ds.is_public);
+  // Owner filter applied here, not server-side — see the note on `url` above.
+  const visible = ownerFilter
+    ? _allDatasets.filter((ds) => String(ds.owner_id) === String(ownerFilter))
+    : _allDatasets;
+
+  const publicDatasets = visible.filter((ds) => ds.is_public);
+  const privateDatasets = visible.filter((ds) => !ds.is_public);
 
   _renderDatasetRows(el("publicDatasetsBody"), publicDatasets, ownerFilter, ownerName);
   _renderDatasetRows(el("privateDatasetsBody"), privateDatasets, ownerFilter, ownerName);
+  renderDefaultDatasetSelect();
+}
+
+// ── Default dataset ──────────────────────────────────────────────
+
+/**
+ * Populate the default-dataset dropdown from the loaded dataset list.
+ *
+ * Eligible options are public + active only, matching the backend's guard in
+ * PUT /admin/datasets/default: a private default would 403 for everyone but its
+ * owner, and an inactive one 403s for everyone, so it must not be offered here.
+ *
+ * Rebuilt from `_allDatasets` on every load so the "DEFAULT" badge in the table
+ * and the dropdown selection can never drift apart. `_allDatasets` is always the
+ * UNFILTERED list (loadDatasets narrows by owner only for the tables), which is
+ * what lets this see a default owned by someone other than the filtered user.
+ */
+function renderDefaultDatasetSelect() {
+  const select = el("defaultDatasetSelect");
+  if (!select) return;
+
+  const eligible = _allDatasets.filter((ds) => ds.is_public && ds.status === "active");
+  const current = _allDatasets.find((ds) => ds.is_default) || null;
+
+  select.innerHTML = "";
+  const noneOpt = document.createElement("option");
+  noneOpt.value = "";
+  noneOpt.textContent = "None (lowest ID)";
+  select.appendChild(noneOpt);
+
+  for (const ds of eligible) {
+    const opt = document.createElement("option");
+    opt.value = String(ds.id);
+    opt.textContent = `${ds.name} (ID ${ds.id})`;
+    select.appendChild(opt);
+  }
+
+  // A default that is no longer eligible (demoted to private/inactive by another
+  // admin between loads) still has to be selectable, or the control would claim
+  // "None" while the backend still holds it.
+  if (current && !eligible.some((ds) => ds.id === current.id)) {
+    const opt = document.createElement("option");
+    opt.value = String(current.id);
+    opt.textContent = `${current.name} (ID ${current.id})`;
+    select.appendChild(opt);
+  }
+
+  select.value = current ? String(current.id) : "";
+  select._lastValue = select.value;
+  // Cleared here, then re-set by saveDefaultDataset *after* its reload finishes —
+  // setting it before that reload wiped the confirmation within the same tick.
+  setDefaultDatasetStatus("");
+}
+
+function setDefaultDatasetStatus(msg) {
+  const node = el("defaultDatasetStatus");
+  if (node) node.textContent = msg;
+}
+
+async function saveDefaultDataset(select) {
+  const raw = select.value;
+  const previous = select._lastValue ?? "";
+  select.disabled = true;
+  setDefaultDatasetStatus("Saving…");
+
+  const res = await datasetApi("/admin/datasets/default", {
+    method: "PUT",
+    body: { dataset_id: raw === "" ? null : parseInt(raw, 10) },
+  });
+  select.disabled = false;
+
+  if (!res.ok) {
+    const err = await readJsonOrText(res);
+    // Revert to the last known-good value so the control never shows a default
+    // the backend rejected.
+    select.value = previous;
+    setDefaultDatasetStatus("");
+    showToast(err?.detail || "Failed to set default dataset");
+    return;
+  }
+
+  select._lastValue = raw;
+  // Reload so the DEFAULT badge moves to the new row, THEN report — the reload
+  // re-renders the select and resets its status line.
+  await loadDatasets(_currentOwnerFilter, _currentOwnerName);
+  setDefaultDatasetStatus(raw === "" ? "Default cleared." : "Saved.");
 }
 
 // ── Add Dataset Modal ────────────────────────────────────────────
@@ -959,6 +1056,14 @@ function attachLogout() {
   const addDsBtn = el("addDatasetBtn");
   if (addDsBtn) {
     addDsBtn.addEventListener("click", openAddDatasetModal);
+  }
+
+  // Bound once here, not in renderDefaultDatasetSelect — that runs on every
+  // loadDatasets() and would stack a duplicate listener each time, firing the
+  // PUT once per past render.
+  const defaultDsSelect = el("defaultDatasetSelect");
+  if (defaultDsSelect) {
+    defaultDsSelect.addEventListener("change", () => saveDefaultDataset(defaultDsSelect));
   }
 
   const createDsBtn = el("createDatasetBtn");

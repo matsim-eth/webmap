@@ -230,6 +230,51 @@ body {
   margin-bottom: 8px;
 }
 
+/* ── Default dataset setting ── */
+
+.ds-default-bar {
+  display: grid;
+  /* label / select / status on row 1; the hint spans all three on row 2 so it
+     aligns under the label instead of being squeezed beside the select. */
+  grid-template-columns: auto minmax(0, 260px) 1fr;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--card-radius);
+}
+
+.ds-default-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.ds-default-select {
+  /* form-select is width:100%; the grid track above caps it. */
+  margin: 0;
+}
+
+.ds-default-status {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  min-height: 1em; /* reserve the line so setting it doesn't shift the layout */
+}
+
+.ds-default-hint {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .ds-default-bar {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ── Tables ── */
 
 .data-table {
@@ -388,6 +433,12 @@ body {
   animation: modalIn 220ms cubic-bezier(.2, .8, .2, 1) forwards;
   opacity: 0;
   transform: translateY(10px);
+  /* Header + footer stay put; the body scrolls when the card outgrows the
+     viewport (short screens on the Edit Dataset modal). */
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
 }
 
 @keyframes modalIn {
@@ -400,6 +451,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px 0;
+  flex: 0 0 auto;
 }
 
 .modal-header h3 {
@@ -425,6 +477,41 @@ body {
 
 .modal-body {
   padding: 20px 24px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+  /* Scroll shadows: pure CSS, and visible only while the body actually
+     overflows — the `local` layers ride the content and cover the pinned
+     `scroll` layers at the extremes. */
+  background:
+    linear-gradient(var(--color-surface) 30%, rgba(255, 255, 255, 0)) center top,
+    linear-gradient(rgba(255, 255, 255, 0), var(--color-surface) 70%) center bottom,
+    radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, .12), rgba(0, 0, 0, 0)) center top,
+    radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, .12), rgba(0, 0, 0, 0)) center bottom;
+  background-repeat: no-repeat;
+  background-size: 100% 26px, 100% 26px, 100% 8px, 100% 8px;
+  background-attachment: local, local, scroll, scroll;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 10px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border: 3px solid var(--color-surface);
+  border-radius: 999px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted, #9ca3af);
 }
 
 .modal-footer {
@@ -432,6 +519,7 @@ body {
   justify-content: flex-end;
   gap: 8px;
   padding: 0 24px 20px;
+  flex: 0 0 auto;
 }
 
 /* ── Form elements (modal forms) ── */

@@ -38,13 +38,19 @@ from .frequent_sequences import FrequentSequencesProvider
 
 # --- Special providers ---
 from .modes_by_canton import ModesByCantonProvider
+from .network_modes import NetworkModesProvider
 from .boarding_data import BoardingDataProvider
 from .stop_transfer_data import StopTransferDataProvider
 from .stop_municipality import StopMunicipalityProvider
 from .municipalities import MunicipalitiesProvider
 
 # --- Spider analysis ---
-from .spider_analysis import SpiderInflowProvider, SpiderOutflowProvider, SpiderOverlayProvider
+from .spider_analysis import (
+    SpiderInflowProvider,
+    SpiderLinkTripsProvider,
+    SpiderOutflowProvider,
+    SpiderOverlayProvider,
+)
 from .node_flows import NodeFlowsProvider
 from .nodes_geojson import NodesGeoJSONProvider
 from .zone_flows import ZoneFlowsProvider
@@ -83,6 +89,9 @@ ALL_PROVIDERS = [
     StackedBarDistanceProvider(),
     # Special
     ModesByCantonProvider(),
+    # Network-link modes (per zone) — feeds the Network/Volumes mode filter
+    # without waiting on the merged_segments geometry rebuild
+    NetworkModesProvider(),
     BoardingDataProvider(),
     StopTransferDataProvider(),
     StopMunicipalityProvider(),
@@ -97,6 +106,8 @@ ALL_PROVIDERS = [
     SpiderInflowProvider(),
     SpiderOutflowProvider(),
     SpiderOverlayProvider(),
+    # Per-link trip counts for a zone (VolumeFlow's "has trips" display filter)
+    SpiderLinkTripsProvider(),
     # Node flows (turning-movement matrix)
     NodeFlowsProvider(),
     # Nodes GeoJSON (per-canton point features)

@@ -4,6 +4,8 @@ import { useMap } from '../context/MapContext';
 import { useData } from '../context/DataContext';
 import { useFilters } from '../context/FilterContext';
 import { useChoropleth } from '../context/ChoroplethContext';
+import { clearNetworkGeometryCache } from '../components/map/_lib/networkGeometry';
+import { clearPtVolumeCache } from '../components/map/_lib/ptVolumes';
 
 /**
  * The Reset button's full behaviour as a shared action: clears module,
@@ -16,7 +18,7 @@ import { useChoropleth } from '../context/ChoroplethContext';
 export function useFullReset() {
   const { setIsGraphExpanded } = useModule();
   const { setResetMapTrigger, resetMapView, setIsSidebarOpen } = useMap();
-  const { setIsFeatureTableOpen, setDataURL } = useData();
+  const { setIsFeatureTableOpen } = useData();
   const { setSelectedNetworkModes, setSelectedTransitModes } = useFilters();
   const {
     setHighlightedLineId, setHighlightedRouteIds,
@@ -25,6 +27,14 @@ export function useFullReset() {
   } = useChoropleth();
 
   return useCallback(() => {
+    // Let go of the cached per-(dataset, canton) map data. Both caches are
+    // keyed the same and the PT bundle holds references into the geometry, so
+    // they are always cleared together. This is the escape hatch for a dataset
+    // whose assets changed underneath a live session — normal dataset/canton
+    // switches invalidate by key on their own.
+    clearNetworkGeometryCache();
+    clearPtVolumeCache();
+
     setResetMapTrigger((prev) => !prev);
 
     setSelectedDataset('Microcensus');
@@ -40,13 +50,11 @@ export function useFullReset() {
     setIsGraphExpanded(null);
     setIsFeatureTableOpen(false);
 
-    setDataURL('https://matsim-eth.github.io/webmap/data/');
-
     setIsSidebarOpen(false);
   }, [
     setResetMapTrigger, setSelectedDataset, setSelectedMode,
     setSelectedNetworkModes, setSelectedTransitModes, updateMapChoropleth,
     resetMapView, setHighlightedLineId, setHighlightedRouteIds,
-    setIsGraphExpanded, setIsFeatureTableOpen, setDataURL, setIsSidebarOpen,
+    setIsGraphExpanded, setIsFeatureTableOpen, setIsSidebarOpen,
   ]);
 }

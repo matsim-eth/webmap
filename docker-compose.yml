@@ -118,6 +118,9 @@ services:
       ACCESS_TOKEN_MINUTES: "${ACCESS_TOKEN_MINUTES:-15}"
       REFRESH_TOKEN_DAYS: "${REFRESH_TOKEN_DAYS:-14}"
       DATASET_SERVICE_URL: http://dataset_backend:5033
+      # Lets the startup prewarm ask dataset_backend which dataset is the admin's
+      # default, so that one is warmed first (it has no user cookie at startup).
+      INTERNAL_SERVICE_SECRET: "${INTERNAL_SERVICE_SECRET:-}"
       DATASET_STORAGE_ROOT: /data/datasets
       WEBMAP_ROOT: "${WEBMAP_ROOT:-/data/datasets/public}"
       ROOT_PATH: /backend
@@ -126,7 +129,15 @@ services:
       # Resource tuning (empty = DuckDB defaults; set in .env on laptops)
       DUCKDB_MEMORY_LIMIT: "${DUCKDB_MEMORY_LIMIT:-}"
       DUCKDB_THREADS: "${DUCKDB_THREADS:-}"
+      # Cache warming (providers/warmup.py). Defaults warm every dataset,
+      # default-first; the tuning knobs only reach the container if listed here.
       WEBMAP_PREWARM: "${WEBMAP_PREWARM:-1}"
+      WEBMAP_PREWARM_LIMIT: "${WEBMAP_PREWARM_LIMIT:-0}"
+      WEBMAP_PREWARM_QUIET: "${WEBMAP_PREWARM_QUIET:-3}"
+      WEBMAP_PREWARM_MAX_WAIT: "${WEBMAP_PREWARM_MAX_WAIT:-300}"
+      WEBMAP_PREWARM_YIELD: "${WEBMAP_PREWARM_YIELD:-1}"
+      WEBMAP_WARM_ON_SWITCH: "${WEBMAP_WARM_ON_SWITCH:-1}"
+      WEBMAP_WARM_QUIET: "${WEBMAP_WARM_QUIET:-1}"
     volumes:
       - dataset_storage:/data/datasets:ro
     depends_on:

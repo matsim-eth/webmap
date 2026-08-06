@@ -73,6 +73,28 @@ def _resolve_cantons(raw: str) -> list[int]:
     return ids
 
 
+_HAS_NETWORK_LINKS: dict = {}
+
+
+def _has_network_links() -> bool:
+    """Does this dataset ship a `network_links` table? Cached per dataset.
+
+    The mode filter is a semi-join against it, so on an older dataset that
+    predates the table the filter has to degrade to a no-op rather than error.
+    """
+    key = dataset_key()
+    cached = _HAS_NETWORK_LINKS.get(key)
+    if cached is not None:
+        return cached
+    try:
+        _get_con().execute("SELECT 1 FROM network_links LIMIT 1").fetchone()
+        ok = True
+    except Exception:
+        ok = False
+    _HAS_NETWORK_LINKS[key] = ok
+    return ok
+
+
 def _build_filters(params: dict) -> tuple[str, list]:
     """Build SQL WHERE clauses from query params."""
     # Exclude abstract links with non-finite freespeed (MATSim sets freespeed to
@@ -88,6 +110,33 @@ def _build_filters(params: dict) -> tuple[str, list]:
             placeholders = ", ".join(["?"] * len(types))
             clauses.append(f"road_type IN ({placeholders})")
             bind.extend(types)
+
+    # Network-mode filter (comma-separated, e.g. "car").
+    #
+    # `link_speeds` is NOT road-only: in dataset 3 / Zürich, 5,040 of the 119,622
+    # links with speed rows carry no `car` mode at all (bus,pt / pt,rail,tram /
+    # artificial,tram / ferry / funicular), contributing 556k volume. They have
+    # volume > 0, so nothing downstream filtered them out — rail and tram
+    # alignments were drawn on the Link Speeds map, listed in its table, and
+    # folded into its average-speed and congestion-index summary alongside the
+    # roads. The mode lives on `network_links`, not on `link_speeds`, so this is
+    # a semi-join; DuckDB plans `IN (subquery)` as a hash semi-join, which is
+    # cheap next to the aggregate scan.
+    #
+    # Tokens are matched exactly against the comma-delimited `modes` string, the
+    # same rule the frontend filters use, so "car" can't match "cable car".
+    modes_raw = (params.get("modes") or "").strip()
+    if modes_raw and _has_network_links():
+        tokens = [t.strip() for t in modes_raw.split(",") if t.strip()]
+        if tokens:
+            ors = " OR ".join(
+                ["(',' || COALESCE(nl.modes, '') || ',') LIKE ?"] * len(tokens)
+            )
+            clauses.append(
+                "CAST(link_id AS VARCHAR) IN ("
+                f"SELECT CAST(nl.link_id AS VARCHAR) FROM network_links nl WHERE {ors})"
+            )
+            bind.extend(f"%,{t},%" for t in tokens)
 
     # Canton/zone filter
     canton = (params.get("canton") or params.get("zone") or "").strip()
@@ -137,12 +186,37 @@ _TRAFFIC_CACHE_MAX = 6
 
 # Hierarchy classes counted as "major roads" — the server-side twin of the
 # frontend's MAJOR_ROADS_FILTER (components/map/_lib/mapboxFilters.js). The
-# `_link` variants keep motorway/primary/secondary ramps attached.
+# `_link` variants keep motorway/trunk/primary/secondary ramps attached.
 MAJOR_ROAD_TYPES = (
     "motorway", "motorway_link",
+    "trunk", "trunk_link",
     "primary", "primary_link",
     "secondary", "secondary_link",
 )
+
+
+def major_road_clause(alias: str = "") -> tuple[str, list]:
+    """SQL predicate for "major road", plus its bind parameters.
+
+    The exact twin of the frontend's ``MAJOR_ROADS_FILTER``: hierarchy class
+    when the link carries a usable ``road_type``, else the legacy
+    ``capacity > 1200`` threshold for untagged links.
+
+    Shared by the per-link volumes and by the network geometry subset so the two
+    can never disagree — a geometry subset narrower than the map filter would
+    silently drop links the user expects to see.
+
+    ``alias`` qualifies the columns (e.g. ``"nl"``); omit it for an unaliased
+    ``FROM network_links``.
+    """
+    p = f"{alias}." if alias else ""
+    placeholders = ", ".join("?" * len(MAJOR_ROAD_TYPES))
+    clause = (
+        f"({p}road_type IN ({placeholders}) "
+        f"OR (({p}road_type IS NULL OR {p}road_type IN ('unknown', '')) "
+        f"AND {p}capacity > 1200))"
+    )
+    return clause, list(MAJOR_ROAD_TYPES)
 
 
 def link_traffic_volumes(
@@ -180,13 +254,8 @@ def link_traffic_volumes(
     rows = None
     if major or min_capacity is not None:
         if major:
-            placeholders = ", ".join("?" * len(MAJOR_ROAD_TYPES))
-            link_clause = (
-                f"(nl.road_type IN ({placeholders}) "
-                "OR ((nl.road_type IS NULL OR nl.road_type IN ('unknown', '')) "
-                "AND nl.capacity > 1200))"
-            )
-            args = [canton_id, *MAJOR_ROAD_TYPES]
+            link_clause, major_args = major_road_clause("nl")
+            args = [canton_id, *major_args]
         else:
             link_clause = "nl.capacity > ?"
             args = [canton_id, min_capacity]
@@ -239,6 +308,9 @@ def link_traffic_volumes(
 
 _LINK_SPEED_PARAMS = [
     Param("road_type", "Road type filter (comma-separated, e.g. motorway,primary)"),
+    Param("modes", "Network-link mode filter (comma-separated, e.g. car). "
+                   "Keeps only links whose network_links.modes names one of "
+                   "these; omit for every link with speed data."),
     Param("canton", "Canton name or ID (comma-separated)"),
     Param("zone", "Zone name or ID (comma-separated); alias of canton"),
     Param("minute_start", "Time window start (minutes from midnight)", param_type="integer"),

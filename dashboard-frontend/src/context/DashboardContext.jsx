@@ -19,9 +19,16 @@ const buildShortLabel = (slot, allSlots) => {
   return `${slot.datasetName} (${SUB_ABBREV[slot.subDataset] || slot.subDataset})`;
 };
 
+// Marks a slot as "not yet resolved to a real dataset". `useAutoInitSlots`
+// replaces both the id and the name once the dataset list loads (preferring the
+// admin's default dataset); it keys off this name, so don't reuse it for a real
+// dataset. The id below is only a placeholder for the render or two before that
+// resolves — it is not a meaningful default.
+export const PLACEHOLDER_DATASET_NAME = "Default";
+
 const DEFAULT_SLOTS = [
-  { datasetId: 1, datasetName: "Default", subDataset: "Microcensus", color: "#4A90E2" },
-  { datasetId: 1, datasetName: "Default", subDataset: "Synthetic", color: "#E07A5F" },
+  { datasetId: 1, datasetName: PLACEHOLDER_DATASET_NAME, subDataset: "Microcensus", color: "#4A90E2" },
+  { datasetId: 1, datasetName: PLACEHOLDER_DATASET_NAME, subDataset: "Synthetic", color: "#E07A5F" },
 ];
 
 export const DashboardProvider = ({ children }) => {

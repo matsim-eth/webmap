@@ -1,13 +1,8 @@
 import React, { useState } from "react";
 import "../Table.css";
+import DirectionToggle from "./DirectionToggle";
 
-const DIRECTION_OPTIONS = [
-  { value: 'total', label: 'Total' },
-  { value: 'outbound', label: 'Outbound' },
-  { value: 'return', label: 'Return' }
-];
-
-const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId, selectedDirection, setSelectedDirection }) => {
+const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId, selectedDirection, setSelectedDirection, directionLabels }) => {
   if (!properties) return null;
 
   const { name, modes_list, lines, boardings, alightings, total } = properties;
@@ -61,7 +56,7 @@ const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId
     <tr><td>Mode</td><td>{modes_list?.join(", ")}</td></tr>
     <tr><td>Lines</td><td>{numLines}</td></tr>
     <tr><td>Volumes</td><td>
-    <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
+    <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem", justifyContent: "flex-end" }}>
     <div className="metric-card">
     <div className="metric-label">Boardings</div>
     <div className="metric-value">{boardings}</div>
@@ -91,31 +86,20 @@ const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId
     </div>
     </td>
     </tr>
-    {/* <tr>
+    {/* Route-direction filter (.H/.R) — only meaningful with a line selected;
+        labels show each direction's most common terminus stop when known. */}
+    {highlightedLineId && setSelectedDirection && (
+    <tr>
     <td>Direction</td>
     <td>
-    <div style={{ display: 'flex' }}>
-      {DIRECTION_OPTIONS.map((opt, i) => (
-        <button
-          key={opt.value}
-          onClick={() => setSelectedDirection(opt.value)}
-          style={{
-            padding: '4px 10px',
-            fontSize: '12px',
-            border: '1px solid #ccc',
-            borderLeft: i === 0 ? '1px solid #ccc' : 'none',
-            borderRadius: i === 0 ? '4px 0 0 4px' : i === DIRECTION_OPTIONS.length - 1 ? '0 4px 4px 0' : '0',
-            backgroundColor: selectedDirection === opt.value ? 'var(--color-primary, #6366f1)' : '#fff',
-            color: selectedDirection === opt.value ? '#fff' : '#333',
-            cursor: 'pointer'
-          }}
-        >
-          {opt.label}
-        </button>
-      ))}
-    </div>
+      <DirectionToggle
+        value={selectedDirection}
+        onChange={setSelectedDirection}
+        labels={directionLabels}
+      />
     </td>
-    </tr> */}
+    </tr>
+    )}
     </tbody>
     </table>
     )}
