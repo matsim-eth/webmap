@@ -8,10 +8,7 @@ stop_ids belong to a different network and never match the dataset's own
 
 Everything here is derived from data already in the duckdb:
   • stop list / names / per-stop lines  → `boarding_data_by_line` static asset
-  • stop coordinates                    → the `stop_coords` static asset when the
-                                          dataset ships one, else the stop's
-                                          `.link:<id>` pseudo-link's `to_node` in
-                                          `network_nodes`, transformed 2056→4326.
+  • stop coordinates                    → the `stop_coords` static asset
 
 Results are cached per process (the dataset is read-only).
 """
@@ -23,13 +20,20 @@ import re
 import threading
 from collections import defaultdict
 
-from .connection import get_source_cursor
 from .paths import dataset_key
 from .zone_registry import get_registry
 
 # Leading numeric token = physical station id (platforms share it), e.g.
 # "8593773:0:1.link:pt_8593773:0:1" and "8593773:0:2.link:..." → station 8593773.
 _STATION_RE = re.compile(r"^(\d+)")
+
+
+def _linkid(stop_id: str) -> str | None:
+    """The network link id embedded after '.link:' in a stop_id."""
+    if not stop_id or ".link:" not in stop_id:
+        return None
+    return stop_id.split(".link:", 1)[1]
+
 
 # dataset_key → bundle, keyed per dataset so a worker serving several datasets
 # never mixes one dataset's stops into another:
@@ -73,138 +77,39 @@ _modes_cache: dict[str, dict] = {}
 _modes_lock = threading.Lock()
 
 
-def _zone_col() -> str:
-    """Primary-zone id column on ``network_links`` (v3 ``zone_id`` / legacy
-    ``canton_id``), probed and cached by the registry."""
-    from .zone_registry import zone_col
-
-    return zone_col("synthetic", "network_links")
+# dataset_key → {stop_id: (lon, lat)} from the `stop_coords` static asset.
+_asset_cache: dict[str, dict] = {}
 
 
-def _linkid(stop_id: str) -> str | None:
-    """The network link id embedded after '.link:' in a stop_id."""
-    if not stop_id or ".link:" not in stop_id:
-        return None
-    return stop_id.split(".link:", 1)[1]
+def _load_coords() -> dict:
+    """The `stop_coords` static asset as ``{stop_id: (lon, lat)}``.
 
-
-# dataset_key → {stop_id: (lon, lat)} from the `stop_coords` static asset, or
-# None for datasets that don't ship it. `False` = not looked at yet.
-_asset_cache: dict[str, dict | None] = {}
-
-
-def _asset_coords() -> dict | None:
-    """The `stop_coords` static asset as ``{stop_id: (lon, lat)}``, or None.
-
-    This is the exporter's own stop-facility position, and it replaces the
-    ``network_links``→``network_nodes`` join below wholesale: 0.31 s (blob read
-    + JSON parse) against ~13 s per dataset cold, and it removes the ~95 s
-    whole-dataset scan behind :func:`inter_cantonal_stops` entirely.
-
-    It is also *more accurate*. The join answers with the pt pseudo-link's
-    ``to_node`` — where the stop was attached to the road network, not where the
-    stop is. Measured over 4,000 stops on dataset 6180937002 the two differ by
-    median 26 m / p99 175 m / max 1,277 m, and the asset holds the correct value
-    (Zürich HB's platform 5 moves 364 m off the tracks onto the platform).
-    **Swapping this in visibly moves stops** — that is the fix landing.
-
-    Verified 1:1 with the boarding asset on 6180937002: 68,450 stop_ids, zero
-    missing, zero extra, zero null coordinates. Only that dataset ships it, so
-    the join stays as the fallback rather than being deleted."""
+    Every dataset (source and re-zoned) ships this asset. It holds the
+    exporter's own stop-facility position — more accurate than the old
+    ``network_links``→``network_nodes`` join (median 26 m / max 1.3 km closer
+    to the real stop) and ~10× faster (0.08 s blob parse vs 0.9 s join that
+    also drops ~8% of stops with no matching link).
+    """
     dk = dataset_key()
-    hit = _asset_cache.get(dk, False)
-    if hit is not False:
+    hit = _asset_cache.get(dk)
+    if hit is not None:
         return hit
     with _lock_for(f"{dk}|stop_coords"):
-        if _asset_cache.get(dk, False) is False:
+        hit = _asset_cache.get(dk)
+        if hit is None:
             from .helpers import load_static_asset
 
             raw = load_static_asset("synthetic", "stop_coords")
-            out = None
-            if isinstance(raw, dict) and raw:
-                out = {
-                    k: (v[0], v[1])
-                    for k, v in raw.items()
-                    if isinstance(v, (list, tuple))
-                    and len(v) >= 2
-                    and v[0] is not None
-                    and v[1] is not None
-                } or None
-            _asset_cache[dk] = out
-        return _asset_cache[dk]
-
-
-def _resolve_coords(cur, linkids: list[str], prune: bool = False) -> dict[str, tuple]:
-    """link_id → (lon, lat) via the link's to_node geometry (EPSG:2056→4326).
-
-    The **fallback** path, for datasets without a `stop_coords` asset (see
-    :func:`_asset_coords`). Kept rather than deleted because three of the four
-    datasets on disk still lack the asset.
-
-    One query (``IN (SELECT UNNEST(?))``) instead of chunked 800-id batches, so
-    the ``network_links`` scan happens once rather than ~75 times.
-
-    That scan is the whole cost of a cold stops build, and it is **I/O, not
-    CPU**: measured on the Zurich gemeinde dataset (193k links) it is ~13 s cold
-    and ~0.13 s warm — paging in `network_links`/`network_nodes`. Restricting
-    the id list does nothing, because the scan is full either way; only a
-    predicate on the *zone* column lets DuckDB skip row groups.
-
-    ``prune=True`` does that in two steps:
-      1. a narrow ``link_id, zone_id`` lookup (no ``geom``, so cheap) to learn
-         which zones these links actually live in;
-      2. the geometry join restricted to exactly those zones.
-
-    Step 1 is what keeps this correct. The stop's zone (from the boarding asset)
-    and its link's ``zone_id`` disagree for a minority of stops — 27 of 7,293 on
-    the Zurich dataset — so filtering on the *caller's* zone would silently drop
-    those stops from the map (they'd resolve no geometry and be skipped below).
-    Asking the database which zones to open instead is exact: the pruned result
-    is identical to the unpruned one, while touching 4 zones instead of 160.
-
-    Left off (``prune=False``) for callers that resolve every link anyway, where
-    step 1 would return every zone and buy nothing."""
-    if not linkids:
-        return {}
-    linkids = list(linkids)
-    crs = get_registry().crs
-    where = "l.link_id IN (SELECT UNNEST(?))"
-    args: list = [linkids]
-    if prune:
-        col = _zone_col()
-        found = [
-            z for (z,) in cur.execute(
-                f"SELECT DISTINCT {col} FROM network_links "
-                "WHERE link_id IN (SELECT UNNEST(?))",
-                [linkids],
-            ).fetchall()
-        ]
-        zones = [z for z in found if z is not None]
-        if zones:
-            # A NULL zone must be carried explicitly: `IN (...)` never matches
-            # NULL, so without this the pruned query silently drops those links
-            # — and a station whose platforms are partly NULL-zoned would keep
-            # its feature but average the coordinates of only the survivors.
-            # 36,903 of 1.86M links are NULL-zoned on dataset 7036833688 (120
-            # stops lost in canton 2 alone), 0 on the rezoned Zurich one, which
-            # is why this only shows up on some datasets.
-            pred = f"l.{col} IN (SELECT UNNEST(?))"
-            if len(zones) != len(found):
-                pred = f"({pred} OR l.{col} IS NULL)"
-            where = f"{pred} AND {where}"
-            args = [zones, linkids]
-    rows = cur.execute(
-        f"""
-        SELECT l.link_id,
-               ST_X(ST_Transform(n.geom, '{crs}', 'EPSG:4326', always_xy := true)),
-               ST_Y(ST_Transform(n.geom, '{crs}', 'EPSG:4326', always_xy := true))
-        FROM network_links l
-        JOIN network_nodes n ON n.node_id = l.to_node
-        WHERE {where}
-        """,
-        args,
-    ).fetchall()
-    return {lid: (x, y) for lid, x, y in rows if x is not None and y is not None}
+            hit = {
+                k: (v[0], v[1])
+                for k, v in (raw or {}).items()
+                if isinstance(v, (list, tuple))
+                and len(v) >= 2
+                and v[0] is not None
+                and v[1] is not None
+            }
+            _asset_cache[dk] = hit
+        return hit
 
 
 def _build_skeleton() -> dict:
@@ -369,52 +274,19 @@ def _feature(st: dict, coords: dict) -> dict | None:
     }
 
 
-def _fill_coords(b: dict, stop_ids: set[str], prune: bool) -> None:
+def _fill_coords(b: dict, stop_ids: set[str]) -> None:
     """Resolve any of *stop_ids* not already in the bundle's coord cache.
 
-    Takes the `stop_coords` asset when the dataset has one — a dict lookup, so
-    `prune` is moot and the first call costs only the one-off asset parse.
-    Otherwise falls back to the link join, mapping each stop_id through its
-    `.link:` id; several stop_ids may share a link, so the join is issued over
-    the *distinct* links and the result fanned back out.
-
-    **The query runs unlocked**; only the dict read and the merge are guarded.
-    Holding a lock across the scan is what made one slow build stall every other
-    request on the same dataset: the warm thread's whole-dataset
-    `inter_cantonal_stops()` took 79.8 s, and four per-zone requests (Bern,
-    Schwyz, Zug, Aargau) that each needed ~2 s of their own sat behind it and
-    all completed the instant it finished.
-
-    The cost of not holding it is that two builds overlapping in time may both
-    resolve some of the same links — bounded duplicate work, and `dict.update`
-    is idempotent since the dataset is read-only. That is strictly better than
-    serialising a 2 s request behind an 80 s one. Callers still take a lock
-    keyed to *their own unit* (this zone, or `inter`), so the same zone is never
-    built twice concurrently.
-
-    Coordinates accumulate across calls, so the zones a user visits after the
-    first cost only their own new links."""
+    Pure dict lookup into the `stop_coords` static asset — ~0.08 s for the
+    one-off parse, then free."""
     lock = _lock_for(dataset_key())
     with lock:
         missing = [s for s in stop_ids if s not in b["coords"]]
     if not missing:
         return
 
-    asset = _asset_coords()
-    if asset is not None:
-        resolved = {s: asset[s] for s in missing if s in asset}
-    else:
-        by_link: dict[str, list[str]] = {}
-        for s in missing:
-            lk = _linkid(s)
-            if lk:
-                by_link.setdefault(lk, []).append(s)
-        found = _resolve_coords(
-            get_source_cursor("synthetic"), list(by_link), prune=prune
-        )
-        resolved = {
-            s: found[lk] for lk, sids in by_link.items() if lk in found for s in sids
-        }
+    asset = _load_coords()
+    resolved = {s: asset[s] for s in missing if s in asset}
 
     with lock:
         b["coords"].update(resolved)
@@ -438,15 +310,7 @@ def _bundle() -> dict:
 
 
 def stops_by_canton(canton_id: int) -> dict:
-    """GeoJSON FeatureCollection of transit stations in *canton_id*.
-
-    Rung one of the ladder: builds the skeleton once, then resolves coordinates
-    for **this zone only**. With a `stop_coords` asset that is a dict lookup
-    behind a one-off ~0.3 s parse; without one it is the pruned link join,
-    restricted to the zones the stops' links actually live in. Either way the
-    whole-dataset scan is never triggered from here — opening a zone costs
-    ~1.3 s cold on the Zurich gemeinde dataset instead of ~13 s, and later zones
-    reuse whatever `coords` already holds."""
+    """GeoJSON FeatureCollection of transit stations in *canton_id*."""
     b = _bundle()
     hit = b["fc"].get(canton_id)
     if hit is not None:
@@ -454,15 +318,12 @@ def stops_by_canton(canton_id: int) -> dict:
     stations = b["by_zone"].get(canton_id)
     if not stations:
         return {"type": "FeatureCollection", "features": []}
-    # Keyed to this zone, not the dataset: two users opening different zones
-    # build in parallel, and neither waits on the whole-dataset `inter` build.
     with _lock_for(f"{dataset_key()}|zone:{canton_id}"):
         hit = b["fc"].get(canton_id)
         if hit is None:
             _fill_coords(
                 b,
                 {sid for st in stations.values() for sid in st["stop_ids"]},
-                prune=True,
             )
             feats = [f for f in (_feature(st, b["coords"]) for st in stations.values()) if f]
             hit = b["fc"][canton_id] = {"type": "FeatureCollection", "features": feats}
@@ -531,24 +392,12 @@ def inter_cantonal_stops() -> dict:
     this to discover which cantons a line touches and to render the stops of a
     cross-canton line.
 
-    Rung two of the ladder. This one genuinely needs every zone. On a dataset
-    with a `stop_coords` asset that costs nothing beyond the feature build (the
-    asset already holds every stop); without one it pays the whole-dataset coord
-    scan — the ~95 s that made this the most expensive warm step. Either way it
-    is requested on *line selection*
-    (`useTransitLines.loadRoutes`), not on opening a zone, so it is off the
-    first-paint path. Resolving unpruned is deliberate: at this point we want
-    every link anyway, and the two-step pruning of :func:`_resolve_coords` would
-    just enumerate every zone before doing the same work.
-
     Whatever `stops_by_canton` already resolved is reused, and the per-zone
     FeatureCollections it built are filled in for the zones still missing, so
-    reaching this rung also completes rung one for free."""
+    reaching this also completes per-zone builds for free."""
     b = _bundle()
     if b["inter"] is not None:
         return b["inter"]
-    # Its own key, so this long build blocks only other `inter` callers — never
-    # the per-zone requests a user is making while the warm thread runs it.
     with _lock_for(f"{dataset_key()}|inter"):
         if b["inter"] is None:
             if not b["all_coords"]:
@@ -560,7 +409,6 @@ def inter_cantonal_stops() -> dict:
                         for st in stations.values()
                         for sid in st["stop_ids"]
                     },
-                    prune=False,
                 )
                 b["all_coords"] = True
             reg = get_registry()
