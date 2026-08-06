@@ -33,7 +33,8 @@ Semantics (verified against the source builder's own aggregate rows):
     zone id via their ``bfs`` field (bezirk level maps bfs → parent bezirk),
     stop_transfer_data_by_canton regrouped per zone the same way (per-stop
     counts copied verbatim — see ``_build_stop_transfer_data``),
-    transit_routes/route_directions/stop_municipality/municipalities filtered;
+    transit_routes/route_directions/stop_coords/stop_municipality/municipalities
+    filtered;
     ``merged_segments:{zone_id}`` rebuilt per primary zone from the re-zoned
     ``network_links`` (see below).
 
@@ -883,6 +884,34 @@ def _build_route_directions(con, kept_line_ids: set) -> int:
     return len(kept)
 
 
+def _copy_stop_coords(con, kept_stop_ids: set) -> int:
+    """Re-zone ``stop_coords`` — the ``{stop_id: [lon, lat]}`` lookup the webmap
+    uses to place transit stops. Returns the number of stops kept.
+
+    A pure **key filter**, like ``route_directions``: keep the stop_ids that
+    survived the boarding filter and copy their coordinates verbatim. There is
+    nothing zone-dependent in the payload — a stop's position does not change
+    when the study area does.
+
+    Without this the re-zoned dataset has no asset, and ``transit_stops.py``
+    silently falls back to the ``network_links``→``network_nodes`` join. That is
+    not a crash, but it is both slower and *less accurate* (median 26 m off, up
+    to 1.3 km), so a re-zone would place its stops differently from the source
+    it was cut from — the kind of divergence that is very hard to spot later.
+
+    The source asset only exists from the 2026-08-04 export on; datasets without
+    it simply skip this step and keep using the join."""
+    coords = _load_src_asset(con, "stop_coords")
+    if coords is None:
+        return 0
+    kept = {sid: c for sid, c in coords.items()
+            if not kept_stop_ids or sid in kept_stop_ids}
+    if not kept:
+        return 0
+    _insert_asset(con, "stop_coords", kept)
+    return len(kept)
+
+
 def _build_static_assets(info: dict, zone_type: str, name: str, zoom: float,
                          progress=None) -> None:
     con, bfs_to_zone, zone_ids = info["con"], info["bfs_to_zone"], info["zone_ids"]
@@ -912,6 +941,7 @@ def _build_static_assets(info: dict, zone_type: str, name: str, zoom: float,
         _insert_asset(con, "metadata", meta)
 
     kept_line_ids: set = set()
+    kept_stop_ids: set = set()
     lines = _load_src_asset(con, "boarding_data_by_line")
     if lines is not None and bfs_to_zone is not None:
         out_lines = []
@@ -925,10 +955,16 @@ def _build_static_assets(info: dict, zone_type: str, name: str, zoom: float,
             nl["cantons"] = sorted({s["canton_id"] for s in stops})
             out_lines.append(nl)
             kept_line_ids.add(line.get("line_id"))
+            kept_stop_ids.update(s["stop_id"] for s in stops if s.get("stop_id"))
         _insert_asset(con, "boarding_data_by_line", out_lines)
     elif lines is not None:
         _insert_asset(con, "boarding_data_by_line", lines)
         kept_line_ids = {l.get("line_id") for l in lines}
+        kept_stop_ids = {s["stop_id"] for l in lines
+                         for s in (l.get("stops") or []) if s.get("stop_id")}
+
+    n_coords = _copy_stop_coords(con, kept_stop_ids)
+    logger.info("rezone: kept stop_coords for %d stops", n_coords)
 
     routes = _load_src_asset(con, "transit_routes")
     if routes is not None and kept_line_ids:

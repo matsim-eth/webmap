@@ -8,15 +8,17 @@ stop_ids belong to a different network and never match the dataset's own
 
 Everything here is derived from data already in the duckdb:
   • stop list / names / per-stop lines  → `boarding_data_by_line` static asset
-  • stop coordinates                    → the stop's `.link:<id>` pseudo-link's
-                                          `to_node` in `network_nodes` (the PT
-                                          stop node), transformed 2056 → 4326.
+  • stop coordinates                    → the `stop_coords` static asset when the
+                                          dataset ships one, else the stop's
+                                          `.link:<id>` pseudo-link's `to_node` in
+                                          `network_nodes`, transformed 2056→4326.
 
 Results are cached per process (the dataset is read-only).
 """
 
 from __future__ import annotations
 
+import math
 import re
 import threading
 from collections import defaultdict
@@ -32,9 +34,13 @@ _STATION_RE = re.compile(r"^(\d+)")
 # dataset_key → bundle, keyed per dataset so a worker serving several datasets
 # never mixes one dataset's stops into another:
 #   "by_zone"  {zone_id: {station_key: station}} — the *skeleton*: every station
-#              of every zone, with its stop_ids/linkids/lines, but no coords.
+#              of every zone, with its stop_ids/lines, but no coords.
 #   "modes"    {zone_name: [mode, ...]}
-#   "coords"   {link_id: (lon, lat)} — filled incrementally, zone by zone.
+#   "coords"   {stop_id: (lon, lat)} — filled incrementally, zone by zone.
+#              Keyed by *stop_id*, not link_id: link ids are shared between
+#              platforms (Basel SBB `:0:1` and `:0:1B` both sit on link 340887),
+#              so keying by link would throw away exactly the per-platform
+#              precision the `stop_coords` asset exists to provide.
 #   "fc"       {zone_id: FeatureCollection} — built on demand from the two above.
 #   "inter"    FeatureCollection | None
 #   "all_coords"  True once every link has been resolved (so `inter` is buildable)
@@ -82,8 +88,58 @@ def _linkid(stop_id: str) -> str | None:
     return stop_id.split(".link:", 1)[1]
 
 
+# dataset_key → {stop_id: (lon, lat)} from the `stop_coords` static asset, or
+# None for datasets that don't ship it. `False` = not looked at yet.
+_asset_cache: dict[str, dict | None] = {}
+
+
+def _asset_coords() -> dict | None:
+    """The `stop_coords` static asset as ``{stop_id: (lon, lat)}``, or None.
+
+    This is the exporter's own stop-facility position, and it replaces the
+    ``network_links``→``network_nodes`` join below wholesale: 0.31 s (blob read
+    + JSON parse) against ~13 s per dataset cold, and it removes the ~95 s
+    whole-dataset scan behind :func:`inter_cantonal_stops` entirely.
+
+    It is also *more accurate*. The join answers with the pt pseudo-link's
+    ``to_node`` — where the stop was attached to the road network, not where the
+    stop is. Measured over 4,000 stops on dataset 6180937002 the two differ by
+    median 26 m / p99 175 m / max 1,277 m, and the asset holds the correct value
+    (Zürich HB's platform 5 moves 364 m off the tracks onto the platform).
+    **Swapping this in visibly moves stops** — that is the fix landing.
+
+    Verified 1:1 with the boarding asset on 6180937002: 68,450 stop_ids, zero
+    missing, zero extra, zero null coordinates. Only that dataset ships it, so
+    the join stays as the fallback rather than being deleted."""
+    dk = dataset_key()
+    hit = _asset_cache.get(dk, False)
+    if hit is not False:
+        return hit
+    with _lock_for(f"{dk}|stop_coords"):
+        if _asset_cache.get(dk, False) is False:
+            from .helpers import load_static_asset
+
+            raw = load_static_asset("synthetic", "stop_coords")
+            out = None
+            if isinstance(raw, dict) and raw:
+                out = {
+                    k: (v[0], v[1])
+                    for k, v in raw.items()
+                    if isinstance(v, (list, tuple))
+                    and len(v) >= 2
+                    and v[0] is not None
+                    and v[1] is not None
+                } or None
+            _asset_cache[dk] = out
+        return _asset_cache[dk]
+
+
 def _resolve_coords(cur, linkids: list[str], prune: bool = False) -> dict[str, tuple]:
     """link_id → (lon, lat) via the link's to_node geometry (EPSG:2056→4326).
+
+    The **fallback** path, for datasets without a `stop_coords` asset (see
+    :func:`_asset_coords`). Kept rather than deleted because three of the four
+    datasets on disk still lack the asset.
 
     One query (``IN (SELECT UNNEST(?))``) instead of chunked 800-id batches, so
     the ``network_links`` scan happens once rather than ~75 times.
@@ -197,15 +253,12 @@ def _build_skeleton() -> dict:
                 station = by_canton[cid][skey] = {
                     "name": s.get("name"),
                     "stop_ids": [],
-                    "linkids": [],
                     "lines": {},
                     "modes": set(),
                 }
             lk = _linkid(sid)
             if sid not in station["stop_ids"]:
                 station["stop_ids"].append(sid)
-                if lk:
-                    station["linkids"].append(lk)
             line_entry = station["lines"].get(lid)
             if line_entry is None:
                 line_entry = station["lines"][lid] = {
@@ -232,9 +285,65 @@ def _build_skeleton() -> dict:
     }
 
 
+# A platform further than this from its station's median position is treated as
+# misplaced upstream rather than as part of the station.
+_PLATFORM_OUTLIER_M = 1000.0
+
+
+def _metres(a: tuple, b: tuple) -> float:
+    """Rough planar distance in metres. Equirectangular at Swiss latitudes —
+    plenty for a kilometre-scale outlier test."""
+    return math.hypot((a[0] - b[0]) * 74000.0, (a[1] - b[1]) * 111000.0)
+
+
+def _drop_outliers(pts: list[tuple]) -> list[tuple]:
+    """Discard platforms more than a kilometre from the station's *median*.
+
+    A few stops are misplaced at source: on dataset 6180937002 the bare
+    `8099985` (Singen (Htw) Industriegebiet) sits 2,980 m from its own two
+    platforms and `8099982` (Konstanz-Wollmatingen) 1,123 m — both German
+    cross-border stops whose unsuffixed stop_id disagrees with its suffixed
+    ones. Averaging them lands the station dot ~1 km from anything real.
+
+    The reference is the coordinate-wise median, not the mean, precisely so the
+    outlier cannot drag the thing it is being measured against. Below three
+    platforms there is no majority to appeal to, so nothing is dropped — with
+    two disagreeing points there is no way to tell which one is wrong.
+
+    **It currently changes nothing on the render path** — 0 of the 24,428
+    stations in dataset 6180937002's skeleton. Both known-bad stations are
+    German cross-border stops whose boarding entries carry no ``canton_id``, so
+    `_build_skeleton` drops them before they ever reach here (verified: feeding
+    8099985 in by hand moves it 993 m, and 8099982 374 m, onto their platforms).
+    It is kept as cheap insurance — the misplacement is an upstream export
+    property, and the next dataset may well include such a stop with a zone —
+    not because it fixes something visible today."""
+    if len(pts) < 3:
+        return pts
+    mid = len(pts) // 2
+    med = (sorted(p[0] for p in pts)[mid], sorted(p[1] for p in pts)[mid])
+    return [p for p in pts if _metres(p, med) <= _PLATFORM_OUTLIER_M] or pts
+
+
 def _feature(st: dict, coords: dict) -> dict | None:
-    """One station → GeoJSON point at the mean of its platforms' coordinates."""
-    pts = [coords[lk] for lk in st["linkids"] if lk in coords]
+    """One station → GeoJSON point at the mean of its platforms' coordinates.
+
+    Deduped **to platforms first**: a stop_id is really platform × link, so a
+    platform gets one id per network link serving it (Basel SBB platform 11
+    appears six times). Averaging the raw ids weights the mean toward the
+    best-connected platforms — 4 m at Zürich HB, more where link counts are
+    lopsided.
+
+    Note the result is the centroid of the *tracks*, which at a large terminus
+    is ~120 m from the entrance (Zürich HB's 23 platforms span 176 × 138 m).
+    Putting the dot on the entrance instead needs a parent-station coordinate,
+    which no dataset currently exports."""
+    plat: dict[str, tuple] = {}
+    for sid in st["stop_ids"]:
+        p = coords.get(sid)
+        if p is not None:
+            plat.setdefault(sid.split(".link:", 1)[0], p)
+    pts = _drop_outliers(list(plat.values()))
     if not pts:
         # No geometry → would crash handleSelectStop (reads
         # geometry.coordinates); skip from the searchable set. Its
@@ -260,8 +369,14 @@ def _feature(st: dict, coords: dict) -> dict | None:
     }
 
 
-def _fill_coords(b: dict, links: set[str], prune: bool) -> None:
-    """Resolve any of *links* not already in the bundle's coord cache.
+def _fill_coords(b: dict, stop_ids: set[str], prune: bool) -> None:
+    """Resolve any of *stop_ids* not already in the bundle's coord cache.
+
+    Takes the `stop_coords` asset when the dataset has one — a dict lookup, so
+    `prune` is moot and the first call costs only the one-off asset parse.
+    Otherwise falls back to the link join, mapping each stop_id through its
+    `.link:` id; several stop_ids may share a link, so the join is issued over
+    the *distinct* links and the result fanned back out.
 
     **The query runs unlocked**; only the dict read and the merge are guarded.
     Holding a lock across the scan is what made one slow build stall every other
@@ -281,10 +396,26 @@ def _fill_coords(b: dict, links: set[str], prune: bool) -> None:
     first cost only their own new links."""
     lock = _lock_for(dataset_key())
     with lock:
-        missing = [lk for lk in links if lk not in b["coords"]]
+        missing = [s for s in stop_ids if s not in b["coords"]]
     if not missing:
         return
-    resolved = _resolve_coords(get_source_cursor("synthetic"), missing, prune=prune)
+
+    asset = _asset_coords()
+    if asset is not None:
+        resolved = {s: asset[s] for s in missing if s in asset}
+    else:
+        by_link: dict[str, list[str]] = {}
+        for s in missing:
+            lk = _linkid(s)
+            if lk:
+                by_link.setdefault(lk, []).append(s)
+        found = _resolve_coords(
+            get_source_cursor("synthetic"), list(by_link), prune=prune
+        )
+        resolved = {
+            s: found[lk] for lk, sids in by_link.items() if lk in found for s in sids
+        }
+
     with lock:
         b["coords"].update(resolved)
 
@@ -310,8 +441,10 @@ def stops_by_canton(canton_id: int) -> dict:
     """GeoJSON FeatureCollection of transit stations in *canton_id*.
 
     Rung one of the ladder: builds the skeleton once, then resolves coordinates
-    for **this zone only**, pruned to the zones its links actually live in. The
-    whole-dataset coord scan is never triggered from here — opening a zone costs
+    for **this zone only**. With a `stop_coords` asset that is a dict lookup
+    behind a one-off ~0.3 s parse; without one it is the pruned link join,
+    restricted to the zones the stops' links actually live in. Either way the
+    whole-dataset scan is never triggered from here — opening a zone costs
     ~1.3 s cold on the Zurich gemeinde dataset instead of ~13 s, and later zones
     reuse whatever `coords` already holds."""
     b = _bundle()
@@ -327,7 +460,9 @@ def stops_by_canton(canton_id: int) -> dict:
         hit = b["fc"].get(canton_id)
         if hit is None:
             _fill_coords(
-                b, {lk for st in stations.values() for lk in st["linkids"]}, prune=True
+                b,
+                {sid for st in stations.values() for sid in st["stop_ids"]},
+                prune=True,
             )
             feats = [f for f in (_feature(st, b["coords"]) for st in stations.values()) if f]
             hit = b["fc"][canton_id] = {"type": "FeatureCollection", "features": feats}
@@ -396,8 +531,11 @@ def inter_cantonal_stops() -> dict:
     this to discover which cantons a line touches and to render the stops of a
     cross-canton line.
 
-    Rung two of the ladder. This one genuinely needs every zone, so it does pay
-    the whole-dataset coord scan — but it is requested on *line selection*
+    Rung two of the ladder. This one genuinely needs every zone. On a dataset
+    with a `stop_coords` asset that costs nothing beyond the feature build (the
+    asset already holds every stop); without one it pays the whole-dataset coord
+    scan — the ~95 s that made this the most expensive warm step. Either way it
+    is requested on *line selection*
     (`useTransitLines.loadRoutes`), not on opening a zone, so it is off the
     first-paint path. Resolving unpruned is deliberate: at this point we want
     every link anyway, and the two-step pruning of :func:`_resolve_coords` would
@@ -417,10 +555,10 @@ def inter_cantonal_stops() -> dict:
                 _fill_coords(
                     b,
                     {
-                        lk
+                        sid
                         for stations in b["by_zone"].values()
                         for st in stations.values()
-                        for lk in st["linkids"]
+                        for sid in st["stop_ids"]
                     },
                     prune=False,
                 )

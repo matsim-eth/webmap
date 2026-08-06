@@ -194,7 +194,7 @@ def route_directions() -> dict | None:
 
         from .boarding_data import BoardingDataProvider
         from .connection import get_source_cursor
-        from .transit_stops import _linkid, _resolve_coords
+        from .transit_stops import _asset_coords, _linkid, _resolve_coords
 
         try:
             lines = BoardingDataProvider()._load()
@@ -202,8 +202,14 @@ def route_directions() -> dict | None:
             _rd_cache[dk] = {}
             return None
 
-        # stop name + pt-link per line, and every link id once for one coord
-        # resolution query (the dominant cost — a single network_links scan).
+        # Stop name + coord key per line. With a `stop_coords` asset the key is
+        # the stop_id and there is no query at all; without one it is the pt-link
+        # id, collected once so the dominant cost (a single network_links scan)
+        # is paid exactly once. Sharing the asset with `transit_stops` matters
+        # for more than speed: this vote places the terminus/origin markers, and
+        # resolving them differently from the stop dots would leave the marker
+        # sitting up to ~1.3 km off the stop it names.
+        asset = _asset_coords()
         line_stops: dict[str, list] = {}
         all_links: set[str] = set()
         for line in lines:
@@ -212,14 +218,22 @@ def route_directions() -> dict | None:
                 continue
             pairs = []
             for s in line.get("stops", []):
-                lk = _linkid(s.get("stop_id") or "")
+                sid = s.get("stop_id") or ""
+                if asset is not None:
+                    if sid in asset:
+                        pairs.append((s.get("name"), sid))
+                    continue
+                lk = _linkid(sid)
                 if lk:
                     pairs.append((s.get("name"), lk))
                     all_links.add(lk)
             if pairs:
                 line_stops[lid] = pairs
 
-        coords = _resolve_coords(get_source_cursor("synthetic"), list(all_links))
+        coords = (
+            asset if asset is not None
+            else _resolve_coords(get_source_cursor("synthetic"), list(all_links))
+        )
 
         result: dict[str, dict] = {}
         for lid, dirs in ends.items():
