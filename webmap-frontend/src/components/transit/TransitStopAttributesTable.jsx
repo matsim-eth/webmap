@@ -56,7 +56,7 @@ const TransitStopAttributesTable = ({ properties, onLineClick, highlightedLineId
     <tr><td>Mode</td><td>{modes_list?.join(", ")}</td></tr>
     <tr><td>Lines</td><td>{numLines}</td></tr>
     <tr><td>Volumes</td><td>
-    <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
+    <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem", justifyContent: "flex-end" }}>
     <div className="metric-card">
     <div className="metric-label">Boardings</div>
     <div className="metric-value">{boardings}</div>

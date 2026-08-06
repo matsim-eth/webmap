@@ -186,9 +186,10 @@ _TRAFFIC_CACHE_MAX = 6
 
 # Hierarchy classes counted as "major roads" — the server-side twin of the
 # frontend's MAJOR_ROADS_FILTER (components/map/_lib/mapboxFilters.js). The
-# `_link` variants keep motorway/primary/secondary ramps attached.
+# `_link` variants keep motorway/trunk/primary/secondary ramps attached.
 MAJOR_ROAD_TYPES = (
     "motorway", "motorway_link",
+    "trunk", "trunk_link",
     "primary", "primary_link",
     "secondary", "secondary_link",
 )

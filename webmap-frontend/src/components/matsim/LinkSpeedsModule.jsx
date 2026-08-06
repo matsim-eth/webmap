@@ -386,7 +386,7 @@ const LinkSpeedsModule = ({ featureTableRef }) => {
 
             {/* Polygon aggregate — wins over canton summary / single-link panel */}
             {polygonAggregate ? (
-                <div className="canton-mode-share" style={{ position: 'relative' }}>
+                <div className="canton-mode-share" style={{ position: 'relative', marginTop: 15 }}>
                     <CollapseToggle collapsed={isPolygonCollapsed} onToggle={() => setIsPolygonCollapsed(v => !v)} />
                     <h4>Polygon Selection</h4>
                     {!isPolygonCollapsed && (

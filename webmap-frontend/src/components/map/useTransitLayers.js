@@ -99,7 +99,8 @@ export default function useTransitLayers({
     highlightedLineId,
     loadWithFallback,
     showLineSymbology,
-    selectedTransitModes
+    selectedTransitModes,
+    drawRef,
   });
   
   // if canton changed, remove current transit layers, reset selected stop

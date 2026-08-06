@@ -169,7 +169,7 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
   };
   
   return (
-    <div className="canton-mode-share" style={{ position: "relative" }}>
+    <div className="canton-mode-share" style={{ position: "relative", marginTop: 15 }}>
     <span
       role="button"
       tabIndex={0}
@@ -262,7 +262,7 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
     <tr>
     <td>Volumes</td>
     <td>
-    <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
+    <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem", justifyContent: "flex-end" }}>
     <div className="metric-card">
     <div className="metric-label">Filtered</div>
     <div className="metric-value">{filteredVolume}</div>

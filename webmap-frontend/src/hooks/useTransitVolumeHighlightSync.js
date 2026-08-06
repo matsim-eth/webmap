@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 /**
  * Resets `highlightedLineId` (in ChoroplethProvider) when:
@@ -11,6 +11,12 @@ import { useEffect } from 'react';
  *    Clearing on table-open lets row clicks happen with no line filter
  *    active, so no cascade fires.
  *
+ * Also clears `selectedTransitLink` when the table *closes* while a
+ * polygon selection is active — a row click in the table sets
+ * selectedTransitLink, but the polygon view requires it to be null
+ * (`polygonAggregate && !selectedTransitLink`), so without clearing it
+ * the sidebar goes blank after close.
+ *
  * Lives in a hook because this is cross-component setState
  * (`highlightedLineId` is owned by ChoroplethProvider) and the
  * no-useEffect rule applies to components, not custom hooks under
@@ -20,14 +26,21 @@ export function useTransitVolumeHighlightSync({
   canton,
   isFeatureTableOpen,
   setHighlightedLineId,
+  hasPolygon,
+  setSelectedTransitLink,
 }) {
   useEffect(() => {
     setHighlightedLineId(null);
   }, [canton, setHighlightedLineId]);
 
+  const wasOpenRef = useRef(isFeatureTableOpen);
   useEffect(() => {
     if (isFeatureTableOpen) {
       setHighlightedLineId(null);
     }
-  }, [isFeatureTableOpen, setHighlightedLineId]);
+    if (wasOpenRef.current && !isFeatureTableOpen && hasPolygon) {
+      setSelectedTransitLink?.(null);
+    }
+    wasOpenRef.current = isFeatureTableOpen;
+  }, [isFeatureTableOpen, setHighlightedLineId, hasPolygon, setSelectedTransitLink]);
 }

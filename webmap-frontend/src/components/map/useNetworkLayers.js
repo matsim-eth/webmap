@@ -133,6 +133,7 @@ export default function useNetworkLayers({
     f.properties = {
       ...f.properties,
       daily_avg_volume: left + right, // time-windowed total
+      daily_avg_volume_full: leftTotal + rightTotal, // unfiltered full-day total
       left_sum: left,
       right_sum: right,
       // Full-day directional totals: the table's "Total Daily Volume" column

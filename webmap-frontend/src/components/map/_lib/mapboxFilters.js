@@ -38,6 +38,7 @@ export const CLICKABLE_ROAD_FILTER = ['any',
  */
 export const MAJOR_ROAD_TYPES = [
   'motorway', 'motorway_link',
+  'trunk', 'trunk_link',
   'primary', 'primary_link',
   'secondary', 'secondary_link',
 ];

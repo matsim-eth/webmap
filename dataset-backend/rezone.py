@@ -979,9 +979,11 @@ def _build_static_assets(info: dict, zone_type: str, name: str, zoom: float,
 
     sm = _load_src_asset(con, "stop_municipality")
     if sm is not None:
-        lookup = bfs_to_zone if bfs_to_zone is not None else {}
-        kept = {k: v for k, v in sm.items()
-                if (v.get("bfs") in lookup) or bfs_to_zone is None}
+        if bfs_to_zone is not None:
+            kept = {k: dict(v, canton_id=bfs_to_zone[v["bfs"]])
+                    for k, v in sm.items() if v.get("bfs") in bfs_to_zone}
+        else:
+            kept = dict(sm)
         _insert_asset(con, "stop_municipality", kept)
 
     muni = _load_src_asset(con, "municipalities")

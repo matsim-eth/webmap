@@ -117,12 +117,6 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
   // rendering a different component".
   useResetDirectionOnLineChange(highlightedLineId, selectedDirection, setSelectedDirection);
 
-  // Reset highlightedLineId on canton change AND when the feature table opens.
-  // Clearing on table-open lets row clicks happen with no line filter active,
-  // so the resulting setFeatureGeoJSON cascade can't race with DataTables
-  // (which previously crashed with Node.removeChild). See the hook for context.
-  useTransitVolumeHighlightSync({ canton, isFeatureTableOpen, setHighlightedLineId });
-
   // Polygon selection
   const handlePolygonChange = useCallback(() => {
     setSelectedTransitLink?.(null);
@@ -152,6 +146,16 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
     drawRef,
     isGraphExpanded,
     activeModule: 'TransitVolumes',
+  });
+
+  // Reset highlightedLineId on canton change AND when the feature table opens.
+  // Also clears selectedTransitLink when the table closes while a polygon is
+  // active — a row click sets selectedTransitLink, but the polygon view requires
+  // it to be null, so without clearing the sidebar goes blank after close.
+  useTransitVolumeHighlightSync({
+    canton, isFeatureTableOpen, setHighlightedLineId,
+    hasPolygon: polygonFeatures.length > 0,
+    setSelectedTransitLink,
   });
 
   // Boundary aggregate: same longitude-based directionality as road volumes.
@@ -339,6 +343,7 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
   }, [highlightedLineId, setHighlightedLineId]);
 
   const [isPolygonSelectionCollapsed, setIsPolygonSelectionCollapsed] = useState(false);
+  const [isBoundaryCollapsed, setIsBoundaryCollapsed] = useState(false);
 
   return (
     <div className="plot-container">
@@ -439,7 +444,7 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
     {/* Polygon aggregate view */}
     {polygonAggregate && !selectedTransitLink && (
       <>
-      <div className="canton-mode-share" style={{ position: "relative" }}>
+      <div className="canton-mode-share" style={{ position: "relative", marginTop: 15 }}>
         <span
           role="button"
           tabIndex={0}
@@ -474,7 +479,7 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
             <tr>
               <td>Volumes</td>
               <td>
-                <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
+                <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem", justifyContent: "flex-end" }}>
                   <div className="metric-card">
                     <div className="metric-label">Filtered Link Passes</div>
                     <div className="metric-value">{Math.round(polygonAggregate.filteredVolume).toLocaleString()}</div>
@@ -528,8 +533,28 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
       </div>
 
       {boundaryAggregate && (
-        <div className="canton-mode-share" style={{ marginBottom: 24 }}>
+        <div className="canton-mode-share" style={{ position: "relative", marginTop: 15, marginBottom: 24 }}>
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={() => setIsBoundaryCollapsed(v => !v)}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setIsBoundaryCollapsed(v => !v); }}
+            aria-label={isBoundaryCollapsed ? "Expand" : "Collapse"}
+            style={{
+              position: "absolute",
+              top: 8,
+              right: 16,
+              cursor: "pointer",
+              fontSize: 18,
+              lineHeight: 1,
+              userSelect: "none",
+              color: "var(--color-text-secondary)",
+            }}
+          >
+            {isBoundaryCollapsed ? "+" : "−"}
+          </span>
           <h4>Polygon Inflow/Outflow</h4>
+          {!isBoundaryCollapsed && (
           <table>
             <tbody>
               <tr>
@@ -553,6 +578,7 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
               </tr>
             </tbody>
           </table>
+          )}
         </div>
       )}
 
@@ -571,18 +597,22 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
 
         return (
           <div className="plot-container">
-            <h4>Aggregate Transit Volume ({polygonAggregate.segmentCount} segments)</h4>
-            <Plot
-              data={[{ x: labels, y: values, type: "bar", marker: { color: "#17becf" } }]}
-              layout={{
-                font: { family: "Inter, sans-serif" },
-                margin: { t: 30, r: 10, l: 40, b: 100 },
-                xaxis: { title: { text: "Time", standoff: 20 }, tickangle: -45, tickvals, automargin: true },
-                yaxis: { title: "Passengers per 15 min" },
-                height: 300, width: 525,
-                paper_bgcolor: "rgba(255,255,255,0)", plot_bgcolor: "rgba(255,255,255,0)",
-              }}
-            />
+            <div className="plot-card">
+              <div className="plot-card-header">
+                <h4 style={{ margin: 0 }}>Aggregate Transit Volume ({polygonAggregate.segmentCount} segments)</h4>
+              </div>
+              <Plot
+                data={[{ x: labels, y: values, type: "bar", marker: { color: "#17becf" } }]}
+                layout={{
+                  font: { family: "Inter, sans-serif" },
+                  margin: { t: 30, r: 10, l: 40, b: 40 },
+                  xaxis: { title: { text: "Time", standoff: 8 }, tickangle: -45, tickvals, automargin: true },
+                  yaxis: { title: "Passengers per 15 min" },
+                  height: 300, width: 525,
+                  paper_bgcolor: "rgba(255,255,255,0)", plot_bgcolor: "rgba(255,255,255,0)",
+                }}
+              />
+            </div>
           </div>
         );
       })()}

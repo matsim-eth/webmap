@@ -192,7 +192,7 @@ const LineHourlyDistribution = ({ sidebarCollapsed, isExpanded = false }) => {
   return (
     <div className="plot-wrapper">
       <h4 className="plot-title">
-        Hourly Passengers (Line {selectedLineMeta.line_name || selectedLineMeta.line_id})
+        Hourly Passengers (Line {selectedLineMeta.line_name || selectedLineMeta.line_id}, all stops)
       </h4>
       <Plot
         data={traces}
