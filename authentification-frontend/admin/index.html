@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./admin.css?v=6" />
+  <link rel="stylesheet" href="./admin.css?v=8" />
 </head>
 <body>
   <div class="admin-layout">
@@ -339,6 +339,64 @@
           </div>
           <p class="form-hint ds-rezone-status" id="dsRezoneStatus" hidden></p>
         </div>
+
+        <hr class="form-divider" />
+        <div class="form-group" id="dsIngestSection">
+          <button type="button" class="ds-ingest-toggle" id="dsIngestToggle" aria-expanded="false">
+            <span class="ds-ingest-caret" id="dsIngestCaret">&#9656;</span>
+            Import from MATSim
+          </button>
+          <div class="ds-ingest-body" id="dsIngestBody" hidden>
+            <p class="form-hint">
+              Build this dataset's <code>synthetic.duckdb</code> from a MATSim run's raw
+              outputs. Microcensus is not built here — upload it as a <code>.duckdb</code> above.
+            </p>
+
+            <div class="ds-ingest-mode-tabs" id="dsIngestModeTabs">
+              <button class="ds-ingest-mode-tab active" data-ingest-mode="files" type="button">Individual Files</button>
+              <button class="ds-ingest-mode-tab" data-ingest-mode="zip" type="button">ZIP Upload</button>
+            </div>
+
+            <!-- Individual files mode -->
+            <div class="ds-ingest-mode-pane active" id="dsIngestModeFiles">
+              <div class="ds-files" id="dsIngestFiles"></div>
+              <p class="form-hint" id="dsIngestHouseholdsHint">
+                <strong>Households</strong> is optional, but without it the income,
+                cars, bikes and ÖV-quality charts stay empty for this dataset.
+              </p>
+            </div>
+
+            <!-- ZIP upload mode -->
+            <div class="ds-ingest-mode-pane" id="dsIngestModeZip">
+              <p class="form-hint">
+                Upload a <code>webmap_inputs_*.zip</code> from the eqasim pipeline's
+                webmap export stage. Sample rate and run name are read from the
+                manifest automatically (override below if needed).
+              </p>
+              <div class="ds-files" id="dsIngestZipFile"></div>
+            </div>
+
+            <div class="ds-ingest-opts">
+              <div class="ds-rezone-field">
+                <label class="ds-rezone-label" for="dsIngestSampleRate">Sample rate (optional)</label>
+                <input type="text" class="form-input" id="dsIngestSampleRate" placeholder="e.g. 0.01" />
+              </div>
+              <div class="ds-rezone-field">
+                <label class="ds-rezone-label" for="dsIngestRunName">Run name (optional)</label>
+                <input type="text" class="form-input" id="dsIngestRunName" placeholder="e.g. zurich_1pct" />
+              </div>
+            </div>
+            <p class="ds-ingest-warn" id="dsIngestWarn" hidden></p>
+            <button type="button" class="btn btn-outline btn-sm" id="dsIngestStartBtn">
+              Start Processing
+            </button>
+            <div class="ds-ingest-progress" id="dsIngestProgress" hidden>
+              <p class="ds-ingest-step" id="dsIngestStep">Starting…</p>
+              <div class="ds-ingest-bar"><div class="ds-ingest-bar-fill" id="dsIngestBarFill"></div></div>
+              <p class="form-hint ds-ingest-elapsed" id="dsIngestElapsed"></p>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline btn-sm" data-dismiss="modal">Cancel</button>
@@ -354,6 +412,6 @@
     </div>
   </div>
 
-  <script src="./admin.js?v=6"></script>
+  <script src="./admin.js?v=8"></script>
 </body>
 </html>
