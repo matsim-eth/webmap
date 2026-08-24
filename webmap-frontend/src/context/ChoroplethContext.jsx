@@ -10,7 +10,7 @@ const ChoroplethContext = createContext(null);
 export const ChoroplethProvider = ({ children }) => {
   const [aggCol, setAggCol] = useState('mode');
   const [selectedMode, setSelectedMode] = useState('None');
-  const [selectedDataset, setSelectedDataset] = useState('Microcensus');
+  const [selectedDataset, setSelectedDataset] = useState('Synthetic');
 
   const [highlightedLineId, setHighlightedLineId] = useState(null);
   const [highlightedRouteIds, setHighlightedRouteIds] = useState([]);

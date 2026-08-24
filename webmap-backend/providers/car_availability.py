@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
+
 from .base import DataProvider, CANTON, SOURCE, GENDER, Param
 from .connection import get_source_cursor
 from .helpers import (
@@ -80,6 +82,101 @@ def _raw_path(sources, polygon_ids, params):
     return out
 
 
+def _by_income(sources, polygon_ids, params):
+    """Cross-tab car_availability × income_class via persons JOIN households."""
+    ic_filter = ""
+    ic_raw = params.get("income_class")
+    if ic_raw:
+        classes = [c.strip() for c in str(ic_raw).split(",") if c.strip()]
+        if classes:
+            ic_filter = f" AND CAST(h.income_class AS INTEGER) IN ({','.join(classes)})"
+
+    out = {}
+    avail_bins = ("0", "1", "2")
+    for source in sources:
+        try:
+            con = get_source_cursor(source)
+        except Exception:
+            continue
+        counts = defaultdict(int)
+        totals = defaultdict(int)
+        overall_counts = defaultdict(int)
+        overall_totals = defaultdict(int)
+        seen_grps = set()
+
+        if polygon_ids:
+            pjoin, pwhere, group_expr, pbind, _ = polygon_filter_clause(polygon_ids)
+            resolve = make_label_resolver(con, polygon_ids,
+                                           primary_fast_path(polygon_ids))
+            rows = con.execute(f"""
+                SELECT {group_expr} AS poly_key,
+                       CAST(h.income_class AS INTEGER) AS ic,
+                       p.car_availability
+                FROM persons p
+                JOIN households h ON p.household_id = h.household_id
+                {pjoin}
+                WHERE p.car_availability IS NOT NULL
+                  AND h.income_class IS NOT NULL{pwhere}{ic_filter}
+            """, pbind).fetchall()
+            for poly_key, ic, avail in rows:
+                grp = str(ic)
+                ab = _avail_to_bin(avail)
+                label = resolve(poly_key)
+                seen_grps.add(grp)
+                counts[(label, grp, ab)] += 1
+                totals[(label, grp)] += 1
+                overall_counts[(label, ab)] += 1
+                overall_totals[label] += 1
+
+        rows_all = con.execute(f"""
+            SELECT CAST(h.income_class AS INTEGER) AS ic,
+                   p.car_availability, COUNT(*) AS cnt
+            FROM persons p
+            JOIN households h ON p.household_id = h.household_id
+            WHERE p.car_availability IS NOT NULL
+              AND h.income_class IS NOT NULL{ic_filter}
+            GROUP BY ic, p.car_availability
+        """).fetchall()
+        all_counts = defaultdict(int)
+        all_totals = defaultdict(int)
+        all_oc = defaultdict(int)
+        all_ot = 0
+        for ic, avail, cnt in rows_all:
+            grp = str(ic)
+            ab = _avail_to_bin(avail)
+            seen_grps.add(grp)
+            all_counts[(grp, ab)] += cnt
+            all_totals[grp] += cnt
+            all_oc[ab] += cnt
+            all_ot += cnt
+
+        grps = sorted(seen_grps, key=lambda x: int(x))
+
+        labels_with_data = {k[0] for k in totals.keys()}
+        for label in labels_with_data:
+            src = out.setdefault(label, {}).setdefault(_source_label(source), {})
+            for grp in grps:
+                denom = float(totals.get((label, grp), 0))
+                for ab in avail_bins:
+                    num = float(counts.get((label, grp, ab), 0))
+                    src.setdefault(grp, {})[ab] = round(num / denom, 6) if denom > 0 else 0.0
+            ov_denom = float(overall_totals.get(label, 0))
+            for ab in avail_bins:
+                num = float(overall_counts.get((label, ab), 0))
+                src.setdefault("All", {})[ab] = round(num / ov_denom, 6) if ov_denom > 0 else 0.0
+
+        entry = out.setdefault("All", {}).setdefault(_source_label(source), {})
+        for grp in grps:
+            denom = float(all_totals.get(grp, 0))
+            for ab in avail_bins:
+                num = float(all_counts.get((grp, ab), 0))
+                entry.setdefault(grp, {})[ab] = round(num / denom, 6) if denom > 0 else 0.0
+        for ab in avail_bins:
+            num = float(all_oc.get(ab, 0))
+            entry.setdefault("All", {})[ab] = round(num / all_ot, 6) if all_ot > 0 else 0.0
+    return out
+
+
 def _avail_to_bin(value) -> str:
     """Map persons.car_availability VARCHAR to legacy integer bin label."""
     s = str(value).lower()
@@ -97,6 +194,8 @@ class CarAvailabilityProvider(DataProvider):
     PARAMS = [
         CANTON, SOURCE, GENDER,
         Param("polygon_id", "Hot-polygon ID(s), comma-separated"),
+        Param("breakdown", "Breakdown dimension", default=None, enum=["income"]),
+        Param("income_class", "Filter by income class (comma-separated)"),
     ]
 
     def deliver(self, params: dict) -> dict:
@@ -105,6 +204,10 @@ class CarAvailabilityProvider(DataProvider):
             return {}
         con0 = get_source_cursor(sources[0])
         polygon_ids = resolve_polygon_ids(con0, params, default_type="canton")
+
+        breakdown = (params.get("breakdown") or "").lower()
+        if breakdown == "income":
+            return _by_income(sources, polygon_ids, params)
 
         if not (params.get("gender") or params.get("sex")):
             return build_share_response(

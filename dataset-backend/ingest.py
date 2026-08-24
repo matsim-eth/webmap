@@ -2015,6 +2015,7 @@ def run_ingest_job(dataset_root, staging_dir, *, sample_rate: float | None = Non
         stats = run_ingest(dataset_root, staging_dir, sample_rate=sample_rate,
                            run_name=run_name,
                            progress=_Progress(Path(dataset_root)), **opts)
+        shutil.rmtree(staging_dir, ignore_errors=True)
         _write_job(dataset_root, state="done", step="finished", progress=1.0,
                    stats=stats, finished_at=datetime.now(timezone.utc).isoformat())
     except Exception as exc:

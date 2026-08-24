@@ -43,7 +43,6 @@ _CACHE: "OrderedDict[str, dict[str, list[str]]]" = OrderedDict()
 _CACHE_MAX = 16
 _LOCK = threading.Lock()
 
-
 def _build() -> dict[str, list[str]]:
     """One narrow scan of ``network_links`` → {zone_name: sorted modes}."""
     cur = get_source_cursor("synthetic")

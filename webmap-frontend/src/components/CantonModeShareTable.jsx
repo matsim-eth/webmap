@@ -65,10 +65,10 @@ const CantonModeShareTable = ({
   let items = [];
 
   if (selectedDataset === "Difference") {
-    const micro = shareData["Microcensus"].filter(
+    const micro = (shareData["Microcensus"] || []).filter(
       (e) => e.canton_name === canton
     );
-    const synthetic = shareData["Synthetic"].filter(
+    const synthetic = (shareData["Synthetic"] || []).filter(
       (e) => e.canton_name === canton
     );
 
