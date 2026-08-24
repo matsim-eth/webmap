@@ -31,7 +31,8 @@ import { parseStopFeatureLines } from '../utils/transitLineFilter';
  * fixed (always two useQuery calls, gated by `enabled`) per React's rules.
  */
 
-/** Unique datasets across the comparison slots, slot order preserved. */
+/** Unique synthetic datasets across the comparison slots, slot order preserved.
+ *  Microcensus slots are excluded — transit data is always synthetic. */
 export function useTransitDatasets() {
   const { comparisonSlots } = useDashboard();
   return useMemo(() => {
@@ -39,6 +40,7 @@ export function useTransitDatasets() {
     const out = [];
     for (const slot of comparisonSlots) {
       if (!slot || slot.datasetId == null || seen.has(slot.datasetId)) continue;
+      if (slot.subDataset === 'Microcensus') continue;
       seen.add(slot.datasetId);
       out.push({
         datasetId: slot.datasetId,

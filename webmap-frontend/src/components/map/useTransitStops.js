@@ -52,6 +52,7 @@ export default function useTransitStops({
   // symbology/mode/time change (keep them — the source is about to be updated
   // in place and blanking it would flash the map).
   const paintedCantonRef = useRef(null);
+  const prevModuleRef = useRef(isGraphExpanded);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -65,15 +66,21 @@ export default function useTransitStops({
       if (isGraphExpanded === "Transit" && map.getSource("transit-line-display")) {
         map.getSource("transit-line-display").setData({ type: "FeatureCollection", features: [] });
       }
-      
+
       setSelectedTransitStop(null);
-      setHighlightedLineId(null);
-      setHighlightedRouteIds([]);
     };
-    
+
     // if swapped off Transit module, remove layers
     if (isGraphExpanded !== "Transit" || !searchCanton) {
       removeTransitLayers();
+      // Only clear line highlight when actually leaving Transit, not on every
+      // re-run while in a non-Transit module (e.g. timeRange changes in
+      // TransitVolumes would otherwise deselect the highlighted line).
+      if (prevModuleRef.current === "Transit" && isGraphExpanded !== "Transit") {
+        setHighlightedLineId(null);
+        setHighlightedRouteIds([]);
+      }
+      prevModuleRef.current = isGraphExpanded;
       // Don't null featureGeoJSON here — whoever owns the current value
       // (network modules set it in useNetworkLayers, transit volumes sets it
       // in useTransitVolumesLayer) is responsible for replacing it on entry.
@@ -83,6 +90,7 @@ export default function useTransitStops({
       paintedCantonRef.current = null;
       return;
     }
+    prevModuleRef.current = isGraphExpanded;
 
     // A cold stops build can take tens of seconds, so a canton switch normally
     // leaves the previous canton's stops on the map (and in the feature table)

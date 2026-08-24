@@ -13,3 +13,7 @@ python-multipart>=0.0.18
 
 # Re-zoning (study-area dropdown): reads/writes the dataset DuckDB files
 duckdb>=1.1
+
+# MATSim ingestion (ingest.py): streaming XML parsing + H3 indexing
+lxml>=5.0
+h3>=4.0

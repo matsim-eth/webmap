@@ -388,18 +388,18 @@ const ptSubscriptionPlots = ({ ptSubQuery }) => [
   },
 ];
 
-const carAvailabilityPlots = ({ selectedCanton }) => [
+const carAvailabilityPlots = ({ selectedCanton, selectedIncome }) => [
   {
     id: 'car-ownership-distribution',
     component: DistributionBarPlot,
     title: 'Car Availability Distribution',
     gridArea: 'top',
     props: {
-      dataFile: 'car_availability.json',
+      dataFile: 'car_availability_income.json',
       title: 'Car Availability Distribution',
       xAxisLabel: 'Number of Cars',
-      filterType: null,
-      backendUrlTemplate: '/backend/data/{datasetId}/car_availability.json',
+      filterType: 'income',
+      backendUrlTemplate: '/backend/data/{datasetId}/car_availability.json?breakdown=income',
       rightLegend: true,
       customCategories: [
         { label: 'Always', key: '0' },

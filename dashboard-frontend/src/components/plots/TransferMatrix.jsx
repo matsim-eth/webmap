@@ -34,7 +34,7 @@ const mergeTransfers = (parts) => {
 };
 
 const TransferMatrix = ({ sidebarCollapsed, isExpanded = false }) => {
-  const { selectedCanton, selectedTransitStop, zoneLabel } = useDashboard();
+  const { selectedCanton, selectedTransitStop, selectedTransitLine, zoneLabel } = useDashboard();
   const { getData } = useData();
 
   const datasets = useTransitDatasets();
@@ -77,6 +77,29 @@ const TransferMatrix = ({ sidebarCollapsed, isExpanded = false }) => {
       return { dataset, matched: parts.length, ...mergeTransfers(parts) };
     });
 
+    // When a line is selected, filter the matrix to only show transfers
+    // involving that line (as either origin or destination).
+    if (selectedTransitLine) {
+      for (const d of perDataset) {
+        const filtered = {};
+        let filteredIn = 0;
+        let filteredOut = 0;
+        for (const [fromLine, row] of Object.entries(d.lineTransfers)) {
+          for (const [toLine, n] of Object.entries(row)) {
+            if (fromLine === selectedTransitLine || toLine === selectedTransitLine) {
+              const target = filtered[fromLine] || (filtered[fromLine] = {});
+              target[toLine] = (target[toLine] || 0) + n;
+              if (toLine === selectedTransitLine) filteredIn += n;
+              if (fromLine === selectedTransitLine) filteredOut += n;
+            }
+          }
+        }
+        d.lineTransfers = filtered;
+        d.totalIn = filteredIn;
+        d.totalOut = filteredOut;
+      }
+    }
+
     // Same-scenario assumption: line ids align across runs, so the axes are
     // the union of line ids seen in either dataset.
     const allLines = new Set();
@@ -114,28 +137,69 @@ const TransferMatrix = ({ sidebarCollapsed, isExpanded = false }) => {
       return lineNameById.get(String(lineId)) || lineId;
     };
 
-    const nameCount = {};
-    lineArray.forEach((lineId) => {
-      const name = resolveName(lineId);
-      nameCount[name] = (nameCount[name] || 0) + 1;
-    });
-    const nameUsed = {};
-    const lineNames = lineArray.map((lineId) => {
-      let name = resolveName(lineId);
-      if (nameCount[name] > 1) {
-        nameUsed[name] = (nameUsed[name] || 0) + 1;
-        name = `${name} #${nameUsed[name]}`;
-      }
-      return name;
-    });
+    const dedupeNames = (ids) => {
+      const nameCount = {};
+      ids.forEach((id) => {
+        const name = resolveName(id);
+        nameCount[name] = (nameCount[name] || 0) + 1;
+      });
+      const nameUsed = {};
+      return ids.map((id) => {
+        let name = resolveName(id);
+        if (nameCount[name] > 1) {
+          nameUsed[name] = (nameUsed[name] || 0) + 1;
+          name = `${name} #${nameUsed[name]}`;
+        }
+        return name;
+      });
+    };
 
     const valueAt = (d, fromLine, toLine) =>
       fromLine === toLine ? 0 : d.lineTransfers[fromLine]?.[toLine] || 0;
 
-    // Single dataset: raw counts. Comparison: A − B difference, with each
-    // dataset's raw count carried as customdata for the hover.
     const a = perDataset[0];
     const b = perDataset[1];
+
+    // When a line is selected, collapse the NxN matrix (mostly zeros except
+    // the selected line's row and column) into a compact 2×M layout: one row
+    // for outbound transfers, one for inbound.
+    if (selectedTransitLine) {
+      const partners = lineArray.filter((id) => id !== selectedTransitLine);
+      if (partners.length === 0) return null;
+      const partnerNames = dedupeNames(partners);
+
+      const outRow = partners.map((toLine) =>
+        isComparison
+          ? valueAt(a, selectedTransitLine, toLine) - valueAt(b, selectedTransitLine, toLine)
+          : valueAt(a, selectedTransitLine, toLine)
+      );
+      const inRow = partners.map((fromLine) =>
+        isComparison
+          ? valueAt(a, fromLine, selectedTransitLine) - valueAt(b, fromLine, selectedTransitLine)
+          : valueAt(a, fromLine, selectedTransitLine)
+      );
+      const matrix = [outRow, inRow];
+
+      const countsPerCell = isComparison
+        ? [
+            partners.map((toLine) => [valueAt(a, selectedTransitLine, toLine), valueAt(b, selectedTransitLine, toLine)]),
+            partners.map((fromLine) => [valueAt(a, fromLine, selectedTransitLine), valueAt(b, fromLine, selectedTransitLine)]),
+          ]
+        : null;
+
+      return {
+        compact: true,
+        matrix,
+        countsPerCell,
+        lineNames: partnerNames,
+        yLabels: ["Outbound", "Inbound"],
+        perDataset,
+      };
+    }
+
+    // Full NxN matrix (no line selected)
+    const lineNames = dedupeNames(lineArray);
+
     const matrix = lineArray.map((fromLine) =>
       lineArray.map((toLine) =>
         isComparison
@@ -150,12 +214,13 @@ const TransferMatrix = ({ sidebarCollapsed, isExpanded = false }) => {
       : null;
 
     return {
+      compact: false,
       matrix,
       countsPerCell,
       lineNames,
       perDataset,
     };
-  }, [selectedTransitStop, anyTransfer, transferPerDataset, selectedCanton, resolveStopIds, lineNameById, isComparison]);
+  }, [selectedTransitStop, anyTransfer, transferPerDataset, selectedCanton, resolveStopIds, lineNameById, isComparison, selectedTransitLine]);
 
   // --- Render states ---
   if (!selectedCanton || selectedCanton === "All") {
@@ -191,7 +256,8 @@ const TransferMatrix = ({ sidebarCollapsed, isExpanded = false }) => {
     );
   }
 
-  const { matrix, countsPerCell, lineNames, perDataset } = matrixResult;
+  const { compact, matrix, countsPerCell, lineNames, perDataset } = matrixResult;
+  const yLabels = compact ? matrixResult.yLabels : lineNames;
   const flat = matrix.flat();
   const colorA = perDataset[0]?.dataset.color ?? "#1e40af";
   const colorB = perDataset[1]?.dataset.color ?? "#b91c1c";
@@ -207,10 +273,6 @@ const TransferMatrix = ({ sidebarCollapsed, isExpanded = false }) => {
 
   let trace;
   if (isComparison) {
-    // Symmetric diverging scale centered at 0, ends colored with each
-    // dataset's OWN slot color: positive (more in dataset A / diff>0) → A's
-    // color, negative (more in dataset B) → B's color. So a run's dominance
-    // always shows in that run's own color, whatever the palette.
     const maxAbs = Math.max(1, ...flat.map((v) => Math.abs(v)));
     const fontColorMatrix = matrix.map((row) =>
       row.map((val) => (Math.abs(val) > maxAbs * 0.55 ? "#ffffff" : "#1e293b"))
@@ -218,7 +280,7 @@ const TransferMatrix = ({ sidebarCollapsed, isExpanded = false }) => {
     trace = {
       z: matrix,
       x: lineNames,
-      y: lineNames,
+      y: yLabels,
       text: textMatrix,
       texttemplate: "%{text}",
       textfont: { size: 10, color: fontColorMatrix },
@@ -234,14 +296,16 @@ const TransferMatrix = ({ sidebarCollapsed, isExpanded = false }) => {
       showscale: true,
       colorbar: { thickness: 12, len: 0.6, tickfont: { size: 9, color: "#64748b" }, outlinewidth: 0 },
       hoverongaps: false,
-      // Per-cell [countA, countB] so the hover shows each dataset's raw
-      // count, not just the difference rendered as z.
       customdata: countsPerCell,
-      hovertemplate:
-        `<b>From:</b> %{y}<br><b>To:</b> %{x}` +
-        `<br><b>${perDataset[0].dataset.name}:</b> %{customdata[0]}` +
-        `<br><b>${perDataset[1].dataset.name}:</b> %{customdata[1]}` +
-        `<br><b>Difference:</b> %{z}<extra></extra>`,
+      hovertemplate: compact
+        ? `<b>%{y}</b> — %{x}<br>` +
+          `<b>${perDataset[0].dataset.name}:</b> %{customdata[0]}<br>` +
+          `<b>${perDataset[1].dataset.name}:</b> %{customdata[1]}<br>` +
+          `<b>Difference:</b> %{z}<extra></extra>`
+        : `<b>From:</b> %{y}<br><b>To:</b> %{x}` +
+          `<br><b>${perDataset[0].dataset.name}:</b> %{customdata[0]}` +
+          `<br><b>${perDataset[1].dataset.name}:</b> %{customdata[1]}` +
+          `<br><b>Difference:</b> %{z}<extra></extra>`,
       xgap: 2,
       ygap: 2,
     };
@@ -255,7 +319,7 @@ const TransferMatrix = ({ sidebarCollapsed, isExpanded = false }) => {
     trace = {
       z: matrix,
       x: lineNames,
-      y: lineNames,
+      y: yLabels,
       text: textMatrix,
       texttemplate: "%{text}",
       textfont: { size: 10, color: fontColorMatrix },
@@ -271,7 +335,9 @@ const TransferMatrix = ({ sidebarCollapsed, isExpanded = false }) => {
       showscale: true,
       colorbar: { thickness: 12, len: 0.6, tickfont: { size: 9, color: "#64748b" }, outlinewidth: 0 },
       hoverongaps: false,
-      hovertemplate: "<b>From:</b> %{y}<br><b>To:</b> %{x}<br><b>Transfers:</b> %{z}<extra></extra>",
+      hovertemplate: compact
+        ? "<b>%{y}</b> — %{x}<br><b>Transfers:</b> %{z}<extra></extra>"
+        : "<b>From:</b> %{y}<br><b>To:</b> %{x}<br><b>Transfers:</b> %{z}<extra></extra>",
       xgap: 2,
       ygap: 2,
     };
@@ -279,16 +345,18 @@ const TransferMatrix = ({ sidebarCollapsed, isExpanded = false }) => {
 
   const layout = {
     autosize: true,
-    margin: { l: 110, r: 60, t: 5, b: 90 },
+    margin: compact
+      ? { l: 70, r: 60, t: 5, b: 90 }
+      : { l: 110, r: 60, t: 5, b: 90 },
     xaxis: {
-      title: { text: "To Line", font: { size: 10, color: "#64748b" } },
+      title: { text: compact ? "Line" : "To Line", font: { size: 10, color: "#64748b" } },
       tickangle: -45,
       tickfont: { size: 8, color: "#475569" },
       side: "bottom",
     },
     yaxis: {
-      title: { text: "From Line", font: { size: 10, color: "#64748b" } },
-      tickfont: { size: 8, color: "#475569" },
+      title: compact ? undefined : { text: "From Line", font: { size: 10, color: "#64748b" } },
+      tickfont: { size: compact ? 10 : 8, color: "#475569" },
       autorange: "reversed",
     },
     paper_bgcolor: "rgba(0,0,0,0)",

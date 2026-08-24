@@ -126,7 +126,7 @@ def check_dataset_completeness(owner_id: int, dataset_id: int, is_public: bool =
 
 
 # Folders to exclude from data category listing
-_IGNORE_DIRS = {"json_preview", "__pycache__"}
+_IGNORE_DIRS = {"json_preview", "__pycache__", "_ingest_staging", "_ingest_tmp"}
 
 
 def list_data_categories(owner_id: int, dataset_id: int, is_public: bool = False) -> list[str]:

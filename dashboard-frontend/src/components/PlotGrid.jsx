@@ -12,6 +12,8 @@ import {
   buildPtSubQuery,
 } from '../config/plots';
 
+const SYNTHETIC_ONLY_TABS = new Set(['transit-stops', 'transit-lines', 'speed']);
+
 const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
   const [expandedPlot, setExpandedPlot] = useState(null);
   const {
@@ -19,7 +21,13 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
     selectedGender,
     selectedIncome,
     selectedAge,
+    comparisonSlots,
   } = useDashboard();
+
+  const isSyntheticOnly = SYNTHETIC_ONLY_TABS.has(activeTab);
+  const hasSyntheticSlot = comparisonSlots.some(
+    (s) => s.subDataset === 'Synthetic'
+  );
 
   const layoutClass = TAB_LAYOUT_CLASS[activeTab];
   const gridClass = layoutClass ? `plot-grid ${layoutClass}` : 'plot-grid';
@@ -30,8 +38,20 @@ const PlotGrid = ({ sidebarCollapsed, activeTab }) => {
   // as `(state) => specs` functions instead of static arrays.
   const plots = useMemo(() => {
     const ptSubQuery = buildPtSubQuery({ selectedGender, selectedIncome, selectedAge });
-    return getPlotsForTab(activeTab, { selectedCanton, ptSubQuery });
+    return getPlotsForTab(activeTab, { selectedCanton, ptSubQuery, selectedIncome });
   }, [activeTab, selectedCanton, selectedGender, selectedIncome, selectedAge]);
+
+  if (isSyntheticOnly && !hasSyntheticSlot) {
+    return (
+      <div className="plot-grid">
+        <div className="plot-card" style={{ gridColumn: '1 / -1', gridRow: '1 / -1' }}>
+          <div className="plot-loading">
+            This tab uses synthetic data only. Select a synthetic dataset to view.
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Placeholder grid for tabs without a config yet
   if (!plots) {

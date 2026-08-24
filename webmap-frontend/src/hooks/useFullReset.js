@@ -37,11 +37,11 @@ export function useFullReset() {
 
     setResetMapTrigger((prev) => !prev);
 
-    setSelectedDataset('Microcensus');
+    setSelectedDataset('Synthetic');
     setSelectedMode('None');
     setSelectedNetworkModes(['all']);
     setSelectedTransitModes(['all']);
-    updateMapChoropleth('None', 'Microcensus');
+    updateMapChoropleth('None', 'Synthetic');
     resetMapView();
 
     setHighlightedLineId(null);

@@ -16,6 +16,7 @@ import "./VolumeFlowModule.css";
 // isn't useful at the network level.
 const EXCLUDED_MODES = new Set([
   "car_passenger", "train", "taxi", "truck",
+  "stopFacilityLink", "artificial",
 ]);
 
 const NetworkModule = ({ featureTableRef }) => {

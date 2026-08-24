@@ -529,6 +529,123 @@ async function loadDatasets(ownerFilter, ownerName) {
   _renderDatasetRows(el("publicDatasetsBody"), publicDatasets, ownerFilter, ownerName);
   _renderDatasetRows(el("privateDatasetsBody"), privateDatasets, ownerFilter, ownerName);
   renderDefaultDatasetSelect();
+  _checkTableJobStatuses(visible);
+}
+
+// ── Inline job progress in dataset tables ───────────────────────
+
+let _tableJobTimers = new Map();  // dsid -> intervalId
+
+function _stopAllTableJobPolls() {
+  for (const t of _tableJobTimers.values()) clearInterval(t);
+  _tableJobTimers.clear();
+}
+
+function _checkTableJobStatuses(datasets) {
+  _stopAllTableJobPolls();
+  for (const ds of datasets) {
+    _checkTableJob(ds.id, "ingest");
+    _checkTableJob(ds.id, "rezone");
+  }
+}
+
+async function _checkTableJob(dsid, jobType) {
+  const url = jobType === "ingest"
+    ? `/datasets/${dsid}/ingest/status`
+    : `/datasets/${dsid}/rezone/status`;
+  const res = await datasetApi(url);
+  if (!res.ok) return;
+  const job = await res.json().catch(() => null);
+  if (!job || job.state !== "running") return;
+  _showTableJobProgress(dsid, jobType, job);
+  _startTableJobPoll(dsid, jobType);
+}
+
+function _showTableJobProgress(dsid, jobType, job) {
+  const key = `${jobType}-${dsid}`;
+  const rowId = `ds-job-row-${key}`;
+
+  // Find the dataset's main row in either table body
+  let mainRow = null;
+  for (const tbodyId of ["publicDatasetsBody", "privateDatasetsBody"]) {
+    const tbody = el(tbodyId);
+    if (!tbody) continue;
+    const btn = tbody.querySelector(`button[data-dsid="${dsid}"]`);
+    if (btn) { mainRow = btn.closest("tr"); break; }
+  }
+  if (!mainRow) return;
+
+  let progressRow = document.getElementById(rowId);
+  if (!progressRow) {
+    progressRow = document.createElement("tr");
+    progressRow.id = rowId;
+    progressRow.className = "ds-job-progress-row";
+    mainRow.after(progressRow);
+  }
+
+  const label = jobType === "ingest" ? "Processing" : "Re-zoning";
+  const stepText = job.step || "";
+  const stepIndex = job.step_index || 0;
+  const nSteps = job.n_steps || 14;
+  const pct = typeof job.progress === "number"
+    ? Math.round((job.progress <= 1 ? job.progress : job.progress / 100) * 100)
+    : null;
+  const pctWidth = pct !== null ? `${pct}%` : "100%";
+  const indeterminate = pct === null;
+  const stepLabel = stepIndex > 0 ? `Step ${stepIndex}/${nSteps}` : "";
+  const detail = stepText.split(":").slice(1).join(":").trim();
+  const stepName = stepText.split(":")[0].trim();
+
+  progressRow.innerHTML = `
+    <td colspan="7" class="ds-job-cell">
+      <div class="ds-job-inline">
+        <span class="ds-job-label">${label}</span>
+        <span class="ds-job-step">${esc(stepName)}${detail ? ": " + esc(detail) : ""}</span>
+        <span class="ds-job-counter">${stepLabel}${pct !== null ? " · " + pct + "%" : ""}</span>
+      </div>
+      <div class="ds-job-bar">
+        <div class="ds-job-bar-fill${indeterminate ? " is-indeterminate" : ""}" style="width:${pctWidth}"></div>
+      </div>
+    </td>
+  `;
+}
+
+function _startTableJobPoll(dsid, jobType) {
+  const key = `${jobType}-${dsid}`;
+  if (_tableJobTimers.has(key)) return;
+
+  const url = jobType === "ingest"
+    ? `/datasets/${dsid}/ingest/status`
+    : `/datasets/${dsid}/rezone/status`;
+
+  const timer = setInterval(async () => {
+    const res = await datasetApi(url);
+    if (!res.ok) return;
+    const job = await res.json().catch(() => null);
+    if (!job) return;
+
+    if (job.state === "running") {
+      _showTableJobProgress(dsid, jobType, job);
+      return;
+    }
+
+    // Job finished — remove the progress row and stop polling
+    clearInterval(timer);
+    _tableJobTimers.delete(key);
+    const rowId = `ds-job-row-${key}`;
+    document.getElementById(rowId)?.remove();
+
+    if (job.state === "done") {
+      const label = jobType === "ingest" ? "MATSim import" : "Re-zone";
+      showToast(`${label} complete for dataset ${dsid}`, "success");
+      await loadDatasets(_currentOwnerFilter, _currentOwnerName);
+    } else {
+      const label = jobType === "ingest" ? "MATSim import" : "Re-zone";
+      showToast(`${label} failed for dataset ${dsid}: ${job.detail || "unknown error"}`);
+    }
+  }, 4000);
+
+  _tableJobTimers.set(key, timer);
 }
 
 // ── Default dataset ──────────────────────────────────────────────
@@ -739,6 +856,10 @@ async function openEditDatasetModal(ds) {
   el("editDsPublic").checked = !!ds.is_public;
 
   renderDatasetFiles(ds);
+  // Reset synchronously (kills any poll left over from the previously opened
+  // dataset), then ask in the background whether a build is already running.
+  resetIngestSection();
+  checkIngestJob(ds.id);
   // Load the study-area section BEFORE showing the modal so it doesn't pop in
   // late; a slow/unreachable backend is capped at 2s (the section then just
   // appears when the fetch settles, as before). Cached per dataset id.
@@ -899,13 +1020,23 @@ function pollRezone(newId, btn) {
   const statusEl = el("dsRezoneStatus");
   if (statusEl) statusEl.hidden = false;
   clearInterval(_rezonePollTimer);
+
+  // Show progress in the dataset table too (the new dataset may not be in
+  // the table yet, but _startTableJobPoll will pick it up once loadDatasets
+  // adds the row on its next reload).
+  _showTableJobProgress(newId, "rezone", { step: "starting", step_index: 0, n_steps: 13, progress: 0 });
+  _startTableJobPoll(newId, "rezone");
+
   const tick = async () => {
     const res = await datasetApi(`/datasets/${newId}/rezone/status`);
     if (!res.ok) return; // transient — keep polling
     const job = await res.json().catch(() => null);
     if (!job) return;
     if (job.state === "running") {
-      if (statusEl) statusEl.textContent = `Re-zoning… ${job.step || ""}`;
+      const stepInfo = job.step_index && job.n_steps
+        ? ` (step ${job.step_index}/${job.n_steps})`
+        : "";
+      if (statusEl) statusEl.textContent = `Re-zoning… ${job.step || ""}${stepInfo}`;
       return;
     }
     clearInterval(_rezonePollTimer);
@@ -921,6 +1052,388 @@ function pollRezone(newId, btn) {
     }
   };
   _rezonePollTimer = setInterval(tick, 4000);
+  tick();
+}
+
+// ── Import from MATSim (in-app ingest) ───────────────────────────
+// Uploads a run's raw outputs in ONE multipart POST and then polls the
+// background build — see dataset-backend/ingest.py. Only builds
+// synthetic.duckdb; microcensus stays a prebuilt .duckdb upload.
+
+const GB = 1024 * 1024 * 1024;
+const INGEST_WARN_BYTES = 1 * GB;   // long build ahead — warn, still allowed
+const INGEST_MAX_BYTES = 2 * GB;    // server refuses (413) — block here first
+
+const INGEST_INPUTS = [
+  { key: "trips",            label: "Trips CSV",         accept: ".csv",           required: true,  hint: "eqasim_trips.csv" },
+  { key: "activities",       label: "Activities CSV",    accept: ".csv",           required: true,  hint: "eqasim_activities.csv" },
+  { key: "persons",          label: "Persons",           accept: ".parquet,.csv",  required: true,  hint: "persons.parquet / .csv" },
+  { key: "network",          label: "Network",           accept: ".gz",            required: true,  hint: "output_network.xml.gz" },
+  { key: "events",           label: "Events",            accept: ".gz",            required: true,  hint: "output_events.xml.gz" },
+  { key: "transit_schedule", label: "Transit schedule",  accept: ".gz",            required: true,  hint: "output_transitSchedule.xml.gz" },
+  { key: "plans",            label: "Plans",             accept: ".gz",            required: false, hint: "output_plans.xml.gz (optional)" },
+  { key: "households",       label: "Households",        accept: ".parquet,.csv",  required: false, hint: "households.parquet / .csv (optional)" },
+];
+
+let _ingestFiles = {};          // key -> File
+let _ingestZipFile = null;      // File (zip mode)
+let _ingestMode = "files";      // "files" | "zip"
+let _ingestBlocked = false;     // events file over the hard limit
+let _ingestPollTimer = null;
+let _ingestStartedAt = null;
+
+function _humanSize(bytes) {
+  if (bytes === null || bytes === undefined) return "";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  let n = bytes, i = 0;
+  while (n >= 1024 && i < units.length - 1) { n /= 1024; i += 1; }
+  return `${i === 0 || n >= 10 ? Math.round(n) : n.toFixed(1)} ${units[i]}`;
+}
+
+function _humanElapsed(ms) {
+  const secs = Math.max(0, Math.round(ms / 1000));
+  if (secs < 60) return `${secs}s`;
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return `${mins}m ${secs % 60}s`;
+  return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+}
+
+function renderIngestFiles() {
+  const mgr = el("dsIngestFiles");
+  if (!mgr) return;
+  mgr.innerHTML = "";
+
+  for (const spec of INGEST_INPUTS) {
+    const file = _ingestFiles[spec.key];
+    const row = document.createElement("div");
+    row.className = "ds-file-row" + (file ? " is-present" : "");
+    row.innerHTML = file
+      ? `<span class="ds-file-name"><span class="ds-file-check">✓</span> ${spec.label}
+           <code>${esc(file.name)}</code> <code>${_humanSize(file.size)}</code></span>
+         <button type="button" class="ds-file-action" data-ingest-key="${spec.key}">Change…</button>`
+      : `<span class="ds-file-name ds-file-missing">${spec.label}
+           <code>${esc(spec.hint)}</code></span>
+         <button type="button" class="ds-file-action" data-ingest-key="${spec.key}">Browse…</button>`;
+    mgr.appendChild(row);
+  }
+
+  mgr.querySelectorAll("button[data-ingest-key]").forEach((b) => {
+    b.addEventListener("click", () => pickIngestFile(b.dataset.ingestKey));
+  });
+}
+
+function switchIngestMode(mode) {
+  _ingestMode = mode;
+  $$(".ds-ingest-mode-tab").forEach((t) =>
+    t.classList.toggle("active", t.dataset.ingestMode === mode)
+  );
+  el("dsIngestModeFiles")?.classList.toggle("active", mode === "files");
+  el("dsIngestModeZip")?.classList.toggle("active", mode === "zip");
+  updateIngestWarning();
+}
+
+function renderIngestZipFile() {
+  const mgr = el("dsIngestZipFile");
+  if (!mgr) return;
+  mgr.innerHTML = "";
+
+  const row = document.createElement("div");
+  row.className = "ds-file-row" + (_ingestZipFile ? " is-present" : "");
+  row.innerHTML = _ingestZipFile
+    ? `<span class="ds-file-name"><span class="ds-file-check">✓</span> ZIP Archive
+         <code>${esc(_ingestZipFile.name)}</code> <code>${_humanSize(_ingestZipFile.size)}</code></span>
+       <button type="button" class="ds-file-action" id="dsIngestZipPick">Change…</button>`
+    : `<span class="ds-file-name ds-file-missing">ZIP Archive
+         <code>webmap_inputs_*.zip</code></span>
+       <button type="button" class="ds-file-action" id="dsIngestZipPick">Browse…</button>`;
+  mgr.appendChild(row);
+
+  el("dsIngestZipPick")?.addEventListener("click", pickIngestZip);
+}
+
+function pickIngestZip() {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".zip";
+  input.addEventListener("change", () => {
+    const file = input.files?.[0];
+    if (file) _ingestZipFile = file;
+    renderIngestZipFile();
+    updateIngestWarning();
+  });
+  input.click();
+}
+
+function pickIngestFile(key) {
+  const spec = INGEST_INPUTS.find((s) => s.key === key);
+  if (!spec) return;
+  // Built on demand: a per-field <input type=file> in the modal would be seven
+  // more controls to keep in sync with INGEST_INPUTS.
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = spec.accept;
+  input.addEventListener("change", () => {
+    const file = input.files?.[0];
+    if (file) _ingestFiles[key] = file;
+    renderIngestFiles();
+    updateIngestWarning();
+  });
+  input.click();
+}
+
+function updateIngestWarning() {
+  const warnEl = el("dsIngestWarn");
+  const startBtn = el("dsIngestStartBtn");
+  const events = _ingestFiles.events;
+  _ingestBlocked = false;
+  if (!warnEl) return;
+
+  if (events && events.size > INGEST_MAX_BYTES) {
+    _ingestBlocked = true;
+    warnEl.className = "ds-ingest-warn is-block";
+    warnEl.textContent =
+      `This file is too large for in-app processing (${_humanSize(events.size)}). ` +
+      `Please use the eqasim pipeline's webmap_export stage to generate the DuckDB ` +
+      `files, then upload them directly.`;
+    warnEl.hidden = false;
+  } else if (events && events.size > INGEST_WARN_BYTES) {
+    warnEl.className = "ds-ingest-warn";
+    warnEl.textContent =
+      `Processing may take 30–90 minutes for a 1% sample. You can close this ` +
+      `dialog and check back later.`;
+    warnEl.hidden = false;
+  } else {
+    warnEl.hidden = true;
+    warnEl.textContent = "";
+  }
+  if (startBtn) startBtn.disabled = _ingestBlocked;
+}
+
+function toggleIngestSection(force) {
+  const body = el("dsIngestBody");
+  const toggle = el("dsIngestToggle");
+  const caret = el("dsIngestCaret");
+  if (!body) return;
+  const open = force === undefined ? body.hidden : !!force;
+  body.hidden = !open;
+  if (toggle) toggle.setAttribute("aria-expanded", open ? "true" : "false");
+  if (caret) caret.innerHTML = open ? "&#9662;" : "&#9656;";
+}
+
+/** Reset the section for a freshly opened modal (synchronous — no fetch). */
+function resetIngestSection() {
+  clearInterval(_ingestPollTimer);
+  _ingestPollTimer = null;
+  _ingestFiles = {};
+  _ingestZipFile = null;
+  _ingestBlocked = false;
+  _ingestStartedAt = null;
+  toggleIngestSection(false);
+  switchIngestMode("files");
+  const sr = el("dsIngestSampleRate"); if (sr) sr.value = "";
+  const rn = el("dsIngestRunName"); if (rn) rn.value = "";
+  const prog = el("dsIngestProgress"); if (prog) prog.hidden = true;
+  const fill = el("dsIngestBarFill"); if (fill) fill.style.width = "0%";
+  const elapsed = el("dsIngestElapsed"); if (elapsed) elapsed.textContent = "";
+  const startBtn = el("dsIngestStartBtn");
+  if (startBtn) { startBtn.disabled = false; startBtn.textContent = "Start Processing"; }
+  renderIngestFiles();
+  renderIngestZipFile();
+  updateIngestWarning();
+}
+
+/** If a build is already running for this dataset, show its progress at once. */
+async function checkIngestJob(dsid) {
+  const res = await datasetApi(`/datasets/${dsid}/ingest/status`);
+  if (!res.ok) return;                                  // 404 = no job, normal
+  const job = await res.json().catch(() => null);
+  if (!job || job.state !== "running") return;
+  // The admin may have moved on to another dataset while this was in flight.
+  if (String(el("editDsOriginalId")?.value) !== String(dsid)) return;
+  toggleIngestSection(true);
+  pollIngest(dsid);
+}
+
+async function startIngest() {
+  if (_ingestMode === "zip") return startIngestZip();
+
+  const dsid = el("editDsOriginalId").value;
+  const missing = INGEST_INPUTS
+    .filter((s) => s.required && !_ingestFiles[s.key])
+    .map((s) => s.label);
+  if (missing.length) {
+    showToast(`Missing required file(s): ${missing.join(", ")}`);
+    return;
+  }
+  if (_ingestBlocked) {
+    showToast("Events file too large for in-app processing");
+    return;
+  }
+
+  const form = new FormData();
+  for (const spec of INGEST_INPUTS) {
+    const file = _ingestFiles[spec.key];
+    if (file) form.append(spec.key, file, file.name);
+  }
+  const sampleRate = el("dsIngestSampleRate")?.value.trim();
+  if (sampleRate) form.append("sample_rate", sampleRate);
+  const runName = el("dsIngestRunName")?.value.trim();
+  if (runName) form.append("run_name", runName);
+
+  _ingestStartedAt = null;
+  const startBtn = el("dsIngestStartBtn");
+  if (startBtn) { startBtn.disabled = true; startBtn.textContent = "Uploading…"; }
+  const prog = el("dsIngestProgress");
+  if (prog) prog.hidden = false;
+  const stepEl = el("dsIngestStep");
+  const fill = el("dsIngestBarFill");
+  if (stepEl) stepEl.textContent = "Uploading…";
+  if (fill) fill.style.width = "0%";
+
+  await refresh().catch(() => false);
+
+  const url = `${CONFIG.DATASET_API_BASE}/datasets/${dsid}/ingest`;
+  _doIngestUpload(url, form, dsid);
+}
+
+async function startIngestZip() {
+  const dsid = el("editDsOriginalId").value;
+  if (!_ingestZipFile) {
+    showToast("Please select a ZIP file");
+    return;
+  }
+
+  const form = new FormData();
+  form.append("zipfile_upload", _ingestZipFile, _ingestZipFile.name);
+  const sampleRate = el("dsIngestSampleRate")?.value.trim();
+  if (sampleRate) form.append("sample_rate", sampleRate);
+  const runName = el("dsIngestRunName")?.value.trim();
+  if (runName) form.append("run_name", runName);
+
+  _ingestStartedAt = null;
+  const startBtn = el("dsIngestStartBtn");
+  if (startBtn) { startBtn.disabled = true; startBtn.textContent = "Uploading…"; }
+  const prog = el("dsIngestProgress");
+  if (prog) prog.hidden = false;
+  const stepEl = el("dsIngestStep");
+  const fill = el("dsIngestBarFill");
+  if (stepEl) stepEl.textContent = "Uploading…";
+  if (fill) fill.style.width = "0%";
+
+  await refresh().catch(() => false);
+
+  const url = `${CONFIG.DATASET_API_BASE}/datasets/${dsid}/ingest/zip`;
+  _doIngestUpload(url, form, dsid);
+}
+
+function _doIngestUpload(url, form, dsid) {
+  const startBtn = el("dsIngestStartBtn");
+  const stepEl = el("dsIngestStep");
+  const fill = el("dsIngestBarFill");
+
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", url, true);
+  xhr.withCredentials = true;
+
+  xhr.upload.onprogress = (e) => {
+    if (!e.lengthComputable) return;
+    const pct = Math.round((e.loaded / e.total) * 100);
+    if (fill) fill.style.width = `${pct}%`;
+    if (stepEl) {
+      stepEl.textContent =
+        `Uploading… ${pct}% (${_humanSize(e.loaded)} / ${_humanSize(e.total)})`;
+    }
+  };
+
+  xhr.onload = () => {
+    if (xhr.status >= 200 && xhr.status < 300) {
+      showToast("Upload complete — processing started", "success");
+      if (startBtn) startBtn.textContent = "Processing…";
+      pollIngest(dsid);
+      return;
+    }
+    let detail = "";
+    try { detail = JSON.parse(xhr.responseText)?.detail || ""; } catch { /* text body */ }
+    if (xhr.status === 401) detail = detail || "Session expired — please try again";
+    showToast(detail || `Upload failed (HTTP ${xhr.status})`);
+    if (stepEl) stepEl.textContent = detail || `Upload failed (HTTP ${xhr.status})`;
+    if (startBtn) { startBtn.disabled = false; startBtn.textContent = "Start Processing"; }
+  };
+
+  xhr.onerror = () => {
+    showToast("Upload failed — network error");
+    if (stepEl) stepEl.textContent = "Upload failed — network error";
+    if (startBtn) { startBtn.disabled = false; startBtn.textContent = "Start Processing"; }
+  };
+
+  xhr.send(form);
+}
+
+function pollIngest(dsid) {
+  const prog = el("dsIngestProgress");
+  const stepEl = el("dsIngestStep");
+  const fill = el("dsIngestBarFill");
+  const elapsedEl = el("dsIngestElapsed");
+  const startBtn = el("dsIngestStartBtn");
+  if (prog) prog.hidden = false;
+  clearInterval(_ingestPollTimer);
+
+  // Also start the table-level poll so the progress bar shows in the
+  // dataset list even after the edit modal is closed.
+  _showTableJobProgress(dsid, "ingest", { step: "starting", step_index: 0, n_steps: 14, progress: 0 });
+  _startTableJobPoll(dsid, "ingest");
+
+  const tick = async () => {
+    const res = await datasetApi(`/datasets/${dsid}/ingest/status`);
+    if (!res.ok) return;   // transient — keep polling
+    const job = await res.json().catch(() => null);
+    if (!job) return;
+
+    if (job.started_at && !_ingestStartedAt) {
+      const t = new Date(job.started_at).getTime();
+      if (!Number.isNaN(t)) _ingestStartedAt = t;
+    }
+    if (elapsedEl && _ingestStartedAt) {
+      elapsedEl.textContent = `Elapsed ${_humanElapsed(Date.now() - _ingestStartedAt)}`;
+    }
+
+    if (job.state === "running") {
+      if (stepEl) stepEl.textContent = `Processing… ${job.step || ""}`;
+      if (fill) {
+        // `progress` is optional and may be a 0–1 fraction or a 0–100 percent;
+        // with neither, the bar goes indeterminate rather than lying at 0%.
+        let pct = null;
+        if (typeof job.progress === "number" && isFinite(job.progress)) {
+          pct = job.progress <= 1 ? job.progress * 100 : job.progress;
+          pct = Math.max(0, Math.min(100, Math.round(pct)));
+        }
+        fill.style.width = pct === null ? "100%" : `${pct}%`;
+        fill.classList.toggle("is-indeterminate", pct === null);
+      }
+      return;
+    }
+
+    clearInterval(_ingestPollTimer);
+    _ingestPollTimer = null;
+    if (fill) { fill.classList.remove("is-indeterminate"); fill.style.width = "100%"; }
+    if (startBtn) { startBtn.disabled = false; startBtn.textContent = "Start Processing"; }
+
+    if (job.state === "done") {
+      if (stepEl) stepEl.textContent = "Done — synthetic.duckdb built.";
+      showToast("MATSim import complete ✓", "success");
+      await loadDatasets(_currentOwnerFilter, _currentOwnerName);
+      const updated = _allDatasets.find((d) => String(d.id) === String(dsid));
+      if (updated) renderDatasetFiles(updated);
+      // A fresh synthetic.duckdb changes what re-zoning is possible.
+      _rezoneOptsCache.delete(String(dsid));
+      if (updated) loadRezoneOptions(updated);
+    } else {
+      if (stepEl) stepEl.textContent = `Failed: ${job.detail || "unknown error"}`;
+      showToast(`MATSim import failed: ${job.detail || "unknown error"}`);
+    }
+  };
+
+  _ingestPollTimer = setInterval(tick, 4000);
   tick();
 }
 
@@ -1102,6 +1615,18 @@ function attachLogout() {
   // Changing either dropdown invalidates a pending confirmation summary.
   for (const id of ["dsRezoneCanton", "dsRezoneLevel"]) {
     el(id)?.addEventListener("change", hideRezoneConfirm);
+  }
+
+  const ingestToggle = el("dsIngestToggle");
+  if (ingestToggle) {
+    ingestToggle.addEventListener("click", () => toggleIngestSection());
+  }
+  $$(".ds-ingest-mode-tab").forEach((tab) => {
+    tab.addEventListener("click", () => switchIngestMode(tab.dataset.ingestMode));
+  });
+  const ingestStartBtn = el("dsIngestStartBtn");
+  if (ingestStartBtn) {
+    ingestStartBtn.addEventListener("click", startIngest);
   }
 })();
 

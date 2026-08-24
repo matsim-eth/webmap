@@ -734,6 +734,207 @@ body {
   box-shadow: none;
 }
 
+/* ── MATSim import (Edit Dataset modal) ── */
+.ds-ingest-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.ds-ingest-toggle:hover {
+  color: var(--color-primary);
+}
+
+.ds-ingest-caret {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.ds-ingest-body {
+  margin-top: 10px;
+}
+
+.ds-ingest-opts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 12px;
+  margin: 12px 0;
+}
+
+.ds-ingest-warn {
+  margin: 0 0 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius, 6px);
+  font-size: 12px;
+  line-height: 1.45;
+  border: 1px solid var(--color-warning);
+  background: var(--color-warning-light);
+  color: var(--color-text);
+}
+
+.ds-ingest-warn.is-block {
+  border-color: var(--color-error);
+  background: var(--color-error-light);
+}
+
+.ds-ingest-progress {
+  margin-top: 12px;
+}
+
+.ds-ingest-step {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary-dark, #4f46e5);
+}
+
+.ds-ingest-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.ds-ingest-bar-fill {
+  height: 100%;
+  width: 0;
+  border-radius: 3px;
+  background: var(--color-primary);
+  transition: width 300ms ease;
+}
+
+.ds-ingest-bar-fill.is-indeterminate {
+  animation: ingestPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes ingestPulse {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 1; }
+}
+
+.ds-ingest-elapsed {
+  margin: 6px 0 0;
+}
+
+/* Inline job progress row in dataset tables */
+tr:has(+ .ds-job-progress-row) td {
+  border-bottom: none;
+}
+
+.ds-job-progress-row td {
+  padding: 0 8px 8px !important;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ds-job-progress-row:hover {
+  background: transparent !important;
+}
+
+.ds-job-cell {
+  padding-top: 0 !important;
+}
+
+.ds-job-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.ds-job-label {
+  font-weight: 600;
+  color: var(--color-primary-dark, #4f46e5);
+  white-space: nowrap;
+}
+
+.ds-job-step {
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.ds-job-counter {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.ds-job-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.ds-job-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--color-primary);
+  transition: width 300ms ease;
+}
+
+.ds-job-bar-fill.is-indeterminate {
+  animation: ingestPulse 1.4s ease-in-out infinite;
+}
+
+/* Ingest mode tabs (Individual Files / ZIP Upload) */
+.ds-ingest-mode-tabs {
+  display: inline-flex;
+  gap: 2px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 3px;
+  margin-bottom: 12px;
+}
+
+.ds-ingest-mode-tab {
+  padding: 5px 14px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all .15s ease;
+}
+
+.ds-ingest-mode-tab:hover {
+  color: var(--color-text);
+}
+
+.ds-ingest-mode-tab.active {
+  background: var(--color-surface);
+  color: var(--color-primary-dark);
+  box-shadow: 0 1px 4px rgba(79, 70, 229, .12);
+}
+
+.ds-ingest-mode-pane {
+  display: none;
+}
+
+.ds-ingest-mode-pane.active {
+  display: block;
+}
+
 /* ── Toast ── */
 
 .toast-container {

@@ -92,7 +92,7 @@ const RightSidebar = () => {
   } = useChoropleth();
 
   const [selectedMode, setSelectedMode] = useState("None"); // Choropleth mode
-  const [selectedDataset, setSelectedDataset] = useState("Microcensus"); // Choropleth dataset
+  const [selectedDataset, setSelectedDataset] = useState("Synthetic"); // Choropleth dataset
   const [destinationOutflowData, setDestinationOutflowData] = useState(null);
   const [isSocioOpen, setIsSocioOpen] = useState(false); // Filters dropdown (socio modules)
 

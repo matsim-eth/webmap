@@ -72,6 +72,12 @@ ZONE_TYPE_LABELS = {
     "canton": ("Canton", "Cantons"),
 }
 
+_REZONE_STEPS = (
+    "hot_polygons", "persons", "trips", "activities", "network",
+    "link_speeds", "pt_link_volumes", "spider", "aggregates",
+    "hex grids", "indexes", "static assets", "merged segments",
+)
+
 
 # ─── job status (file-based: shared across uvicorn workers) ────────────────
 
@@ -140,7 +146,9 @@ def _demo_agg_sql(h3_col: str, cars3_expr: str) -> str:
 def _trip_agg_sql(h3_col: str) -> str:
     time_cols = ",\n          ".join(
         f"COUNT(*) FILTER (WHERE t.departure_time < 86400 AND "
-        f"CAST(t.departure_time / 3600 AS INT) = {h})::INT AS time_h{h}"
+        # FLOOR, not CAST: DuckDB's CAST-to-INT *rounds*, which would put 08:45
+        # in time_h9 — the source pipeline floors (fixed 2026-08-11).
+        f"FLOOR(t.departure_time / 3600) = {h})::INT AS time_h{h}"
         for h in range(24)
     )
     return f"""
@@ -1017,13 +1025,21 @@ def run_rezone(source_dir: str | Path, out_dir: str | Path, canton_id: int | Non
     if zoom is None:
         zoom = 9.5 if canton_id is not None else 7.5
 
+    _step_idx = [0]
+
     for category in ("synthetic", "microcensus"):
         src = source_dir / f"{category}.duckdb"
         if not src.exists():
             continue
         out = out_dir / f"{category}.duckdb"
         def progress(step, _c=category):
-            _write_job(out_dir, state="running", step=f"{_c}: {step}")
+            for i, s in enumerate(_REZONE_STEPS):
+                if step == s or step.startswith(s + " "):
+                    _step_idx[0] = i + 1
+                    break
+            _write_job(out_dir, state="running", step=f"{_c}: {step}",
+                       step_index=_step_idx[0], n_steps=len(_REZONE_STEPS),
+                       progress=round(_step_idx[0] / len(_REZONE_STEPS), 3))
         info = _build_source(src, out, canton_id, zone_type,
                              is_synthetic=(category == "synthetic"), progress=progress)
         try:
