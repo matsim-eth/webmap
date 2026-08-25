@@ -180,6 +180,12 @@ async def create_dataset(
     await db.refresh(ds)
     create_dataset_dirs(uid, ds.id)
 
+    if not ds.is_public:
+        db.add(DatasetGrant(
+            dataset_id=ds.id, user_id=uid, role="editor", granted_by=uid,
+        ))
+        await db.commit()
+
     return _dataset_to_out(ds)
 
 
@@ -404,6 +410,13 @@ async def rezone_dataset(
                                     detail="failed to create dataset record")
     await db.refresh(new_ds)
     new_root = create_dataset_dirs(new_ds.owner_id, new_ds.id, new_ds.is_public)
+
+    if not new_ds.is_public:
+        db.add(DatasetGrant(
+            dataset_id=new_ds.id, user_id=new_ds.owner_id, role="editor",
+            granted_by=user.id,
+        ))
+        await db.commit()
 
     _rezone.start_rezone_thread(
         src_root, new_root, body.canton_id, body.zone_type,
@@ -847,7 +860,9 @@ async def remove_grant(
     user=Depends(RequireUser()),
     db: AsyncSession = Depends(get_db),
 ):
-    await require_dataset_manage(dataset_id, db, user)
+    ds = await require_dataset_manage(dataset_id, db, user)
+    if grant_user_id == ds.owner_id:
+        raise HTTPException(status_code=400, detail="cannot remove the owner's access")
     g = await db.scalar(select(DatasetGrant).where(
         DatasetGrant.dataset_id == dataset_id, DatasetGrant.user_id == grant_user_id))
     if not g:
@@ -1013,6 +1028,13 @@ async def admin_create_dataset(
 
     await db.refresh(ds)
     create_dataset_dirs(body.owner_id, ds.id, body.is_public)
+
+    if not ds.is_public:
+        db.add(DatasetGrant(
+            dataset_id=ds.id, user_id=body.owner_id, role="editor",
+            granted_by=admin.id,
+        ))
+        await db.commit()
 
     return {
         "id": ds.id,
