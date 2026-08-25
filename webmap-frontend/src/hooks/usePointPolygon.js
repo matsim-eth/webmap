@@ -68,7 +68,7 @@ export default function usePointPolygon({
       };
 
       if (!draw || !featureGeoJSON?.features?.length) {
-        clearPolygonFading(map);
+        if (hadPolygonsRef.current) clearPolygonFading(map);
         setPolygonFeatures([]);
         notifyIfChanged(false);
         return;
@@ -76,7 +76,7 @@ export default function usePointPolygon({
 
       const polygons = draw.getAll?.()?.features || [];
       if (!polygons.length) {
-        clearPolygonFading(map);
+        if (hadPolygonsRef.current) clearPolygonFading(map);
         setPolygonFeatures([]);
         notifyIfChanged(false);
         return;

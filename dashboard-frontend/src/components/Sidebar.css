@@ -120,6 +120,7 @@
 .sidebar.collapsed .sidebar-item {
   justify-content: center;
   padding: 10px;
+  gap: 0;
 }
 
 .sidebar-item:hover {

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import Plot from "react-plotly.js";
 import TransitLinkAttributesTable from "./TransitLinkAttributesTable";
 import TransitLinkHistogram from "./TransitLinkHistogram";
@@ -116,6 +116,18 @@ const TransitVolumesModule = ({ transitFeatureTableRef }) => {
   // provider — updating it during render warns "cannot update a component while
   // rendering a different component".
   useResetDirectionOnLineChange(highlightedLineId, selectedDirection, setSelectedDirection);
+
+  // Reset mode filter when switching to a canton that lacks the selected modes
+  const prevCantonModesRef = useRef(canton);
+  if (prevCantonModesRef.current !== canton) {
+    prevCantonModesRef.current = canton;
+    if (availableTransitModes.length > 0 && !selectedTransitModes.includes("all")) {
+      const allAvailable = selectedTransitModes.every(m => availableTransitModes.includes(m));
+      if (!allAvailable) {
+        setSelectedTransitModes(["all"]);
+      }
+    }
+  }
 
   // Polygon selection
   const handlePolygonChange = useCallback(() => {

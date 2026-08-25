@@ -203,6 +203,18 @@ const TransitModule = ({ featureTableRef }) => {
     // a different component".
     useResetDirectionOnLineChange(highlightedLineId, selectedDirection, setSelectedDirection);
 
+    // Reset mode filter when switching to a canton that lacks the selected modes
+    const prevCantonModesRef = useRef(canton);
+    if (prevCantonModesRef.current !== canton) {
+        prevCantonModesRef.current = canton;
+        if (availableTransitModes.length > 0 && !selectedTransitModes.includes("all")) {
+            const allAvailable = selectedTransitModes.every(m => availableTransitModes.includes(m));
+            if (!allAvailable) {
+                setSelectedTransitModes(["all"]);
+            }
+        }
+    }
+
     const prevHighlightedLineRef = useRef(highlightedLineId);
     if (prevHighlightedLineRef.current !== highlightedLineId) {
         prevHighlightedLineRef.current = highlightedLineId;

@@ -35,10 +35,16 @@ const DatasetSelector = ({ isCollapsed }) => {
 
   const getPanelStyle = () => {
     const rect = buttonRef.current?.getBoundingClientRect();
-    if (!rect) return { left: isCollapsed ? 60 : 215, top: 80 };
+    const left = isCollapsed ? 60 : 215;
+    if (!rect) return { left, top: 80 };
+    const itemHeight = 43;
+    const headerHeight = 40;
+    const listPadding = 8;
+    const panelHeight = headerHeight + listPadding + Math.min(activeDatasets.length, 5) * itemHeight;
+    const top = Math.min(rect.top, window.innerHeight - panelHeight - 4);
     return {
-      left: isCollapsed ? 60 : 215,
-      top: rect.top,
+      left,
+      top: Math.max(8, top),
     };
   };
 
