@@ -1345,6 +1345,28 @@ function _doIngestUpload(url, form, dsid) {
     }
   };
 
+  const _failUnlessRunning = async (msg) => {
+    // A proxy between the browser and the backend can swallow the 202 and
+    // return its own error even though the backend received the request and
+    // started processing.  Before declaring failure, check the status
+    // endpoint — if the job is running, treat it as success.
+    try {
+      const res = await datasetApi(`/datasets/${dsid}/ingest/status`);
+      if (res.ok) {
+        const job = await res.json().catch(() => null);
+        if (job && job.state === "running") {
+          showToast("Upload complete — processing started", "success");
+          if (startBtn) startBtn.textContent = "Processing…";
+          pollIngest(dsid);
+          return;
+        }
+      }
+    } catch { /* status check failed — fall through to the original error */ }
+    showToast(msg);
+    if (stepEl) stepEl.textContent = msg;
+    if (startBtn) { startBtn.disabled = false; startBtn.textContent = "Start Processing"; }
+  };
+
   xhr.onload = () => {
     if (xhr.status >= 200 && xhr.status < 300) {
       showToast("Upload complete — processing started", "success");
@@ -1355,15 +1377,11 @@ function _doIngestUpload(url, form, dsid) {
     let detail = "";
     try { detail = JSON.parse(xhr.responseText)?.detail || ""; } catch { /* text body */ }
     if (xhr.status === 401) detail = detail || "Session expired — please try again";
-    showToast(detail || `Upload failed (HTTP ${xhr.status})`);
-    if (stepEl) stepEl.textContent = detail || `Upload failed (HTTP ${xhr.status})`;
-    if (startBtn) { startBtn.disabled = false; startBtn.textContent = "Start Processing"; }
+    _failUnlessRunning(detail || `Upload failed (HTTP ${xhr.status})`);
   };
 
   xhr.onerror = () => {
-    showToast("Upload failed — network error");
-    if (stepEl) stepEl.textContent = "Upload failed — network error";
-    if (startBtn) { startBtn.disabled = false; startBtn.textContent = "Start Processing"; }
+    _failUnlessRunning("Upload failed — network error");
   };
 
   xhr.send(form);
@@ -1909,12 +1927,13 @@ async function _renderGrants() {
     '<tr><td colspan="3" class="text-muted text-center">No one else has access yet.</td></tr>';
 
   for (const g of grants) {
+    const isOwner = g.user_id === _accessDs.owner_id;
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${esc(_userLabel(g.user_id))}</td>
-      <td><span class="badge ${g.role === "editor" ? "badge-editor" : "badge-viewer"}">${esc(g.role)}</span></td>
+      <td><span class="badge ${g.role === "editor" ? "badge-editor" : "badge-viewer"}">${esc(g.role)}</span>${isOwner ? ' <span class="text-muted">(owner)</span>' : ""}</td>
       <td class="text-nowrap">
-        <button class="btn btn-danger btn-sm" data-guid="${g.user_id}" data-action="revoke-grant">Remove</button>
+        ${isOwner ? "" : `<button class="btn btn-danger btn-sm" data-guid="${g.user_id}" data-action="revoke-grant">Remove</button>`}
       </td>
     `;
     tbody.appendChild(tr);
