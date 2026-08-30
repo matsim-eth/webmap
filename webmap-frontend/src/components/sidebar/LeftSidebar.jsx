@@ -8,6 +8,8 @@ import {
   faArrowsSplitUpAndLeft, faChartSimple, faMap, faRoute,
   faRightFromBracket,
   faUserShield,
+  faKey,
+  faFlask,
   faArrowsTurnToDots,
   faGaugeHigh,
   faRightLeft,
@@ -22,6 +24,8 @@ import { useChoropleth } from '../../context/ChoroplethContext';
 import { redirectToLogin, checkIsAdmin } from '../../utils/auth';
 import { useQuery } from '@tanstack/react-query';
 import DatasetSelector from '../DatasetSelector';
+import ApiTokensModal from '../ApiTokensModal';
+import SimJobsModal, { useSimJobsBadge } from '../SimJobsModal';
 
 const SectionTitle = ({ label, isOpen, onToggle }) => (
   <button className="left-sidebar-section-title" onClick={onToggle}>
@@ -35,6 +39,10 @@ const LeftSidebar = () => {
 
   const [modulesOpen, setModulesOpen] = useState(true);
   const [dataOpen, setDataOpen] = useState(true);
+  const [tokensOpen, setTokensOpen] = useState(false);
+  const [simJobsOpen, setSimJobsOpen] = useState(false);
+  // hidden entirely when the sim service isn't deployed
+  const simBadge = useSimJobsBadge();
 
   const { isGraphExpanded, setIsGraphExpanded } = useModule();
   const {
@@ -174,6 +182,29 @@ const LeftSidebar = () => {
             )}
 
             <button
+              className="left-sidebar-item"
+              onClick={() => setTokensOpen(true)}
+              title={isCollapsed ? 'API Tokens' : ''}
+            >
+              <span className="left-sidebar-icon"><FontAwesomeIcon icon={faKey} /></span>
+              {!isCollapsed && <span className="left-sidebar-label">API Tokens</span>}
+            </button>
+
+            {simBadge.available && (
+              <button
+                className="left-sidebar-item"
+                onClick={() => setSimJobsOpen(true)}
+                title={isCollapsed ? 'Simulations' : ''}
+              >
+                <span className="left-sidebar-icon"><FontAwesomeIcon icon={faFlask} /></span>
+                {!isCollapsed && <span className="left-sidebar-label">Simulations</span>}
+                {simBadge.activeCount > 0 && (
+                  <span className="simjobs-nav-badge">{simBadge.activeCount}</span>
+                )}
+              </button>
+            )}
+
+            <button
               className="left-sidebar-item reset-item"
               onClick={handleReset}
               title={isCollapsed ? 'Reset' : ''}
@@ -266,6 +297,9 @@ const LeftSidebar = () => {
           </nav>
         </div>
       </div>
+
+      {tokensOpen && <ApiTokensModal onClose={() => setTokensOpen(false)} />}
+      {simJobsOpen && <SimJobsModal onClose={() => setSimJobsOpen(false)} />}
 
       {/* Collapse/Expand Toggle */}
       <button

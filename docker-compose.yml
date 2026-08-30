@@ -125,8 +125,20 @@ services:
       DUCKDB_MEMORY_LIMIT: "${DUCKDB_MEMORY_LIMIT:-}"
       DUCKDB_THREADS: "${DUCKDB_THREADS:-}"
       WEBMAP_PREWARM: "${WEBMAP_PREWARM:-1}"
+      # AI query — needs BOTH the flag on AND a key set
+      AI_QUERY_ENABLED: "${AI_QUERY_ENABLED:-0}"
+      LLM_PROVIDER: "${LLM_PROVIDER:-gemini}"
+      GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
+      LLM_MODEL: "${LLM_MODEL:-gemini-2.5-flash}"
+      LLM_BASE_URL: "${LLM_BASE_URL:-}"
+      LLM_API_KEY: "${LLM_API_KEY:-}"
+      # Custom simulations (agent tools appear only when set)
+      SIM_SERVICE_URL: http://sim_backend:5035
     volumes:
       - dataset_storage:/data/datasets:ro
+      # AI-agent failure log (JSONL) — reviewed in batches to fix prompt/
+      # tool bugs; host path data/ai-logs/
+      - ai_logs:/app/ai_logs
     depends_on:
       dataset_backend:
         condition: service_healthy
@@ -139,6 +151,72 @@ services:
     restart: unless-stopped
     expose:
       - "5031"
+    networks:
+      - internal
+
+  # ── MCP Backend (AI tool access for MCP clients) ────────────────
+  # Same image as webmap_backend, different entrypoint: streamable-HTTP
+  # MCP server with bearer-token auth (personal API tokens created in the
+  # webmap UI). Dataset access rights are enforced via dataset_backend.
+  mcp_backend:
+    image: ghcr.io/matsim-eth/webmap/webmap-backend:latest
+    command: ["python", "mcp/server.py", "--http", "--host", "0.0.0.0", "--port", "8090"]
+    environment:
+      JWT_SECRET: "${JWT_SECRET:-UltraSecretKey}"
+      AUTH_SERVICE_URL: http://authentification_backend:5032
+      DATASET_SERVICE_URL: http://dataset_backend:5033
+      SIM_SERVICE_URL: http://sim_backend:5035
+      DUCKDB_MEMORY_LIMIT: "${DUCKDB_MEMORY_LIMIT:-}"
+      DUCKDB_THREADS: "${DUCKDB_THREADS:-}"
+    volumes:
+      - dataset_storage:/data/datasets:ro
+    depends_on:
+      dataset_backend:
+        condition: service_healthy
+      authentification_backend:
+        condition: service_healthy
+    healthcheck:
+      # Any HTTP response (incl. 406 for a plain GET) means the server is up
+      test: ["CMD", "python", "-c", "import urllib.request, urllib.error\ntry: urllib.request.urlopen('http://localhost:8090/mcp', timeout=3)\nexcept urllib.error.HTTPError: pass"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+    restart: unless-stopped
+    expose:
+      - "8090"
+    networks:
+      - internal
+
+  # ── Sim Backend (custom-run broker) ─────────────────────────────
+  # Validates scenario diffs, holds the job queue, and hands work to the
+  # pull-based sim workers (deploy/sim-worker.compose.yml). Jobs live in the
+  # dataset Postgres instance (own sim_* tables).
+  sim_backend:
+    image: ghcr.io/matsim-eth/webmap/sim-backend:latest
+    build:
+      context: ./sim-backend
+      target: prod
+    environment:
+      DATABASE_URL: "postgresql+asyncpg://${DATASET_DB_USER:-dataset_user}:${DATASET_DB_PASSWORD:-dataset_pass}@dataset_database:5432/${DATASET_DB_NAME:-datasetdb}"
+      JWT_SECRET: "${JWT_SECRET:-UltraSecretKey}"
+      DATASET_SERVICE_URL: http://dataset_backend:5033
+      SIM_WORKER_TOKEN: "${SIM_WORKER_TOKEN:-}"
+      SIM_MAX_ACTIVE_PER_USER: "${SIM_MAX_ACTIVE_PER_USER:-2}"
+      ENV: "${ENV:-prod}"
+      ROOT_PATH: /backend/sim
+    depends_on:
+      dataset_database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5035/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+    restart: unless-stopped
+    expose:
+      - "5035"
     networks:
       - internal
 
@@ -202,11 +280,20 @@ services:
         condition: service_started
       authentification_backend:
         condition: service_healthy
+      # service_started (not healthy): a broken MCP must not block the stack
+      mcp_backend:
+        condition: service_started
     restart: unless-stopped
     networks:
       - internal
 
 volumes:
+  ai_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/ai-logs
   auth_db_data:
     driver: local
     driver_opts:

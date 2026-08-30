@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { safeRemoveLayer, safeRemoveSource, setFilter } from './_lib/mapbox';
 
 export default function useTransitStops({
@@ -19,7 +19,11 @@ export default function useTransitStops({
   selectedDirection,
   drawRef
 }) {
-  
+  // Persists across effect re-runs so we can remove the previous click handler
+  // before binding a fresh one — otherwise every canton/mode/time change stacked
+  // another listener (and its closure) on 'transit-stops-hitbox'.
+  const stopClickHandlerRef = useRef(null);
+
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -282,7 +286,11 @@ export default function useTransitStops({
     }
     
     // === Handle click ===
-    map.on("click", "transit-stops-hitbox", (e) => {
+    // Swap out the previous handler so listeners don't accumulate on re-run.
+    if (stopClickHandlerRef.current) {
+      map.off("click", "transit-stops-hitbox", stopClickHandlerRef.current);
+    }
+    const onStopClick = (e) => {
       const features = e.features;
       if (!features || features.length === 0) return;
 
@@ -399,8 +407,10 @@ export default function useTransitStops({
         lines: combinedLines,
         modes_list: combinedModes
       });
-    });
-    
+    };
+    stopClickHandlerRef.current = onStopClick;
+    map.on("click", "transit-stops-hitbox", onStopClick);
+
     // === apply mode filtering ===
     const modeFilter = selectedTransitModes.includes("all")
     ? null

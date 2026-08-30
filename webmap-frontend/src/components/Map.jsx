@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import "./Loading.css" // loading screen for network
+import AiChat from './AiChat';
 import { useLoadWithFallback } from '../utils/useLoadWithFallback';
 import useMapbox from './map/useMapbox';
 import useCantons from './map/useCantons';
@@ -310,6 +311,7 @@ export default function Map() {
         </div>
       )}
       <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
+      <AiChat />
     </>
   );
 }

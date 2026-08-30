@@ -1,0 +1,152 @@
+/* API tokens modal (user menu → API Tokens) */
+
+.apitok-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  background: rgba(15, 23, 42, .45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.apitok-modal {
+  width: 620px;
+  max-width: calc(100vw - 40px);
+  max-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 24px 70px rgba(30, 27, 75, .35);
+  font-family: 'Inter', -apple-system, sans-serif;
+  overflow: hidden;
+}
+
+.apitok-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
+  color: #fff;
+  font-size: 15px;
+}
+.apitok-close {
+  background: rgba(255, 255, 255, .18);
+  border: none;
+  color: #fff;
+  border-radius: 8px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.apitok-close:hover { background: rgba(255, 255, 255, .3); }
+
+.apitok-body { padding: 16px 18px; overflow-y: auto; }
+
+.apitok-intro { margin: 0 0 14px; font-size: 13px; color: #475569; }
+
+.apitok-create { display: flex; gap: 8px; margin-bottom: 12px; }
+.apitok-create input {
+  flex: 1;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  outline: none;
+}
+.apitok-create input:focus { border-color: #6366f1; }
+.apitok-create select {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 13px;
+  background: #fff;
+}
+.apitok-create button {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+.apitok-create button:disabled { opacity: .5; cursor: default; }
+
+.apitok-error {
+  background: #fef2f2;
+  color: #991b1b;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12.5px;
+  margin-bottom: 10px;
+}
+
+.apitok-fresh {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+.apitok-fresh-title { font-size: 12.5px; font-weight: 600; color: #166534; margin-bottom: 6px; }
+.apitok-fresh-row { display: flex; align-items: center; gap: 8px; }
+.apitok-fresh-row code {
+  flex: 1;
+  font-size: 11.5px;
+  background: #fff;
+  border: 1px solid #d1fae5;
+  border-radius: 6px;
+  padding: 6px 8px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.apitok-fresh-row button {
+  border: none;
+  border-radius: 6px;
+  background: #16a34a;
+  color: #fff;
+  font-size: 12px;
+  padding: 6px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.apitok-connect { margin-top: 10px; font-size: 12.5px; }
+.apitok-connect summary { cursor: pointer; color: #166534; font-weight: 600; }
+.apitok-connect-body { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+.apitok-connect-label { color: #475569; font-size: 12px; }
+.apitok-cmd {
+  display: block;
+  background: #1e293b;
+  color: #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.apitok-list table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.apitok-list th {
+  text-align: left;
+  color: #64748b;
+  font-weight: 600;
+  padding: 6px 8px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.apitok-list td { padding: 7px 8px; border-bottom: 1px solid #f1f5f9; }
+.apitok-empty { color: #94a3b8; font-size: 13px; padding: 12px 0; }
+
+.apitok-revoke {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+  border-radius: 6px;
+  font-size: 11.5px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+.apitok-revoke:hover { background: #fee2e2; }

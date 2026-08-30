@@ -205,6 +205,14 @@ EDITABLE_KEYS: dict[str, dict] = {
     "SMTP_USER":                  {"restart": ["authentification_backend"], "hint": ""},
     "SMTP_PASSWORD":              {"restart": ["authentification_backend"], "hint": "", "secret": True},
     "SMTP_FROM":                  {"restart": ["authentification_backend"], "hint": ""},
+    "AI_QUERY_ENABLED":           {"restart": ["webmap_backend"], "hint": "1 = show the Ask-AI chat (needs a key too)"},
+    "LLM_PROVIDER":               {"restart": ["webmap_backend"], "hint": "gemini or openai (OpenAI-compatible, e.g. Ollama)"},
+    "GEMINI_API_KEY":             {"restart": ["webmap_backend"], "hint": "Gemini key for Ask-AI", "secret": True},
+    "LLM_MODEL":                  {"restart": ["webmap_backend"], "hint": "e.g. gemini-2.5-flash or llama3.3"},
+    "LLM_BASE_URL":               {"restart": ["webmap_backend"], "hint": "OpenAI-compatible endpoint (LLM_PROVIDER=openai)"},
+    "LLM_API_KEY":                {"restart": ["webmap_backend"], "hint": "key for LLM_BASE_URL", "secret": True},
+    "SIM_WORKER_TOKEN":           {"restart": ["sim_backend"], "hint": "shared secret for sim workers", "secret": True},
+    "SIM_MAX_ACTIVE_PER_USER":    {"restart": ["sim_backend"], "hint": "queued+running quota per user"},
 }
 
 _KEY_RE = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)=(.*)$")

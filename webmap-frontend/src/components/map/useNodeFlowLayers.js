@@ -67,6 +67,9 @@ const DASH_SEQ_REV = [...DASH_SEQ].reverse();
 // before the user ever enters NodeFlows. Keyed by `${datasetId}:${canton}`.
 // Value is a Promise<geojson|null> so concurrent requests dedupe.
 const nodesGeoJSONCache = new Map();
+// Cap the per-canton GeoJSON cache so a long session exploring many cantons
+// doesn't retain every canton's nodes forever. FIFO: drop the oldest entry.
+const NODES_CACHE_MAX = 8;
 
 // Per-dataset warmup of backend network-XML topology cache. Keyed by datasetId.
 const networkWarmupCache = new Map();
@@ -117,6 +120,9 @@ function fetchNodesGeoJSON(datasetId, canton) {
         }
     })();
     nodesGeoJSONCache.set(key, p);
+    if (nodesGeoJSONCache.size > NODES_CACHE_MAX) {
+        nodesGeoJSONCache.delete(nodesGeoJSONCache.keys().next().value);
+    }
     return p;
 }
 

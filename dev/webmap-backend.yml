@@ -10,3 +10,15 @@ services:
       - dataset_storage:/data/datasets:ro
     environment:
       ENV: dev
+
+  mcp_backend:
+    image: webmap-backend:dev
+    build:
+      context: ./webmap-backend
+      target: dev
+    command: ["python", "mcp/server.py", "--http", "--host", "0.0.0.0", "--port", "8090"]
+    volumes:
+      - ./webmap-backend:/app
+      - dataset_storage:/data/datasets:ro
+    environment:
+      ENV: dev

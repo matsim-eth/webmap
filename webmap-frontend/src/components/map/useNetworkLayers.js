@@ -37,7 +37,11 @@ export default function useNetworkLayers({
   // is unchecked). Keyed by `${datasetId}:${canton}`.
   const volCacheRef = useRef({ key: null, major: null, full: null });
   const selectedNetworkModesRef = useRef(selectedNetworkModes);
-  
+  // The click/hover handlers on 'network-layer-hitbox' read only refs, so they
+  // are bound once for the map's lifetime. Without this guard loadNetworkForCanton
+  // stacked three fresh anonymous listeners on every canton/dataset switch.
+  const hitboxHandlersBoundRef = useRef(false);
+
   useEffect(() => {
     selectedNetworkModesRef.current = selectedNetworkModes;
   }, [selectedNetworkModes]);
@@ -304,7 +308,10 @@ export default function useNetworkLayers({
     const handleIdle = () => { setIsLoading(false); map.off('idle', handleIdle); };
     map.on('idle', handleIdle);
     
-    // UPDATED click handler: use clicked feature directly (no single id anymore)
+    // UPDATED click handler: use clicked feature directly (no single id anymore).
+    // Bound once — re-binding per canton load leaked listeners (and their closures).
+    if (hitboxHandlersBoundRef.current) return;
+    hitboxHandlersBoundRef.current = true;
     map.on('click', 'network-layer-hitbox', (e) => {
       if (!e.features.length) return;
       // VolumeFlow/NodeFlows have their own click handler on this layer

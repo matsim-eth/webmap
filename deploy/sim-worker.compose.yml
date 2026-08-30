@@ -1,0 +1,36 @@
+# Sim worker deployment for the compute machine.
+# The ONLY file that machine needs (plus an .env next to it) — the image
+# comes from the registry, the code stays in the monorepo.
+#
+#   docker compose -f sim-worker.compose.yml --env-file .env up -d
+#
+# .env on the compute machine:
+#   BROKER_URL=https://YOUR-SERVER/backend/sim
+#   DATASET_API_URL=https://YOUR-SERVER/backend/datasets
+#   SIM_WORKER_TOKEN=...            # same value as in the server stack
+#   WORKER_ID=worker-1
+#
+# Scenario bundles (base-run inputs + eqasim jar + microcensus.duckdb)
+# live under ./bundles — their in-container paths (/bundles/...) are what
+# an admin registers in the broker's /scenarios.
+
+services:
+  sim_worker:
+    image: ghcr.io/matsim-eth/webmap/sim-worker:latest
+    build:
+      context: ..
+      dockerfile: sim-worker/Dockerfile
+    environment:
+      BROKER_URL: "${BROKER_URL}"
+      DATASET_API_URL: "${DATASET_API_URL}"
+      SIM_WORKER_TOKEN: "${SIM_WORKER_TOKEN}"
+      WORKER_ID: "${WORKER_ID:-worker-1}"
+      WORK_ROOT: /work
+      POLL_SECONDS: "10"
+    volumes:
+      - ./bundles:/bundles:ro       # base scenario bundles (read-only)
+      - sim_work:/work              # per-job scratch space
+    restart: unless-stopped
+
+volumes:
+  sim_work:

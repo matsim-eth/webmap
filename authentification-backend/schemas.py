@@ -58,3 +58,13 @@ class AdminUserUpdate(BaseModel):
 
 class ResendVerificationIn(BaseModel):
     email: Optional[str] = None
+
+
+class ApiTokenCreateIn(BaseModel):
+    """Personal API token (MCP / programmatic access)."""
+    name: str = Field(default="API token", max_length=100)
+    days: int = Field(default=90, ge=1, le=365)
+
+
+class ApiTokenVerifyIn(BaseModel):
+    token: str

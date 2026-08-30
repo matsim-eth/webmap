@@ -51,3 +51,4 @@ __pycache__/
 *.duckdb
 *.parquet
 REFACTOR_NOTES.md
+webmap-backend/ai_logs/

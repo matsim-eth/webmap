@@ -2,6 +2,7 @@ import { useState, useRef, useMemo } from 'react'
 import './App.css'
 import Sidebar from './components/Sidebar'
 import PlotGrid from './components/PlotGrid'
+import AiChat, { AiTilesProvider, AiTilesStrip } from './components/AiChat'
 import ControlsBar from './components/ControlsBar'
 import { DashboardProvider, useDashboard } from './context/DashboardContext'
 import { useAutoInitSlots } from './hooks/useAutoInitSlots'
@@ -116,8 +117,10 @@ function AppContent() {
       />
       <main ref={mainContentRef} className={`main-content ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         <ControlsBar activeTab={activeTab} />
+        <AiTilesStrip />
         <PlotGrid key={dataRefreshKey} sidebarCollapsed={sidebarCollapsed} activeTab={activeTab} />
       </main>
+      <AiChat />
     </div>
   )
 }
@@ -127,7 +130,9 @@ function App() {
     <DashboardProvider>
       <FileProvider>
         <DataProvider>
-          <AppContent />
+          <AiTilesProvider>
+            <AppContent />
+          </AiTilesProvider>
         </DataProvider>
       </FileProvider>
     </DashboardProvider>

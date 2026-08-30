@@ -11,3 +11,7 @@ python-jose[cryptography]>=3.3
 passlib[bcrypt]>=1.7.4
 
 starlette
+
+# MCP server (mcp/server.py — runs from the same image)
+mcp>=1.2
+PyJWT>=2.8

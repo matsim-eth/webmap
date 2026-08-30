@@ -33,6 +33,8 @@ from schemas import (
     RefreshIn,
     AdminUserUpdate,
     ResendVerificationIn,
+    ApiTokenCreateIn,
+    ApiTokenVerifyIn,
 )
 
 
@@ -276,6 +278,18 @@ async def lifespan(app: FastAPI):
         await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS approved BOOLEAN DEFAULT TRUE"))
         await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS verify_token TEXT"))
         await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS verify_token_expires TIMESTAMPTZ"))
+        # Personal API tokens (MCP / programmatic access). Only the SHA-256
+        # hash is stored — the plaintext token is shown once at creation.
+        await conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS api_tokens (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                name TEXT NOT NULL,
+                token_hash TEXT NOT NULL UNIQUE,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+                expires_at TIMESTAMPTZ,
+                last_used_at TIMESTAMPTZ
+            )"""))
     await _seed_default_users()
     yield
     await AuthAPI.close()
@@ -693,6 +707,99 @@ async def logout(
 
     _clear_auth_cookies(response)
     return {"ok": True}
+
+
+# ── Personal API tokens (MCP / programmatic access) ─────────────
+#
+# Long-lived bearer tokens users paste into an MCP client. Stored as
+# SHA-256 hashes; revocable; /api-tokens/verify exchanges a valid token
+# for a normal short-lived access JWT so downstream services (dataset
+# resolve) keep their existing auth unchanged.
+
+def _api_token_hash(token: str) -> str:
+    import hashlib
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+@app.post("/api-tokens", response_model=dict)
+async def create_api_token(
+    payload: ApiTokenCreateIn,
+    user: User = Depends(RequireUser(data=True)),
+    db: AsyncSession = Depends(get_db),
+):
+    import secrets
+    from datetime import timedelta
+    token = "wm_" + secrets.token_urlsafe(32)
+    expires = datetime.now(timezone.utc) + timedelta(days=payload.days)
+    row = await db.execute(text(
+        "INSERT INTO api_tokens (user_id, name, token_hash, expires_at) "
+        "VALUES (:uid, :name, :hash, :exp) RETURNING id"),
+        {"uid": user.id, "name": payload.name.strip() or "API token",
+         "hash": _api_token_hash(token), "exp": expires})
+    await db.commit()
+    return {"id": row.scalar(), "token": token,      # plaintext shown ONCE
+            "name": payload.name, "expires_at": expires.isoformat()}
+
+
+@app.get("/api-tokens", response_model=dict)
+async def list_api_tokens(
+    user: User = Depends(RequireUser(data=True)),
+    db: AsyncSession = Depends(get_db),
+):
+    rows = (await db.execute(text(
+        "SELECT id, name, created_at, expires_at, last_used_at "
+        "FROM api_tokens WHERE user_id = :uid ORDER BY created_at DESC"),
+        {"uid": user.id})).mappings().all()
+    return {"tokens": [{
+        "id": r["id"], "name": r["name"],
+        "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+        "expires_at": r["expires_at"].isoformat() if r["expires_at"] else None,
+        "last_used_at": r["last_used_at"].isoformat() if r["last_used_at"] else None,
+    } for r in rows]}
+
+
+@app.delete("/api-tokens/{token_id}", response_model=dict)
+async def revoke_api_token(
+    token_id: int,
+    user: User = Depends(RequireUser(data=True)),
+    db: AsyncSession = Depends(get_db),
+):
+    res = await db.execute(text(
+        "DELETE FROM api_tokens WHERE id = :tid AND user_id = :uid"),
+        {"tid": token_id, "uid": user.id})
+    await db.commit()
+    if res.rowcount == 0:
+        raise HTTPException(status_code=404, detail="token not found")
+    return {"ok": True}
+
+
+@app.post("/api-tokens/verify", response_model=dict)
+async def verify_api_token(payload: ApiTokenVerifyIn, db: AsyncSession = Depends(get_db)):
+    """Exchange a personal API token for a short-lived access JWT.
+
+    Called by the MCP service per request (cached there). Effectively a
+    login-with-token endpoint: safe to expose — it only answers when the
+    caller already holds a valid secret token."""
+    tok = (payload.token or "").strip()
+    if not tok.startswith("wm_"):
+        raise HTTPException(status_code=401, detail="invalid token")
+    row = (await db.execute(text(
+        "SELECT id, user_id, expires_at FROM api_tokens WHERE token_hash = :h"),
+        {"h": _api_token_hash(tok)})).mappings().first()
+    if not row:
+        raise HTTPException(status_code=401, detail="invalid token")
+    if row["expires_at"] and row["expires_at"] < datetime.now(timezone.utc):
+        raise HTTPException(status_code=401, detail="token expired")
+    user = await db.scalar(select(User).where(User.id == row["user_id"]))
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="account disabled")
+    await db.execute(text(
+        "UPDATE api_tokens SET last_used_at = now() WHERE id = :tid"),
+        {"tid": row["id"]})
+    await db.commit()
+    return {"user_id": user.id, "email": user.email,
+            "admin": bool(user.admin),
+            "access_token": create_access_token(user)}
 
 
 # ── Admin endpoints ─────────────────────────────────────────────

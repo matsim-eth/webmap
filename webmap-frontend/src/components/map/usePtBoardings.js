@@ -168,6 +168,7 @@ export default function usePtBoardings({
       });
     }
 
+    let hoverPopup = null;
     const handleMouseEnter = (e) => {
       const cantonName = e.features[0].properties.NAME;
       const boardingCount = boardingsByCanton[cantonName] || 0;
@@ -186,19 +187,17 @@ export default function usePtBoardings({
           </div>
         `;
         
-        new mapboxgl.Popup()
+        if (hoverPopup) hoverPopup.remove();
+        hoverPopup = new mapboxgl.Popup()
           .setLngLat(e.lngLat)
           .setHTML(popupContent)
           .addTo(map);
       }
     };
-    
+
     const handleMouseLeave = () => {
       map.getCanvas().style.cursor = '';
-      const popups = document.getElementsByClassName('mapboxgl-popup');
-      if (popups.length) {
-        popups[0].remove();
-      }
+      if (hoverPopup) { hoverPopup.remove(); hoverPopup = null; }
     };
     
     if (map.getLayer('boarding-choropleth')) {
@@ -211,6 +210,7 @@ export default function usePtBoardings({
         map.off('mouseenter', 'boarding-choropleth', handleMouseEnter);
         map.off('mouseleave', 'boarding-choropleth', handleMouseLeave);
       }
+      if (hoverPopup) { hoverPopup.remove(); hoverPopup = null; }
     };
   }, [selectedBoardingData]);
   

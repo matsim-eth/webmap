@@ -41,6 +41,9 @@ export function resetVolumeFlowOverlay(map) {
 // per-link geometry asset has no baked volume attribute, so VolumeFlow derives
 // it from the link_volumes endpoint to hide links that carry no trips.
 const linkVolumesCache = new Map();
+// Cap the per-canton volume cache (FIFO) so exploring many cantons in one
+// session doesn't retain every canton's link volumes for the tab's lifetime.
+const LINK_VOL_CACHE_MAX = 8;
 
 function fetchLinkVolumes(datasetId, canton) {
     const key = `${datasetId}:${canton}`;
@@ -66,6 +69,9 @@ function fetchLinkVolumes(datasetId, canton) {
         }
     })();
     linkVolumesCache.set(key, p);
+    if (linkVolumesCache.size > LINK_VOL_CACHE_MAX) {
+        linkVolumesCache.delete(linkVolumesCache.keys().next().value);
+    }
     return p;
 }
 

@@ -79,6 +79,29 @@ services:
     environment:
       ENV: dev
 
+  # ── MCP Backend: same dev image, MCP entrypoint ─────────────────
+  mcp_backend:
+    image: webmap-backend:dev
+    build:
+      context: ./webmap-backend
+      target: dev
+    command: ["python", "mcp/server.py", "--http", "--host", "0.0.0.0", "--port", "8090"]
+    volumes:
+      - ./webmap-backend:/app
+      - dataset_storage:/data/datasets:ro
+    environment:
+      ENV: dev
+
+  sim_backend:
+    image: webmap-sim-backend:dev
+    build:
+      context: ./sim-backend
+      target: dev
+    volumes:
+      - ./sim-backend:/app
+    environment:
+      ENV: dev
+
   # ── Webmap Frontend: Vite dev server + HMR ─────────────────────
   webmap_frontend:
     image: webmap-frontend:dev

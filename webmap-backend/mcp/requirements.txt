@@ -1,0 +1,9 @@
+# MCP server dependencies. The providers it reuses additionally need the
+# backend's core libs (duckdb/pydantic/fastapi/httpx), listed here so the
+# server runs from a standalone venv without the full backend image.
+mcp>=1.2
+duckdb>=1.0
+pydantic>=2.7
+fastapi>=0.111
+httpx>=0.27
+PyJWT>=2.8
