@@ -1,18 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import './ControlsBar.css';
 import { useDashboard } from '../context/DashboardContext';
-import cantonAlias from '../utils/canton_alias.json';
 import TransitStopSearch from './plots/TransitStopSearch';
 import TransitLineSearch from './plots/TransitLineSearch';
 import PolygonUploader from './plots/PolygonUploader';
-
-const CANTONS = [
-  "All", "Aargau", "AppenzellAusserrhoden", "AppenzellInnerrhoden", 
-  "Basel-Landschaft", "Basel-Stadt", "Bern", "Fribourg", "Geneve", 
-  "Glarus", "Graubunden", "Jura", "Luzern", "Neuchatel", "Nidwalden", 
-  "Obwalden", "Schaffhausen", "Schwyz", "Solothurn", "StGallen", 
-  "Ticino", "Thurgau", "Uri", "Valais", "Vaud", "Zug", "Zurich"
-];
 
 const MODES = [
   { id: "all", label: "All Modes" },
@@ -82,7 +73,18 @@ const ControlsBar = ({ activeTab }) => {
     selectedIncome, setSelectedIncome,
     selectedAge, setSelectedAge,
     selectedRoadType, setSelectedRoadType,
+    zones, zoneLabel, zoneLabelPlural,
   } = useDashboard();
+
+  // Canton (= primary zone) dropdown options: "All" + one per study-area zone.
+  // Value = zone `name` (sent to the backend as ?canton=); display = displayName.
+  const zoneOptions = useMemo(
+    () => [
+      { value: 'All', label: `All ${zoneLabelPlural}` },
+      ...zones.map((z) => ({ value: z.name, label: z.displayName })),
+    ],
+    [zones, zoneLabelPlural]
+  );
 
   // Determine which filters to show based on active tab
   const showModeFilter = activeTab === 'mode';
@@ -96,17 +98,17 @@ const ControlsBar = ({ activeTab }) => {
 
   return (
     <div className="controls-bar">
-      {/* Canton Dropdown */}
+      {/* Primary-zone dropdown (Canton for Swiss datasets) */}
       <div className="control-group">
-        <label className="control-label">Canton</label>
-        <select 
+        <label className="control-label">{zoneLabel}</label>
+        <select
           className="control-select"
           value={selectedCanton}
           onChange={(e) => setSelectedCanton(e.target.value)}
         >
-          {CANTONS.map((canton) => (
-            <option key={canton} value={canton}>
-              {cantonAlias[canton] || canton}
+          {zoneOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
             </option>
           ))}
         </select>

@@ -1,7 +1,7 @@
 import React from "react";
 import "./Table.css";
-import cantonAlias from "../utils/canton_alias.json";
 import { useLoadWithFallback } from "../utils/useLoadWithFallback";
+import { useData } from "../context/DataContext";
 import { useQuery } from "@tanstack/react-query";
 
 // --- Color & label maps ---
@@ -48,12 +48,15 @@ const CantonModeShareTable = ({
   aggCol = "mode", // "mode" or "purpose"
 }) => {
   const loadWithFallback = useLoadWithFallback();
+  const { datasetId, zoneByName } = useData();
 
   const COLORS = COLOR_MAPS[aggCol] || {};
   const LABELS = LABEL_MAPS[aggCol] || {};
 
+  // datasetId in the key: refetch the share table when the dataset switches
+  // instead of serving the previous dataset's cached response.
   const { data: shareData } = useQuery({
-    queryKey: ['share-data', aggCol],
+    queryKey: ['share-data', aggCol, datasetId],
     queryFn: () => loadWithFallback(`${aggCol}_share.json`),
   });
 
@@ -62,10 +65,10 @@ const CantonModeShareTable = ({
   let items = [];
 
   if (selectedDataset === "Difference") {
-    const micro = shareData["Microcensus"].filter(
+    const micro = (shareData["Microcensus"] || []).filter(
       (e) => e.canton_name === canton
     );
-    const synthetic = shareData["Synthetic"].filter(
+    const synthetic = (shareData["Synthetic"] || []).filter(
       (e) => e.canton_name === canton
     );
 
@@ -91,7 +94,7 @@ const CantonModeShareTable = ({
 
   return (
     <div className="canton-mode-share">
-      <h4>{cantonAlias[canton]}</h4>
+      <h4>{zoneByName?.get(canton)?.displayName || canton}</h4>
       <table>
         <thead>
           <tr>

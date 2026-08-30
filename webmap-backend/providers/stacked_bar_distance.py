@@ -16,7 +16,7 @@ from .helpers import (
     parse_source_param,
     purpose_filter_sql,
 )
-from ._pre_agg import label_for, make_label_resolver, polygon_filter_clause, resolve_polygon_ids, _source_label
+from ._pre_agg import label_for, make_label_resolver, polygon_filter_clause, primary_fast_path, resolve_polygon_ids, _source_label
 
 
 DEFAULT_CATEGORIES = [
@@ -69,7 +69,7 @@ class StackedBarDistanceProvider(DataProvider):
         sources = parse_source_param(params)
         if not sources:
             return {}
-        summary = is_summary_only(params) and not (params.get("canton") or params.get("polygon_id")) and not has_person_filters(params)
+        summary = is_summary_only(params) and not (params.get("canton") or params.get("zone") or params.get("polygon_id")) and not has_person_filters(params)
         gf = "" if summary else gender_filter_sql(params, "p.sex")
         af = "" if summary else age_filter_sql(params, "p.age")
         mf = mode_filter_sql(params, "t.main_mode")
@@ -104,7 +104,7 @@ class StackedBarDistanceProvider(DataProvider):
             if polygon_ids:
                 join, where, group_expr, bind, _ = polygon_filter_clause(polygon_ids)
                 resolve = make_label_resolver(con, polygon_ids,
-                                               all(p.startswith("canton:") for p in polygon_ids))
+                                               primary_fast_path(polygon_ids))
                 rows = con.execute(f"""
                     SELECT {group_expr} AS poly_key, {grp_col} AS grp, {cat_sql} AS cat, COUNT(*)
                     FROM trips t

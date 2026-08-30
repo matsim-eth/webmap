@@ -4,8 +4,9 @@ import { useSelection } from '../../context/SelectionContext';
 import { useData } from '../../context/DataContext';
 import { useFilters } from '../../context/FilterContext';
 import { handle401 } from '../../utils/auth';
-import bboxCache from '../../utils/bboxCanton.json';
 import { safeRemoveLayer, safeRemoveSource } from './_lib/mapbox';
+import { measureMapPadding } from '../sidebar/sidebarLayout';
+import { socioFiltersToParams } from '../filters/socioFilterConfig';
 
 // The backend (zone_flows.json) now returns `flow_geojson` — a FeatureCollection
 // of just the flow links (geometry pulled off the network_links join the query
@@ -33,8 +34,8 @@ const unionBbox = (a, b) => {
 export default function useZoneFlowLayers({ mapRef, mapReady, setIsLoading }) {
     const { isGraphExpanded } = useModule();
     const { clickedCanton, zoneFlowDestCanton } = useSelection();
-    const { datasetId, setZoneFlowData, setZoneFlowLoading } = useData();
-    const { zoneFlowDirection, timeRange } = useFilters();
+    const { datasetId, zoneByName, setZoneFlowData, setZoneFlowLoading } = useData();
+    const { zoneFlowDirection, timeRange, socioFilters } = useFilters();
 
     const zoneFlowOriginCanton = isGraphExpanded === 'ZoneFlows' ? clickedCanton : null;
 
@@ -102,10 +103,12 @@ export default function useZoneFlowLayers({ mapRef, mapReady, setIsLoading }) {
 
     const fitToCantons = useCallback((map, cantons) => {
         let bbox = null;
-        for (const c of cantons) bbox = unionBbox(bbox, bboxCache[c]);
+        for (const c of cantons) bbox = unionBbox(bbox, zoneByName?.get(c)?.bbox);
         if (!bbox) return;
-        map.fitBounds(bbox, { padding: { top: 60, bottom: 60, left: 200, right: 700 }, duration: 800, maxZoom: 11 });
-    }, []);
+        // Fires after the flow data fetch, so the sidebar widths have settled —
+        // measure them live to keep both cantons centred in the visible map.
+        map.fitBounds(bbox, { padding: { ...measureMapPadding(), top: 60, bottom: 60 }, duration: 800, maxZoom: 11 });
+    }, [zoneByName]);
 
     const setFlowData = useCallback((map, fc) => {
         const src = map.getSource(SOURCE_ID);
@@ -150,6 +153,7 @@ export default function useZoneFlowLayers({ mapRef, mapReady, setIsLoading }) {
             minute_start: String(minute_start),
             minute_end: String(minute_end),
         });
+        for (const [k, v] of Object.entries(socioFiltersToParams(socioFilters))) params.set(k, v);
 
         const token = ++fetchTokenRef.current;
         setIsLoading?.(true);
@@ -192,8 +196,8 @@ export default function useZoneFlowLayers({ mapRef, mapReady, setIsLoading }) {
 
         return () => abort.abort();
     }, [mapReady, mapRef, isGraphExpanded, zoneFlowOriginCanton, zoneFlowDestCanton,
-        zoneFlowDirection, timeRange, datasetId, removeAll, ensureLayers, fitToCantons,
-        setFlowData, setZoneFlowData, setZoneFlowLoading, setIsLoading]);
+        zoneFlowDirection, timeRange, socioFilters, datasetId, removeAll, ensureLayers,
+        fitToCantons, setFlowData, setZoneFlowData, setZoneFlowLoading, setIsLoading]);
 
     return null;
 }

@@ -1,6 +1,7 @@
 import React from "react";
 import "./ChoroplethControls.css";
 import { useLoadWithFallback } from "../utils/useLoadWithFallback";
+import { useData } from "../context/DataContext";
 import { useQuery } from "@tanstack/react-query";
 
 const COLOR_MAPS = {
@@ -49,17 +50,29 @@ const ChoroplethControls = ({
   setAggCol,
 }) => {
   const loadWithFallback = useLoadWithFallback();
+  const { datasetId } = useData();
 
   const COLORS = COLOR_MAPS[aggCol] || {};
   const LABELS = LABEL_MAPS[aggCol] || {};
 
-  const { data: maxSharePerMode = null } = useQuery({
-    queryKey: ['max-share-per-mode', aggCol],
+  // datasetId in the key: refetch the max-share scaling when the dataset
+  // switches instead of serving the previous dataset's cached response.
+  const { data: shareInfo } = useQuery({
+    queryKey: ['max-share-per-mode', aggCol, datasetId],
     queryFn: () => loadWithFallback(`${aggCol}_share.json`).then((data) => {
       const maxKey = `max_share_per_${aggCol}`;
-      return data[maxKey] ?? null;
+      return {
+        maxSharePerMode: data[maxKey] ?? null,
+        hasMicrocensus: !!data["Microcensus"],
+      };
     }),
   });
+  const maxSharePerMode = shareInfo?.maxSharePerMode ?? null;
+  const hasMicrocensus = shareInfo?.hasMicrocensus ?? false;
+
+  const availableTabs = hasMicrocensus
+    ? ["Synthetic", "Microcensus", "Difference"]
+    : ["Synthetic"];
 
   const handleModeChange = (e) => {
     const newMode = e.target.value;
@@ -110,18 +123,23 @@ const ChoroplethControls = ({
       <div className="choropleth-field">
         <label className="choropleth-label">Dataset</label>
         <div className="choropleth-segmented">
-          {["Microcensus", "Synthetic", "Difference"].map((option) => (
-            <button
-              key={option}
-              className={`choropleth-segmented-btn ${selectedDataset === option ? "active" : ""}`}
-              onClick={() => {
-                setSelectedDataset(option);
-                updateMapChoropleth(selectedMode, option);
-              }}
-            >
-              {option}
-            </button>
-          ))}
+          {availableTabs.map((option) => {
+            const isActive = availableTabs.includes(selectedDataset)
+              ? selectedDataset === option
+              : option === "Synthetic";
+            return (
+              <button
+                key={option}
+                className={`choropleth-segmented-btn ${isActive ? "active" : ""}`}
+                onClick={() => {
+                  setSelectedDataset(option);
+                  updateMapChoropleth(selectedMode, option);
+                }}
+              >
+                {option}
+              </button>
+            );
+          })}
         </div>
       </div>
 

@@ -1,9 +1,9 @@
 from collections import defaultdict
 
 from .base import DataProvider, Param
-from .constants import canton_name
 from .helpers import load_static_asset
 from .paths import dataset_key
+from .zone_registry import get_registry
 
 
 # Per-dataset cache, keyed by dataset root.
@@ -46,18 +46,30 @@ class StopTransferDataProvider(DataProvider):
         if raw is None:
             raise FileNotFoundError("stop_transfer_data not in static_assets")
 
-        # per-stop total boardings from boarding_data_by_line
+        # per-stop total boardings from boarding_data_by_line. Via
+        # BoardingDataProvider._load(), NOT load_static_asset: the latter has no
+        # cache, so reading the ~24 MB blob here meant a second full read+parse
+        # even when the transit-stops build had already done one. _load() caches
+        # per dataset (and normalises v2's `modes` → `vehicle` on the way).
+        from .boarding_data import BoardingDataProvider
+
         boardings_by_stop: dict[str, int] = defaultdict(int)
-        boarding = load_static_asset("synthetic", "boarding_data_by_line") or []
+        try:
+            # _load() raises when the asset is absent; the old `or []` degraded
+            # to zero boardings instead of failing the whole endpoint. Keep that.
+            boarding = BoardingDataProvider()._load() or []
+        except FileNotFoundError:
+            boarding = []
         for line in boarding:
             for stop in line.get("stops", []):
                 sid = stop.get("stop_id")
                 for d in stop.get("data", []):
                     boardings_by_stop[sid] += d.get("boardings", 0)
 
+        reg = get_registry()
         out: dict[str, dict] = {}
         for entry in raw:
-            cname = canton_name(entry.get("canton_id"))
+            cname = reg.zone_name(entry.get("canton_id"))
             stops: dict[str, dict] = {}
             for s in entry.get("stops", []):
                 sid = s.get("stop_id")

@@ -29,6 +29,8 @@ Thumbs.db
 
 # Claude
 .claude/
+# Per-package CLAUDE.md guidance (local, like .claude/ above)
+CLAUDE.md
 
 # Editor settings
 DTSM Validation.code-workspace

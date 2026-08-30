@@ -230,6 +230,51 @@ body {
   margin-bottom: 8px;
 }
 
+/* ── Default dataset setting ── */
+
+.ds-default-bar {
+  display: grid;
+  /* label / select / status on row 1; the hint spans all three on row 2 so it
+     aligns under the label instead of being squeezed beside the select. */
+  grid-template-columns: auto minmax(0, 260px) 1fr;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--card-radius);
+}
+
+.ds-default-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.ds-default-select {
+  /* form-select is width:100%; the grid track above caps it. */
+  margin: 0;
+}
+
+.ds-default-status {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  min-height: 1em; /* reserve the line so setting it doesn't shift the layout */
+}
+
+.ds-default-hint {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .ds-default-bar {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ── Tables ── */
 
 .data-table {
@@ -388,6 +433,12 @@ body {
   animation: modalIn 220ms cubic-bezier(.2, .8, .2, 1) forwards;
   opacity: 0;
   transform: translateY(10px);
+  /* Header + footer stay put; the body scrolls when the card outgrows the
+     viewport (short screens on the Edit Dataset modal). */
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
 }
 
 @keyframes modalIn {
@@ -400,6 +451,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px 0;
+  flex: 0 0 auto;
 }
 
 .modal-header h3 {
@@ -425,6 +477,41 @@ body {
 
 .modal-body {
   padding: 20px 24px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+  /* Scroll shadows: pure CSS, and visible only while the body actually
+     overflows — the `local` layers ride the content and cover the pinned
+     `scroll` layers at the extremes. */
+  background:
+    linear-gradient(var(--color-surface) 30%, rgba(255, 255, 255, 0)) center top,
+    linear-gradient(rgba(255, 255, 255, 0), var(--color-surface) 70%) center bottom,
+    radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, .12), rgba(0, 0, 0, 0)) center top,
+    radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, .12), rgba(0, 0, 0, 0)) center bottom;
+  background-repeat: no-repeat;
+  background-size: 100% 26px, 100% 26px, 100% 8px, 100% 8px;
+  background-attachment: local, local, scroll, scroll;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 10px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border: 3px solid var(--color-surface);
+  border-radius: 999px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted, #9ca3af);
 }
 
 .modal-footer {
@@ -432,6 +519,7 @@ body {
   justify-content: flex-end;
   gap: 8px;
   padding: 0 24px 20px;
+  flex: 0 0 auto;
 }
 
 /* ── Form elements (modal forms) ── */
@@ -502,6 +590,65 @@ body {
   border: none;
   border-top: 1px solid var(--color-border);
   margin: 16px 0;
+}
+
+/* ── Study-area re-zone (Edit Dataset modal) ── */
+.form-hint {
+  margin: 4px 0 8px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.ds-rezone-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.ds-rezone-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ds-rezone-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+}
+
+.ds-rezone-go {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.ds-rezone-confirm {
+  margin-top: 4px;
+  padding: 10px 12px;
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  background: rgba(99, 102, 241, 0.06);
+  border-radius: var(--radius, 6px);
+}
+
+.ds-rezone-confirm-text {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-text);
+}
+
+.ds-rezone-confirm-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.ds-rezone-status {
+  font-weight: 600;
+  color: var(--color-primary-dark, #4f46e5);
 }
 
 /* ── DuckDB file manager (Edit Dataset modal) ── */
@@ -587,6 +734,207 @@ body {
   box-shadow: none;
 }
 
+/* ── MATSim import (Edit Dataset modal) ── */
+.ds-ingest-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.ds-ingest-toggle:hover {
+  color: var(--color-primary);
+}
+
+.ds-ingest-caret {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.ds-ingest-body {
+  margin-top: 10px;
+}
+
+.ds-ingest-opts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 12px;
+  margin: 12px 0;
+}
+
+.ds-ingest-warn {
+  margin: 0 0 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius, 6px);
+  font-size: 12px;
+  line-height: 1.45;
+  border: 1px solid var(--color-warning);
+  background: var(--color-warning-light);
+  color: var(--color-text);
+}
+
+.ds-ingest-warn.is-block {
+  border-color: var(--color-error);
+  background: var(--color-error-light);
+}
+
+.ds-ingest-progress {
+  margin-top: 12px;
+}
+
+.ds-ingest-step {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary-dark, #4f46e5);
+}
+
+.ds-ingest-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.ds-ingest-bar-fill {
+  height: 100%;
+  width: 0;
+  border-radius: 3px;
+  background: var(--color-primary);
+  transition: width 300ms ease;
+}
+
+.ds-ingest-bar-fill.is-indeterminate {
+  animation: ingestPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes ingestPulse {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 1; }
+}
+
+.ds-ingest-elapsed {
+  margin: 6px 0 0;
+}
+
+/* Inline job progress row in dataset tables */
+tr:has(+ .ds-job-progress-row) td {
+  border-bottom: none;
+}
+
+.ds-job-progress-row td {
+  padding: 0 8px 8px !important;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ds-job-progress-row:hover {
+  background: transparent !important;
+}
+
+.ds-job-cell {
+  padding-top: 0 !important;
+}
+
+.ds-job-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.ds-job-label {
+  font-weight: 600;
+  color: var(--color-primary-dark, #4f46e5);
+  white-space: nowrap;
+}
+
+.ds-job-step {
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.ds-job-counter {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.ds-job-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.ds-job-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--color-primary);
+  transition: width 300ms ease;
+}
+
+.ds-job-bar-fill.is-indeterminate {
+  animation: ingestPulse 1.4s ease-in-out infinite;
+}
+
+/* Ingest mode tabs (Individual Files / ZIP Upload) */
+.ds-ingest-mode-tabs {
+  display: inline-flex;
+  gap: 2px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 3px;
+  margin-bottom: 12px;
+}
+
+.ds-ingest-mode-tab {
+  padding: 5px 14px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all .15s ease;
+}
+
+.ds-ingest-mode-tab:hover {
+  color: var(--color-text);
+}
+
+.ds-ingest-mode-tab.active {
+  background: var(--color-surface);
+  color: var(--color-primary-dark);
+  box-shadow: 0 1px 4px rgba(79, 70, 229, .12);
+}
+
+.ds-ingest-mode-pane {
+  display: none;
+}
+
+.ds-ingest-mode-pane.active {
+  display: block;
+}
+
 /* ── Toast ── */
 
 .toast-container {
@@ -612,7 +960,6 @@ body {
   transform: translateY(-10px) scale(.98);
   transition: all 220ms cubic-bezier(.2, .8, .2, 1);
   pointer-events: auto;
-  border-left: 3px solid var(--color-primary);
 }
 
 .toast.visible {
@@ -621,11 +968,15 @@ body {
 }
 
 .toast.error {
-  border-left-color: var(--color-error);
+  background: #fef2f2;
+  color: #991b1b;
+  border-color: rgba(239, 68, 68, .25);
 }
 
 .toast.success {
-  border-left-color: var(--color-success);
+  background: #f0fdf4;
+  color: #166534;
+  border-color: rgba(22, 163, 74, .25);
 }
 
 /* ── Utility ── */

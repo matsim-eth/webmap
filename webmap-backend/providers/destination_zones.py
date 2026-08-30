@@ -11,34 +11,39 @@ trip counts bucketed into 15-minute bins — the exact array shape
     [{ role, origin, destination, mode, purpose, time_bins: {"HH:MM": count} }]
 
 ``role="origin"`` rows are outflow (C → other); ``role="destination"`` rows are
-inflow (other → C). Intra-canton trips (other == C) are excluded — the module
-visualizes flows *between* cantons (its destination list/arcs already drop the
-hub). ``purpose`` is the trip's destination activity (``following_purpose``),
+inflow (other → C). Intra-canton trips (other == C) are included in both role
+branches — the frontend shows them as a pinned "Within C" list row and scales
+the hub marker by them (its arcs still drop the hub, so no self-loop arc is
+drawn). ``purpose`` is the trip's destination activity (``following_purpose``),
 which is what the frontend's purpose filter expects (work/education/shop/leisure).
+
+Query params
+------------
+canton         (str, required)  : Hub canton name or ID.
+zone           (str)            : Hub zone name or ID; alias of canton.
+source         (str)            : Data source (default "synthetic").
+gender         (str)            : "0" (male) or "1" (female) → persons.sex.
+age_min        (int)            : Inclusive lower age bound → persons.age.
+age_max        (int)            : Exclusive upper age bound → persons.age.
+income_class   (str)            : Comma-separated income classes → households.income_class.
+subscription   (str)            : Comma-separated PT subscriptions (ga,halbtax,…); match if ANY selected.
 """
 
 from __future__ import annotations
 
 from .base import DataProvider, Param
-from .constants import CANTON_MAP
 from .connection import get_source_cursor
+from .helpers import socio_trip_filter
 from .result_cache import make_cache
+from .zone_registry import get_registry, zone_col
 
 _cget, _cput = make_cache(maxsize=48)
 
-_NAME_TO_ID = {v.lower(): k for k, v in CANTON_MAP.items()}
-
 
 def _resolve_canton(value: str) -> int | None:
-    """Resolve a canton name or ID string to a canton ID integer."""
-    value = value.strip()
-    try:
-        cid = int(value)
-        if cid in CANTON_MAP:
-            return cid
-    except ValueError:
-        pass
-    return _NAME_TO_ID.get(value.lower())
+    """Resolve a zone name or ID string to a zone ID integer via the dataset's
+    zone registry."""
+    return get_registry().resolve_zone(value)
 
 
 def _bin_key(bin15: int) -> str:
@@ -55,7 +60,13 @@ def _bin_key(bin15: int) -> str:
 
 _PARAMS = [
     Param("canton", "Hub canton name or ID", required=True),
+    Param("zone", "Hub zone name or ID; alias of canton"),
     Param("source", "Data source", enum=["synthetic", "microcensus"]),
+    Param("gender", "Person sex filter", enum=["0", "1"]),
+    Param("age_min", "Inclusive lower age bound", param_type="integer"),
+    Param("age_max", "Exclusive upper age bound", param_type="integer"),
+    Param("income_class", "Household income class(es), comma-separated"),
+    Param("subscription", "PT subscription(s), comma-separated (ga,halbtax,…); match if ANY selected"),
 ]
 
 
@@ -69,7 +80,7 @@ class DestinationZonesProvider(DataProvider):
     PARAMS = _PARAMS
 
     def deliver(self, params: dict):
-        raw = (params.get("canton") or "").strip()
+        raw = (params.get("canton") or params.get("zone") or "").strip()
         if not raw:
             return {"error": "canton parameter is required"}
         cid = _resolve_canton(raw)
@@ -88,40 +99,53 @@ class DestinationZonesProvider(DataProvider):
         except Exception as exc:
             return {"error": f"destination_zones data unavailable: {exc}"}
 
+        reg = get_registry()
+        ocol = zone_col(source, "trips", "origin")
+        dcol = zone_col(source, "trips", "dest")
+
+        # Optional socioeconomic person filters (gender/age/income/subscription).
+        # Empty strings when no socio param is set, so the common path is
+        # unchanged. Both UNION branches scan `trips`, so both carry the join.
+        socio_join, socio_where = socio_trip_filter(params, trip_alias="t")
+
         # One scan, both directions. Each row is tagged with the hub's role and
-        # the "other" canton; intra-canton trips and rows missing a canton id are
-        # excluded. 15-min bin index = floor(departure_time / 900).
-        query = """
+        # the "other" canton; rows missing a canton id are excluded. Intra-canton
+        # trips (other == hub) appear once per role branch, which is once per
+        # direction view since the frontend filters by role. 15-min bin index =
+        # floor(departure_time / 900).
+        query = f"""
             SELECT role, other_id, main_mode, following_purpose, bin15,
                    COUNT(*)::INTEGER AS cnt
             FROM (
-                SELECT 'origin' AS role, dest_canton_id AS other_id,
-                       main_mode, following_purpose,
-                       CAST(departure_time // 900 AS INTEGER) AS bin15
-                FROM trips
-                WHERE origin_canton_id = ? AND dest_canton_id IS NOT NULL
-                  AND dest_canton_id <> ?
+                SELECT 'origin' AS role, t.{dcol} AS other_id,
+                       t.main_mode, t.following_purpose,
+                       CAST(t.departure_time // 900 AS INTEGER) AS bin15
+                FROM trips t
+                {socio_join}
+                WHERE t.{ocol} = ? AND t.{dcol} IS NOT NULL
+                  {socio_where}
                 UNION ALL
-                SELECT 'destination' AS role, origin_canton_id AS other_id,
-                       main_mode, following_purpose,
-                       CAST(departure_time // 900 AS INTEGER) AS bin15
-                FROM trips
-                WHERE dest_canton_id = ? AND origin_canton_id IS NOT NULL
-                  AND origin_canton_id <> ?
+                SELECT 'destination' AS role, t.{ocol} AS other_id,
+                       t.main_mode, t.following_purpose,
+                       CAST(t.departure_time // 900 AS INTEGER) AS bin15
+                FROM trips t
+                {socio_join}
+                WHERE t.{dcol} = ? AND t.{ocol} IS NOT NULL
+                  {socio_where}
             )
             GROUP BY role, other_id, main_mode, following_purpose, bin15
         """
         try:
-            rows = cur.execute(query, [cid, cid, cid, cid]).fetchall()
+            rows = cur.execute(query, [cid, cid]).fetchall()
         except Exception as exc:
             return {"error": str(exc)}
 
-        hub = CANTON_MAP.get(cid, str(cid))
+        hub = reg.zone_name(cid)
         # Collapse to one record per (role, other, mode, purpose) carrying a
         # {"HH:MM": count} time_bins dict.
         records: dict[tuple, dict] = {}
         for role, other_id, mode, purpose, bin15, cnt in rows:
-            other = CANTON_MAP.get(other_id, str(other_id))
+            other = reg.zone_name(other_id)
             key = (role, other_id, mode, purpose)
             rec = records.get(key)
             if rec is None:
@@ -139,3 +163,19 @@ class DestinationZonesProvider(DataProvider):
         result = list(records.values())
         _cput(ckey, result)
         return result
+
+
+def warm() -> None:
+    """Prime the module for the dataset currently in scope (called by
+    ``warmup.WARM_STEPS``).
+
+    Runs the real query for the lowest-numbered zone rather than a synthetic
+    "touch the columns" scan: the WHERE is on the origin/dest id, so DuckDB
+    reads the whole ``trips`` table either way, and using an actual hub
+    additionally leaves that hub's result in the cache. Every *other* hub is
+    fast afterwards too — what makes the first request expensive is paging the
+    trips columns in, not the group-by."""
+    zones = get_registry().zones_sorted()
+    if not zones:
+        return
+    DestinationZonesProvider().deliver({"canton": str(zones[0][0])})

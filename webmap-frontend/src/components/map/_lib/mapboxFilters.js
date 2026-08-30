@@ -23,6 +23,64 @@ export const CLICKABLE_ROAD_FILTER = ['any',
   ['!', ['has', 'modes']],
 ];
 
+/**
+ * "Major roads only" predicate (Volumes module toggle, feature table, polygon
+ * selection). Hierarchy-based: a road is major when its `road_type` (the OSM
+ * highway class shipped per segment in the v2 merged_segments) is a
+ * motorway/primary/secondary class — the same classes the Link Speeds
+ * road-type filter exposes; the `_link` variants keep ramps attached.
+ *
+ * The old `capacity > 1200` test survives only as a per-feature fallback for
+ * untagged data (legacy CDN geojson, datasets whose network XML lacked the
+ * type attribute → road_type "unknown"). A pure capacity threshold chops
+ * corridors mid-way (primary links dip to capacity 0 at signal approaches)
+ * and lets isolated minor links through (residential links reach 1800).
+ */
+export const MAJOR_ROAD_TYPES = [
+  'motorway', 'motorway_link',
+  'trunk', 'trunk_link',
+  'primary', 'primary_link',
+  'secondary', 'secondary_link',
+];
+
+const RT = ['get', 'road_type'];
+const HAS_ROAD_TYPE = ['all',
+  ['==', ['typeof', RT], 'string'],
+  ['!=', RT, 'unknown'],
+  ['!=', RT, ''],
+];
+
+export const MAJOR_ROADS_FILTER = ['case',
+  HAS_ROAD_TYPE, ['match', RT, MAJOR_ROAD_TYPES, true, false],
+  ['>', ['get', 'capacity'], 1200],
+];
+
+/**
+ * Is this an "artificial" MATSim link (a synthetic connector, not a real road)?
+ *
+ * These carry `artificial` in their `modes` list (and often an infinite
+ * freespeed). The base network layer already hides them via
+ * CLICKABLE_ROAD_FILTER (car-only), but the flow overlays (VolumeFlow spider,
+ * NodeFlows turning movements) build their own sources straight from the full
+ * network GeoJSON, which still includes them; use this to drop them so the
+ * overlays draw only real road links.
+ */
+export const isArtificialLink = (props) => {
+  const modes = props?.modes;
+  if (typeof modes !== 'string' || modes === '') return false;
+  return (',' + modes + ',').includes(',artificial,');
+};
+
+/** JS twin of MAJOR_ROADS_FILTER for row/feature arrays outside Mapbox. */
+export const isMajorRoad = (props) => {
+  const rt = props?.road_type;
+  if (typeof rt === 'string' && rt && rt !== 'unknown') {
+    return MAJOR_ROAD_TYPES.includes(rt);
+  }
+  const cap = Number(props?.capacity);
+  return Number.isFinite(cap) && cap > 1200;
+};
+
 /** Operator + value + getter expression → Mapbox comparison filter. */
 export const buildComparisonFilter = (operator, value, expression) => {
   switch (operator) {

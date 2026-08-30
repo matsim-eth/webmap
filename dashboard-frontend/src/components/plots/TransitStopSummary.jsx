@@ -1,59 +1,108 @@
 import React, { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useDashboard } from "../../context/DashboardContext";
-import { useData } from "../../context/DataContext";
-import cantonAlias from "../../utils/canton_alias.json";
+import {
+  useTransitDatasets,
+  useCantonCountsPerDataset,
+  useStopAlignment,
+  resolveLineId,
+  getLineNameFromStop,
+  filterCountRows,
+} from "../../hooks/useTransitComparison";
 import PlotLoader from "./PlotLoader";
 
+// Full-width stat row (label left, value(s) right) — stacked vertically like
+// the Speed page's "Network Summary" rows, so large totals never overflow.
+// In comparison mode (`compact`) the right side stacks one value per dataset,
+// each tagged with the dataset's slot color.
+const StatRow = ({ label, values, accent, compact }) => (
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: "12px",
+      padding: "12px 16px",
+      borderRadius: "10px",
+      background: "var(--color-bg, #f3f4f6)",
+    }}
+  >
+    <div
+      style={{
+        fontSize: "12px",
+        fontWeight: 600,
+        color: "#64748b",
+        textTransform: "uppercase",
+        letterSpacing: "0.04em",
+      }}
+    >
+      {label}
+    </div>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
+      {values.map(({ key, value, dotColor, name }) => (
+        <div key={key} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          {dotColor && (
+            <span
+              title={name}
+              style={{
+                width: "9px",
+                height: "9px",
+                borderRadius: "50%",
+                background: dotColor,
+                display: "inline-block",
+                flexShrink: 0,
+              }}
+            />
+          )}
+          <span
+            style={{
+              fontSize: compact ? "1.25rem" : "1.6rem",
+              fontWeight: 700,
+              color: accent,
+              lineHeight: 1.1,
+            }}
+          >
+            {value}
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 const TransitStopSummary = () => {
-  const { selectedCanton, selectedTransitStop, selectedTransitLine, datasetId } = useDashboard();
-  const { getCantonData } = useData();
+  const { selectedCanton, selectedTransitStop, selectedTransitLine, zoneByName, zoneLabel } = useDashboard();
 
-  const { data: rawData = null } = useQuery({
-    queryKey: ['cantonCounts', datasetId, selectedCanton],
-    queryFn: () =>
-      getCantonData(`matsim/transit/per_canton_counts/${selectedCanton}_counts.json`)
-        .catch(() => null),
-    enabled: !!selectedCanton && selectedCanton !== "All",
-  });
+  const datasets = useTransitDatasets();
+  const isComparison = datasets.length > 1;
+  const countsPerDataset = useCantonCountsPerDataset(selectedCanton);
+  const { resolveStopIds } = useStopAlignment(selectedCanton);
 
-  const totals = useMemo(() => {
-    if (!rawData) return null;
+  // Per-dataset boardings/alightings totals. Single mode reduces to the
+  // legacy pipeline (cleaned stop ids + line filter, no alignment).
+  const perDataset = useMemo(() => {
+    return countsPerDataset.map(({ dataset, rows }) => {
+      if (!rows) return { dataset, totals: null, unmatched: false };
 
-    let filteredData = rawData;
-
-    // Filter by selected stop
-    if (selectedTransitStop && selectedTransitStop.stop_ids) {
-      const cleanedIds = selectedTransitStop.stop_ids.flatMap((s) => {
-        if (Array.isArray(s)) return s;
-        try {
-          return JSON.parse(s);
-        } catch {
-          return String(s).split(",").map((id) => id.trim());
-        }
-      });
-      filteredData = rawData.filter((d) => cleanedIds.includes(String(d.stop_id)));
-    }
-
-    // Filter by selected line
-    if (selectedTransitLine) {
-      filteredData = filteredData.filter(
-        (d) => String(d.line_id) === String(selectedTransitLine)
-      );
-    }
-
-    // Sum all boardings and alightings across all time bins
-    let totalBoardings = 0;
-    let totalAlightings = 0;
-    for (const row of filteredData) {
-      for (const t of row.data) {
-        totalBoardings += t.boardings ?? 0;
-        totalAlightings += t.alightings ?? 0;
+      const stopIds = selectedTransitStop?.stop_ids
+        ? resolveStopIds(dataset, selectedTransitStop)
+        : undefined;
+      let lineId = selectedTransitLine ?? null;
+      if (lineId != null && !dataset.isPrimary) {
+        lineId = resolveLineId(rows, lineId, getLineNameFromStop(selectedTransitStop, lineId));
       }
-    }
 
-    return { boardings: totalBoardings, alightings: totalAlightings };
-  }, [rawData, selectedTransitStop, selectedTransitLine]);
+      const filtered = filterCountRows(rows, { stopIds, lineId });
+      let boardings = 0;
+      let alightings = 0;
+      for (const row of filtered) {
+        for (const t of row.data) {
+          boardings += t.boardings ?? 0;
+          alightings += t.alightings ?? 0;
+        }
+      }
+      return { dataset, totals: { boardings, alightings }, unmatched: stopIds === null };
+    });
+  }, [countsPerDataset, resolveStopIds, selectedTransitStop, selectedTransitLine]);
 
   // --- Lines / routes stats (from stop properties, no extra fetch needed) ---
   const lineStats = (() => {
@@ -99,32 +148,26 @@ const TransitStopSummary = () => {
   const scopeLabel = (() => {
     if (selectedTransitStop) {
       if (selectedTransitLine) {
-        let linesArray = selectedTransitStop.lines;
-        if (typeof linesArray === "string") {
-          try { linesArray = JSON.parse(linesArray); } catch { linesArray = []; }
-        }
-        const lineObj = Array.isArray(linesArray)
-          ? linesArray.find((l) => String(l.line_id) === String(selectedTransitLine))
-          : null;
         const lineName =
-          lineObj?.line_name || lineObj?.lineName || lineObj?.name || selectedTransitLine;
+          getLineNameFromStop(selectedTransitStop, selectedTransitLine) || selectedTransitLine;
         return `${selectedTransitStop.name} (${lineName})`;
       }
       return selectedTransitStop.name;
     }
-    return cantonAlias[selectedCanton] || selectedCanton;
+    return zoneByName.get(selectedCanton)?.displayName || selectedCanton;
   })();
 
   // --- Render states ---
   if (!selectedCanton || selectedCanton === "All") {
     return (
       <div className="plot-wrapper" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div className="plot-loading">Please select a specific canton</div>
+        <div className="plot-loading">Please select a specific {zoneLabel.toLowerCase()}</div>
       </div>
     );
   }
 
-  if (!totals) {
+  const ready = perDataset.filter((d) => d.totals);
+  if (ready.length === 0) {
     return (
       <div className="plot-wrapper" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
         <PlotLoader />
@@ -135,36 +178,17 @@ const TransitStopSummary = () => {
   const fmt = (n) => n.toLocaleString();
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
-  // Full-width stat row (label left, value right) — stacked vertically like the
-  // Speed page's "Network Summary" rows, so large totals never overflow.
-  const StatRow = ({ label, value, accent }) => (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: "12px",
-        padding: "12px 16px",
-        borderRadius: "10px",
-        background: "var(--color-bg, #f3f4f6)",
-      }}
-    >
-      <div
-        style={{
-          fontSize: "12px",
-          fontWeight: 600,
-          color: "#64748b",
-          textTransform: "uppercase",
-          letterSpacing: "0.04em",
-        }}
-      >
-        {label}
-      </div>
-      <div style={{ fontSize: "1.6rem", fontWeight: 700, color: accent, lineHeight: 1.1 }}>
-        {value}
-      </div>
-    </div>
-  );
+  const buildValues = (pick) =>
+    ready.map(({ dataset, totals, unmatched }) => ({
+      key: dataset.datasetId,
+      name: dataset.name,
+      dotColor: isComparison ? dataset.color : null,
+      value: unmatched ? "—" : fmt(pick(totals)),
+    }));
+
+  const unmatchedNames = ready
+    .filter((d) => d.unmatched)
+    .map((d) => d.dataset.name);
 
   return (
     <div
@@ -237,6 +261,35 @@ const TransitStopSummary = () => {
         </div>
       )}
 
+      {/* ── Comparison legend / unmatched note ── */}
+      {isComparison && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "14px",
+            flexWrap: "wrap",
+            marginBottom: "10px",
+          }}
+        >
+          {ready.map(({ dataset }) => (
+            <span
+              key={dataset.datasetId}
+              style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#475569", fontWeight: 500 }}
+            >
+              <span style={{ width: "9px", height: "9px", borderRadius: "50%", background: dataset.color, display: "inline-block", flexShrink: 0 }} />
+              {dataset.name}
+            </span>
+          ))}
+        </div>
+      )}
+      {unmatchedNames.length > 0 && (
+        <div style={{ textAlign: "center", fontSize: "11px", color: "#b45309", marginBottom: "8px" }}>
+          Stop not matched (by id or name) in: {unmatchedNames.join(", ")}
+        </div>
+      )}
+
       {/* ── Volume stats (Network-Summary style, stacked rows) ── */}
       <div
         style={{
@@ -247,9 +300,12 @@ const TransitStopSummary = () => {
           gap: "10px",
         }}
       >
-        <StatRow label="Total Boardings"  value={fmt(totals.boardings)}                     accent="#1d4ed8" />
-        <StatRow label="Total Alightings" value={fmt(totals.alightings)}                    accent="#c2410c" />
-        <StatRow label="Total Volume"     value={fmt(totals.boardings + totals.alightings)} accent="#15803d" />
+        {/* In comparison mode the slot-color dots already carry the dataset
+            identity, so the numbers use a single neutral color to avoid a
+            second, conflicting color signal. */}
+        <StatRow label="Total Boardings"  values={buildValues((t) => t.boardings)}                accent={isComparison ? "#334155" : "#1d4ed8"} compact={isComparison} />
+        <StatRow label="Total Alightings" values={buildValues((t) => t.alightings)}               accent={isComparison ? "#334155" : "#c2410c"} compact={isComparison} />
+        <StatRow label="Total Volume"     values={buildValues((t) => t.boardings + t.alightings)} accent={isComparison ? "#334155" : "#15803d"} compact={isComparison} />
       </div>
     </div>
   );

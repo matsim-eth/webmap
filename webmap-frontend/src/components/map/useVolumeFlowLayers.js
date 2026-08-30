@@ -7,6 +7,8 @@ import { handle401 } from '../../utils/auth';
 import { safeRemoveLayer, safeRemoveSource, setFilter } from './_lib/mapbox';
 import { parsePipeList } from './_lib/pipeProps';
 import { CLICKABLE_ROAD_FILTER } from './_lib/mapboxFilters';
+import { fetchLinkVolumes, fetchLinkTripCounts } from './_lib/linkVolumes';
+import { socioFiltersToParams } from '../filters/socioFilterConfig';
 
 // Spider overlay source + layers (separate from the shared network-source)
 const SPIDER_SOURCE_ID = 'volume-flow-spider';
@@ -36,45 +38,6 @@ export function resetVolumeFlowOverlay(map) {
     }
 }
 
-// Per-link daily volumes, keyed by `${datasetId}:${canton}`. Value is a
-// Promise<Map<linkId, volume>|null> so concurrent callers dedupe. The new v2
-// per-link geometry asset has no baked volume attribute, so VolumeFlow derives
-// it from the link_volumes endpoint to hide links that carry no trips.
-const linkVolumesCache = new Map();
-// Cap the per-canton volume cache (FIFO) so exploring many cantons in one
-// session doesn't retain every canton's link volumes for the tab's lifetime.
-const LINK_VOL_CACHE_MAX = 8;
-
-function fetchLinkVolumes(datasetId, canton) {
-    const key = `${datasetId}:${canton}`;
-    if (linkVolumesCache.has(key)) return linkVolumesCache.get(key);
-    const url = `/backend/data/${datasetId}/link_volumes.json?canton=${encodeURIComponent(canton)}`;
-    const p = (async () => {
-        try {
-            let res = await fetch(url);
-            if (res.status === 401) {
-                const ok = await handle401();
-                if (!ok) return null;
-                res = await fetch(url);
-            }
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const data = await res.json();
-            if (data.error) { console.warn('link_volumes error:', data.error); return null; }
-            const links = data.links || {};
-            return new Map(Object.entries(links).map(([k, v]) => [String(k), Number(v)]));
-        } catch (err) {
-            console.warn('Failed to fetch link volumes:', err);
-            linkVolumesCache.delete(key);
-            return null;
-        }
-    })();
-    linkVolumesCache.set(key, p);
-    if (linkVolumesCache.size > LINK_VOL_CACHE_MAX) {
-        linkVolumesCache.delete(linkVolumesCache.keys().next().value);
-    }
-    return p;
-}
-
 export default function useVolumeFlowLayers({ mapRef, mapReady }) {
     const { isGraphExpanded } = useModule();
     const {
@@ -87,7 +50,7 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
         setVolumeFlowSelectedLink,
     } = useSelection();
     const { featureGeoJSON, datasetId } = useData();
-    const { volumeFlowDirection } = useFilters();
+    const { volumeFlowDirection, socioFilters } = useFilters();
 
     const clickHandlerRef = useRef(null);
     const featureGeoJSONRef = useRef(featureGeoJSON);
@@ -307,14 +270,20 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
         spiderAbortRef.current = abort;
         const signal = abort.signal;
         try {
+            // Socio person filters (gender/age/income/subscription) apply to the
+            // spider queries; only active keys are sent.
+            const socioParams = socioFiltersToParams(socioFilters);
             // Fetch spider data for all keys in parallel
             const results = await Promise.all(
                 keys.map(async (key) => {
-                    let res = await fetch(`/backend/data/${datasetId}/spider_${direction}.json?link_id=${key}`, { signal });
+                    const query = new URLSearchParams({ link_id: key });
+                    for (const [k, v] of Object.entries(socioParams)) query.set(k, v);
+                    const url = `/backend/data/${datasetId}/spider_${direction}.json?${query.toString()}`;
+                    let res = await fetch(url, { signal });
                     if (res.status === 401) {
                       const refreshed = await handle401();
                       if (!refreshed) return { key, total_trips: 0, spiderMap: new Map() };
-                      res = await fetch(`/backend/data/${datasetId}/spider_${direction}.json?link_id=${key}`, { signal });
+                      res = await fetch(url, { signal });
                     }
                     if (!res.ok) throw new Error(`HTTP ${res.status}`);
                     const spider = await res.json();
@@ -362,7 +331,7 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
             console.error('Failed to fetch spider data:', err);
             return null;
         }
-    }, [datasetId]);
+    }, [datasetId, socioFilters]);
 
     // --- Render from cache for a given selection (null = aggregated, key = specific) ---
     const renderForSelection = useCallback((map, cache, selectedLink) => {
@@ -408,7 +377,9 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
         // Check if spider was active before cleanup (for direction-change re-fetch)
         const hadSpider = !!map.getSource(SPIDER_SOURCE_ID);
 
-        // Direction-only change: keep segment info, just re-fetch spider overlay
+        // Direction- or socio-filter-only change: keep segment info, just
+        // re-fetch the spider overlay (socio changes recreate fetchAndCacheSpiders,
+        // which re-runs this effect).
         const isDirectionChange = hadSpider && lastClickRef.current && isGraphExpanded === 'VolumeFlow';
 
         // Always clean up spider overlay + handler first
@@ -499,47 +470,71 @@ export default function useVolumeFlowLayers({ mapRef, mapReady }) {
         return () => removeClickHandler(map);
     }, [mapReady, isGraphExpanded, clickedCanton, featureGeoJSON, mapRef, setVolumeFlowSegment, volumeFlowDirection, fetchAndCacheSpiders, renderForSelection, setVolumeFlowSelectedLink]);
 
-    // --- Volume filter: hide links with no trips ---
-    // The v2 per-link geometry asset carries no baked volume, so fetch per-link
-    // daily volumes, bake daily_avg_volume onto the shared network features (same
-    // object useNetworkLayers holds, so its own setData calls preserve it), and
-    // filter the network to volume > 0. Falls back to the show-all clickable
-    // filter if volumes are unavailable so the module still works.
+    // --- Display filter: hide links that carry no trips ---
+    // A link is drawn/clickable when its spider "Total Trips" (the figure Segment
+    // Info shows) is > 0 — i.e. at least one routed trip traverses it, so clicking
+    // it always yields a spider. The old test was daily volume > 0, which is
+    // weaker: link_speeds counts every vehicle on the link, including ones with no
+    // entry in the spider index, so those links opened an empty spider.
+    // Volumes are still fetched (the v2 geometry asset carries no baked volume) to
+    // bake daily_avg_volume onto the shared network features for Segment Info and
+    // the table. Falls back to volume > 0, then to the show-all clickable filter,
+    // when trip counts are unavailable (older dataset without spider_link_index),
+    // so the module still works.
     useEffect(() => {
         if (!mapReady || !mapRef.current) return;
         if (isGraphExpanded !== 'VolumeFlow') return;
         if (!clickedCanton || !datasetId || !featureGeoJSON?.features) return;
         const map = mapRef.current;
 
+        // Car-mode test first, synchronously: it costs nothing, needs no data,
+        // and is what actually keeps PT-only links (rail/tram) off the map. The
+        // trip/volume test below is ANDed onto it, never substituted for it —
+        // dropping it is why links with PT volume but no car flow used to show.
+        setFilter(map, ['network-layer', NETWORK_HITBOX_LAYER], CLICKABLE_ROAD_FILTER);
+
         let cancelled = false;
         (async () => {
-            const volMap = await fetchLinkVolumes(datasetId, clickedCanton);
+            const [volMap, tripMap] = await Promise.all([
+                fetchLinkVolumes(datasetId, clickedCanton),
+                fetchLinkTripCounts(datasetId, clickedCanton, socioFiltersToParams(socioFilters)),
+            ]);
             if (cancelled || isGraphExpanded !== 'VolumeFlow') return;
             if (!map.getLayer(NETWORK_HITBOX_LAYER)) return;
 
-            if (!volMap || volMap.size === 0) {
-                setFilter(map, ['network-layer', NETWORK_HITBOX_LAYER], CLICKABLE_ROAD_FILTER);
-                return;
-            }
+            const hasTrips = !!tripMap && tripMap.size > 0;
+            const hasVolumes = !!volMap && volMap.size > 0;
+            // Neither available (older dataset) → the car-mode filter set above
+            // already stands on its own.
+            if (!hasTrips && !hasVolumes) return;
 
             const fc = featureGeoJSONRef.current;
             if (fc?.features) {
                 for (const f of fc.features) {
                     const keys = parsePipeList(f.properties.per_id_keys);
-                    let total = 0;
-                    for (const k of keys) total += volMap.get(k) || 0;
-                    f.properties.daily_avg_volume = total;
+                    let volume = 0;
+                    let trips = 0;
+                    for (const k of keys) {
+                        if (hasVolumes) volume += volMap.get(k) || 0;
+                        if (hasTrips) trips += tripMap.get(k) || 0;
+                    }
+                    if (hasVolumes) f.properties.daily_avg_volume = volume;
+                    f.properties.vf_total_trips = trips;
                 }
                 const src = map.getSource('network-source');
                 if (src) src.setData(fc);
             }
 
-            setFilter(map, ['network-layer', NETWORK_HITBOX_LAYER],
-                ['>', ['get', 'daily_avg_volume'], 0]);
+            setFilter(map, ['network-layer', NETWORK_HITBOX_LAYER], ['all',
+                CLICKABLE_ROAD_FILTER,
+                hasTrips
+                    ? ['>', ['get', 'vf_total_trips'], 0]
+                    : ['>', ['get', 'daily_avg_volume'], 0],
+            ]);
         })();
 
         return () => { cancelled = true; };
-    }, [mapReady, mapRef, isGraphExpanded, clickedCanton, datasetId, featureGeoJSON]);
+    }, [mapReady, mapRef, isGraphExpanded, clickedCanton, datasetId, featureGeoJSON, socioFilters]);
 
     // --- Effect 2: re-render when selected link changes (from sidebar) ---
     useEffect(() => {

@@ -4,11 +4,13 @@ import { faDatabase, faCheck, faSpinner } from '@fortawesome/free-solid-svg-icon
 import { useDatasets } from '../hooks/useDatasets';
 import { useData } from '../context/DataContext';
 import useClickOutside from '../hooks/useClickOutside';
+import { useFullReset } from '../hooks/useFullReset';
 import './DatasetSelector.css';
 
 const DatasetSelector = ({ isCollapsed }) => {
   const { datasetId, setDatasetId } = useData();
   const { data: datasets = [], isLoading } = useDatasets();
+  const fullReset = useFullReset();
   const [isOpen, setIsOpen] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const wrapperRef = useRef(null);
@@ -22,18 +24,27 @@ const DatasetSelector = ({ isCollapsed }) => {
   const handleSelect = useCallback((id) => {
     if (id !== datasetId) {
       setDatasetId(id);
+      // A dataset switch behaves exactly like the Reset button: no module
+      // state, selections or choropleth from the previous dataset survive.
+      fullReset();
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 1000);
     }
     setIsOpen(false);
-  }, [setDatasetId, datasetId]);
+  }, [setDatasetId, datasetId, fullReset]);
 
   const getPanelStyle = () => {
     const rect = buttonRef.current?.getBoundingClientRect();
-    if (!rect) return { left: isCollapsed ? 60 : 215, top: 80 };
+    const left = isCollapsed ? 60 : 215;
+    if (!rect) return { left, top: 80 };
+    const itemHeight = 43;
+    const headerHeight = 40;
+    const listPadding = 8;
+    const panelHeight = headerHeight + listPadding + Math.min(activeDatasets.length, 5) * itemHeight;
+    const top = Math.min(rect.top, window.innerHeight - panelHeight - 4);
     return {
-      left: isCollapsed ? 60 : 215,
-      top: rect.top,
+      left,
+      top: Math.max(8, top),
     };
   };
 

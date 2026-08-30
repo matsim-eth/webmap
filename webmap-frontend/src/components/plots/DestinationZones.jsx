@@ -5,9 +5,10 @@ import "rc-slider/assets/index.css";
 import { useQuery } from "@tanstack/react-query";
 
 import { marks, formatTimeLabel } from "../../utils/timeSliderUtils";
-import cantonAlias from "../../utils/canton_alias.json";
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
 import { useData } from "../../context/DataContext";
+import { useFilters } from "../../context/FilterContext";
+import { socioFiltersToParams } from "../filters/socioFilterConfig";
 
 import "./DestinationZones.css";
 
@@ -18,6 +19,18 @@ const MODE_COLORS = {
   walk: "#ffa15a",
   all: "#1f77b4",
 };
+
+// Mirrors PURPOSE_PALETTE in useDestinationZones.js.
+const PURPOSE_COLORS = {
+  work: "#FFEE8C",
+  education: "#636efa",
+  shop: "#ffa15a",
+  leisure: "#00cc96",
+};
+
+// Same hex as HUB_COLOR in useDestinationZones.js — the within-hub list row
+// shares the hub marker's color.
+const HUB_COLOR = "#ea580c";
 
 const MODES = [
   { value: "all", label: "All" },
@@ -35,10 +48,18 @@ const PURPOSES = [
   { value: "leisure", label: "Leis" },
 ];
 
-const REVERSE_CANTON = Object.entries(cantonAlias).reduce((acc, [internal, display]) => {
-  acc[display] = internal;
-  return acc;
-}, {});
+// Multiselect filters: empty array = "All". Note every chip selected is NOT
+// the same as "All" — the data holds modes/purposes beyond the chips (e.g.
+// car_passenger, home), so an explicit full selection stays explicit.
+const toggleSelection = (list, value) =>
+  list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
+
+// Sum a per-canton totals bucket ({all, car, pt, bike, walk}) over the
+// selected modes; empty selection means "all modes".
+const sumModes = (totals, modes) =>
+  modes.length
+    ? modes.reduce((s, m) => s + (Number(totals?.[m]) || 0), 0)
+    : Number(totals?.all) || 0;
 
 // Mirrors the +/- CollapseToggle from LinkSpeedsModule so destination cards
 // expand/collapse the same way as other module cards.
@@ -65,21 +86,36 @@ const CollapseToggle = ({ collapsed, onToggle }) => (
 );
 
 const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRange }) => {
-  const [selectedMode, setSelectedMode] = useState("all");
-  const [selectedPurpose, setSelectedPurpose] = useState("all");
+  // Multiselect filters — empty array means "All".
+  const [selectedModes, setSelectedModes] = useState([]);
+  const [selectedPurposes, setSelectedPurposes] = useState([]);
   const [isOriginMode, setIsOriginMode] = useState(true);
   // Sizing mode for arcs + dots: 'volume' (absolute trips) or 'share'
   // (relative percent of the origin's total flow).
   const [sizingMode, setSizingMode] = useState("volume");
   const [isListCollapsed, setIsListCollapsed] = useState(false);
   const [isPlotCollapsed, setIsPlotCollapsed] = useState(false);
+  // Off (default) hides intra-polygon trips everywhere — list, plot, totals,
+  // hub sizing — matching the module's original inter-canton-only view.
+  const [showInternalTrips, setShowInternalTrips] = useState(false);
 
   const {
     datasetId,
+    zones, zoneByName, zoneLabel, zoneLabelPlural,
     destinationHoveredCanton, setDestinationHoveredCanton,
     destinationSelectedCanton, setDestinationSelectedCanton,
   } = useData();
+  const { socioFilters } = useFilters();
   const loadWithFallback = useLoadWithFallback();
+
+  // display name → internal zone name (was the module-level REVERSE_CANTON
+  // built from canton_alias.json — same values for Swiss datasets).
+  const REVERSE_CANTON = useMemo(() => {
+    const acc = {};
+    for (const z of zones) acc[z.displayName] = z.name;
+    return acc;
+  }, [zones]);
+  const displayOf = (name) => zoneByName?.get(name)?.displayName || name;
 
   // The selected destination drives both map highlight and the trip-count plot
   // filter. null = "all cantons" (no filter applied).
@@ -96,17 +132,31 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
 
   // Derived from the backend `destination_zones.json` provider (per-hub-canton
   // outflow/inflow by mode/purpose/15-min bin). datasetId in the key so a
-  // dataset switch refetches instead of serving the previous dataset's cache.
+  // dataset switch refetches instead of serving the previous dataset's cache;
+  // socioFilters in the key so changing a socioeconomic filter refetches.
   const { data: plotData } = useQuery({
-    queryKey: ["destination-zones", canton, datasetId],
-    queryFn: () => loadWithFallback(`destination_zones.json?canton=${encodeURIComponent(canton)}`),
+    queryKey: ["destination-zones", canton, datasetId, socioFilters],
+    queryFn: () => {
+      const params = new URLSearchParams({ canton });
+      for (const [k, v] of Object.entries(socioFiltersToParams(socioFilters))) params.set(k, v);
+      return loadWithFallback(`destination_zones.json?${params.toString()}`);
+    },
     enabled: !!canton,
   });
+
+  // Intra-polygon record test: the "other" end of the flow is the hub itself.
+  // The backend always ships these rows; the "Show internal trips" toggle
+  // decides whether the module uses them.
+  const isIntraRecord = (d) => {
+    const key = isOriginMode ? d.destination : d.origin;
+    return key === canton || REVERSE_CANTON[key] === canton;
+  };
 
   // Filtered + bucketed time series for the bottom plot.
   const trips = useMemo(() => {
     if (!plotData) return { times: [], counts: [] };
     let filtered = plotData.filter((d) => d.role === (isOriginMode ? "origin" : "destination"));
+    if (!showInternalTrips) filtered = filtered.filter((d) => !isIntraRecord(d));
 
     if (filterCanton !== "all") {
       filtered = filtered.filter((d) => {
@@ -114,8 +164,8 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
         return key === filterCanton || REVERSE_CANTON[key] === filterCanton;
       });
     }
-    if (selectedMode !== "all") filtered = filtered.filter((d) => d.mode === selectedMode);
-    if (selectedPurpose !== "all") filtered = filtered.filter((d) => d.purpose === selectedPurpose);
+    if (selectedModes.length) filtered = filtered.filter((d) => selectedModes.includes(d.mode));
+    if (selectedPurposes.length) filtered = filtered.filter((d) => selectedPurposes.includes(d.purpose));
 
     const bins = {};
     filtered.forEach((entry) => {
@@ -129,7 +179,7 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
     });
     const times = Object.keys(bins).sort();
     return { times, counts: times.map((t) => bins[t]) };
-  }, [plotData, isOriginMode, filterCanton, selectedMode, selectedPurpose, timeRange]);
+  }, [plotData, isOriginMode, filterCanton, selectedModes, selectedPurposes, timeRange, REVERSE_CANTON, showInternalTrips, canton]);
 
   // Per-canton totals used to drive the map arrows + the side list. Does NOT
   // depend on `filterCanton` — the list always shows all destinations so the
@@ -138,7 +188,8 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
   const outflowData = useMemo(() => {
     if (!plotData) return null;
     let filtered = plotData.filter((d) => d.role === (isOriginMode ? "origin" : "destination"));
-    if (selectedPurpose !== "all") filtered = filtered.filter((d) => d.purpose === selectedPurpose);
+    if (!showInternalTrips) filtered = filtered.filter((d) => !isIntraRecord(d));
+    if (selectedPurposes.length) filtered = filtered.filter((d) => selectedPurposes.includes(d.purpose));
 
     const blankTotals = () => ({ all: 0, car: 0, pt: 0, bike: 0, walk: 0 });
     const modeTotals = blankTotals();
@@ -161,8 +212,8 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
       });
     });
 
-    return { all: modeTotals, perCanton: cantonTotals, selectedMode, selectedPurpose, isOriginMode, originCanton: canton, sizingMode };
-  }, [plotData, selectedMode, selectedPurpose, timeRange, isOriginMode, canton, sizingMode]);
+    return { all: modeTotals, perCanton: cantonTotals, selectedModes, selectedPurposes, isOriginMode, originCanton: canton, sizingMode, showInternalTrips };
+  }, [plotData, selectedModes, selectedPurposes, timeRange, isOriginMode, canton, sizingMode, REVERSE_CANTON, showInternalTrips]);
 
   if (onTotalOutflowChange && outflowData) {
     const key = JSON.stringify(outflowData);
@@ -172,24 +223,40 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
     }
   }
 
-  // Sorted destination list: name + count + share.
-  const destinationRows = useMemo(() => {
-    if (!outflowData?.perCanton) return [];
+  // Sorted destination list: name + count + share. The hub's intra-canton
+  // trips become a pinned "Within" row, and shares are computed over the
+  // polygon's full trip total (inter-canton + within) so they sum to 100%.
+  const { destinationRows, withinRow, grandTotal } = useMemo(() => {
+    if (!outflowData?.perCanton) return { destinationRows: [], withinRow: null, grandTotal: 0 };
     const rows = Object.entries(outflowData.perCanton)
       .filter(([c]) => c !== canton)
-      .map(([c, totals]) => ({ canton: c, volume: Number(totals?.[selectedMode]) || 0 }))
+      .map(([c, totals]) => ({ canton: c, volume: sumModes(totals, selectedModes) }))
       .filter((r) => r.volume > 0)
       .sort((a, b) => b.volume - a.volume);
-    const total = rows.reduce((s, r) => s + r.volume, 0);
-    return rows.map((r) => ({ ...r, share: total > 0 ? r.volume / total : 0 }));
-  }, [outflowData, selectedMode, canton]);
+    const withinVolume = sumModes(outflowData.perCanton[canton], selectedModes);
+    const total = rows.reduce((s, r) => s + r.volume, 0) + withinVolume;
+    return {
+      destinationRows: rows.map((r) => ({ ...r, share: total > 0 ? r.volume / total : 0 })),
+      withinRow: withinVolume > 0
+        ? { canton, volume: withinVolume, share: total > 0 ? withinVolume / total : 0 }
+        : null,
+      grandTotal: total,
+    };
+  }, [outflowData, selectedModes, canton]);
+
+  // Shared color rule (same as the map hook / legend): exactly one purpose
+  // selected wins, else exactly one mode, else the "all" blue.
+  const activeColor =
+    (selectedPurposes.length === 1 && PURPOSE_COLORS[selectedPurposes[0]]) ||
+    (selectedModes.length === 1 && MODE_COLORS[selectedModes[0]]) ||
+    MODE_COLORS.all;
 
   if (!canton) {
     return (
       <div className="plot-container">
         <div className="no-selection">
-          <p>No canton selected</p>
-          <p className="hint">Click a canton on the map to view destination flows</p>
+          <p>No {zoneLabel.toLowerCase()} selected</p>
+          <p className="hint">Click a {zoneLabel.toLowerCase()} on the map to view destination flows</p>
         </div>
       </div>
     );
@@ -207,7 +274,23 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
 
   return (
     <div className="plot-container">
-      <h3 className="dz-title">{directionLabel} {cantonAlias[canton]}</h3>
+      <div className="dz-title-row">
+        <h3 className="dz-title">{directionLabel} {displayOf(canton)}</h3>
+        {/* Internal-trips toggle — same checkbox style as "Show only major roads". */}
+        <label className="right-sidebar-checkbox dz-internal-toggle">
+          <input
+            type="checkbox"
+            checked={showInternalTrips}
+            onChange={(e) => {
+              const on = e.target.checked;
+              setShowInternalTrips(on);
+              // The "Within" filter can't stay selected once its row is hidden.
+              if (!on && filterCanton === canton) setFilterCanton("all");
+            }}
+          />
+          Show internal trips
+        </label>
+      </div>
 
       {/* Direction + Size by on the left (compact), time slider on the right. */}
       <div className="dz-controls-row">
@@ -264,8 +347,10 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
             {MODES.map((m) => (
               <button
                 key={m.value}
-                className={`flow-dir-btn${selectedMode === m.value ? " active" : ""}`}
-                onClick={() => setSelectedMode(m.value)}
+                className={`flow-dir-btn${(m.value === "all" ? selectedModes.length === 0 : selectedModes.includes(m.value)) ? " active" : ""}`}
+                onClick={() => setSelectedModes((prev) => (
+                  m.value === "all" ? [] : toggleSelection(prev, m.value)
+                ))}
               >{m.label}</button>
             ))}
           </div>
@@ -276,8 +361,10 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
             {PURPOSES.map((p) => (
               <button
                 key={p.value}
-                className={`flow-dir-btn${selectedPurpose === p.value ? " active" : ""}`}
-                onClick={() => setSelectedPurpose(p.value)}
+                className={`flow-dir-btn${(p.value === "all" ? selectedPurposes.length === 0 : selectedPurposes.includes(p.value)) ? " active" : ""}`}
+                onClick={() => setSelectedPurposes((prev) => (
+                  p.value === "all" ? [] : toggleSelection(prev, p.value)
+                ))}
               >{p.label}</button>
             ))}
           </div>
@@ -288,7 +375,7 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
       <div className="canton-mode-share dz-list-card" style={{ position: "relative" }}>
         <CollapseToggle collapsed={isListCollapsed} onToggle={() => setIsListCollapsed((v) => !v)} />
         <h4>{isOriginMode ? "Destinations" : "Origins"}</h4>
-        {!isListCollapsed && (destinationRows.length === 0 ? (
+        {!isListCollapsed && (destinationRows.length === 0 && !withinRow ? (
           <p className="dz-list-empty">No flows in this time range.</p>
         ) : (
           <div className="dz-list">
@@ -296,13 +383,29 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
               className={`dz-list-row dz-list-all${filterCanton === "all" ? " active" : ""}`}
               onClick={() => setFilterCanton("all")}
             >
-              <span className="dz-list-name">All cantons</span>
-              <span className="dz-list-count">
-                {destinationRows.reduce((s, r) => s + r.volume, 0).toLocaleString()}
-              </span>
+              <span className="dz-list-name">All {(zoneLabelPlural || 'Cantons').toLowerCase()}</span>
+              <span className="dz-list-count">{grandTotal.toLocaleString()}</span>
             </div>
+            {withinRow && (
+              <div
+                className={`dz-list-row dz-list-within${filterCanton === canton ? " active" : ""}${destinationHoveredCanton === canton ? " hovered" : ""}`}
+                onMouseEnter={() => setDestinationHoveredCanton(canton)}
+                onMouseLeave={() => setDestinationHoveredCanton(null)}
+                onClick={() => setFilterCanton((prev) => (prev === canton ? "all" : canton))}
+              >
+                <span className="dz-list-name">Within {displayOf(canton)}</span>
+                <div className="dz-list-bar-wrap">
+                  <div
+                    className="dz-list-bar"
+                    style={{ width: `${Math.max(2, withinRow.share * 100)}%`, background: HUB_COLOR }}
+                  />
+                </div>
+                <span className="dz-list-count">{withinRow.volume.toLocaleString()}</span>
+                <span className="dz-list-share">{(withinRow.share * 100).toFixed(1)}%</span>
+              </div>
+            )}
             {destinationRows.map((r) => {
-              const color = MODE_COLORS[selectedMode] || MODE_COLORS.all;
+              const color = activeColor;
               const isActive = filterCanton === r.canton;
               const isHovered = destinationHoveredCanton === r.canton;
               return (
@@ -313,7 +416,7 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
                   onMouseLeave={() => setDestinationHoveredCanton(null)}
                   onClick={() => setFilterCanton((prev) => (prev === r.canton ? "all" : r.canton))}
                 >
-                  <span className="dz-list-name">{cantonAlias[r.canton] || r.canton}</span>
+                  <span className="dz-list-name">{displayOf(r.canton)}</span>
                   <div className="dz-list-bar-wrap">
                     <div
                       className="dz-list-bar"
@@ -335,7 +438,9 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
         <h4>
           Trip Counts
           {filterCanton !== "all" && (
-            <span className="dz-plot-filter"> · {cantonAlias[filterCanton] || filterCanton}</span>
+            <span className="dz-plot-filter">
+              {" · "}{filterCanton === canton ? `Within ${displayOf(canton)}` : displayOf(filterCanton)}
+            </span>
           )}
         </h4>
         {!isPlotCollapsed && (
@@ -345,7 +450,7 @@ const DestinationZones = ({ canton, onTotalOutflowChange, timeRange, setTimeRang
                 x: trips.times,
                 y: trips.counts,
                 type: "bar",
-                marker: { color: MODE_COLORS[selectedMode] || MODE_COLORS.all },
+                marker: { color: filterCanton === canton ? HUB_COLOR : activeColor },
               },
             ]}
             layout={{

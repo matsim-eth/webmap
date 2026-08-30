@@ -6,12 +6,12 @@ from collections import defaultdict
 
 from .base import DataProvider, Param, CANTON, SOURCE
 from .connection import get_source_cursor
-from .constants import canton_name
 from .helpers import (
     get_hot_polygon_meta,
     parse_source_param,
 )
-from ._pre_agg import label_for, make_label_resolver, polygon_filter_clause, resolve_polygon_ids, _source_label
+from .zone_registry import get_registry, zone_col
+from ._pre_agg import label_for, make_label_resolver, polygon_filter_clause, primary_fast_path, resolve_polygon_ids, _source_label
 
 
 _PURPOSE_CASE = """
@@ -44,7 +44,7 @@ class FrequentSequencesProvider(DataProvider):
 
         con0 = get_source_cursor(sources[0])
         polygon_ids = resolve_polygon_ids(con0, params, default_type="canton")
-        all_cantons = bool(polygon_ids) and all(p.startswith("canton:") for p in polygon_ids)
+        all_cantons = primary_fast_path(polygon_ids)
 
         counts: dict = defaultdict(int)
         totals: dict = defaultdict(int)
@@ -65,14 +65,15 @@ class FrequentSequencesProvider(DataProvider):
                     wanted = {int(p.split(":", 1)[1]) for p in polygon_ids}
                 except (ValueError, IndexError):
                     wanted = set()
+                zcol = zone_col(source, "persons")
                 rows = con.execute(f"""
                     WITH ps AS (
-                        SELECT a.person_id, p.canton_id AS cid,
+                        SELECT a.person_id, p.{zcol} AS cid,
                                STRING_AGG({_PURPOSE_CASE}, '-' ORDER BY a.activity_index) AS seq
                         FROM activities a
                         JOIN persons p ON p.person_id = a.person_id
                         WHERE a.purpose IS NOT NULL
-                        GROUP BY a.person_id, p.canton_id
+                        GROUP BY a.person_id, p.{zcol}
                     )
                     SELECT cid, seq, COUNT(*) FROM ps
                     GROUP BY GROUPING SETS ((cid, seq), (seq))
@@ -81,7 +82,7 @@ class FrequentSequencesProvider(DataProvider):
                     if cid is None:
                         label = "All"
                     elif cid in wanted:
-                        label = canton_name(cid)
+                        label = get_registry().zone_name(cid)
                         labels_seen.add(label)
                     else:
                         continue

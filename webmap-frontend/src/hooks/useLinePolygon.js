@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { booleanIntersects } from '@turf/turf';
+import { isMajorRoad } from '../components/map/_lib/mapboxFilters';
 
 function applyFading(map, layerIds, labelLayerIds, fadeOpacity) {
   const fade = ['case', ['boolean', ['feature-state', 'inPolygon'], false], 1, fadeOpacity];
@@ -11,8 +12,11 @@ function applyFading(map, layerIds, labelLayerIds, fadeOpacity) {
   }
 }
 
-function clearFading(map, sourceId, layerIds, labelLayerIds) {
+function clearFading(map, sourceId, layerIds, labelLayerIds, extraStateSourceIds = []) {
   if (map.getSource(sourceId)) map.removeFeatureState({ source: sourceId });
+  for (const sid of extraStateSourceIds) {
+    if (map.getSource(sid)) map.removeFeatureState({ source: sid });
+  }
   for (const id of layerIds) {
     if (map.getLayer(id)) map.setPaintProperty(id, 'line-opacity', 1);
   }
@@ -29,6 +33,16 @@ function clearFading(map, sourceId, layerIds, labelLayerIds) {
  *
  * Requires `generateId: true` on the Mapbox source so that
  * setFeatureState can address features by their array index.
+ *
+ * `extraStateSourceIds`: sources whose features carry an explicit `id` equal to
+ * the parent feature's index in `featureGeoJSON` (e.g. the transit-volumes split
+ * source) — the same inPolygon states are mirrored onto them so layers drawn
+ * from those sources fade consistently with the main source's layers.
+ *
+ * `onSelectionIds`: optional callback receiving the selected features' ids
+ * (indices into featureGeoJSON.features, = the source's generateId ids), or
+ * null when no polygon is active. Lets a module drive a hard map filter
+ * (hide instead of fade) off the same spatial selection.
  */
 export default function useLinePolygon({
   mapRef,
@@ -41,7 +55,9 @@ export default function useLinePolygon({
   labelLayerIds = [],
   showMajorRoadsOnly = false,
   onPolygonChange,
+  onSelectionIds,
   fadeOpacity = 0.2,
+  extraStateSourceIds = [],
 }) {
   const [polygonFeatures, setPolygonFeatures] = useState([]);
 
@@ -50,40 +66,46 @@ export default function useLinePolygon({
     const map = mapRef?.current;
     if (!map || isGraphExpanded !== activeModule) {
       if (map && map.getSource(sourceId)) {
-        clearFading(map, sourceId, layerIds, labelLayerIds);
+        clearFading(map, sourceId, layerIds, labelLayerIds, extraStateSourceIds);
       }
       setPolygonFeatures([]);
+      onSelectionIds?.(null);
       return;
     }
 
     const computeSelection = () => {
       const draw = drawRef?.current;
       if (!draw || !featureGeoJSON?.features?.length) {
-        clearFading(map, sourceId, layerIds, labelLayerIds);
+        clearFading(map, sourceId, layerIds, labelLayerIds, extraStateSourceIds);
         setPolygonFeatures([]);
+        onSelectionIds?.(null);
         return;
       }
 
       const polygons = draw.getAll?.()?.features || [];
       if (!polygons.length) {
-        clearFading(map, sourceId, layerIds, labelLayerIds);
+        clearFading(map, sourceId, layerIds, labelLayerIds, extraStateSourceIds);
         setPolygonFeatures([]);
+        onSelectionIds?.(null);
         return;
       }
 
-      // Start from features that pass the major roads filter if active
-      const candidates = showMajorRoadsOnly
-        ? featureGeoJSON.features.filter(f => (f.properties?.capacity ?? 0) > 1200)
-        : featureGeoJSON.features;
-
-      const filtered = candidates.filter((f) => {
-        if (!f.geometry) return false;
-        return polygons.some((p) => {
+      // One pass over the full feature list so each selected feature's index
+      // (= the source's generateId id) is captured alongside it. Features that
+      // fail the major-roads filter (when active) are skipped entirely.
+      const filtered = [];
+      const ids = [];
+      featureGeoJSON.features.forEach((f, i) => {
+        if (showMajorRoadsOnly && !isMajorRoad(f.properties)) return;
+        if (!f.geometry) return;
+        const inside = polygons.some((p) => {
           try { return booleanIntersects(f, p); } catch { return false; }
         });
+        if (inside) { filtered.push(f); ids.push(i); }
       });
 
       setPolygonFeatures(filtered);
+      onSelectionIds?.(ids);
 
       // Remove existing single-feature highlight
       if (map.getLayer('network-highlight')) map.removeLayer('network-highlight');
@@ -92,13 +114,17 @@ export default function useLinePolygon({
       // Apply feature-state fading
       if (map.getSource(sourceId) && filtered.length > 0) {
         map.removeFeatureState({ source: sourceId });
+        // Mirror onto sources whose feature ids equal the parent feature index
+        // (e.g. the transit split source), so their layers fade consistently.
+        const extraSources = extraStateSourceIds.filter((sid) => map.getSource(sid));
+        for (const sid of extraSources) map.removeFeatureState({ source: sid });
 
-        const filteredSet = new Set(filtered);
-        featureGeoJSON.features.forEach((f, i) => {
-          if (filteredSet.has(f)) {
-            map.setFeatureState({ source: sourceId, id: i }, { inPolygon: true });
+        for (const i of ids) {
+          map.setFeatureState({ source: sourceId, id: i }, { inPolygon: true });
+          for (const sid of extraSources) {
+            map.setFeatureState({ source: sid, id: i }, { inPolygon: true });
           }
-        });
+        }
 
         applyFading(map, layerIds, labelLayerIds, fadeOpacity);
       }

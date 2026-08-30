@@ -16,6 +16,9 @@ export default function useChoropleth({
   // datasetId in deps: reload the canton choropleth shares from the new dataset
   // when the user switches datasets.
   useEffect(() => {
+    // Wait until the dataset is resolved (useDefaultDataset) so we never fetch
+    // against `/backend/data/null/…` or a hardcoded default dataset.
+    if (datasetId == null) return;
     const path = `${aggCol}_share.json`;
 
     loadWithFallback(path)

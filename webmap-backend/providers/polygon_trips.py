@@ -7,56 +7,86 @@ Categories:
   - internal: both endpoints inside the polygon
 
 Coordinate system: the polygon is supplied in WGS84 (lng/lat). Trip endpoints
-in the duckdb `trips` table are already stored as GEOMETRY in CH1903+/LV95
-(EPSG:2056); the spatial extension reprojects the polygon once per request.
+in the duckdb `trips` table are already stored as GEOMETRY in the dataset's own
+CRS (the zone registry's `crs`, e.g. CH1903+/LV95 EPSG:2056 for Swiss datasets);
+the spatial extension reprojects the polygon into that CRS once per request.
 
 Query params
 ------------
-polygon       (str, required) : Polygon ring as "lng,lat;lng,lat;..." (closed
-                                or open — the ring is auto-closed).
+polygon       (str, required) : One or more polygon rings as
+                                "lng,lat;lng,lat;...", multiple rings joined
+                                with "|". Rings are auto-closed and unioned
+                                into a single study area.
 minute_start  (int, 0-1440)   : Departure time window start (minutes from midnight).
 minute_end    (int, 0-1440)   : Departure time window end (minutes from midnight).
 source        (str)           : "synthetic" (default) or "microcensus".
+gender        (str)           : "0" (male) or "1" (female) → persons.sex.
+age_min       (int)           : Inclusive lower age bound → persons.age.
+age_max       (int)           : Exclusive upper age bound → persons.age.
+income_class  (str)           : Comma-separated income classes → households.income_class.
+subscription  (str)           : Comma-separated PT subscriptions (ga,halbtax,…); match if ANY selected.
 """
 
 from __future__ import annotations
 
 from .base import DataProvider, Param
 from .connection import get_source_cursor
+from .helpers import socio_trip_filter
 from .result_cache import make_cache
+from .zone_registry import get_registry
 
 _cget, _cput = make_cache(maxsize=48)
 
 
 def _parse_polygon(raw: str) -> str | None:
-    """Convert "lng,lat;lng,lat;..." into a WGS84 POLYGON WKT, or None on bad input."""
+    """Convert one or more rings into a WGS84 MULTIPOLYGON WKT, or None on bad input.
+
+    Rings are separated by "|", points within a ring by ";", coords by ",".
+    A single ring (no "|") yields a one-part multipolygon so the format stays
+    backward compatible with the old single-polygon wire encoding. All drawn
+    polygons are unioned into one study area, so a trip whose endpoints fall in
+    two different rings counts as "internal".
+    """
     if not raw:
         return None
-    pts: list[tuple[float, float]] = []
-    for chunk in raw.split(";"):
-        chunk = chunk.strip()
-        if not chunk:
+    rings_wkt: list[str] = []
+    for ring_raw in raw.split("|"):
+        pts: list[tuple[float, float]] = []
+        for chunk in ring_raw.split(";"):
+            chunk = chunk.strip()
+            if not chunk:
+                continue
+            try:
+                lng_s, lat_s = chunk.split(",", 1)
+                lng = float(lng_s)
+                lat = float(lat_s)
+            except (ValueError, IndexError):
+                return None
+            pts.append((lng, lat))
+        if not pts:
+            # empty segment (e.g. a trailing "|") — skip
             continue
-        try:
-            lng_s, lat_s = chunk.split(",", 1)
-            lng = float(lng_s)
-            lat = float(lat_s)
-        except (ValueError, IndexError):
+        if len(pts) < 3:
             return None
-        pts.append((lng, lat))
-    if len(pts) < 3:
+        if pts[0] != pts[-1]:
+            pts.append(pts[0])
+        inner = ", ".join(f"{lng} {lat}" for lng, lat in pts)
+        rings_wkt.append(f"(({inner}))")
+    if not rings_wkt:
         return None
-    if pts[0] != pts[-1]:
-        pts.append(pts[0])
-    inner = ", ".join(f"{lng} {lat}" for lng, lat in pts)
-    return f"POLYGON(({inner}))"
+    return f"MULTIPOLYGON({', '.join(rings_wkt)})"
 
 
 _PARAMS = [
-    Param("polygon", "Polygon ring as 'lng,lat;lng,lat;...' (WGS84)", required=True),
+    Param("polygon", "One or more rings 'lng,lat;lng,lat;...' joined by '|' (WGS84); rings are unioned", required=True),
     Param("minute_start", "Departure window start (minutes from midnight)", param_type="integer"),
     Param("minute_end", "Departure window end (minutes from midnight)", param_type="integer"),
     Param("source", "'synthetic' (default) or 'microcensus'"),
+    Param("gender", "Person sex filter", enum=["0", "1"]),
+    Param("age_min", "Inclusive lower age bound", param_type="integer"),
+    Param("age_max", "Exclusive upper age bound", param_type="integer"),
+    Param("income_class", "Household income class(es), comma-separated"),
+    Param("subscription", "PT subscription(s), comma-separated (ga,halbtax,…); match if ANY selected"),
 ]
 
 
@@ -100,7 +130,12 @@ class PolygonTripsProvider(DataProvider):
                     pass
         time_filter = "\n            ".join(time_clauses)
 
+        # Optional socioeconomic person filters (gender/age/income/subscription).
+        # Empty strings when no socio param is set, so the common path is unchanged.
+        socio_join, socio_where = socio_trip_filter(params, trip_alias="t")
+
         cur = get_source_cursor(source)
+        crs = get_registry().crs
 
         # Bounding-box pre-filter via ST_X/ST_Y narrows ~99% of trips out
         # before ST_Within runs. Without it the full ST_Within scan is ~slow
@@ -108,7 +143,7 @@ class PolygonTripsProvider(DataProvider):
         query = f"""
             WITH poly AS (
                 SELECT ST_Transform(ST_GeomFromText(?),
-                                    'EPSG:4326', 'EPSG:2056',
+                                    'EPSG:4326', '{crs}',
                                     always_xy := true) AS geom
             ),
             poly_bbox AS (
@@ -118,13 +153,15 @@ class PolygonTripsProvider(DataProvider):
                 FROM poly
             ),
             trips_in_bbox AS (
-                SELECT main_mode,
-                       ST_X(origin_pt) AS ox, ST_Y(origin_pt) AS oy,
-                       ST_X(dest_pt)   AS dx, ST_Y(dest_pt)   AS dy,
-                       origin_pt, dest_pt
-                FROM trips
+                SELECT t.main_mode,
+                       ST_X(t.origin_pt) AS ox, ST_Y(t.origin_pt) AS oy,
+                       ST_X(t.dest_pt)   AS dx, ST_Y(t.dest_pt)   AS dy,
+                       t.origin_pt, t.dest_pt
+                FROM trips t
+                {socio_join}
                 WHERE 1=1
                 {time_filter}
+                {socio_where}
             ),
             classified AS (
                 SELECT main_mode,

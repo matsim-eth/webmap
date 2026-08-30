@@ -7,19 +7,21 @@ import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import { useLoadWithFallback } from "../../utils/useLoadWithFallback";
 import { useQuery } from "@tanstack/react-query";
-import { filterRoutesByDirection } from "../../utils/directionUtils";
+import { lineServesDirection } from "../../utils/directionUtils";
+import useRouteDirections, { directionLabelsForLine } from "../../hooks/useRouteDirections";
 import usePointPolygon from "../../hooks/usePointPolygon";
+import { useResetDirectionOnLineChange } from "../../hooks/useResetDirectionOnLineChange";
+import { lookupByName } from "../../utils/nameMatch";
 import { useData } from "../../context/DataContext";
 import { useFilters } from "../../context/FilterContext";
 import { useSelection } from "../../context/SelectionContext";
 import { useChoropleth } from "../../context/ChoroplethContext";
 import { useModule } from "../../context/ModuleContext";
 import { useMap } from "../../context/MapContext";
-import { useFileContext } from "../../FileContext";
 
 
 const TransitModule = ({ featureTableRef }) => {
-    const { dataURL, isFeatureTableOpen, featureGeoJSON, setTableFilterQuery, setPolygonStopIds } = useData();
+    const { datasetId, isFeatureTableOpen, featureGeoJSON, setTableFilterQuery, setPolygonStopIds } = useData();
     const {
         selectedTransitModes, setSelectedTransitModes,
         showStopVolumeSymbology, setShowStopVolumeSymbology,
@@ -37,21 +39,27 @@ const TransitModule = ({ featureTableRef }) => {
     } = useChoropleth();
     const { isGraphExpanded } = useModule();
     const { mapRef, drawRef } = useMap();
-    const { fileMap } = useFileContext();
 
     const [filteredStopVolumes, setFilteredStopVolumes] = useState(null); // total filtered volumes per stop
     const [polygonFilteredVolumes, setPolygonFilteredVolumes] = useState(null);
-    const loadWithFallback = useLoadWithFallback(dataURL);
+    const loadWithFallback = useLoadWithFallback();
 
     // Per-canton transit mode list — drives the multi-select dropdown.
+    // datasetId in the key: refetch when the dataset switches.
     const { data: transitModesByCanton = {} } = useQuery({
-        queryKey: ['transit-modes-by-canton', dataURL, fileMap.size],
+        queryKey: ['transit-modes-by-canton', datasetId],
         queryFn: () => loadWithFallback("matsim/transit/transit_modes_by_canton.json"),
     });
-    const availableTransitModes = useMemo(() => {
-        if (canton && transitModesByCanton[canton]) return transitModesByCanton[canton];
-        return [];
-    }, [canton, transitModesByCanton]);
+    // clickedCanton is the polygon display NAME ('Zürich'); the modes map is keyed
+    // by the registry's ASCII spelling ('Zurich'). Match accent/space-insensitively.
+    const availableTransitModes = useMemo(
+        () => (canton ? lookupByName(transitModesByCanton, canton) : null) || [],
+        [canton, transitModesByCanton]
+    );
+
+    // Terminus names labelling the .H/.R direction filter for the selected line.
+    const routeDirections = useRouteDirections();
+    const directionLabels = directionLabelsForLine(routeDirections, highlightedLineId);
 
     // Polygon selection: aggregate stops within drawn polygons
     const handlePolygonChange = useCallback(() => {
@@ -188,6 +196,25 @@ const TransitModule = ({ featureTableRef }) => {
     // If a new line is selected and its mode is not in the filter, reset to "all" (was useEffect).
     // The line's mode comes from the selected stop's `lines` (each carries `mode`),
     // so there's no need to load the full transit_routes asset here.
+    // A different line's H/R point at different termini — reset the direction
+    // filter when the line changes. In a hook (not this render-phase ref block)
+    // because setSelectedDirection targets FilterContext, an ancestor provider —
+    // updating it during render warns "cannot update a component while rendering
+    // a different component".
+    useResetDirectionOnLineChange(highlightedLineId, selectedDirection, setSelectedDirection);
+
+    // Reset mode filter when switching to a canton that lacks the selected modes
+    const prevCantonModesRef = useRef(canton);
+    if (prevCantonModesRef.current !== canton) {
+        prevCantonModesRef.current = canton;
+        if (availableTransitModes.length > 0 && !selectedTransitModes.includes("all")) {
+            const allAvailable = selectedTransitModes.every(m => availableTransitModes.includes(m));
+            if (!allAvailable) {
+                setSelectedTransitModes(["all"]);
+            }
+        }
+    }
+
     const prevHighlightedLineRef = useRef(highlightedLineId);
     if (prevHighlightedLineRef.current !== highlightedLineId) {
         prevHighlightedLineRef.current = highlightedLineId;
@@ -203,7 +230,10 @@ const TransitModule = ({ featureTableRef }) => {
         }
     }
 
-    // Re-filter highlighted route IDs when direction changes while a line is selected
+    // Re-filter highlighted route IDs when direction changes while a line is
+    // selected. lineServesDirection handles both the legacy CDN shape (real
+    // route_id with .H/.R suffix) and the v2 shape (`dirs` array, route_id is
+    // a line_id placeholder — the old suffix filter emptied the list there).
     const prevDirectionRef = useRef(selectedDirection);
     if (prevDirectionRef.current !== selectedDirection) {
         prevDirectionRef.current = selectedDirection;
@@ -211,9 +241,10 @@ const TransitModule = ({ featureTableRef }) => {
         if (highlightedLineId && activeLines) {
             const allLines = Array.isArray(activeLines) ? activeLines : [];
             const routeIds = allLines
-                .filter(l => String(l?.line_id) === String(highlightedLineId))
+                .filter(l => String(l?.line_id) === String(highlightedLineId)
+                    && lineServesDirection(l, selectedDirection))
                 .map(l => l.route_id);
-            setHighlightedRouteIds(filterRoutesByDirection(routeIds, selectedDirection));
+            setHighlightedRouteIds(routeIds);
         }
     }
 
@@ -326,6 +357,7 @@ const TransitModule = ({ featureTableRef }) => {
             }}
             selectedDirection={selectedDirection}
             setSelectedDirection={setSelectedDirection}
+            directionLabels={directionLabels}
             />
 
             <TransitStopHistogram
@@ -363,6 +395,7 @@ const TransitModule = ({ featureTableRef }) => {
             }}
             selectedDirection={selectedDirection}
             setSelectedDirection={setSelectedDirection}
+            directionLabels={directionLabels}
             />
 
             <TransitStopHistogram

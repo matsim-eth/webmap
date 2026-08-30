@@ -21,7 +21,7 @@ from .helpers import (
     get_hot_polygon_meta,
     parse_source_param,
 )
-from ._pre_agg import label_for, make_label_resolver, polygon_filter_clause, resolve_polygon_ids, _source_label
+from ._pre_agg import label_for, make_label_resolver, polygon_filter_clause, primary_fast_path, resolve_polygon_ids, _source_label
 
 
 _PURPOSE_ABBREV = """
@@ -71,7 +71,7 @@ class OutOfHomeProvider(DataProvider):
             if polygon_ids:
                 join, where, group_expr, bind, _ = polygon_filter_clause(polygon_ids)
                 resolve = make_label_resolver(con, polygon_ids,
-                                               all(p.startswith("canton:") for p in polygon_ids))
+                                               primary_fast_path(polygon_ids))
                 rows = con.execute(f"""
                     WITH pp AS (
                         SELECT {group_expr} AS poly_key, a.person_id, a.purpose, COUNT(*) AS cnt

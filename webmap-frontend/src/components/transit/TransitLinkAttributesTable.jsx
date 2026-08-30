@@ -1,13 +1,21 @@
 import React, { useState } from "react";
 import "../Table.css";
+import DirectionToggle from "./DirectionToggle";
+import { directionLetter } from "../../utils/directionUtils";
 
-const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLineId, timeRange }) => {
+const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLineId, timeRange, linkFilter, volumesByLink, selectedDirection, setSelectedDirection, directionLabels }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   if (!propertiesList || !Array.isArray(propertiesList) || propertiesList.length === 0) return null;
-  
+
   const startTick = timeRange?.[0] ?? 0;
   const endTick = timeRange?.[1] ?? 96;
-  
+
+  // Narrow the displayed links to a chosen subset (the "Link ID" dropdown or a
+  // per-direction split selection). null/empty → show every link on the segment.
+  const keep = Array.isArray(linkFilter) && linkFilter.length
+    ? new Set(linkFilter.map(String))
+    : null;
+
   // Collect common info (assuming all links share same metadata structure)
   const linkIds = Array.from(
     new Set(
@@ -19,7 +27,7 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
         return p.id ? [String(p.id)] : [];
       })
     )
-  ).join(", ");
+  ).filter(id => !keep || keep.has(id)).join(", ");
   
   // Helpers for dedup rows like the MATSim network table
   const fmtNum = (v) => {
@@ -46,6 +54,7 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
       const values = valuesRaw.split("|").filter(Boolean);
       
       keys.forEach((id, index) => {
+        if (keep && !keep.has(String(id))) return;
         const num = Number(values[index]);
         if (Number.isFinite(num) && !seen.has(String(id))) {
           seen.set(String(id), num);
@@ -62,20 +71,30 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
     }
     return undefined;
   };
-  const allModes = Array.from(new Set(propertiesList.flatMap((p) => p.modes || [])));
+  // With a link filter active, rebuild lines/volumes from the per-link lookup
+  // (volumesByLink, published by useTransitVolumesLayer via DataContext) — the
+  // feature props only carry segment-level merges, so summing those would keep
+  // showing BOTH directions' volumes no matter which link is chosen. Falls
+  // back to the segment-level merge when no filter is set or the lookup can't
+  // resolve the ids (e.g. legacy props carrying raw per_id_keys).
+  const cleanId = (id) => String(id).split("_").map((p) => p.split(":")[0]).join("_");
+  const keptEntries = keep && volumesByLink
+    ? Array.from(keep, (id) => volumesByLink[id] ?? volumesByLink[cleanId(id)]).filter(Boolean)
+    : null;
+  const useByLink = !!(keptEntries && keptEntries.length);
+
   // Build merged lines dict, preserving name + mode if present
   const allLines = {};
-  
-  for (const p of propertiesList) {
-    const lines = p.lines || {};
-    for (const [lineId, line] of Object.entries(lines)) {
+  const mergeLinesInto = (lines) => {
+    for (const [lineId, line] of Object.entries(lines || {})) {
       const lineName = line.line_name ?? line.lineName ?? line.name ?? null; // handle snake/camel
       const mode = line.mode ?? null;
-      
+
       if (!allLines[lineId]) {
         allLines[lineId] = {
           total: 0,
           timeBins: {},
+          directions: null,
           line_name: lineName,
           mode
         };
@@ -83,28 +102,54 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
         if (!allLines[lineId].line_name && lineName) allLines[lineId].line_name = lineName;
         if (!allLines[lineId].mode && mode) allLines[lineId].mode = mode;
       }
-      
+
       // Merge total
       if (typeof line.total === "number") allLines[lineId].total += line.total ?? 0;
-      
+
       // Merge timeBins
       const dest = allLines[lineId].timeBins;
       const src = line.timeBins || {};
       for (const key in src) dest[key] = (dest[key] ?? 0) + (src[key] ?? 0);
+
+      // Merge per-direction (.H/.R) bins when present
+      if (line.directions) {
+        const dstDirs = allLines[lineId].directions || (allLines[lineId].directions = {});
+        for (const [d, bins] of Object.entries(line.directions)) {
+          const dst = dstDirs[d] || (dstDirs[d] = {});
+          for (const key in bins) dst[key] = (dst[key] ?? 0) + (bins[key] ?? 0);
+        }
+      }
     }
+  };
+  if (useByLink) {
+    for (const e of keptEntries) mergeLinesInto(e.lines);
+  } else {
+    for (const p of propertiesList) mergeLinesInto(p.lines);
   }
-  // Total volumes
-  const totalVolume = propertiesList.reduce((sum, p) => sum + (p.total_volume ?? 0), 0);
+
+  const allModes = useByLink
+    ? Array.from(new Set(keptEntries.flatMap((e) => e.modes_list || [])))
+    : Array.from(new Set(propertiesList.flatMap((p) => p.modes || [])));
+
+  // Total volumes — per-link full-day totals when filtered, segment totals otherwise
+  const totalVolume = useByLink
+    ? keptEntries.reduce((sum, e) => sum + (Number(e.linkTotal) || 0), 0)
+    : propertiesList.reduce((sum, p) => sum + (p.total_volume ?? 0), 0);
   
   let filteredVolume = 0;
-  
+
   const lineFilter = highlightedLineId ? [highlightedLineId] : Object.keys(allLines);
-  
+  // Route-direction (.H/.R) filter — applies with a line selected and per-
+  // direction bins available (v2 backend data); otherwise total bins.
+  const dirLetter = highlightedLineId ? directionLetter(selectedDirection) : null;
+
   for (const lineId of lineFilter) {
     const line = allLines[lineId];
     if (!line) continue;
-    
-    const timeBins = line.timeBins || {};
+
+    const timeBins = (dirLetter && line.directions)
+      ? (line.directions[dirLetter] || {})
+      : (line.timeBins || {});
     for (let h = startTick; h < endTick; h++) {
       const hour = Math.floor(h / 4).toString().padStart(2, '0');
       const minute = ((h % 4) * 15).toString().padStart(2, '0');
@@ -124,7 +169,7 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
   };
   
   return (
-    <div className="canton-mode-share" style={{ position: "relative" }}>
+    <div className="canton-mode-share" style={{ position: "relative", marginTop: 15 }}>
     <span
       role="button"
       tabIndex={0}
@@ -217,7 +262,7 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
     <tr>
     <td>Volumes</td>
     <td>
-    <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
+    <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem", justifyContent: "flex-end" }}>
     <div className="metric-card">
     <div className="metric-label">Filtered</div>
     <div className="metric-value">{filteredVolume}</div>
@@ -245,6 +290,20 @@ const TransitLinkAttributesTable = ({ propertiesList, onLineClick, highlightedLi
     </div>
     </td>
     </tr>
+    {/* Route-direction filter (.H/.R) — only meaningful with a line selected;
+        labels show each direction's most common terminus stop when known. */}
+    {highlightedLineId && setSelectedDirection && (
+    <tr>
+    <td>Direction</td>
+    <td>
+      <DirectionToggle
+        value={selectedDirection}
+        onChange={setSelectedDirection}
+        labels={directionLabels}
+      />
+    </td>
+    </tr>
+    )}
     </tbody>
     </table>
     )}

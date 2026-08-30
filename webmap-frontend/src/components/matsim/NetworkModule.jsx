@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from "react";
 import SegmentAttributesTable from "./SegmentAttributesTable";
 import FeatureTable from "../table/FeatureTable";
 import { useTableRowBuilder } from "../../hooks/useTableRowBuilder";
+import { useNetworkModes } from "../../hooks/useNetworkModes";
 import { buildSelectionPayload } from "../table/_lib/rowSearch";
 import { parsePipeList } from "../map/_lib/pipeProps";
 import { useData } from "../../context/DataContext";
@@ -15,10 +16,11 @@ import "./VolumeFlowModule.css";
 // isn't useful at the network level.
 const EXCLUDED_MODES = new Set([
   "car_passenger", "train", "taxi", "truck",
+  "stopFacilityLink", "artificial",
 ]);
 
 const NetworkModule = ({ featureTableRef }) => {
-  const { isFeatureTableOpen, featureGeoJSON, setTableFilterQuery } = useData();
+  const { isFeatureTableOpen, featureGeoJSON, setTableFilterQuery, zoneLabel, datasetId } = useData();
   const { selectedNetworkModes, setSelectedNetworkModes } = useFilters();
   const {
     clickedCanton: canton,
@@ -41,25 +43,40 @@ const NetworkModule = ({ featureTableRef }) => {
     : (networkSelectedLink ? [networkSelectedLink] : null);
 
   // Available modes = the distinct transport modes actually present on the
-  // canton's network links. The enriched merged_segments geometry carries the
-  // real per-link `modes` (comma-joined, e.g. "car,car_passenger,taxi,truck"),
-  // so we union them across the loaded features — far more accurate than the
-  // old trip-based modes_by_canton list (which only knew car/pt/walk/bike/
-  // car_passenger, then got further trimmed to car/walk/bike).
+  // canton's network links (never the old trip-based modes_by_canton list,
+  // which only knew car/pt/walk/bike/car_passenger and so hid truck/rail/tram).
+  //
+  // Preferred source is the backend's `network_modes.json`, a narrow DISTINCT
+  // over `network_links.modes` that returns in milliseconds — so the dropdown
+  // populates as soon as the canton is clicked instead of waiting on the
+  // tens-of-MB merged_segments geometry, which used to leave it stuck on "All".
+  //
+  // Fallback is the original union over the loaded geometry's per-feature
+  // `modes`, which keeps legacy/CDN datasets (no `network_links` table) working
+  // exactly as before — just as slow as they always were.
+  const backendModes = useNetworkModes(datasetId, canton);
+
   const availableModes = useMemo(() => {
-    const feats = featureGeoJSON?.features;
-    if (!feats || feats.length === 0) return [];
     const set = new Set();
-    for (const f of feats) {
-      const m = f?.properties?.modes;
-      if (!m) continue;
-      for (const part of String(m).split(",")) {
-        const t = part.trim();
+    const addAll = (list) => {
+      for (const raw of list) {
+        const t = String(raw ?? "").trim();
         if (t && !EXCLUDED_MODES.has(t)) set.add(t);
+      }
+    };
+
+    if (backendModes) {
+      addAll(backendModes);
+    } else {
+      const feats = featureGeoJSON?.features;
+      if (!feats || feats.length === 0) return [];
+      for (const f of feats) {
+        const m = f?.properties?.modes;
+        if (m) addAll(String(m).split(","));
       }
     }
     return Array.from(set).sort();
-  }, [featureGeoJSON]);
+  }, [backendModes, featureGeoJSON]);
 
   const handleModeChange = (event) => {
     const selectedOptions = Array.from(event.target.selectedOptions).map((o) => o.value);
@@ -140,7 +157,7 @@ const NetworkModule = ({ featureTableRef }) => {
         </div>
       ) : (
         <p style={{ padding: "1rem", fontStyle: "italic", color: "#555" }}>
-        Click a canton to view MATSim network links.
+        Click a {zoneLabel.toLowerCase()} to view MATSim network links.
         </p>
       )}
 

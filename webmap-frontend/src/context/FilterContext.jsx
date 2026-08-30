@@ -1,4 +1,5 @@
 import { createContext, useContext, useMemo, useState } from 'react';
+import { DEFAULT_SOCIO_FILTERS } from '../components/filters/socioFilterConfig';
 
 const FilterContext = createContext(null);
 
@@ -24,6 +25,8 @@ export const FilterProvider = ({ children }) => {
   const [linkSpeedsMetric, setLinkSpeedsMetric] = useState('congestion_index');
   const [linkSpeedsRoadTypes, setLinkSpeedsRoadTypes] = useState(['all']);
 
+  const [socioFilters, setSocioFilters] = useState(DEFAULT_SOCIO_FILTERS);
+
   const value = useMemo(() => ({
     timeRange, setTimeRange,
     selectedNetworkModes, setSelectedNetworkModes,
@@ -36,12 +39,14 @@ export const FilterProvider = ({ children }) => {
     zoneFlowDirection, setZoneFlowDirection,
     linkSpeedsMetric, setLinkSpeedsMetric,
     linkSpeedsRoadTypes, setLinkSpeedsRoadTypes,
+    socioFilters, setSocioFilters,
   }), [
     timeRange,
     selectedNetworkModes, selectedTransitModes,
     showMajorRoadsOnly, showStopVolumeSymbology, showLineSymbology,
     selectedDirection, volumeFlowDirection, zoneFlowDirection,
     linkSpeedsMetric, linkSpeedsRoadTypes,
+    socioFilters,
   ]);
 
   return <FilterContext.Provider value={value}>{children}</FilterContext.Provider>;

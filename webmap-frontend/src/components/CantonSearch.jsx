@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import cantonAlias from '../utils/canton_alias.json';
 import { useData } from '../context/DataContext';
 import { useSelection } from '../context/SelectionContext';
 import { useFilters } from '../context/FilterContext';
@@ -71,7 +70,7 @@ const CantonSearch = ({ onSearch }) => {
     const [searchMarker, setSearchMarker] = useState(null);
     const [isOpen, setIsOpen] = useState(false);
 
-    const { featureGeoJSON, polygonStopIds } = useData();
+    const { featureGeoJSON, polygonStopIds, zones, zoneLabel, zoneLabelPlural } = useData();
     const {
         clickedCanton,
         setSelectedTransitStop,
@@ -81,7 +80,12 @@ const CantonSearch = ({ onSearch }) => {
     const { isGraphExpanded } = useModule();
     const { mapRef } = useMap();
 
-    const cantonEntries = useMemo(() => Object.entries(cantonAlias), []);
+    // [internalName, displayName] pairs from the study-area zone list — same
+    // values as the old canton_alias.json for Swiss datasets by construction.
+    const cantonEntries = useMemo(
+        () => zones.map((z) => [z.name, z.displayName]),
+        [zones]
+    );
     const displayNames = useMemo(
         () => cantonEntries.map(([, displayName]) => displayName),
         [cantonEntries]
@@ -288,9 +292,10 @@ const CantonSearch = ({ onSearch }) => {
         }
     };
 
+    const zoneLabelLower = (zoneLabel || 'Canton').toLowerCase();
     const placeholder = isTransitMode && hasCanton
-        ? 'Search canton or stop...'
-        : 'Search canton...';
+        ? `Search ${zoneLabelLower} or stop...`
+        : `Search ${zoneLabelLower}...`;
 
     return (
         <div className="canton-search">
@@ -311,7 +316,7 @@ const CantonSearch = ({ onSearch }) => {
                     {cantonSuggestions.length > 0 && (
                         <>
                             {stopSuggestions.length > 0 && (
-                                <li className="suggestion-header">Cantons</li>
+                                <li className="suggestion-header">{zoneLabelPlural || 'Cantons'}</li>
                             )}
                             {cantonSuggestions.map((name, idx) => {
                                 const flatIdx = idx;

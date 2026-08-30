@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import "./Loading.css" // loading screen for network
 import AiChat from './AiChat';
 import { useLoadWithFallback } from '../utils/useLoadWithFallback';
@@ -25,6 +25,7 @@ import { useFilters } from '../context/FilterContext';
 import { useSelection } from '../context/SelectionContext';
 import { useChoropleth as useChoroplethState } from '../context/ChoroplethContext';
 import { useResetMapView } from '../hooks/useResetMapView';
+import { computeMapPadding } from './sidebar/sidebarLayout';
 
 export default function Map() {
   const { isGraphExpanded } = useModule();
@@ -40,15 +41,16 @@ export default function Map() {
   } = useMap();
   const {
     datasetId,
-    dataURL,
     setIsFeatureTableOpen,
     isFeatureTableOpen,
     setFeatureGeoJSON,
     featureGeoJSON,
     tableFilterQuery,
+    polygonLinkIds,
     destinationData: selectedDestinationData,
     boardingData: selectedBoardingData,
     zoneFlowLoading,
+    studyArea,
   } = useData();
   const {
     selectedNetworkModes,
@@ -81,8 +83,8 @@ export default function Map() {
     hoveredRouteId,
   } = useChoroplethState();
 
-  // load util for loading in the data (from link or local upload)
-  const loadWithFallback = useLoadWithFallback(dataURL);
+  // load util for loading the dataset's data from the backend
+  const loadWithFallback = useLoadWithFallback();
 
   // for disabling next zoom to canton (ie when click on out-of-canton transit stop)
   const suppressNextSearchZoom = useRef(false);
@@ -96,12 +98,25 @@ export default function Map() {
   const graphExpandedRef = useRef(isGraphExpanded);
   graphExpandedRef.current = isGraphExpanded;
 
-  // initialize mapbox map instance
+  // initialize mapbox map instance — with the sidebar-compensated padding
+  // applied from the first frame, so Switzerland loads already centred in
+  // the visible map area (only used at construction; later sidebar/module
+  // changes animate via usePadding)
   const {
     mapRef,
     mapContainerRef,
     mapReady
-  } = useMapbox(import.meta.env.VITE_MAPBOX_TOKEN);
+  } = useMapbox(
+    import.meta.env.VITE_MAPBOX_TOKEN,
+    computeMapPadding({
+      isGraphExpanded,
+      isSidebarOpen,
+      isFeatureTableOpen,
+      isLeftSidebarOpen: !isLeftSidebarCollapsed,
+    }),
+    // Study-area extent (Swiss defaults until/unless the dataset serves one).
+    { center: studyArea?.center, zoom: studyArea?.zoom }
+  );
 
   // Sync map instance to context ref (derived assignment, not an effect)
   if (contextMapRef && mapReady) {
@@ -119,6 +134,7 @@ export default function Map() {
     graphExpandedRef,
     setIsFeatureTableOpen: setIsFeatureTableOpen,
     isFeatureTableOpen: isFeatureTableOpen,
+    isSidebarOpen: isSidebarOpen,
     isLeftSidebarOpen: !isLeftSidebarCollapsed,
     drawRef: contextDrawRef
   });
@@ -192,6 +208,7 @@ export default function Map() {
     setFeatureGeoJSON: setFeatureGeoJSON,
     tableFilterQuery: tableFilterQuery,
     selectedDirection: selectedDirection,
+    labelSize: labelSize,
     drawRef: contextDrawRef
   });
 
@@ -274,6 +291,8 @@ export default function Map() {
     isGraphExpanded: isGraphExpanded,
     showMajorRoadsOnly: showMajorRoadsOnly,
     showStopVolumeSymbology: showStopVolumeSymbology,
+    highlightedLineId: highlightedLineId,
+    polygonLinkIds: polygonLinkIds,
     featureGeoJSON: featureGeoJSON,
   });
 

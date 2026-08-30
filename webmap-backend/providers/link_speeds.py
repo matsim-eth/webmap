@@ -21,11 +21,9 @@ from __future__ import annotations
 from collections import OrderedDict
 
 from .base import DataProvider, Param
-from .constants import CANTON_MAP
 from .connection import get_source_cursor
 from .paths import dataset_key
-
-_NAME_TO_ID = {v.lower(): k for k, v in CANTON_MAP.items()}
+from .zone_registry import get_registry, zone_col
 
 # ─── Result cache ──────────────────────────────────────────────────────────
 # link_speeds.json (per canton/time-window) and speed_dashboard.json scan the
@@ -61,23 +59,40 @@ def _get_con():
 
 
 def _resolve_cantons(raw: str) -> list[int]:
-    """Parse comma-separated canton names/IDs into a list of canton IDs."""
+    """Parse comma-separated zone names/IDs into a list of zone IDs, resolved
+    through the dataset's zone registry."""
+    reg = get_registry()
     ids = []
     for part in raw.split(","):
         part = part.strip()
         if not part:
             continue
-        try:
-            cid = int(part)
-            if cid in CANTON_MAP:
-                ids.append(cid)
-                continue
-        except ValueError:
-            pass
-        cid = _NAME_TO_ID.get(part.lower())
-        if cid is not None:
-            ids.append(cid)
+        zid = reg.resolve_zone(part)
+        if zid is not None:
+            ids.append(zid)
     return ids
+
+
+_HAS_NETWORK_LINKS: dict = {}
+
+
+def _has_network_links() -> bool:
+    """Does this dataset ship a `network_links` table? Cached per dataset.
+
+    The mode filter is a semi-join against it, so on an older dataset that
+    predates the table the filter has to degrade to a no-op rather than error.
+    """
+    key = dataset_key()
+    cached = _HAS_NETWORK_LINKS.get(key)
+    if cached is not None:
+        return cached
+    try:
+        _get_con().execute("SELECT 1 FROM network_links LIMIT 1").fetchone()
+        ok = True
+    except Exception:
+        ok = False
+    _HAS_NETWORK_LINKS[key] = ok
+    return ok
 
 
 def _build_filters(params: dict) -> tuple[str, list]:
@@ -96,13 +111,41 @@ def _build_filters(params: dict) -> tuple[str, list]:
             clauses.append(f"road_type IN ({placeholders})")
             bind.extend(types)
 
-    # Canton filter
-    canton = (params.get("canton") or "").strip()
+    # Network-mode filter (comma-separated, e.g. "car").
+    #
+    # `link_speeds` is NOT road-only: in dataset 3 / Zürich, 5,040 of the 119,622
+    # links with speed rows carry no `car` mode at all (bus,pt / pt,rail,tram /
+    # artificial,tram / ferry / funicular), contributing 556k volume. They have
+    # volume > 0, so nothing downstream filtered them out — rail and tram
+    # alignments were drawn on the Link Speeds map, listed in its table, and
+    # folded into its average-speed and congestion-index summary alongside the
+    # roads. The mode lives on `network_links`, not on `link_speeds`, so this is
+    # a semi-join; DuckDB plans `IN (subquery)` as a hash semi-join, which is
+    # cheap next to the aggregate scan.
+    #
+    # Tokens are matched exactly against the comma-delimited `modes` string, the
+    # same rule the frontend filters use, so "car" can't match "cable car".
+    modes_raw = (params.get("modes") or "").strip()
+    if modes_raw and _has_network_links():
+        tokens = [t.strip() for t in modes_raw.split(",") if t.strip()]
+        if tokens:
+            ors = " OR ".join(
+                ["(',' || COALESCE(nl.modes, '') || ',') LIKE ?"] * len(tokens)
+            )
+            clauses.append(
+                "CAST(link_id AS VARCHAR) IN ("
+                f"SELECT CAST(nl.link_id AS VARCHAR) FROM network_links nl WHERE {ors})"
+            )
+            bind.extend(f"%,{t},%" for t in tokens)
+
+    # Canton/zone filter
+    canton = (params.get("canton") or params.get("zone") or "").strip()
     if canton:
         canton_ids = _resolve_cantons(canton)
         if canton_ids:
+            zcol = zone_col("synthetic", "link_speeds", "zone")
             placeholders = ", ".join(["?"] * len(canton_ids))
-            clauses.append(f"canton_id IN ({placeholders})")
+            clauses.append(f"{zcol} IN ({placeholders})")
             bind.extend(canton_ids)
 
     # Time filter. The v2 `time_bin` column is a 15-minute bin INDEX (0..95);
@@ -141,7 +184,44 @@ _TRAFFIC_CACHE: "OrderedDict[tuple, list]" = OrderedDict()
 _TRAFFIC_CACHE_MAX = 6
 
 
-def link_traffic_volumes(canton_id: int, min_capacity: float | None = None) -> list:
+# Hierarchy classes counted as "major roads" — the server-side twin of the
+# frontend's MAJOR_ROADS_FILTER (components/map/_lib/mapboxFilters.js). The
+# `_link` variants keep motorway/trunk/primary/secondary ramps attached.
+MAJOR_ROAD_TYPES = (
+    "motorway", "motorway_link",
+    "trunk", "trunk_link",
+    "primary", "primary_link",
+    "secondary", "secondary_link",
+)
+
+
+def major_road_clause(alias: str = "") -> tuple[str, list]:
+    """SQL predicate for "major road", plus its bind parameters.
+
+    The exact twin of the frontend's ``MAJOR_ROADS_FILTER``: hierarchy class
+    when the link carries a usable ``road_type``, else the legacy
+    ``capacity > 1200`` threshold for untagged links.
+
+    Shared by the per-link volumes and by the network geometry subset so the two
+    can never disagree — a geometry subset narrower than the map filter would
+    silently drop links the user expects to see.
+
+    ``alias`` qualifies the columns (e.g. ``"nl"``); omit it for an unaliased
+    ``FROM network_links``.
+    """
+    p = f"{alias}." if alias else ""
+    placeholders = ", ".join("?" * len(MAJOR_ROAD_TYPES))
+    clause = (
+        f"({p}road_type IN ({placeholders}) "
+        f"OR (({p}road_type IS NULL OR {p}road_type IN ('unknown', '')) "
+        f"AND {p}capacity > 1200))"
+    )
+    return clause, list(MAJOR_ROAD_TYPES)
+
+
+def link_traffic_volumes(
+    canton_id: int, min_capacity: float | None = None, major: bool = False
+) -> list:
     """Per-link hourly car traffic volumes for a canton.
 
     Returns ``[{link_id, hourly_avg_volumes}]`` where ``hourly_avg_volumes`` is
@@ -150,37 +230,46 @@ def link_traffic_volumes(canton_id: int, min_capacity: float | None = None) -> l
     ``link_id`` up by the segment's ``per_id_keys`` and splits left/right by the
     per-link arrow. Links with no traffic are simply absent (→ treated as 0).
 
-    ``min_capacity`` restricts the result to links whose ``network_links.capacity``
-    exceeds the threshold — the same ``capacity > 1200`` test the frontend's
-    "major roads only" map filter uses. The default Volumes view is major-only,
-    so requesting just those links cuts the payload ~10× (the rest is fetched
-    lazily when the table opens or the toggle is switched off). Cached per
-    (dataset, canton, threshold).
+    ``major`` restricts the result to major roads by hierarchy — the same
+    predicate the frontend's "major roads only" map filter (MAJOR_ROADS_FILTER)
+    applies: ``road_type`` in MAJOR_ROAD_TYPES, falling back to the legacy
+    ``capacity > 1200`` threshold for untagged links (road_type NULL/'unknown').
+    ``min_capacity`` is the older pure-capacity variant, kept for backward
+    compatibility. The default Volumes view is major-only, so requesting just
+    those links cuts the payload ~10× (the rest is fetched lazily when the
+    toggle is switched off). Cached per (dataset, canton, filter variant).
     """
-    ckey = (dataset_key(), canton_id, min_capacity)
+    ckey = (dataset_key(), canton_id, min_capacity, major)
     cached = _TRAFFIC_CACHE.get(ckey)
     if cached is not None:
         _TRAFFIC_CACHE.move_to_end(ckey)
         return cached
 
     con = _get_con()
+    zcol = zone_col("synthetic", "link_speeds", "zone")
     # time_bin is a 15-min bin index (0..95); // 4 → hour (0..23). A flat
     # GROUP BY + Python dict fill is the fastest build measured — packing the
     # 24-array in SQL (ordered list_agg) or via numpy.unique on the string
     # link_ids were both slower.
     rows = None
-    if min_capacity is not None:
+    if major or min_capacity is not None:
+        if major:
+            link_clause, major_args = major_road_clause("nl")
+            args = [canton_id, *major_args]
+        else:
+            link_clause = "nl.capacity > ?"
+            args = [canton_id, min_capacity]
         try:
             rows = con.execute(
-                """
+                f"""
                 SELECT ls.link_id, ls.time_bin // 4 AS hour, SUM(ls.volume)::INTEGER AS volume
                 FROM link_speeds ls
                 JOIN network_links nl
                   ON CAST(nl.link_id AS VARCHAR) = CAST(ls.link_id AS VARCHAR)
-                WHERE ls.canton_id = ? AND nl.capacity > ?
+                WHERE ls.{zcol} = ? AND {link_clause}
                 GROUP BY ls.link_id, ls.time_bin // 4
                 """,
-                [canton_id, min_capacity],
+                args,
             ).fetchall()
         except Exception:
             # Older dataset without a network_links table → fall back to the full
@@ -188,10 +277,10 @@ def link_traffic_volumes(canton_id: int, min_capacity: float | None = None) -> l
             rows = None
     if rows is None:
         rows = con.execute(
-            """
+            f"""
             SELECT link_id, time_bin // 4 AS hour, SUM(volume)::INTEGER AS volume
             FROM link_speeds
-            WHERE canton_id = ?
+            WHERE {zcol} = ?
             GROUP BY link_id, time_bin // 4
             """,
             [canton_id],
@@ -219,7 +308,11 @@ def link_traffic_volumes(canton_id: int, min_capacity: float | None = None) -> l
 
 _LINK_SPEED_PARAMS = [
     Param("road_type", "Road type filter (comma-separated, e.g. motorway,primary)"),
+    Param("modes", "Network-link mode filter (comma-separated, e.g. car). "
+                   "Keeps only links whose network_links.modes names one of "
+                   "these; omit for every link with speed data."),
     Param("canton", "Canton name or ID (comma-separated)"),
+    Param("zone", "Zone name or ID (comma-separated); alias of canton"),
     Param("minute_start", "Time window start (minutes from midnight)", param_type="integer"),
     Param("minute_end", "Time window end (minutes from midnight)", param_type="integer"),
 ]

@@ -1,8 +1,8 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import './LeftSidebar.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faCircleNodes, faRotateLeft, faFolder, faXmark,
+  faCircleNodes, faRotateLeft,
   faChevronLeft, faChevronRight, faChevronDown, faChevronUp,
   faRoad, faPersonWalkingLuggage, faLocationDot, faBus,
   faArrowsSplitUpAndLeft, faChartSimple, faMap, faRoute,
@@ -15,17 +15,16 @@ import {
   faRightLeft,
   faDrawPolygon,
 } from '@fortawesome/free-solid-svg-icons';
-import { useFileContext } from '../../FileContext';
 import { useModule } from '../../context/ModuleContext';
 import { useMap } from '../../context/MapContext';
 import { useData } from '../../context/DataContext';
 import { useFilters } from '../../context/FilterContext';
 import { useChoropleth } from '../../context/ChoroplethContext';
 import { redirectToLogin, checkIsAdmin } from '../../utils/auth';
+import { useFullReset } from '../../hooks/useFullReset';
 import { useQuery } from '@tanstack/react-query';
 import DatasetSelector from '../DatasetSelector';
-import ApiTokensModal from '../ApiTokensModal';
-import SimJobsModal, { useSimJobsBadge } from '../SimJobsModal';
+import { LEFT_SIDEBAR_WIDTH, LEFT_SIDEBAR_COLLAPSED_WIDTH } from './sidebarLayout';
 
 const SectionTitle = ({ label, isOpen, onToggle }) => (
   <button className="left-sidebar-section-title" onClick={onToggle}>
@@ -35,8 +34,6 @@ const SectionTitle = ({ label, isOpen, onToggle }) => (
 );
 
 const LeftSidebar = () => {
-  const fileInputRef = useRef(null);
-
   const [modulesOpen, setModulesOpen] = useState(true);
   const [dataOpen, setDataOpen] = useState(true);
   const [tokensOpen, setTokensOpen] = useState(false);
@@ -47,20 +44,12 @@ const LeftSidebar = () => {
   const { isGraphExpanded, setIsGraphExpanded } = useModule();
   const {
     setIsSidebarOpen,
-    setResetMapTrigger,
-    resetMapView,
     isLeftSidebarCollapsed: isCollapsed,
     setIsLeftSidebarCollapsed: setIsCollapsed,
   } = useMap();
-  const { setIsFeatureTableOpen, setDataURL } = useData();
-  const { setSelectedNetworkModes, setSelectedTransitModes } = useFilters();
-  const {
-    setHighlightedLineId, setHighlightedRouteIds,
-    setSelectedDataset, setSelectedMode,
-    updateMapChoropleth,
-  } = useChoropleth();
-
-  const { handleFolderUpload, fileMap, clearFileMap } = useFileContext();
+  const { setIsFeatureTableOpen } = useData();
+  const { setSelectedNetworkModes } = useFilters();
+  const { setHighlightedLineId, setHighlightedRouteIds } = useChoropleth();
 
   const { data: isAdmin = false } = useQuery({
     queryKey: ['admin-check'],
@@ -70,7 +59,8 @@ const LeftSidebar = () => {
   // Expose sidebar width as CSS variable for search bar positioning
   // effect:audited — DOM side-effect syncing CSS custom property to React state
   document.documentElement.style.setProperty(
-    '--left-sidebar-width', isCollapsed ? '60px' : '215px'
+    '--left-sidebar-width',
+    `${isCollapsed ? LEFT_SIDEBAR_COLLAPSED_WIDTH : LEFT_SIDEBAR_WIDTH}px`
   );
 
   const menuItems = [
@@ -108,37 +98,7 @@ const LeftSidebar = () => {
     setIsSidebarOpen(true);
   };
 
-  const handleReset = () => {
-    setResetMapTrigger((prev) => !prev);
-
-    setSelectedDataset('Microcensus');
-    setSelectedMode('None');
-    setSelectedNetworkModes(['all']);
-    setSelectedTransitModes(['all']);
-    updateMapChoropleth('None', 'Microcensus');
-    resetMapView();
-
-    setHighlightedLineId(null);
-    setHighlightedRouteIds([]);
-
-    setIsGraphExpanded(null);
-
-    clearFileMap();
-    setDataURL('https://matsim-eth.github.io/webmap/data/');
-
-    setIsSidebarOpen(false);
-  };
-
-  const handleUploadClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      handleFolderUpload(files);
-    }
-  };
+  const handleReset = useFullReset();
 
   const handleLogout = async () => {
     try {
@@ -151,8 +111,6 @@ const LeftSidebar = () => {
     } catch { /* ignore */ }
     redirectToLogin();
   };
-
-  const hasUploadedFiles = fileMap.size > 0;
 
   return (
     <aside className={`left-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
@@ -235,44 +193,11 @@ const LeftSidebar = () => {
           )}
         </div>
 
-        {/* DATA Section (dataset + upload) */}
+        {/* DATA Section (dataset selector) */}
         <div className="left-sidebar-section">
           {!isCollapsed && <SectionTitle label="DATA" isOpen={dataOpen} onToggle={() => setDataOpen(v => !v)} />}
           {(dataOpen || isCollapsed) && (
-          <>
-          <DatasetSelector isCollapsed={isCollapsed} />
-          <nav className="left-sidebar-nav">
-            <button
-              className={`left-sidebar-item ${hasUploadedFiles ? 'uploaded' : ''}`}
-              onClick={handleUploadClick}
-              title={isCollapsed ? 'Local Folder' : ''}
-            >
-              <span className="left-sidebar-icon"><FontAwesomeIcon icon={faFolder} /></span>
-              {!isCollapsed && <span className="left-sidebar-label">Local Folder</span>}
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              webkitdirectory=""
-              directory=""
-              multiple
-              style={{ display: 'none' }}
-              onChange={handleFileChange}
-            />
-          </nav>
-          {!isCollapsed && hasUploadedFiles && (
-            <div className="left-sidebar-file-count-container">
-              <span className="left-sidebar-file-count">{fileMap.size} files uploaded</span>
-              <button
-                className="left-sidebar-file-reset"
-                onClick={clearFileMap}
-                title="Reset to default data"
-              >
-                <FontAwesomeIcon icon={faXmark} />
-              </button>
-            </div>
-          )}
-          </>
+            <DatasetSelector isCollapsed={isCollapsed} />
           )}
         </div>
 

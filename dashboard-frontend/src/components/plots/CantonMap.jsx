@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useDashboard } from '../../context/DashboardContext';
@@ -21,8 +21,19 @@ const CantonMap = ({ sidebarCollapsed, isExpanded = false, activeTab }) => {
     selectedLineModes,
     polygonSet,
     datasetId,
+    zones,
+    studyAreaBbox,
+    studyAreaCenter,
+    studyAreaZoom,
   } = useDashboard();
   const { getCantonData } = useData();
+
+  // Zone boundary loader for useCantonMap: backend zones.json first (per
+  // dataset, authoritative), CDN TLM as last resort is handled inside the hook.
+  const getZonesGeojson = useCallback(
+    () => getCantonData('zones.json'),
+    [getCantonData]
+  );
 
   // Mode-filter visibility flags. Selection state stays put; only rendering
   // is suppressed so unfiltering brings the prior selection right back.
@@ -59,11 +70,16 @@ const CantonMap = ({ sidebarCollapsed, isExpanded = false, activeTab }) => {
   // The custom path uses polygonSet.features in memory — no network request.
   const cantonsForLine = Array.isArray(effectiveLineMeta?.cantons) ? effectiveLineMeta.cantons : [];
   const cantonsKey = [...cantonsForLine].sort().join('|');
+  // Enabled off the cantons list (known as soon as the line is picked) rather
+  // than off linePolygonIds — so this ~54 MB fetch runs in parallel with the
+  // counts/stops/muni-lookup pipeline that resolves linePolygonIds, instead of
+  // waiting behind it. linePolygonsFC still returns null until the ids land, so
+  // rendering timing is unchanged; only the network fetch is parallelized.
   const muniEnabled =
     polygonSet?.kind !== 'custom'
     && !!effectiveLineMeta?.line_id
     && !hideLineByFilter
-    && !!linePolygonIds?.size;
+    && cantonsForLine.length > 0;
   const { data: muniGeo } = useQuery({
     queryKey: ['municipalities-geojson', datasetId, cantonsKey],
     enabled: muniEnabled,
@@ -141,6 +157,12 @@ const CantonMap = ({ sidebarCollapsed, isExpanded = false, activeTab }) => {
     getCantonData,
     hideLineByFilter,
     hideStopByFilter,
+    zones,
+    studyBbox: studyAreaBbox,
+    initialCenter: studyAreaCenter,
+    initialZoom: studyAreaZoom,
+    getZonesGeojson,
+    datasetId,
   });
 
   return (

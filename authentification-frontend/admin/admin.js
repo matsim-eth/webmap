@@ -422,13 +422,16 @@ function _renderDatasetRows(tbody, datasets, ownerFilter, ownerName) {
 
   for (const ds of datasets) {
     const statusCls = ds.status === "active" ? "badge-success" : "badge-secondary";
+    const defaultBadge = ds.is_default
+      ? ' <span class="badge badge-dark" title="System-wide default dataset">DEFAULT</span>'
+      : "";
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><code>${ds.id}</code></td>
       <td>${esc(ds.name)}</td>
       <td>${esc(ds.description || "-")}</td>
       <td>${esc(ds.owner_username || "")} <span class="text-muted">(${ds.owner_id})</span></td>
-      <td><span class="badge ${statusCls}">${esc(ds.status)}</span></td>
+      <td><span class="badge ${statusCls}">${esc(ds.status)}</span>${defaultBadge}</td>
       <td>${ds.created_at ? new Date(ds.created_at).toLocaleDateString() : "-"}</td>
       <td class="text-nowrap">
         <div class="actions">
@@ -485,10 +488,13 @@ async function loadDatasets(ownerFilter, ownerName) {
   _currentOwnerFilter = ownerFilter || null;
   _currentOwnerName = ownerName || null;
 
-  let url = "/admin/datasets";
-  if (ownerFilter) {
-    url += `?owner_id=${ownerFilter}`;
-  }
+  // Always fetch UNFILTERED and narrow client-side. The owner filter is a view
+  // over the tables, but the default-dataset dropdown is a system-wide setting
+  // that must see every dataset: filtering server-side (?owner_id=) drops the
+  // current default from the payload whenever it belongs to another owner, and
+  // the dropdown then reads "None" even though a default is set. Admin dataset
+  // counts are small, so the saved bytes aren't worth that failure mode.
+  const url = "/admin/datasets";
 
   const filterDiv = el("datasetOwnerFilter");
   const filterBadge = el("datasetFilterBadge");
@@ -512,11 +518,219 @@ async function loadDatasets(ownerFilter, ownerName) {
   const data = await res.json();
   _allDatasets = data.datasets || [];
 
-  const publicDatasets = _allDatasets.filter((ds) => ds.is_public);
-  const privateDatasets = _allDatasets.filter((ds) => !ds.is_public);
+  // Owner filter applied here, not server-side — see the note on `url` above.
+  const visible = ownerFilter
+    ? _allDatasets.filter((ds) => String(ds.owner_id) === String(ownerFilter))
+    : _allDatasets;
+
+  const publicDatasets = visible.filter((ds) => ds.is_public);
+  const privateDatasets = visible.filter((ds) => !ds.is_public);
 
   _renderDatasetRows(el("publicDatasetsBody"), publicDatasets, ownerFilter, ownerName);
   _renderDatasetRows(el("privateDatasetsBody"), privateDatasets, ownerFilter, ownerName);
+  renderDefaultDatasetSelect();
+  _checkTableJobStatuses(visible);
+}
+
+// ── Inline job progress in dataset tables ───────────────────────
+
+let _tableJobTimers = new Map();  // dsid -> intervalId
+
+function _stopAllTableJobPolls() {
+  for (const t of _tableJobTimers.values()) clearInterval(t);
+  _tableJobTimers.clear();
+}
+
+function _checkTableJobStatuses(datasets) {
+  _stopAllTableJobPolls();
+  for (const ds of datasets) {
+    _checkTableJob(ds.id, "ingest");
+    _checkTableJob(ds.id, "rezone");
+  }
+}
+
+async function _checkTableJob(dsid, jobType) {
+  const url = jobType === "ingest"
+    ? `/datasets/${dsid}/ingest/status`
+    : `/datasets/${dsid}/rezone/status`;
+  const res = await datasetApi(url);
+  if (!res.ok) return;
+  const job = await res.json().catch(() => null);
+  if (!job || job.state !== "running") return;
+  _showTableJobProgress(dsid, jobType, job);
+  _startTableJobPoll(dsid, jobType);
+}
+
+function _showTableJobProgress(dsid, jobType, job) {
+  const key = `${jobType}-${dsid}`;
+  const rowId = `ds-job-row-${key}`;
+
+  // Find the dataset's main row in either table body
+  let mainRow = null;
+  for (const tbodyId of ["publicDatasetsBody", "privateDatasetsBody"]) {
+    const tbody = el(tbodyId);
+    if (!tbody) continue;
+    const btn = tbody.querySelector(`button[data-dsid="${dsid}"]`);
+    if (btn) { mainRow = btn.closest("tr"); break; }
+  }
+  if (!mainRow) return;
+
+  let progressRow = document.getElementById(rowId);
+  if (!progressRow) {
+    progressRow = document.createElement("tr");
+    progressRow.id = rowId;
+    progressRow.className = "ds-job-progress-row";
+    mainRow.after(progressRow);
+  }
+
+  const label = jobType === "ingest" ? "Processing" : "Re-zoning";
+  const stepText = job.step || "";
+  const stepIndex = job.step_index || 0;
+  const nSteps = job.n_steps || 14;
+  const pct = typeof job.progress === "number"
+    ? Math.round((job.progress <= 1 ? job.progress : job.progress / 100) * 100)
+    : null;
+  const pctWidth = pct !== null ? `${pct}%` : "100%";
+  const indeterminate = pct === null;
+  const stepLabel = stepIndex > 0 ? `Step ${stepIndex}/${nSteps}` : "";
+  const detail = stepText.split(":").slice(1).join(":").trim();
+  const stepName = stepText.split(":")[0].trim();
+
+  progressRow.innerHTML = `
+    <td colspan="7" class="ds-job-cell">
+      <div class="ds-job-inline">
+        <span class="ds-job-label">${label}</span>
+        <span class="ds-job-step">${esc(stepName)}${detail ? ": " + esc(detail) : ""}</span>
+        <span class="ds-job-counter">${stepLabel}${pct !== null ? " · " + pct + "%" : ""}</span>
+      </div>
+      <div class="ds-job-bar">
+        <div class="ds-job-bar-fill${indeterminate ? " is-indeterminate" : ""}" style="width:${pctWidth}"></div>
+      </div>
+    </td>
+  `;
+}
+
+function _startTableJobPoll(dsid, jobType) {
+  const key = `${jobType}-${dsid}`;
+  if (_tableJobTimers.has(key)) return;
+
+  const url = jobType === "ingest"
+    ? `/datasets/${dsid}/ingest/status`
+    : `/datasets/${dsid}/rezone/status`;
+
+  const timer = setInterval(async () => {
+    const res = await datasetApi(url);
+    if (!res.ok) return;
+    const job = await res.json().catch(() => null);
+    if (!job) return;
+
+    if (job.state === "running") {
+      _showTableJobProgress(dsid, jobType, job);
+      return;
+    }
+
+    // Job finished — remove the progress row and stop polling
+    clearInterval(timer);
+    _tableJobTimers.delete(key);
+    const rowId = `ds-job-row-${key}`;
+    document.getElementById(rowId)?.remove();
+
+    if (job.state === "done") {
+      const label = jobType === "ingest" ? "MATSim import" : "Re-zone";
+      showToast(`${label} complete for dataset ${dsid}`, "success");
+      await loadDatasets(_currentOwnerFilter, _currentOwnerName);
+    } else {
+      const label = jobType === "ingest" ? "MATSim import" : "Re-zone";
+      showToast(`${label} failed for dataset ${dsid}: ${job.detail || "unknown error"}`);
+    }
+  }, 4000);
+
+  _tableJobTimers.set(key, timer);
+}
+
+// ── Default dataset ──────────────────────────────────────────────
+
+/**
+ * Populate the default-dataset dropdown from the loaded dataset list.
+ *
+ * Eligible options are public + active only, matching the backend's guard in
+ * PUT /admin/datasets/default: a private default would 403 for everyone but its
+ * owner, and an inactive one 403s for everyone, so it must not be offered here.
+ *
+ * Rebuilt from `_allDatasets` on every load so the "DEFAULT" badge in the table
+ * and the dropdown selection can never drift apart. `_allDatasets` is always the
+ * UNFILTERED list (loadDatasets narrows by owner only for the tables), which is
+ * what lets this see a default owned by someone other than the filtered user.
+ */
+function renderDefaultDatasetSelect() {
+  const select = el("defaultDatasetSelect");
+  if (!select) return;
+
+  const eligible = _allDatasets.filter((ds) => ds.is_public && ds.status === "active");
+  const current = _allDatasets.find((ds) => ds.is_default) || null;
+
+  select.innerHTML = "";
+  const noneOpt = document.createElement("option");
+  noneOpt.value = "";
+  noneOpt.textContent = "None (lowest ID)";
+  select.appendChild(noneOpt);
+
+  for (const ds of eligible) {
+    const opt = document.createElement("option");
+    opt.value = String(ds.id);
+    opt.textContent = `${ds.name} (ID ${ds.id})`;
+    select.appendChild(opt);
+  }
+
+  // A default that is no longer eligible (demoted to private/inactive by another
+  // admin between loads) still has to be selectable, or the control would claim
+  // "None" while the backend still holds it.
+  if (current && !eligible.some((ds) => ds.id === current.id)) {
+    const opt = document.createElement("option");
+    opt.value = String(current.id);
+    opt.textContent = `${current.name} (ID ${current.id})`;
+    select.appendChild(opt);
+  }
+
+  select.value = current ? String(current.id) : "";
+  select._lastValue = select.value;
+  // Cleared here, then re-set by saveDefaultDataset *after* its reload finishes —
+  // setting it before that reload wiped the confirmation within the same tick.
+  setDefaultDatasetStatus("");
+}
+
+function setDefaultDatasetStatus(msg) {
+  const node = el("defaultDatasetStatus");
+  if (node) node.textContent = msg;
+}
+
+async function saveDefaultDataset(select) {
+  const raw = select.value;
+  const previous = select._lastValue ?? "";
+  select.disabled = true;
+  setDefaultDatasetStatus("Saving…");
+
+  const res = await datasetApi("/admin/datasets/default", {
+    method: "PUT",
+    body: { dataset_id: raw === "" ? null : parseInt(raw, 10) },
+  });
+  select.disabled = false;
+
+  if (!res.ok) {
+    const err = await readJsonOrText(res);
+    // Revert to the last known-good value so the control never shows a default
+    // the backend rejected.
+    select.value = previous;
+    setDefaultDatasetStatus("");
+    showToast(err?.detail || "Failed to set default dataset");
+    return;
+  }
+
+  select._lastValue = raw;
+  // Reload so the DEFAULT badge moves to the new row, THEN report — the reload
+  // re-renders the select and resets its status line.
+  await loadDatasets(_currentOwnerFilter, _currentOwnerName);
+  setDefaultDatasetStatus(raw === "" ? "Default cleared." : "Saved.");
 }
 
 // ── Add Dataset Modal ────────────────────────────────────────────
@@ -633,7 +847,7 @@ function triggerDuckdbPicker(category) {
   input.click();
 }
 
-function openEditDatasetModal(ds) {
+async function openEditDatasetModal(ds) {
   el("editDsOriginalId").value = ds.id;
   el("editDsId").value = ds.id;
   el("editDsName").value = ds.name || "";
@@ -642,6 +856,17 @@ function openEditDatasetModal(ds) {
   el("editDsPublic").checked = !!ds.is_public;
 
   renderDatasetFiles(ds);
+  // Reset synchronously (kills any poll left over from the previously opened
+  // dataset), then ask in the background whether a build is already running.
+  resetIngestSection();
+  checkIngestJob(ds.id);
+  // Load the study-area section BEFORE showing the modal so it doesn't pop in
+  // late; a slow/unreachable backend is capped at 2s (the section then just
+  // appears when the fetch settles, as before). Cached per dataset id.
+  await Promise.race([
+    loadRezoneOptions(ds),
+    new Promise((resolve) => setTimeout(resolve, 2000)),
+  ]);
 
   openModal("editDatasetModal");
 }
@@ -678,6 +903,9 @@ async function uploadDuckdbFile(category, file) {
       // Re-render the manager from the refreshed flags (restores button state)
       const updated = _allDatasets.find((d) => String(d.id) === String(dsid));
       if (updated) renderDatasetFiles(updated);
+      // A new duckdb can change what re-zoning is possible.
+      _rezoneOptsCache.delete(String(dsid));
+      if (updated) loadRezoneOptions(updated);
     } else {
       const err = await readJsonOrText(res);
       showToast(err?.detail || "Upload failed");
@@ -688,6 +916,543 @@ async function uploadDuckdbFile(category, file) {
     showToast("Upload failed");
     if (btn) { btn.disabled = false; btn.textContent = origText; }
   }
+}
+
+// ── Study-area re-zoning ─────────────────────────────────────────
+// Derives a NEW dataset zoned by a smaller admin level (municipalities /
+// districts) from the dataset's own polygons — see dataset-backend/rezone.py.
+
+const ZONE_LEVELS = [
+  { key: "gemeinde", label: "Municipalities" },
+  { key: "bezirk", label: "Districts" },
+];
+
+let _rezonePollTimer = null;
+
+// Options per dataset id — so reopening the modal renders the section
+// instantly instead of popping in after the fetch. Invalidated on upload.
+const _rezoneOptsCache = new Map();
+
+async function loadRezoneOptions(ds) {
+  const section = el("dsRezoneSection");
+  if (!section) return;
+  section.hidden = true;
+  clearInterval(_rezonePollTimer);
+  hideRezoneConfirm();
+  const statusEl = el("dsRezoneStatus");
+  if (statusEl) statusEl.hidden = true;
+  if (!(ds.data_categories || []).includes("synthetic")) return;
+
+  let opts = _rezoneOptsCache.get(String(ds.id));
+  if (!opts) {
+    const res = await datasetApi(`/datasets/${ds.id}/rezone/options`);
+    if (!res.ok) return; // not re-zonable (v1 dataset, no hot_polygons, …)
+    opts = await res.json().catch(() => null);
+    if (opts) _rezoneOptsCache.set(String(ds.id), opts);
+  }
+  const levels = (opts?.zone_types || [])
+    .map((t) => ZONE_LEVELS.find((z) => z.key === t))
+    .filter(Boolean);
+  if (!levels.length) return;
+
+  el("dsRezoneLevel").innerHTML = levels
+    .map((l) => `<option value="${l.key}">${l.label}</option>`)
+    .join("");
+  el("dsRezoneCanton").innerHTML =
+    `<option value="">Whole area</option>` +
+    (opts.cantons || [])
+      .map((c) => `<option value="${c.id}">${c.name}</option>`)
+      .join("");
+  const cur = opts.current || {};
+  el("dsRezoneCurrent").textContent =
+    `Current study area: ${cur.name || "Switzerland"} (${cur.primary_zone_type || "canton"} zones)`;
+  section.hidden = false;
+}
+
+function _selectedText(sel) {
+  return sel?.selectedOptions?.[0]?.textContent?.trim() || "";
+}
+
+function showRezoneConfirm() {
+  const canton = _selectedText(el("dsRezoneCanton"));
+  const level = _selectedText(el("dsRezoneLevel")).toLowerCase();
+  const area = el("dsRezoneCanton").value ? `canton ${canton}` : "the whole study area";
+  el("dsRezoneConfirmText").innerHTML =
+    `Create a <strong>new</strong> dataset for <strong>${area}</strong>, zoned by ` +
+    `<strong>${level}</strong>? The source dataset stays unchanged. ` +
+    `This takes a few minutes.`;
+  el("dsRezoneConfirm").hidden = false;
+  const btn = el("dsRezoneBtn");
+  if (btn) btn.disabled = true;
+}
+
+function hideRezoneConfirm() {
+  const confirmEl = el("dsRezoneConfirm");
+  if (confirmEl) confirmEl.hidden = true;
+  const btn = el("dsRezoneBtn");
+  if (btn) { btn.disabled = false; btn.textContent = "Create re-zoned copy…"; }
+}
+
+async function startRezone() {
+  const dsid = el("editDsOriginalId").value;
+  const cantonRaw = el("dsRezoneCanton").value;
+  const body = {
+    zone_type: el("dsRezoneLevel").value,
+    canton_id: cantonRaw ? parseInt(cantonRaw, 10) : null,
+  };
+  hideRezoneConfirm();
+  const btn = el("dsRezoneBtn");
+  if (btn) { btn.disabled = true; btn.textContent = "Starting…"; }
+
+  const res = await datasetApi(`/datasets/${dsid}/rezone`, { method: "POST", body });
+  if (!res.ok) {
+    const err = await readJsonOrText(res);
+    showToast(err?.detail || "Failed to start re-zone");
+    if (btn) { btn.disabled = false; btn.textContent = "Create re-zoned copy…"; }
+    return;
+  }
+  const { dataset_id: newId, name } = await res.json();
+  showToast(`Re-zoning into “${name}”…`, "success");
+  pollRezone(newId, btn);
+}
+
+function pollRezone(newId, btn) {
+  const statusEl = el("dsRezoneStatus");
+  if (statusEl) statusEl.hidden = false;
+  clearInterval(_rezonePollTimer);
+
+  // Show progress in the dataset table too (the new dataset may not be in
+  // the table yet, but _startTableJobPoll will pick it up once loadDatasets
+  // adds the row on its next reload).
+  _showTableJobProgress(newId, "rezone", { step: "starting", step_index: 0, n_steps: 13, progress: 0 });
+  _startTableJobPoll(newId, "rezone");
+
+  const tick = async () => {
+    const res = await datasetApi(`/datasets/${newId}/rezone/status`);
+    if (!res.ok) return; // transient — keep polling
+    const job = await res.json().catch(() => null);
+    if (!job) return;
+    if (job.state === "running") {
+      const stepInfo = job.step_index && job.n_steps
+        ? ` (step ${job.step_index}/${job.n_steps})`
+        : "";
+      if (statusEl) statusEl.textContent = `Re-zoning… ${job.step || ""}${stepInfo}`;
+      return;
+    }
+    clearInterval(_rezonePollTimer);
+    if (btn) { btn.disabled = false; btn.textContent = "Create re-zoned copy…"; }
+    if (job.state === "done") {
+      if (statusEl) statusEl.textContent =
+        "Done — new dataset created (inactive). Set it to active to publish.";
+      showToast("Re-zoned dataset ready ✓", "success");
+      await loadDatasets(_currentOwnerFilter, _currentOwnerName);
+    } else {
+      if (statusEl) statusEl.textContent = `Failed: ${job.detail || "unknown error"}`;
+      showToast("Re-zone failed");
+    }
+  };
+  _rezonePollTimer = setInterval(tick, 4000);
+  tick();
+}
+
+// ── Import from MATSim (in-app ingest) ───────────────────────────
+// Uploads a run's raw outputs in ONE multipart POST and then polls the
+// background build — see dataset-backend/ingest.py. Only builds
+// synthetic.duckdb; microcensus stays a prebuilt .duckdb upload.
+
+const GB = 1024 * 1024 * 1024;
+const INGEST_WARN_BYTES = 1 * GB;   // long build ahead — warn, still allowed
+const INGEST_MAX_BYTES = 2 * GB;    // server refuses (413) — block here first
+
+const INGEST_INPUTS = [
+  { key: "trips",            label: "Trips CSV",         accept: ".csv",           required: true,  hint: "eqasim_trips.csv" },
+  { key: "activities",       label: "Activities CSV",    accept: ".csv",           required: true,  hint: "eqasim_activities.csv" },
+  { key: "persons",          label: "Persons",           accept: ".parquet,.csv",  required: true,  hint: "persons.parquet / .csv" },
+  { key: "network",          label: "Network",           accept: ".gz",            required: true,  hint: "output_network.xml.gz" },
+  { key: "events",           label: "Events",            accept: ".gz",            required: true,  hint: "output_events.xml.gz" },
+  { key: "transit_schedule", label: "Transit schedule",  accept: ".gz",            required: true,  hint: "output_transitSchedule.xml.gz" },
+  { key: "plans",            label: "Plans",             accept: ".gz",            required: false, hint: "output_plans.xml.gz (optional)" },
+  { key: "households",       label: "Households",        accept: ".parquet,.csv",  required: false, hint: "households.parquet / .csv (optional)" },
+];
+
+let _ingestFiles = {};          // key -> File
+let _ingestZipFile = null;      // File (zip mode)
+let _ingestMode = "files";      // "files" | "zip"
+let _ingestBlocked = false;     // events file over the hard limit
+let _ingestPollTimer = null;
+let _ingestStartedAt = null;
+
+function _humanSize(bytes) {
+  if (bytes === null || bytes === undefined) return "";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  let n = bytes, i = 0;
+  while (n >= 1024 && i < units.length - 1) { n /= 1024; i += 1; }
+  return `${i === 0 || n >= 10 ? Math.round(n) : n.toFixed(1)} ${units[i]}`;
+}
+
+function _humanElapsed(ms) {
+  const secs = Math.max(0, Math.round(ms / 1000));
+  if (secs < 60) return `${secs}s`;
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return `${mins}m ${secs % 60}s`;
+  return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+}
+
+function renderIngestFiles() {
+  const mgr = el("dsIngestFiles");
+  if (!mgr) return;
+  mgr.innerHTML = "";
+
+  for (const spec of INGEST_INPUTS) {
+    const file = _ingestFiles[spec.key];
+    const row = document.createElement("div");
+    row.className = "ds-file-row" + (file ? " is-present" : "");
+    row.innerHTML = file
+      ? `<span class="ds-file-name"><span class="ds-file-check">✓</span> ${spec.label}
+           <code>${esc(file.name)}</code> <code>${_humanSize(file.size)}</code></span>
+         <button type="button" class="ds-file-action" data-ingest-key="${spec.key}">Change…</button>`
+      : `<span class="ds-file-name ds-file-missing">${spec.label}
+           <code>${esc(spec.hint)}</code></span>
+         <button type="button" class="ds-file-action" data-ingest-key="${spec.key}">Browse…</button>`;
+    mgr.appendChild(row);
+  }
+
+  mgr.querySelectorAll("button[data-ingest-key]").forEach((b) => {
+    b.addEventListener("click", () => pickIngestFile(b.dataset.ingestKey));
+  });
+}
+
+function switchIngestMode(mode) {
+  _ingestMode = mode;
+  $$(".ds-ingest-mode-tab").forEach((t) =>
+    t.classList.toggle("active", t.dataset.ingestMode === mode)
+  );
+  el("dsIngestModeFiles")?.classList.toggle("active", mode === "files");
+  el("dsIngestModeZip")?.classList.toggle("active", mode === "zip");
+  updateIngestWarning();
+}
+
+function renderIngestZipFile() {
+  const mgr = el("dsIngestZipFile");
+  if (!mgr) return;
+  mgr.innerHTML = "";
+
+  const row = document.createElement("div");
+  row.className = "ds-file-row" + (_ingestZipFile ? " is-present" : "");
+  row.innerHTML = _ingestZipFile
+    ? `<span class="ds-file-name"><span class="ds-file-check">✓</span> ZIP Archive
+         <code>${esc(_ingestZipFile.name)}</code> <code>${_humanSize(_ingestZipFile.size)}</code></span>
+       <button type="button" class="ds-file-action" id="dsIngestZipPick">Change…</button>`
+    : `<span class="ds-file-name ds-file-missing">ZIP Archive
+         <code>webmap_inputs_*.zip</code></span>
+       <button type="button" class="ds-file-action" id="dsIngestZipPick">Browse…</button>`;
+  mgr.appendChild(row);
+
+  el("dsIngestZipPick")?.addEventListener("click", pickIngestZip);
+}
+
+function pickIngestZip() {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".zip";
+  input.addEventListener("change", () => {
+    const file = input.files?.[0];
+    if (file) _ingestZipFile = file;
+    renderIngestZipFile();
+    updateIngestWarning();
+  });
+  input.click();
+}
+
+function pickIngestFile(key) {
+  const spec = INGEST_INPUTS.find((s) => s.key === key);
+  if (!spec) return;
+  // Built on demand: a per-field <input type=file> in the modal would be seven
+  // more controls to keep in sync with INGEST_INPUTS.
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = spec.accept;
+  input.addEventListener("change", () => {
+    const file = input.files?.[0];
+    if (file) _ingestFiles[key] = file;
+    renderIngestFiles();
+    updateIngestWarning();
+  });
+  input.click();
+}
+
+function updateIngestWarning() {
+  const warnEl = el("dsIngestWarn");
+  const startBtn = el("dsIngestStartBtn");
+  const events = _ingestFiles.events;
+  _ingestBlocked = false;
+  if (!warnEl) return;
+
+  if (events && events.size > INGEST_MAX_BYTES) {
+    _ingestBlocked = true;
+    warnEl.className = "ds-ingest-warn is-block";
+    warnEl.textContent =
+      `This file is too large for in-app processing (${_humanSize(events.size)}). ` +
+      `Please use the eqasim pipeline's webmap_export stage to generate the DuckDB ` +
+      `files, then upload them directly.`;
+    warnEl.hidden = false;
+  } else if (events && events.size > INGEST_WARN_BYTES) {
+    warnEl.className = "ds-ingest-warn";
+    warnEl.textContent =
+      `Processing may take 30–90 minutes for a 1% sample. You can close this ` +
+      `dialog and check back later.`;
+    warnEl.hidden = false;
+  } else {
+    warnEl.hidden = true;
+    warnEl.textContent = "";
+  }
+  if (startBtn) startBtn.disabled = _ingestBlocked;
+}
+
+function toggleIngestSection(force) {
+  const body = el("dsIngestBody");
+  const toggle = el("dsIngestToggle");
+  const caret = el("dsIngestCaret");
+  if (!body) return;
+  const open = force === undefined ? body.hidden : !!force;
+  body.hidden = !open;
+  if (toggle) toggle.setAttribute("aria-expanded", open ? "true" : "false");
+  if (caret) caret.innerHTML = open ? "&#9662;" : "&#9656;";
+}
+
+/** Reset the section for a freshly opened modal (synchronous — no fetch). */
+function resetIngestSection() {
+  clearInterval(_ingestPollTimer);
+  _ingestPollTimer = null;
+  _ingestFiles = {};
+  _ingestZipFile = null;
+  _ingestBlocked = false;
+  _ingestStartedAt = null;
+  toggleIngestSection(false);
+  switchIngestMode("files");
+  const sr = el("dsIngestSampleRate"); if (sr) sr.value = "";
+  const rn = el("dsIngestRunName"); if (rn) rn.value = "";
+  const prog = el("dsIngestProgress"); if (prog) prog.hidden = true;
+  const fill = el("dsIngestBarFill"); if (fill) fill.style.width = "0%";
+  const elapsed = el("dsIngestElapsed"); if (elapsed) elapsed.textContent = "";
+  const startBtn = el("dsIngestStartBtn");
+  if (startBtn) { startBtn.disabled = false; startBtn.textContent = "Start Processing"; }
+  renderIngestFiles();
+  renderIngestZipFile();
+  updateIngestWarning();
+}
+
+/** If a build is already running for this dataset, show its progress at once. */
+async function checkIngestJob(dsid) {
+  const res = await datasetApi(`/datasets/${dsid}/ingest/status`);
+  if (!res.ok) return;                                  // 404 = no job, normal
+  const job = await res.json().catch(() => null);
+  if (!job || job.state !== "running") return;
+  // The admin may have moved on to another dataset while this was in flight.
+  if (String(el("editDsOriginalId")?.value) !== String(dsid)) return;
+  toggleIngestSection(true);
+  pollIngest(dsid);
+}
+
+async function startIngest() {
+  if (_ingestMode === "zip") return startIngestZip();
+
+  const dsid = el("editDsOriginalId").value;
+  const missing = INGEST_INPUTS
+    .filter((s) => s.required && !_ingestFiles[s.key])
+    .map((s) => s.label);
+  if (missing.length) {
+    showToast(`Missing required file(s): ${missing.join(", ")}`);
+    return;
+  }
+  if (_ingestBlocked) {
+    showToast("Events file too large for in-app processing");
+    return;
+  }
+
+  const form = new FormData();
+  for (const spec of INGEST_INPUTS) {
+    const file = _ingestFiles[spec.key];
+    if (file) form.append(spec.key, file, file.name);
+  }
+  const sampleRate = el("dsIngestSampleRate")?.value.trim();
+  if (sampleRate) form.append("sample_rate", sampleRate);
+  const runName = el("dsIngestRunName")?.value.trim();
+  if (runName) form.append("run_name", runName);
+
+  _ingestStartedAt = null;
+  const startBtn = el("dsIngestStartBtn");
+  if (startBtn) { startBtn.disabled = true; startBtn.textContent = "Uploading…"; }
+  const prog = el("dsIngestProgress");
+  if (prog) prog.hidden = false;
+  const stepEl = el("dsIngestStep");
+  const fill = el("dsIngestBarFill");
+  if (stepEl) stepEl.textContent = "Uploading…";
+  if (fill) fill.style.width = "0%";
+
+  await refresh().catch(() => false);
+
+  const url = `${CONFIG.DATASET_API_BASE}/datasets/${dsid}/ingest`;
+  _doIngestUpload(url, form, dsid);
+}
+
+async function startIngestZip() {
+  const dsid = el("editDsOriginalId").value;
+  if (!_ingestZipFile) {
+    showToast("Please select a ZIP file");
+    return;
+  }
+
+  const form = new FormData();
+  form.append("zipfile_upload", _ingestZipFile, _ingestZipFile.name);
+  const sampleRate = el("dsIngestSampleRate")?.value.trim();
+  if (sampleRate) form.append("sample_rate", sampleRate);
+  const runName = el("dsIngestRunName")?.value.trim();
+  if (runName) form.append("run_name", runName);
+
+  _ingestStartedAt = null;
+  const startBtn = el("dsIngestStartBtn");
+  if (startBtn) { startBtn.disabled = true; startBtn.textContent = "Uploading…"; }
+  const prog = el("dsIngestProgress");
+  if (prog) prog.hidden = false;
+  const stepEl = el("dsIngestStep");
+  const fill = el("dsIngestBarFill");
+  if (stepEl) stepEl.textContent = "Uploading…";
+  if (fill) fill.style.width = "0%";
+
+  await refresh().catch(() => false);
+
+  const url = `${CONFIG.DATASET_API_BASE}/datasets/${dsid}/ingest/zip`;
+  _doIngestUpload(url, form, dsid);
+}
+
+function _doIngestUpload(url, form, dsid) {
+  const startBtn = el("dsIngestStartBtn");
+  const stepEl = el("dsIngestStep");
+  const fill = el("dsIngestBarFill");
+
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", url, true);
+  xhr.withCredentials = true;
+
+  xhr.upload.onprogress = (e) => {
+    if (!e.lengthComputable) return;
+    const pct = Math.round((e.loaded / e.total) * 100);
+    if (fill) fill.style.width = `${pct}%`;
+    if (stepEl) {
+      stepEl.textContent =
+        `Uploading… ${pct}% (${_humanSize(e.loaded)} / ${_humanSize(e.total)})`;
+    }
+  };
+
+  const _failUnlessRunning = async (msg) => {
+    // A proxy between the browser and the backend can swallow the 202 and
+    // return its own error even though the backend received the request and
+    // started processing.  Before declaring failure, check the status
+    // endpoint — if the job is running, treat it as success.
+    try {
+      const res = await datasetApi(`/datasets/${dsid}/ingest/status`);
+      if (res.ok) {
+        const job = await res.json().catch(() => null);
+        if (job && job.state === "running") {
+          showToast("Upload complete — processing started", "success");
+          if (startBtn) startBtn.textContent = "Processing…";
+          pollIngest(dsid);
+          return;
+        }
+      }
+    } catch { /* status check failed — fall through to the original error */ }
+    showToast(msg);
+    if (stepEl) stepEl.textContent = msg;
+    if (startBtn) { startBtn.disabled = false; startBtn.textContent = "Start Processing"; }
+  };
+
+  xhr.onload = () => {
+    if (xhr.status >= 200 && xhr.status < 300) {
+      showToast("Upload complete — processing started", "success");
+      if (startBtn) startBtn.textContent = "Processing…";
+      pollIngest(dsid);
+      return;
+    }
+    let detail = "";
+    try { detail = JSON.parse(xhr.responseText)?.detail || ""; } catch { /* text body */ }
+    if (xhr.status === 401) detail = detail || "Session expired — please try again";
+    _failUnlessRunning(detail || `Upload failed (HTTP ${xhr.status})`);
+  };
+
+  xhr.onerror = () => {
+    _failUnlessRunning("Upload failed — network error");
+  };
+
+  xhr.send(form);
+}
+
+function pollIngest(dsid) {
+  const prog = el("dsIngestProgress");
+  const stepEl = el("dsIngestStep");
+  const fill = el("dsIngestBarFill");
+  const elapsedEl = el("dsIngestElapsed");
+  const startBtn = el("dsIngestStartBtn");
+  if (prog) prog.hidden = false;
+  clearInterval(_ingestPollTimer);
+
+  // Also start the table-level poll so the progress bar shows in the
+  // dataset list even after the edit modal is closed.
+  _showTableJobProgress(dsid, "ingest", { step: "starting", step_index: 0, n_steps: 14, progress: 0 });
+  _startTableJobPoll(dsid, "ingest");
+
+  const tick = async () => {
+    const res = await datasetApi(`/datasets/${dsid}/ingest/status`);
+    if (!res.ok) return;   // transient — keep polling
+    const job = await res.json().catch(() => null);
+    if (!job) return;
+
+    if (job.started_at && !_ingestStartedAt) {
+      const t = new Date(job.started_at).getTime();
+      if (!Number.isNaN(t)) _ingestStartedAt = t;
+    }
+    if (elapsedEl && _ingestStartedAt) {
+      elapsedEl.textContent = `Elapsed ${_humanElapsed(Date.now() - _ingestStartedAt)}`;
+    }
+
+    if (job.state === "running") {
+      if (stepEl) stepEl.textContent = `Processing… ${job.step || ""}`;
+      if (fill) {
+        // `progress` is optional and may be a 0–1 fraction or a 0–100 percent;
+        // with neither, the bar goes indeterminate rather than lying at 0%.
+        let pct = null;
+        if (typeof job.progress === "number" && isFinite(job.progress)) {
+          pct = job.progress <= 1 ? job.progress * 100 : job.progress;
+          pct = Math.max(0, Math.min(100, Math.round(pct)));
+        }
+        fill.style.width = pct === null ? "100%" : `${pct}%`;
+        fill.classList.toggle("is-indeterminate", pct === null);
+      }
+      return;
+    }
+
+    clearInterval(_ingestPollTimer);
+    _ingestPollTimer = null;
+    if (fill) { fill.classList.remove("is-indeterminate"); fill.style.width = "100%"; }
+    if (startBtn) { startBtn.disabled = false; startBtn.textContent = "Start Processing"; }
+
+    if (job.state === "done") {
+      if (stepEl) stepEl.textContent = "Done — synthetic.duckdb built.";
+      showToast("MATSim import complete ✓", "success");
+      await loadDatasets(_currentOwnerFilter, _currentOwnerName);
+      const updated = _allDatasets.find((d) => String(d.id) === String(dsid));
+      if (updated) renderDatasetFiles(updated);
+      // A fresh synthetic.duckdb changes what re-zoning is possible.
+      _rezoneOptsCache.delete(String(dsid));
+      if (updated) loadRezoneOptions(updated);
+    } else {
+      if (stepEl) stepEl.textContent = `Failed: ${job.detail || "unknown error"}`;
+      showToast(`MATSim import failed: ${job.detail || "unknown error"}`);
+    }
+  };
+
+  _ingestPollTimer = setInterval(tick, 4000);
+  tick();
 }
 
 async function saveDataset() {
@@ -824,6 +1589,14 @@ function attachLogout() {
     addDsBtn.addEventListener("click", openAddDatasetModal);
   }
 
+  // Bound once here, not in renderDefaultDatasetSelect — that runs on every
+  // loadDatasets() and would stack a duplicate listener each time, firing the
+  // PUT once per past render.
+  const defaultDsSelect = el("defaultDatasetSelect");
+  if (defaultDsSelect) {
+    defaultDsSelect.addEventListener("change", () => saveDefaultDataset(defaultDsSelect));
+  }
+
   const createDsBtn = el("createDatasetBtn");
   if (createDsBtn) {
     createDsBtn.addEventListener("click", createDataset);
@@ -843,6 +1616,35 @@ function attachLogout() {
       }
       _pendingUploadCategory = null;
     });
+  }
+
+  const rezoneBtn = el("dsRezoneBtn");
+  if (rezoneBtn) {
+    rezoneBtn.addEventListener("click", showRezoneConfirm);
+  }
+  const rezoneConfirmBtn = el("dsRezoneConfirmBtn");
+  if (rezoneConfirmBtn) {
+    rezoneConfirmBtn.addEventListener("click", startRezone);
+  }
+  const rezoneCancelBtn = el("dsRezoneCancelBtn");
+  if (rezoneCancelBtn) {
+    rezoneCancelBtn.addEventListener("click", hideRezoneConfirm);
+  }
+  // Changing either dropdown invalidates a pending confirmation summary.
+  for (const id of ["dsRezoneCanton", "dsRezoneLevel"]) {
+    el(id)?.addEventListener("change", hideRezoneConfirm);
+  }
+
+  const ingestToggle = el("dsIngestToggle");
+  if (ingestToggle) {
+    ingestToggle.addEventListener("click", () => toggleIngestSection());
+  }
+  $$(".ds-ingest-mode-tab").forEach((tab) => {
+    tab.addEventListener("click", () => switchIngestMode(tab.dataset.ingestMode));
+  });
+  const ingestStartBtn = el("dsIngestStartBtn");
+  if (ingestStartBtn) {
+    ingestStartBtn.addEventListener("click", startIngest);
   }
 })();
 
@@ -1125,12 +1927,13 @@ async function _renderGrants() {
     '<tr><td colspan="3" class="text-muted text-center">No one else has access yet.</td></tr>';
 
   for (const g of grants) {
+    const isOwner = g.user_id === _accessDs.owner_id;
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${esc(_userLabel(g.user_id))}</td>
-      <td><span class="badge ${g.role === "editor" ? "badge-editor" : "badge-viewer"}">${esc(g.role)}</span></td>
+      <td><span class="badge ${g.role === "editor" ? "badge-editor" : "badge-viewer"}">${esc(g.role)}</span>${isOwner ? ' <span class="text-muted">(owner)</span>' : ""}</td>
       <td class="text-nowrap">
-        <button class="btn btn-danger btn-sm" data-guid="${g.user_id}" data-action="revoke-grant">Remove</button>
+        ${isOwner ? "" : `<button class="btn btn-danger btn-sm" data-guid="${g.user_id}" data-action="revoke-grant">Remove</button>`}
       </td>
     `;
     tbody.appendChild(tr);

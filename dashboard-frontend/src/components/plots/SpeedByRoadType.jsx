@@ -46,33 +46,40 @@ const SpeedByRoadType = ({
       });
     });
 
-    const slotTraces = syntheticSlots.flatMap((slot) => {
-      const byType = new Map(
+    const slotMaps = syntheticSlots.map((slot) => ({
+      slot,
+      byType: new Map(
         applyFilter(slot.rawPayload?.by_road_type ?? []).map((r) => [r.road_type, r])
-      );
+      ),
+    }));
+
+    const avgTraces = slotMaps.map(({ slot, byType }) => {
       const avg = ordered.map((t) => byType.get(t)?.avg_speed_kmh ?? null);
-      const free = ordered.map((t) => byType.get(t)?.freespeed_kmh ?? null);
-      return [
-        {
-          type: "bar",
-          name: `${slot.label} — Avg`,
-          x: ordered,
-          y: avg,
-          marker: { color: slot.color },
-          text: avg.map((v) => (v == null ? "" : v.toFixed(1))),
-          textposition: "auto",
-        },
-        {
-          type: "bar",
-          name: `${slot.label} — Freespeed`,
-          x: ordered,
-          y: free,
-          marker: { color: slot.color, opacity: 0.45, pattern: { shape: "/" } },
-          text: free.map((v) => (v == null ? "" : v.toFixed(1))),
-          textposition: "auto",
-        },
-      ];
+      return {
+        type: "bar",
+        name: `${slot.label} — Avg`,
+        x: ordered,
+        y: avg,
+        marker: { color: slot.color },
+        text: avg.map((v) => (v == null ? "" : v.toFixed(1))),
+        textposition: "auto",
+      };
     });
+
+    const freeTraces = slotMaps.map(({ slot, byType }) => {
+      const free = ordered.map((t) => byType.get(t)?.freespeed_kmh ?? null);
+      return {
+        type: "bar",
+        name: `${slot.label} — Freespeed`,
+        x: ordered,
+        y: free,
+        marker: { color: slot.color, opacity: 0.45, pattern: { shape: "/" } },
+        text: free.map((v) => (v == null ? "" : v.toFixed(1))),
+        textposition: "auto",
+      };
+    });
+
+    const slotTraces = [...avgTraces, ...freeTraces];
 
     return { traces: slotTraces, categories: ordered };
   }, [syntheticSlots, isLoading, selectedRoadType]);

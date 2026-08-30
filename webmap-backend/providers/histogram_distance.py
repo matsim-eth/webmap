@@ -28,7 +28,7 @@ from .helpers import (
     parse_source_param,
     purpose_filter_sql,
 )
-from ._pre_agg import make_label_resolver, polygon_filter_clause, resolve_polygon_ids, _source_label
+from ._pre_agg import make_label_resolver, polygon_filter_clause, primary_fast_path, resolve_polygon_ids, _source_label
 
 
 _DIST_COLS = {
@@ -58,7 +58,7 @@ class HistogramDistanceProvider(DataProvider):
         sources = parse_source_param(params)
         if not sources:
             return {}
-        summary = is_summary_only(params) and not params.get("canton") and not params.get("polygon_id") and not has_person_filters(params)
+        summary = is_summary_only(params) and not params.get("canton") and not params.get("zone") and not params.get("polygon_id") and not has_person_filters(params)
         distance_type = (params.get("distance_type") or "euclidean").lower()
         if distance_type not in _DIST_COLS:
             distance_type = "euclidean"
@@ -110,7 +110,7 @@ class HistogramDistanceProvider(DataProvider):
             if polygon_ids:
                 join, where, group_expr, bind, _ = polygon_filter_clause(polygon_ids)
                 resolve = make_label_resolver(con, polygon_ids,
-                                               all(p.startswith("canton:") for p in polygon_ids))
+                                               primary_fast_path(polygon_ids))
                 rows = con.execute(f"""
                     SELECT {group_expr} AS gkey, {grp_col} AS grp,
                            count(*) AS n, avg({dist_col}) AS mean,
@@ -202,7 +202,7 @@ class HistogramDistanceProvider(DataProvider):
                         GROUP BY {group_expr}, {grp_col}, bin
                     """, bind).fetchall()
                     resolve = make_label_resolver(con, polygon_ids,
-                                                   all(p.startswith("canton:") for p in polygon_ids))
+                                                   primary_fast_path(polygon_ids))
                     for gkey, grp, b, c in rows:
                         histcounts.setdefault((resolve(gkey), str(grp), slabel), {})[b] = c
 

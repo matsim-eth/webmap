@@ -1,0 +1,191 @@
+/* Reusable socioeconomic (person) filter panel. Compact — lives in the narrow
+   right sidebar. Uses only shared design tokens from src/App.css. */
+
+.socio-panel {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+/* Header row (click to collapse/expand) — quiet white row; a separator to the
+   body appears only while the panel is open */
+.socio-header {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 12px;
+    cursor: pointer;
+    user-select: none;
+    background: transparent;
+    transition: background var(--transition-fast);
+}
+
+.socio-header:hover {
+    background: var(--color-bg-subtle);
+}
+
+.socio-panel:has(.socio-body) .socio-header {
+    border-bottom: 1px solid var(--color-border);
+}
+
+.socio-panel-icon {
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+}
+
+.socio-title {
+    font-size: 0.85em;
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.socio-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 15px;
+    height: 15px;
+    padding: 0 4px;
+    border-radius: 8px;
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 0.65em;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.socio-header-spacer {
+    flex: 1;
+}
+
+.socio-clear-btn {
+    border: none;
+    background: none;
+    padding: 0 2px;
+    font-size: 0.75em;
+    font-weight: 500;
+    color: var(--color-primary);
+    cursor: pointer;
+}
+
+.socio-clear-btn:hover {
+    text-decoration: underline;
+}
+
+/* Bare variant (no header): Clear moves to the bottom-right of the body */
+.socio-clear-bottom {
+    align-self: flex-end;
+    margin-top: -4px;
+}
+
+.socio-chevron {
+    color: var(--color-text-muted);
+    transition: transform var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.socio-chevron.open {
+    transform: rotate(180deg);
+}
+
+/* Body */
+.socio-body {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.socio-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.socio-row-label {
+    font-size: 0.78em;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+}
+
+/* Gender — segmented 3-button toggle (pattern mirrors .flow-dir-btn) */
+.socio-segmented {
+    display: flex;
+    gap: 0;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+}
+
+.socio-seg-btn {
+    flex: 1;
+    padding: 5px 0;
+    font-size: 0.8em;
+    font-weight: 500;
+    border: none;
+    background: var(--color-bg);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.socio-seg-btn:not(:last-child) {
+    border-right: 1px solid var(--color-border);
+}
+
+.socio-seg-btn:hover {
+    background: var(--color-border);
+}
+
+.socio-seg-btn.active {
+    background: var(--color-primary);
+    color: #fff;
+}
+
+/* Sliders (age / income) — same look as the Time slider elsewhere (default
+   rc-slider theme, incl. the white mark dots on the rail). Side margins keep
+   the handles and edge labels inside the card; bottom margin reserves space
+   for the mark labels. */
+.socio-slider-wrap .rc-slider {
+    margin: 2px 10px 16px;
+    width: auto;
+}
+
+.socio-slider-wrap .rc-slider-mark-text {
+    font-size: 0.76em;
+    user-select: none;
+    white-space: nowrap;
+}
+
+/* Chips — pill-shaped multi-select (income + subscriptions) */
+.socio-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.socio-chip {
+    padding: 3px 9px;
+    font-size: 0.78em;
+    font-weight: 500;
+    border-radius: 999px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: background var(--transition-fast), color var(--transition-fast),
+        border-color var(--transition-fast);
+}
+
+.socio-chip:hover {
+    border-color: var(--color-border-light);
+    background: var(--color-bg-subtle);
+}
+
+.socio-chip.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+}

@@ -17,6 +17,11 @@ direction          (str)            : "origin_to_dest", "dest_to_origin", or "bo
 source             (str)            : Data source (default "synthetic"; only synthetic has routes).
 minute_start       (int, 0-1440)    : Time window start (minutes from midnight).
 minute_end         (int, 0-1440)    : Time window end (minutes from midnight).
+gender             (str)            : "0" (male) or "1" (female) → persons.sex.
+age_min            (int)            : Inclusive lower age bound → persons.age.
+age_max            (int)            : Exclusive upper age bound → persons.age.
+income_class       (str)            : Comma-separated income classes → households.income_class.
+subscription       (str)            : Comma-separated PT subscriptions (ga,halbtax,…); match if ANY selected.
 """
 
 from __future__ import annotations
@@ -25,14 +30,13 @@ import json
 from collections import OrderedDict
 
 from .base import DataProvider, Param
-from .constants import CANTON_MAP
 from .connection import get_source_cursor
+from .helpers import socio_trip_filter
 from .result_cache import make_cache
+from .zone_registry import get_registry, zone_col
 
 _cget, _cput = make_cache(maxsize=48)
 
-
-_NAME_TO_ID = {v.lower(): k for k, v in CANTON_MAP.items()}
 
 _COORD_DECIMALS = 6  # ~0.1 m — plenty for the map; keeps the payload small
 
@@ -74,24 +78,25 @@ def _geom_key(geom: dict) -> str:
 
 
 def _resolve_canton(value: str) -> int | None:
-    """Resolve a canton name or ID string to a canton ID integer."""
-    value = value.strip()
-    try:
-        cid = int(value)
-        if cid in CANTON_MAP:
-            return cid
-    except ValueError:
-        pass
-    return _NAME_TO_ID.get(value.lower())
+    """Resolve a zone name or ID string to a zone ID integer via the dataset's
+    zone registry."""
+    return get_registry().resolve_zone(value)
 
 
 _ZONE_FLOWS_PARAMS = [
     Param("origin_canton", "Origin canton name or ID", required=True),
     Param("destination_canton", "Destination canton name or ID", required=True),
+    Param("origin_zone", "Origin zone name or ID; alias of origin_canton"),
+    Param("destination_zone", "Destination zone name or ID; alias of destination_canton"),
     Param("direction", "Flow direction", enum=["origin_to_dest", "dest_to_origin", "both"]),
     Param("source", "Data source (only synthetic has routes)", enum=["synthetic", "microcensus"]),
     Param("minute_start", "Time window start (minutes from midnight, 0-1440)", param_type="integer"),
     Param("minute_end", "Time window end (minutes from midnight, 0-1440)", param_type="integer"),
+    Param("gender", "Person sex filter", enum=["0", "1"]),
+    Param("age_min", "Inclusive lower age bound", param_type="integer"),
+    Param("age_max", "Exclusive upper age bound", param_type="integer"),
+    Param("income_class", "Household income class(es), comma-separated"),
+    Param("subscription", "PT subscription(s), comma-separated (ga,halbtax,…); match if ANY selected"),
 ]
 
 
@@ -105,8 +110,8 @@ class ZoneFlowsProvider(DataProvider):
     PARAMS = _ZONE_FLOWS_PARAMS
 
     def deliver(self, params: dict) -> dict:
-        raw_origin = (params.get("origin_canton") or "").strip()
-        raw_dest = (params.get("destination_canton") or "").strip()
+        raw_origin = (params.get("origin_canton") or params.get("origin_zone") or "").strip()
+        raw_dest = (params.get("destination_canton") or params.get("destination_zone") or "").strip()
         if not raw_origin:
             return {"error": "origin_canton parameter is required"}
         if not raw_dest:
@@ -123,20 +128,28 @@ class ZoneFlowsProvider(DataProvider):
         if hit is not None:
             return hit
 
+        source = (params.get("source") or "synthetic").strip().lower()
+        if source not in ("synthetic", "microcensus"):
+            source = "synthetic"
+
+        reg = get_registry()
+        ocol = zone_col(source, "trips", "origin")
+        dcol = zone_col(source, "trips", "dest")
+
         direction = (params.get("direction") or "both").strip().lower()
         if direction not in ("origin_to_dest", "dest_to_origin", "both"):
             direction = "both"
 
         if direction == "origin_to_dest":
-            pair_clause = "t.origin_canton_id = ? AND t.dest_canton_id = ?"
+            pair_clause = f"t.{ocol} = ? AND t.{dcol} = ?"
             pair_bind = [origin_id, dest_id]
         elif direction == "dest_to_origin":
-            pair_clause = "t.origin_canton_id = ? AND t.dest_canton_id = ?"
+            pair_clause = f"t.{ocol} = ? AND t.{dcol} = ?"
             pair_bind = [dest_id, origin_id]
         else:  # both
             pair_clause = (
-                "(t.origin_canton_id = ? AND t.dest_canton_id = ?) OR "
-                "(t.origin_canton_id = ? AND t.dest_canton_id = ?)"
+                f"(t.{ocol} = ? AND t.{dcol} = ?) OR "
+                f"(t.{ocol} = ? AND t.{dcol} = ?)"
             )
             pair_bind = [origin_id, dest_id, dest_id, origin_id]
 
@@ -160,25 +173,29 @@ class ZoneFlowsProvider(DataProvider):
             except ValueError:
                 pass
 
-        source = (params.get("source") or "synthetic").strip().lower()
-        if source not in ("synthetic", "microcensus"):
-            source = "synthetic"
-
         try:
             cur = get_source_cursor(source)
         except Exception as exc:
             return {"error": f"zone_flows data unavailable: {exc}"}
 
+        # Optional socioeconomic person filters (gender/age/income/subscription).
+        # Empty strings when no socio param is set, so the common path is unchanged.
+        socio_join, socio_where = socio_trip_filter(params)
+
         matching_cte = f"""
             matching_trips AS (
                 SELECT t.person_id, t.trip_index
                 FROM trips t
+                {socio_join}
                 WHERE t.main_mode = 'car'
                   AND ({pair_clause})
                   {time_clause}
+                  {socio_where}
             )
         """
 
+        nlcol = zone_col(source, "network_links", "zone")
+        crs = reg.crs
         link_query = f"""
             WITH {matching_cte},
             route_links AS (
@@ -190,13 +207,13 @@ class ZoneFlowsProvider(DataProvider):
                 SELECT link_id, COUNT(*)::INTEGER AS volume
                 FROM route_links GROUP BY link_id
             )
-            SELECT nl.canton_id, lv.link_id, lv.volume,
+            SELECT nl.{nlcol} AS canton_id, lv.link_id, lv.volume,
                    ST_AsGeoJSON(
-                       ST_Transform(nl.geom, 'EPSG:2056', 'EPSG:4326', always_xy := true)
+                       ST_Transform(nl.geom, '{crs}', 'EPSG:4326', always_xy := true)
                    ) AS gj
             FROM link_volumes lv
             JOIN network_links nl USING (link_id)
-            WHERE nl.canton_id IS NOT NULL
+            WHERE nl.{nlcol} IS NOT NULL
             ORDER BY lv.volume DESC
         """
         count_query = f"WITH {matching_cte} SELECT COUNT(*) FROM matching_trips"
@@ -219,7 +236,7 @@ class ZoneFlowsProvider(DataProvider):
         for canton_id, link_id, volume, gj in rows:
             if canton_id is None:
                 continue
-            name = CANTON_MAP.get(canton_id, str(canton_id))
+            name = reg.zone_name(canton_id)
             links_by_canton.setdefault(name, {})[link_id] = volume
             if not gj:
                 continue
@@ -252,8 +269,8 @@ class ZoneFlowsProvider(DataProvider):
         ]
 
         result = {
-            "origin_canton": CANTON_MAP.get(origin_id, str(origin_id)),
-            "destination_canton": CANTON_MAP.get(dest_id, str(dest_id)),
+            "origin_canton": reg.zone_name(origin_id),
+            "destination_canton": reg.zone_name(dest_id),
             "direction": direction,
             "total_trips": total_trips,
             "links_by_canton": links_by_canton,

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { safeRemoveLayer, safeRemoveSource } from './_lib/mapbox';
+import { booleanPointInPolygon } from '@turf/turf';
 
 export default function useTransitSymbologyLayer({
     mapRef,
@@ -9,7 +10,8 @@ export default function useTransitSymbologyLayer({
     highlightedLineId,
     loadWithFallback,
     showLineSymbology,
-    selectedTransitModes
+    selectedTransitModes,
+    drawRef,
 }) {
     const map = mapRef.current;
 
@@ -75,6 +77,7 @@ export default function useTransitSymbologyLayer({
                 map.addSource(STOP_SOURCE_ID, {
                     type: "geojson",
                     data: stopsGeo,
+                    generateId: true,
                 });
                 
                 map.addLayer({
@@ -129,6 +132,28 @@ export default function useTransitSymbologyLayer({
 
                 // Apply line masking immediately if a line is already selected
                 applyLineMask(map, highlightedLineId, STOP_LAYER_ID, STOP_LABEL_LAYER_ID);
+
+                // Apply polygon fading if polygons are already drawn
+                const polygons = drawRef?.current?.getAll?.()?.features || [];
+                if (polygons.length) {
+                    map.removeFeatureState({ source: STOP_SOURCE_ID });
+                    for (let i = 0; i < stopsGeo.features.length; i++) {
+                        const f = stopsGeo.features[i];
+                        if (f.geometry?.type !== 'Point') continue;
+                        const inside = polygons.some((p) => {
+                            try { return booleanPointInPolygon(f.geometry, p); } catch { return false; }
+                        });
+                        if (inside) {
+                            map.setFeatureState({ source: STOP_SOURCE_ID, id: i }, { inPolygon: true });
+                        }
+                    }
+                    if (!highlightedLineId) {
+                        const fade = ['case', ['boolean', ['feature-state', 'inPolygon'], false], 0.9, 0.1];
+                        map.setPaintProperty(STOP_LAYER_ID, "circle-opacity", fade);
+                        map.setPaintProperty(STOP_LAYER_ID, "circle-stroke-opacity", fade);
+                        map.setPaintProperty(STOP_LABEL_LAYER_ID, "text-opacity", fade);
+                    }
+                }
             } catch (err) {
                 console.error("Failed to load transit stops symbology", err);
             }
@@ -155,13 +180,90 @@ export default function useTransitSymbologyLayer({
         const LABEL_LAYER_ID = "transit-symbology-stops-label";
         const lineId = showLineSymbology ? highlightedLineId : null;
 
-        const maskLayers = () => applyLineMask(map, lineId, STOP_LAYER_ID, LABEL_LAYER_ID);
+        const maskLayers = () => {
+            if (lineId) {
+                applyLineMask(map, lineId, STOP_LAYER_ID, LABEL_LAYER_ID);
+            } else {
+                const hasPolygons = drawRef?.current?.getAll?.()?.features?.length > 0;
+                if (hasPolygons && map.getSource("transit-symbology-stops")) {
+                    const fade = ['case', ['boolean', ['feature-state', 'inPolygon'], false], 0.9, 0.1];
+                    if (map.getLayer(STOP_LAYER_ID)) {
+                        map.setPaintProperty(STOP_LAYER_ID, "circle-opacity", fade);
+                        map.setPaintProperty(STOP_LAYER_ID, "circle-stroke-opacity", fade);
+                    }
+                    if (map.getLayer(LABEL_LAYER_ID)) {
+                        map.setPaintProperty(LABEL_LAYER_ID, "text-opacity", fade);
+                    }
+                } else {
+                    applyLineMask(map, null, STOP_LAYER_ID, LABEL_LAYER_ID);
+                }
+            }
+        };
 
         maskLayers();
         map.once("idle", maskLayers);
 
         return () => { map.off("idle", maskLayers); };
     }, [mapRef, highlightedLineId, isGraphExpanded, showLineSymbology]);
-    
-    
+
+    // Polygon fading for symbology stops in Transit Volumes
+    useEffect(() => {
+        if (!map || isGraphExpanded !== "TransitVolumes" || !showLineSymbology) return;
+
+        const STOP_SOURCE_ID = "transit-symbology-stops";
+        const STOP_LAYER_ID = "transit-symbology-stops";
+        const LABEL_LAYER_ID = "transit-symbology-stops-label";
+
+        const computeStopFading = () => {
+            const draw = drawRef?.current;
+            const source = map.getSource(STOP_SOURCE_ID);
+            if (!source) return;
+
+            const polygons = draw?.getAll?.()?.features || [];
+            if (!polygons.length) {
+                map.removeFeatureState({ source: STOP_SOURCE_ID });
+                if (map.getLayer(STOP_LAYER_ID)) {
+                    map.setPaintProperty(STOP_LAYER_ID, "circle-opacity", 0.9);
+                    map.setPaintProperty(STOP_LAYER_ID, "circle-stroke-opacity", 1);
+                }
+                if (map.getLayer(LABEL_LAYER_ID)) {
+                    map.setPaintProperty(LABEL_LAYER_ID, "text-opacity", 1);
+                }
+                return;
+            }
+
+            const features = source._data?.features || [];
+            map.removeFeatureState({ source: STOP_SOURCE_ID });
+            for (let i = 0; i < features.length; i++) {
+                const f = features[i];
+                if (f.geometry?.type !== 'Point') continue;
+                const inside = polygons.some((p) => {
+                    try { return booleanPointInPolygon(f.geometry, p); } catch { return false; }
+                });
+                if (inside) {
+                    map.setFeatureState({ source: STOP_SOURCE_ID, id: i }, { inPolygon: true });
+                }
+            }
+
+            const fade = ['case', ['boolean', ['feature-state', 'inPolygon'], false], 0.9, 0.1];
+            if (map.getLayer(STOP_LAYER_ID)) {
+                map.setPaintProperty(STOP_LAYER_ID, "circle-opacity", fade);
+                map.setPaintProperty(STOP_LAYER_ID, "circle-stroke-opacity", fade);
+            }
+            if (map.getLayer(LABEL_LAYER_ID)) {
+                map.setPaintProperty(LABEL_LAYER_ID, "text-opacity", fade);
+            }
+        };
+
+        map.on('draw.create', computeStopFading);
+        map.on('draw.update', computeStopFading);
+        map.on('draw.delete', computeStopFading);
+        computeStopFading();
+
+        return () => {
+            map.off('draw.create', computeStopFading);
+            map.off('draw.update', computeStopFading);
+            map.off('draw.delete', computeStopFading);
+        };
+    }, [mapRef, isGraphExpanded, showLineSymbology, drawRef]);
 }

@@ -431,11 +431,15 @@ body {
 }
 
 .toast.error {
-  border-left: 3px solid var(--color-error);
+  background: #fef2f2;
+  color: #991b1b;
+  border-color: rgba(239, 68, 68, .25);
 }
 
 .toast.success {
-  border-left: 3px solid var(--color-success);
+  background: #f0fdf4;
+  color: #166534;
+  border-color: rgba(22, 163, 74, .25);
 }
 
 /* ── Responsive ── */

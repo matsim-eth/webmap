@@ -38,6 +38,12 @@ export const SelectionProvider = ({ children }) => {
   // switch by useNetworkSplitLayers, mirroring linkSpeedsSelectedLink.
   const [networkSelectedLink, setNetworkSelectedLink] = useState(null);
 
+  // Per-link dropdown selection for the Transit Volumes module. Parallel to
+  // networkSelectedLink (which useNetworkSplitLayers force-clears whenever the
+  // Network/Volumes overlay is inactive, e.g. while TransitVolumes is open — so
+  // transit needs its own). Reset on new segment by useTransitVolumeLinkReset.
+  const [transitSelectedLink, setTransitSelectedLink] = useState(null);
+
   const [zoneFlowDestCanton, setZoneFlowDestCanton] = useState(null);
 
   const value = useMemo(() => ({
@@ -54,6 +60,7 @@ export const SelectionProvider = ({ children }) => {
     linkSpeedsSelected, setLinkSpeedsSelected,
     linkSpeedsSelectedLink, setLinkSpeedsSelectedLink,
     networkSelectedLink, setNetworkSelectedLink,
+    transitSelectedLink, setTransitSelectedLink,
     zoneFlowDestCanton, setZoneFlowDestCanton,
   }), [
     clickedCanton,
@@ -63,6 +70,7 @@ export const SelectionProvider = ({ children }) => {
     volumeFlowSegment, volumeFlowSelectedLink,
     linkSpeedsSelected, linkSpeedsSelectedLink,
     networkSelectedLink,
+    transitSelectedLink,
     zoneFlowDestCanton,
   ]);
 

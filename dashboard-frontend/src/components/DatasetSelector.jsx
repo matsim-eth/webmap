@@ -1,9 +1,12 @@
 import React, { useState, useRef, useCallback, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDatabase, faSpinner, faTimes, faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { useDatasets } from '../hooks/useDatasets';
 import { useDashboard } from '../context/DashboardContext';
+import { studyAreaQueryOptions, areStudyAreasCompatible } from '../hooks/useStudyArea';
 import useClickOutside from '../hooks/useClickOutside';
+import useFloatingPanelPosition from '../hooks/useFloatingPanelPosition';
 import './DatasetSelector.css';
 
 const COLOR_PRESETS = [
@@ -18,11 +21,21 @@ const displayName = (cat) => cat.charAt(0).toUpperCase() + cat.slice(1);
 const DatasetSelector = ({ isCollapsed }) => {
   const { comparisonSlots, setSlot, setSlotColor, removeSlot } = useDashboard();
   const { data: datasets = [], isLoading } = useDatasets();
+  const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
   const [colorPickerSlotIdx, setColorPickerSlotIdx] = useState(null);
   const [manualCollapsed, setManualCollapsed] = useState({});
+  const [slotError, setSlotError] = useState(null);
   const wrapperRef = useRef(null);
   const buttonRef = useRef(null);
+  const panelRef = useRef(null);
+
+  const panelStyle = useFloatingPanelPosition(
+    panelRef,
+    buttonRef,
+    isOpen,
+    isCollapsed ? 60 : 200
+  );
 
   const activeDatasets = datasets.filter((d) => d.status === 'active');
 
@@ -35,6 +48,7 @@ const DatasetSelector = ({ isCollapsed }) => {
   useClickOutside(wrapperRef, () => {
     setIsOpen(false);
     setColorPickerSlotIdx(null);
+    setSlotError(null);
   });
 
   const getSlotIndex = (datasetId, subDataset) =>
@@ -49,33 +63,50 @@ const DatasetSelector = ({ isCollapsed }) => {
     return COLOR_PRESETS.find((c) => !usedColors.includes(c)) || COLOR_PRESETS[0];
   };
 
-  const handleSubDatasetClick = useCallback((dataset, subDataset) => {
+  const handleSubDatasetClick = useCallback(async (dataset, subDataset) => {
     const existingIdx = comparisonSlots.findIndex(
       (s) => s && s.datasetId === dataset.id && s.subDataset === subDataset
     );
 
     if (existingIdx >= 0) {
+      setSlotError(null);
       removeSlot(existingIdx);
       return;
     }
 
-    if (comparisonSlots.length < 2) {
-      const nextIdx = comparisonSlots.length;
-      setSlot(nextIdx, {
-        datasetId: dataset.id,
-        datasetName: dataset.name,
-        subDataset,
-        color: pickUniqueColor(nextIdx),
-      });
-    } else {
-      setSlot(1, {
-        datasetId: dataset.id,
-        datasetName: dataset.name,
-        subDataset,
-        color: pickUniqueColor(1),
-      });
+    const targetIdx = comparisonSlots.length < 2 ? comparisonSlots.length : 1;
+
+    // Geography gate: comparing datasets only makes sense when their zone
+    // sets match (same `?canton=` names resolve to the same places in both).
+    // Check against whichever OTHER slot would remain in the comparison.
+    const other = comparisonSlots.find(
+      (s, i) => s && i !== targetIdx && s.datasetId !== dataset.id
+    );
+    if (other) {
+      const [a, b] = await Promise.all([
+        queryClient.fetchQuery(studyAreaQueryOptions(other.datasetId)),
+        queryClient.fetchQuery(studyAreaQueryOptions(dataset.id)),
+      ]);
+      if (!areStudyAreasCompatible(a?.studyArea, b?.studyArea)) {
+        const describe = (sa) =>
+          `${sa?.name || '?'} (${(sa?.zone_label_plural || 'zones').toLowerCase()})`;
+        setSlotError(
+          `“${dataset.name}” covers ${describe(b?.studyArea)} while ` +
+          `“${other.datasetName}” covers ${describe(a?.studyArea)}. `
+          + 'Datasets with different zone geographies can’t be compared, pick another one.'
+        );
+        return;
+      }
     }
-  }, [comparisonSlots, setSlot, removeSlot]);
+    setSlotError(null);
+
+    setSlot(targetIdx, {
+      datasetId: dataset.id,
+      datasetName: dataset.name,
+      subDataset,
+      color: pickUniqueColor(targetIdx),
+    });
+  }, [comparisonSlots, setSlot, removeSlot, queryClient]);
 
   const toggleCollapse = useCallback((dsId) => {
     setManualCollapsed((prev) => {
@@ -95,15 +126,6 @@ const DatasetSelector = ({ isCollapsed }) => {
     return assignedDatasetIds.has(dsId); // auto-expand if has assigned slot
   };
 
-  const getPanelStyle = () => {
-    const rect = buttonRef.current?.getBoundingClientRect();
-    if (!rect) return { left: isCollapsed ? 60 : 200, top: 80 };
-    return {
-      left: isCollapsed ? 60 : 200,
-      top: rect.top,
-    };
-  };
-
   return (
     <div className="dataset-selector-wrapper" ref={wrapperRef}>
       <button
@@ -119,8 +141,16 @@ const DatasetSelector = ({ isCollapsed }) => {
       </button>
 
       {isOpen && (
-        <div className="dataset-panel" style={getPanelStyle()}>
+        <div
+          className="dataset-panel"
+          ref={panelRef}
+          style={panelStyle || { left: isCollapsed ? 60 : 200 }}
+        >
           <div className="dataset-panel-header">Compare Datasets (max 2)</div>
+
+          {slotError && (
+            <div className="dataset-panel-error" role="alert">{slotError}</div>
+          )}
 
           {/* Active slots summary */}
           <div className="dataset-panel-slots">
@@ -141,7 +171,7 @@ const DatasetSelector = ({ isCollapsed }) => {
                 <span className="dataset-slot-label">{slot.fullLabel}</span>
                 <button
                   className="dataset-slot-remove"
-                  onClick={() => removeSlot(idx)}
+                  onClick={() => { setSlotError(null); removeSlot(idx); }}
                   title="Remove"
                 >
                   <FontAwesomeIcon icon={faTimes} />

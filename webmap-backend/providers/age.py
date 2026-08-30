@@ -22,6 +22,7 @@ from ._pre_agg import (
     label_for,
     make_label_resolver,
     polygon_filter_clause,
+    primary_fast_path,
     resolve_polygon_ids,
     _source_label,
     _sum_grid,
@@ -89,7 +90,7 @@ def _raw_path(sources: list[str], polygon_ids: list[str], params: dict, bins) ->
         if polygon_ids:
             pjoin, pwhere, group_expr, pbind, _ = polygon_filter_clause(polygon_ids)
             resolve = make_label_resolver(con, polygon_ids,
-                                           all(p.startswith("canton:") for p in polygon_ids))
+                                           primary_fast_path(polygon_ids))
             sql = f"""
                 SELECT {group_expr} AS poly_key, {age_case} AS bin, COUNT(*) AS cnt
                 FROM persons p

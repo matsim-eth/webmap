@@ -29,6 +29,7 @@ export default function useTransitLayers({
   setFeatureGeoJSON,
   tableFilterQuery,
   selectedDirection,
+  labelSize,
   drawRef
 }) {
 
@@ -67,7 +68,9 @@ export default function useTransitLayers({
     setHighlightedLineId,
     setHighlightedRouteIds,
     setSelectedTransitStop,
-    suppressNextSearchZoom
+    suppressNextSearchZoom,
+    datasetId,
+    selectedDirection
   )
   
   useTransitVolumesLayer({
@@ -83,9 +86,11 @@ export default function useTransitLayers({
     highlightedLineId,
     setFeatureGeoJSON,
     tableFilterQuery,
+    selectedDirection,
+    labelSize,
     drawRef
   });
-  
+
   useTransitSymbologyLayer({
     mapRef,
     searchCanton,
@@ -94,7 +99,8 @@ export default function useTransitLayers({
     highlightedLineId,
     loadWithFallback,
     showLineSymbology,
-    selectedTransitModes
+    selectedTransitModes,
+    drawRef,
   });
   
   // if canton changed, remove current transit layers, reset selected stop

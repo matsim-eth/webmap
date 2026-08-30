@@ -17,7 +17,7 @@ from .helpers import (
     mode_filter_sql,
     parse_source_param,
 )
-from ._pre_agg import label_for, polygon_filter_clause, resolve_polygon_ids, _source_label
+from ._pre_agg import label_for, polygon_filter_clause, primary_fast_path, resolve_polygon_ids, _source_label
 
 
 def _slot_label(minutes: int) -> str:
@@ -84,17 +84,10 @@ class DepartureTimesProvider(DataProvider):
                     {where}{gf}{af}{mf}
                     GROUP BY poly_key, purpose, slot
                 """, bind).fetchall()
-                meta = get_hot_polygon_meta(con, polygon_ids) if not all(p.startswith("canton:") for p in polygon_ids) else None
+                meta = get_hot_polygon_meta(con, polygon_ids) if not primary_fast_path(polygon_ids) else None
                 for poly_key, purpose, slot, cnt in rows:
                     pid = label_fn(poly_key)
-                    if pid.startswith("canton:"):
-                        from .constants import canton_name
-                        try:
-                            label = canton_name(int(pid.split(":", 1)[1]))
-                        except (ValueError, IndexError):
-                            label = pid
-                    else:
-                        label = label_for(pid, meta)
+                    label = label_for(pid, meta)
                     labels_seen.add(label)
                     purposes_seen.add(str(purpose))
                     counts[(label, slabel, str(purpose), int(slot))] += int(cnt)

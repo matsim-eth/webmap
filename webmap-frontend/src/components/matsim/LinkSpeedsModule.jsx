@@ -134,6 +134,7 @@ const LinkSpeedsModule = ({ featureTableRef }) => {
         tableFilterQuery,
         isFeatureTableOpen,
         setTableFilterQuery,
+        zoneLabel,
     } = useData();
     const {
         clickedCanton,
@@ -378,14 +379,14 @@ const LinkSpeedsModule = ({ featureTableRef }) => {
             {/* No-selection hint */}
             {!clickedCanton && (
                 <div className="no-selection">
-                    <p>No canton selected</p>
-                    <p className="hint">Select a canton to load link speeds</p>
+                    <p>No {zoneLabel.toLowerCase()} selected</p>
+                    <p className="hint">Select a {zoneLabel.toLowerCase()} to load link speeds</p>
                 </div>
             )}
 
             {/* Polygon aggregate — wins over canton summary / single-link panel */}
             {polygonAggregate ? (
-                <div className="canton-mode-share" style={{ position: 'relative' }}>
+                <div className="canton-mode-share" style={{ position: 'relative', marginTop: 15 }}>
                     <CollapseToggle collapsed={isPolygonCollapsed} onToggle={() => setIsPolygonCollapsed(v => !v)} />
                     <h4>Polygon Selection</h4>
                     {!isPolygonCollapsed && (

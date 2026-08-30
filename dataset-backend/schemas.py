@@ -33,6 +33,29 @@ class AdminDatasetUpdate(BaseModel):
     is_public: bool | None = None
 
 
+class DefaultDatasetIn(BaseModel):
+    """Set (or clear) the system-wide default dataset.
+
+    A dedicated endpoint rather than a field on AdminDatasetUpdate because the
+    operation is inherently *exclusive* — setting one default clears the other —
+    so it can't be expressed as an independent per-dataset field without making
+    "is_default: false" ambiguous (clear this one? or clear everything?)."""
+
+    # Required but nullable: an explicit `null` clears the default, while an
+    # empty body is a 422 rather than a silent clear. Without `Field(...)` a
+    # client that dropped the field would wipe the system default and get a 200.
+    dataset_id: int | None = Field(...)
+
+
+class RezoneIn(BaseModel):
+    """Re-zone request: derive a NEW dataset whose primary zones are
+    ``zone_type`` polygons (already present in the source duckdb's
+    hot_polygons), optionally filtered to one canton."""
+    zone_type: str = Field(pattern="^(gemeinde|bezirk)$")
+    canton_id: int | None = None  # None = keep the whole study area
+    name: str | None = Field(None, min_length=1, max_length=255)
+
+
 # ── Response schemas ─────────────────────────────────────────────
 
 class DatasetOut(BaseModel):
@@ -44,6 +67,7 @@ class DatasetOut(BaseModel):
     owner_username: str
     status: str
     is_public: bool
+    is_default: bool = False
     has_synthetic: bool
     has_microcensus: bool
     has_json_preview: bool

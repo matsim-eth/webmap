@@ -7,7 +7,8 @@ import { useFilters } from "../../context/FilterContext";
 import { useSelection } from "../../context/SelectionContext";
 import { useChoropleth } from "../../context/ChoroplethContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTableList, faFileCsv, faXmark, faChevronLeft, faRotateLeft, faDrawPolygon } from "@fortawesome/free-solid-svg-icons";
+import { faTableList, faFileCsv, faXmark, faChevronLeft, faRotateLeft, faDrawPolygon, faSliders } from "@fortawesome/free-solid-svg-icons";
+import { getRightSidebarClass } from "./sidebarLayout";
 
 // ======================= IMPORT MODULES / GRAPHS =======================
 
@@ -49,6 +50,10 @@ import { resetVolumeFlowOverlay } from "../map/useVolumeFlowLayers";
 // Reactive accessor for the current drawn polygons (shared draw tool)
 import useDrawPolygons from "../../hooks/useDrawPolygons";
 
+// Socioeconomic person filters — toolbar icon toggle + dropdown for supported modules
+import SocioFilterPanel from "../filters/SocioFilterPanel";
+import { countActiveSocioFilters } from "../filters/socioFilterConfig";
+
 // Module labels for the header
 const MODULE_LABELS = {
   Choropleth: "Choropleth",
@@ -67,6 +72,8 @@ const MODULE_LABELS = {
 
 const TABLE_MODULES = new Set(["Network", "Volumes", "Transit", "TransitVolumes", "VolumeFlow", "LinkSpeeds"]);
 const POLYGON_MODULES = new Set(["Transit", "Volumes", "TransitVolumes", "LinkSpeeds", "PolygonTrips"]);
+// Modules whose provider accepts the socioeconomic person filters
+const SOCIO_MODULES = new Set(["ZoneFlows", "PolygonTrips", "Destination", "NodeFlows", "VolumeFlow"]);
 
 const RightSidebar = () => {
   const { isGraphExpanded } = useModule();
@@ -76,7 +83,7 @@ const RightSidebar = () => {
     nodeFlowsData, setNodeFlowsData,
     setDestinationData, setBoardingData,
   } = useData();
-  const { timeRange, setTimeRange } = useFilters();
+  const { timeRange, setTimeRange, socioFilters, setSocioFilters } = useFilters();
   const { clickedCanton: canton, selectedTransitStop, setVolumeFlowSegment } = useSelection();
   const {
     updateMapChoropleth,
@@ -85,8 +92,9 @@ const RightSidebar = () => {
   } = useChoropleth();
 
   const [selectedMode, setSelectedMode] = useState("None"); // Choropleth mode
-  const [selectedDataset, setSelectedDataset] = useState("Microcensus"); // Choropleth dataset
+  const [selectedDataset, setSelectedDataset] = useState("Synthetic"); // Choropleth dataset
   const [destinationOutflowData, setDestinationOutflowData] = useState(null);
+  const [isSocioOpen, setIsSocioOpen] = useState(false); // Filters dropdown (socio modules)
 
   const featureTableRef = useRef(null);
   const transitFeatureTableRef = useRef(null);
@@ -107,19 +115,9 @@ const RightSidebar = () => {
   // Does this module have a feature table?
   const hasTable = TABLE_MODULES.has(isGraphExpanded);
 
-  // Determine width class
-  let sidebarClass = "hidden";
-  if (isGraphExpanded) {
-    if (!isSidebarOpen) {
-      sidebarClass = "collapsed";
-    } else if (isFeatureTableOpen) {
-      sidebarClass = "feature-table-open";
-    } else if (isGraphExpanded === "Choropleth" || isGraphExpanded === "Network") {
-      sidebarClass = "open";
-    } else {
-      sidebarClass = "expanded";
-    }
-  }
+  // Determine width class (shared with the map-padding computation so the
+  // camera compensation always matches the rendered sidebar width)
+  const sidebarClass = getRightSidebarClass({ isGraphExpanded, isSidebarOpen, isFeatureTableOpen });
 
   return (
     <aside className={`right-sidebar ${sidebarClass}`}>
@@ -130,19 +128,41 @@ const RightSidebar = () => {
         {isSidebarOpen && (
           <span className="right-sidebar-title">{MODULE_LABELS[isGraphExpanded]}</span>
         )}
-        <button
-          className="right-sidebar-close"
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          title={isSidebarOpen ? "Collapse" : "Expand"}
-        >
-          <FontAwesomeIcon icon={isSidebarOpen ? faXmark : faChevronLeft} />
-        </button>
+        <div className="right-sidebar-header-actions">
+          {/* Person filters — lives in the header so filter-only modules
+              don't need a toolbar row of their own */}
+          {isSidebarOpen && SOCIO_MODULES.has(isGraphExpanded) && (
+            <button
+              className={`right-sidebar-close socio-header-btn${isSocioOpen ? " active" : ""}`}
+              onClick={() => setIsSocioOpen((prev) => !prev)}
+              title="Person Filters"
+            >
+              <FontAwesomeIcon icon={faSliders} />
+              {countActiveSocioFilters(socioFilters) > 0 && (
+                <span className="socio-badge">{countActiveSocioFilters(socioFilters)}</span>
+              )}
+            </button>
+          )}
+          <button
+            className="right-sidebar-close"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            title={isSidebarOpen ? "Collapse" : "Expand"}
+          >
+            <FontAwesomeIcon icon={isSidebarOpen ? faXmark : faChevronLeft} />
+          </button>
+        </div>
       </div>
 
       {isSidebarOpen && (
         <>
-          {/* Toolbar — show table / export / polygon controls */}
-          {((hasTable && canton) || isGraphExpanded === "PolygonTrips") && (
+          {/* Toolbar — show table / export / polygon / reset controls.
+              Only rendered when the module actually has toolbar buttons —
+              the person-filters toggle lives in the header, so filter-only
+              modules (ZoneFlows, Destination) get no toolbar row. */}
+          {((hasTable && canton) ||
+            isGraphExpanded === "PolygonTrips" ||
+            isGraphExpanded === "VolumeFlow" ||
+            (isGraphExpanded === "NodeFlows" && nodeFlowsData)) && (
             <div className="right-sidebar-toolbar">
               {hasTable && canton && (
                 <button
@@ -236,6 +256,14 @@ const RightSidebar = () => {
                   <span>Reset Link</span>
                 </button>
               )}
+
+            </div>
+          )}
+
+          {/* Socioeconomic person filters — dropdown under the toolbar */}
+          {SOCIO_MODULES.has(isGraphExpanded) && isSocioOpen && (
+            <div className="right-sidebar-socio">
+              <SocioFilterPanel bare value={socioFilters} onChange={setSocioFilters} />
             </div>
           )}
 

@@ -6,13 +6,19 @@ import { useFilters } from '../../context/FilterContext';
 import { useSelection } from '../../context/SelectionContext';
 import useDrawPolygons from '../../hooks/useDrawPolygons';
 import { handle401 } from '../../utils/auth';
+import { socioFiltersToParams } from '../filters/socioFilterConfig';
 
 const polygonsToParam = (polygons) => {
-    // Use the first polygon's outer ring; multi-polygon support can come later.
-    const f = polygons?.[0];
-    const ring = f?.geometry?.coordinates?.[0];
-    if (!ring || ring.length < 3) return null;
-    return ring.map(([lng, lat]) => `${lng.toFixed(6)},${lat.toFixed(6)}`).join(';');
+    // Encode every drawn polygon's outer ring. The backend unions them into a
+    // single study area (MULTIPOLYGON): rings are joined with "|", points with
+    // ";", coords with ",". A single polygon has no "|" and stays backward
+    // compatible with the old single-ring wire format.
+    if (!polygons?.length) return null;
+    const rings = polygons
+        .map((f) => f?.geometry?.coordinates?.[0])
+        .filter((ring) => ring && ring.length >= 3)
+        .map((ring) => ring.map(([lng, lat]) => `${lng.toFixed(6)},${lat.toFixed(6)}`).join(';'));
+    return rings.length ? rings.join('|') : null;
 };
 
 /**
@@ -28,7 +34,7 @@ export default function usePolygonTrips({ mapRef, mapReady }) {
         setPolygonTripsData,
         setPolygonTripsLoading,
     } = useData();
-    const { timeRange } = useFilters();
+    const { timeRange, socioFilters } = useFilters();
     const { clickedCanton } = useSelection();
 
     const polygons = useDrawPolygons({
@@ -75,6 +81,7 @@ export default function usePolygonTrips({ mapRef, mapReady }) {
             minute_start: String(minute_start),
             minute_end: String(minute_end),
         });
+        for (const [k, v] of Object.entries(socioFiltersToParams(socioFilters))) params.set(k, v);
         const url = `/backend/data/${datasetId}/polygon_trips.json?${params.toString()}`;
 
         // Debounce: vertex drags fire draw.update per pointermove. Wait until
@@ -116,7 +123,7 @@ export default function usePolygonTrips({ mapRef, mapReady }) {
         // Cleanup aborts the in-flight scan (and cancels a pending debounce) so
         // a new polygon/time selection doesn't leave the old query running.
         return () => { clearTimeout(timer); abort.abort(); };
-    }, [mapReady, isGraphExpanded, polygons, timeRange, datasetId, setPolygonTripsData, setPolygonTripsLoading]);
+    }, [mapReady, isGraphExpanded, polygons, timeRange, socioFilters, datasetId, setPolygonTripsData, setPolygonTripsLoading]);
 
     return null;
 }

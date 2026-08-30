@@ -8,8 +8,10 @@ from typing import Any
 import httpx
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from starlette.responses import Response as StarletteResponse
 
 from .paths import set_root_override
+from .warmup import profile_from_referer, request_warm
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +62,7 @@ class Param:
 
 # Common filters reused across most providers
 CANTON = Param("canton", "Filter by canton name or ID (comma-separated)")
+ZONE = Param("zone", "Filter by zone name or ID (comma-separated); alias of canton")
 SOURCE = Param("source", "Data source", enum=["synthetic", "microcensus"])
 GENDER = Param("gender", "Gender filter (0=male, 1=female)", enum=["0", "1"])
 AGE_MIN = Param("age_min", "Minimum age (inclusive)", param_type="integer")
@@ -69,10 +72,10 @@ PURPOSE = Param("purpose", "Trip purpose filter (comma-separated)")
 
 SUMMARY_ONLY = Param("summary_only", "Only return 'All' aggregate (no per-canton breakdown)")
 
-COMMON_FILTERS = [CANTON, SOURCE, GENDER, AGE_MIN, AGE_MAX, MODE, PURPOSE]
-DEMO_FILTERS = [CANTON]
-TRIP_FILTERS = [CANTON, SOURCE, GENDER, AGE_MIN, AGE_MAX, MODE, PURPOSE]
-ACTIVITY_FILTERS = [CANTON, SOURCE, GENDER, AGE_MIN, AGE_MAX]
+COMMON_FILTERS = [CANTON, ZONE, SOURCE, GENDER, AGE_MIN, AGE_MAX, MODE, PURPOSE]
+DEMO_FILTERS = [CANTON, ZONE]
+TRIP_FILTERS = [CANTON, ZONE, SOURCE, GENDER, AGE_MIN, AGE_MAX, MODE, PURPOSE]
+ACTIVITY_FILTERS = [CANTON, ZONE, SOURCE, GENDER, AGE_MIN, AGE_MAX]
 
 
 class DataProvider(ABC):
@@ -145,16 +148,24 @@ def mount_provider(app: FastAPI, provider: DataProvider, prefix: str = "/data") 
             access_token = request.cookies.get("access_token", "")
             root = await _resolve_dataset_root(dataset_id, user_id, access_token)
             set_root_override(root)
+            # First request this worker sees for a dataset (i.e. the user just
+            # switched to it) kicks off its background warm — otherwise only the
+            # startup-prewarmed default dataset is ever warm, and the first click
+            # on Transit Stops pays the full country-wide build inline. The
+            # Referer says which frontend is open, which orders the warm steps.
+            request_warm(root, profile_from_referer(request.headers.get("referer")))
         except Exception as exc:
             logger.warning("dataset resolution failed: %s", exc)
             return JSONResponse({"error": f"Dataset resolution failed: {exc}"}, status_code=400)
 
         try:
             result = await asyncio.to_thread(provider.deliver, params)
-            if isinstance(result, JSONResponse):
+            if isinstance(result, StarletteResponse):
+                # Prebuilt responses pass through untouched — JSONResponse, or
+                # a raw Response wrapping cached serialized bytes (zones.json).
                 return result
-            # Strip redundant "All" aggregate when a canton filter is active
-            if params.get("canton") and isinstance(result, dict):
+            # Strip redundant "All" aggregate when a canton/zone filter is active
+            if (params.get("canton") or params.get("zone")) and isinstance(result, dict):
                 result.pop("All", None)
             # summary_only: return only the "All" aggregate for fast initial loads
             elif params.get("summary_only") and isinstance(result, dict) and "All" in result:

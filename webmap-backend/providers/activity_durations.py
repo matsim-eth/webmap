@@ -12,13 +12,13 @@ from collections import defaultdict
 
 from .base import DataProvider, Param, CANTON, SOURCE, PURPOSE
 from .connection import get_source_cursor
-from .constants import canton_name
 from .helpers import (
     get_hot_polygon_meta,
     parse_source_param,
     purpose_filter_sql,
 )
-from ._pre_agg import label_for, make_label_resolver, polygon_filter_clause, resolve_polygon_ids, _source_label
+from .zone_registry import get_registry, zone_col
+from ._pre_agg import label_for, make_label_resolver, polygon_filter_clause, primary_fast_path, resolve_polygon_ids, _source_label
 
 
 def _slot_label(minutes: int) -> str:
@@ -52,7 +52,7 @@ class ActivityDurationsProvider(DataProvider):
 
         con0 = get_source_cursor(sources[0])
         polygon_ids = resolve_polygon_ids(con0, params, default_type="canton")
-        all_cantons = bool(polygon_ids) and all(p.startswith("canton:") for p in polygon_ids)
+        all_cantons = primary_fast_path(polygon_ids)
 
         counts: dict = defaultdict(int)
         purposes_seen: set = set()
@@ -75,7 +75,8 @@ class ActivityDurationsProvider(DataProvider):
             slabel = _source_label(source)
 
             if polygon_ids and all_cantons:
-                # Fast path: precomputed activities.canton_id, plain GROUP BY.
+                # Fast path: precomputed zone-id column, plain GROUP BY.
+                zcol = zone_col(source, "activities")
                 try:
                     canton_ids = [int(p.split(":", 1)[1]) for p in polygon_ids]
                 except (ValueError, IndexError):
@@ -83,18 +84,18 @@ class ActivityDurationsProvider(DataProvider):
                 if canton_ids:
                     ph = ",".join("?" * len(canton_ids))
                     rows = con.execute(f"""
-                        SELECT a.canton_id AS cid, a.purpose, {slot_expr} AS slot, COUNT(*) AS cnt
+                        SELECT a.{zcol} AS cid, a.purpose, {slot_expr} AS slot, COUNT(*) AS cnt
                         FROM activities a
-                        WHERE a.canton_id IN ({ph})
+                        WHERE a.{zcol} IN ({ph})
                           AND a.start_time IS NOT NULL AND a.end_time IS NOT NULL
                           AND a.end_time >= a.start_time
                         {pf}
-                        GROUP BY a.canton_id, a.purpose, slot
+                        GROUP BY a.{zcol}, a.purpose, slot
                     """, canton_ids).fetchall()
                     for cid, purpose, slot, cnt in rows:
                         if cid is None:
                             continue
-                        label = canton_name(cid)
+                        label = get_registry().zone_name(cid)
                         labels_seen.add(label)
                         purposes_seen.add(str(purpose))
                         counts[(label, slabel, str(purpose), int(slot))] += int(cnt)

@@ -5,6 +5,14 @@ links touching the requested node — instead of building a full in-memory
 topology of all ~1.7M links per worker. That removes a ~6 s cold start and a
 few hundred MB of per-worker memory; the per-request cost is one small lookup.
 Filter logic and spider join semantics match SpiderInflow/Outflow.
+
+Socioeconomic person filters (mirrored from the Zone Flows contract):
+``gender`` (alias of ``sex``, 0/1), ``age_min``/``age_max``, ``income_class``
+(comma-separated ints → ``households.income_class``), and ``subscription``
+(comma-separated subset of ``constants.SUBS`` → any ``persons.subscriptions_{s}``
+is TRUE). Any of them forces the per-trip spider path — the precomputed
+``node_flow_matrix`` fast path is full-day / all-persons and cannot express
+person filters (see ``_PERSON_FILTER_KEYS``).
 """
 
 from __future__ import annotations
@@ -39,10 +47,14 @@ def _node_links(con, node_id: str):
 
 # Person-filter params that force the (slow) live spider scan. If none are set
 # and the time window covers the full day, the precomputed node_flow_matrix —
-# which is a full-day, all-persons aggregate — gives an identical result.
+# which is a full-day, all-persons aggregate — gives an identical result. The
+# socio params (gender/income_class/subscription) are included so ANY of them
+# forces the per-trip (spider_link_index/spider_routes) path: the matrix has no
+# person dimension and cannot express them.
 _PERSON_FILTER_KEYS = (
-    "sex", "age_min", "age_max", "employed", "has_license",
-    "car_availability", "home_canton", "polygon_id", "polygon_ids", "income",
+    "sex", "gender", "age_min", "age_max", "employed", "has_license",
+    "car_availability", "home_canton", "zone", "polygon_id", "polygon_ids",
+    "income", "income_class", "subscription",
 )
 
 
@@ -97,6 +109,7 @@ _NODE_FLOWS_PARAMS = [
     Param("link_id", "MATSim link ID — derives the to-node automatically"),
     Param("end", "Which end of the link to use: 'to' (default) or 'from'", enum=["to", "from"]),
     Param("sex", "Gender filter (0=male, 1=female)", enum=["0", "1"]),
+    Param("gender", "Person sex filter (alias of sex)", enum=["0", "1"]),
     Param("age_min", "Minimum age (inclusive)", param_type="integer"),
     Param("age_max", "Maximum age (exclusive)", param_type="integer"),
     Param("employed", "Employment status", enum=["true", "false"]),
@@ -104,7 +117,9 @@ _NODE_FLOWS_PARAMS = [
     Param("car_availability", "Car-availability class", enum=["always", "sometimes", "never"]),
     Param("home_canton", "Canton name or ID (legacy)"),
     Param("polygon_id", "Hot-polygon ID(s) for home filter, comma-separated"),
-    Param("income", "Income class (from households)"),
+    Param("income", "Income class (from households, single value, legacy)"),
+    Param("income_class", "Household income class(es), comma-separated"),
+    Param("subscription", "PT subscription(s), comma-separated (ga,halbtax,…); match if ANY selected"),
     Param("minute_start", "Time window start (minutes from midnight, 0-1440)", param_type="integer"),
     Param("minute_end", "Time window end (minutes from midnight, 0-1440)", param_type="integer"),
 ]

@@ -4,135 +4,141 @@ import { useQuery } from "@tanstack/react-query";
 import { useDashboard } from "../../context/DashboardContext";
 import { useData } from "../../context/DataContext";
 import { useResizeOnSidebarChange } from "../../hooks/useResizeOnSidebarChange";
+import {
+  useTransitDatasets,
+  useTransferDataPerDataset,
+  useStopAlignment,
+  candidateStopIdsForDataset,
+  matchTransferParts,
+} from "../../hooks/useTransitComparison";
 import PlotLoader from "./PlotLoader";
 
-const TransferDestinations = ({ sidebarCollapsed, isExpanded = false }) => {
-  const { selectedCanton, selectedTransitStop, datasetId } = useDashboard();
-  const { getData, getCantonData } = useData();
+// Merge every matched platform record's outbound stop-transfers into one map.
+const mergeDestinations = (parts) => {
+  const stopTransfers = {};
+  let totalOut = 0;
+  for (const part of parts) {
+    totalOut += part?.total_transfers_out || 0;
+    for (const [sid, c] of Object.entries(part?.stop_transfers || {})) {
+      stopTransfers[sid] = (stopTransfers[sid] || 0) + c;
+    }
+  }
+  const walkingTotal = Object.values(stopTransfers).reduce((s, c) => s + c, 0);
+  return { stopTransfers, sameStop: totalOut - walkingTotal };
+};
 
-  const transferData = getData("stop_transfer_data_by_canton.json");
+const SINGLE_DEST_COLOR = "#f97316";
+const SINGLE_SELF_COLOR = "#3b82f6";
+
+const TransferDestinations = ({ sidebarCollapsed, isExpanded = false }) => {
+  const { selectedCanton, selectedTransitStop, datasetId, zoneLabel } = useDashboard();
+  const { getCantonData } = useData();
+
+  const datasets = useTransitDatasets();
+  const isComparison = datasets.length > 1;
+  const transferPerDataset = useTransferDataPerDataset();
+  const { resolveStopIds } = useStopAlignment(selectedCanton);
 
   useResizeOnSidebarChange(sidebarCollapsed);
 
+  // Destination stop ids → names. Same-scenario stops share ids across runs,
+  // so the primary canton's geojson resolves both datasets' destinations.
   const { data: stopsData = null } = useQuery({
-    queryKey: ['cantonStops', datasetId, selectedCanton],
+    queryKey: ["cantonStops", datasetId, selectedCanton],
     queryFn: () =>
-      getCantonData(`matsim/transit/stops_by_canton/${selectedCanton}_stops.geojson`)
+      getCantonData(`matsim/transit/stops_by_canton/${encodeURIComponent(selectedCanton)}_stops.geojson`)
         .then((geojson) => geojson?.features || [])
         .catch(() => null),
     enabled: !!selectedCanton && selectedCanton !== "All",
   });
 
-  // Build a lookup from stop ID fragments to stop names
+  // Transfer destinations often sit in neighbouring cantons (the transfer file
+  // merges the selected canton + the inter_cantonal bucket), and those names
+  // don't exist in the single-canton geojson above — which is why some bars
+  // showed a raw id. inter_cantonal_stops is the all-canton superset, so it
+  // resolves every destination. Shared query cache with useEffectiveLineCantons.
+  const { data: interStops = null } = useQuery({
+    queryKey: ["interCantonalStops", datasetId],
+    staleTime: 5 * 60 * 1000,
+    queryFn: () =>
+      getCantonData("matsim/transit/stops_by_canton/inter_cantonal_stops.geojson")
+        .then((geojson) => geojson?.features || [])
+        .catch(() => null),
+  });
+
   const stopIdToName = useMemo(() => {
-    if (!stopsData) return {};
+    const features = [...(stopsData || []), ...(interStops || [])];
+    if (features.length === 0) return {};
     const lookup = {};
-    for (const feature of stopsData) {
+    for (const feature of features) {
       const name = feature.properties?.name;
       let stopIds = feature.properties?.stop_id;
       if (!name || !stopIds) continue;
-
       if (typeof stopIds === "string") {
         try { stopIds = JSON.parse(stopIds); } catch { stopIds = [stopIds]; }
       }
       if (!Array.isArray(stopIds)) stopIds = [stopIds];
-
       for (const sid of stopIds) {
-        // Store the full ID
         lookup[sid] = name;
-        // Also store the base numeric part (e.g. "8508391" from "8508391.link:pt_8508391")
         const baseMatch = String(sid).match(/^(\d+)/);
-        if (baseMatch) {
-          lookup[baseMatch[1]] = name;
-        }
+        if (baseMatch) lookup[baseMatch[1]] = name;
       }
     }
     return lookup;
-  }, [stopsData]);
+  }, [stopsData, interStops]);
 
-  const resolveStopName = (rawId) => {
-    // Direct match
-    if (stopIdToName[rawId]) return stopIdToName[rawId];
+  const anyTransfer = transferPerDataset.some((d) => d.data);
 
-    // Try extracting the base numeric ID from the transfer data key
-    // e.g. "8508391:0:1.link:pt_8508391:0:1" -> "8508391"
-    const baseMatch = String(rawId).match(/^(\d+)/);
-    if (baseMatch && stopIdToName[baseMatch[1]]) {
-      return stopIdToName[baseMatch[1]];
-    }
+  const result = useMemo(() => {
+    if (!selectedTransitStop || !anyTransfer || !selectedCanton) return null;
 
-    // Fallback: truncated ID
-    return rawId.length > 20 ? rawId.slice(0, 18) + "..." : rawId;
-  };
-
-  const destinationResult = useMemo(() => {
-    if (!selectedTransitStop || !transferData || !selectedCanton) return null;
-
-    // Merge selected canton + inter_cantonal
-    const cantonData = {
-      ...(transferData[selectedCanton] || {}),
-      ...(transferData["inter_cantonal"] || {}),
+    const resolveStopName = (rawId) => {
+      if (stopIdToName[rawId]) return stopIdToName[rawId];
+      const baseMatch = String(rawId).match(/^(\d+)/);
+      if (baseMatch && stopIdToName[baseMatch[1]]) return stopIdToName[baseMatch[1]];
+      return rawId.length > 20 ? rawId.slice(0, 18) + "..." : rawId;
     };
 
-    if (Object.keys(cantonData).length === 0) return null;
-
-    // Find stop data (same matching logic as other transit plots)
-    let foundStopData = null;
-
-    const primaryStopId = selectedTransitStop.stop_id;
-    if (primaryStopId && cantonData[primaryStopId]) {
-      foundStopData = cantonData[primaryStopId];
-    }
-
-    if (!foundStopData && selectedTransitStop.stop_ids) {
-      const cleanedIds = selectedTransitStop.stop_ids.flatMap((s) => {
-        if (Array.isArray(s)) return s;
-        try { return JSON.parse(s); } catch { return String(s).split(",").map((id) => id.trim()); }
-      });
-
-      for (const altId of cleanedIds) {
-        if (cantonData[altId]) { foundStopData = cantonData[altId]; break; }
+    // Per dataset: outbound transfers aggregated by destination *name*
+    // (name-join makes the two runs line up even if some ids differ).
+    const selfName = selectedTransitStop.name;
+    const perDataset = transferPerDataset.map(({ dataset, data }) => {
+      const candidateIds = candidateStopIdsForDataset(dataset, selectedTransitStop, resolveStopIds);
+      const parts = matchTransferParts(data, selectedCanton, candidateIds);
+      const { stopTransfers, sameStop } = mergeDestinations(parts);
+      const byName = {};
+      for (const [sid, c] of Object.entries(stopTransfers)) {
+        const name = resolveStopName(sid);
+        byName[name] = (byName[name] || 0) + c;
       }
+      if (sameStop > 0) byName[selfName] = (byName[selfName] || 0) + sameStop;
+      return { dataset, matched: parts.length, byName };
+    });
 
-      if (!foundStopData) {
-        for (const stopId of cleanedIds) {
-          if (!stopId) continue;
-          const matchKey = Object.keys(cantonData).find(
-            (key) => key.includes(stopId) || stopId.includes(key.split(":")[0] + ":")
-          );
-          if (matchKey) { foundStopData = cantonData[matchKey]; break; }
-        }
+    // Combined ranking across datasets → top 8 destination names.
+    const combined = {};
+    for (const d of perDataset) {
+      for (const [name, c] of Object.entries(d.byName)) {
+        combined[name] = (combined[name] || 0) + c;
       }
     }
-
-    if (!foundStopData) return null;
-
-    const stopTransfers = foundStopData.stop_transfers || {};
-    const totalOut = foundStopData.total_transfers_out || 0;
-    const walkingTotal = Object.values(stopTransfers).reduce((sum, c) => sum + c, 0);
-    const sameStopTransfers = totalOut - walkingTotal;
-
-    const topDestinations = Object.entries(stopTransfers)
+    const names = Object.entries(combined)
       .sort(([, a], [, b]) => b - a)
-      .slice(0, 7); // 7 to leave room for self-stop bar
+      .slice(0, 8)
+      .map(([name]) => name);
 
-    if (topDestinations.length === 0 && sameStopTransfers <= 0) return null;
+    if (names.length === 0) return null;
 
-    return {
-      topDestinations,
-      sameStopTransfers,
-    };
-  }, [selectedTransitStop, transferData, selectedCanton]);
+    return { names, perDataset, selfName };
+  }, [selectedTransitStop, anyTransfer, transferPerDataset, selectedCanton, resolveStopIds, stopIdToName]);
 
   // --- Render states ---
   if (!selectedCanton || selectedCanton === "All") {
-    return <div className="plot-loading">Please select a specific canton</div>;
+    return <div className="plot-loading">Please select a specific {zoneLabel.toLowerCase()}</div>;
   }
-
-  if (!transferData) {
+  if (!anyTransfer) {
     return <PlotLoader />;
   }
-
   if (!selectedTransitStop) {
     return (
       <div className="plot-wrapper" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -142,11 +148,10 @@ const TransferDestinations = ({ sidebarCollapsed, isExpanded = false }) => {
       </div>
     );
   }
-
-  if (!destinationResult) {
+  if (!result) {
     return (
       <div className="plot-wrapper" style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-        <h4 className="plot-title">Transfer Destinations (Outbound Trips) - {selectedTransitStop.name}</h4>
+        <h4 className="plot-title">Top Transfer Destinations (Outbound Trips) - {selectedTransitStop.name}</h4>
         <div className="plot-loading" style={{ textAlign: "center", lineHeight: 1.6 }}>
           No transfer destination data<br />available for this stop
         </div>
@@ -154,38 +159,31 @@ const TransferDestinations = ({ sidebarCollapsed, isExpanded = false }) => {
     );
   }
 
-  const { topDestinations, sameStopTransfers } = destinationResult;
+  const { names, perDataset, selfName } = result;
 
-  // Build entries: walking destinations + optional same-stop bar
-  const entries = topDestinations.map(([stopId, count]) => ({
-    name: resolveStopName(stopId),
-    count,
-    color: "#f97316",
-  }));
+  const traces = isComparison
+    ? perDataset.map(({ dataset, byName }) => ({
+        type: "bar",
+        name: dataset.name,
+        x: names,
+        y: names.map((n) => byName[n] || 0),
+        marker: { color: dataset.color },
+        hovertemplate: "<b>%{x}</b><br>Transfers: %{y}<extra>%{fullData.name}</extra>",
+      }))
+    : [
+        {
+          type: "bar",
+          x: names,
+          y: names.map((n) => perDataset[0].byName[n] || 0),
+          // Self-stop (within-station) bar in blue, walking destinations orange.
+          marker: { color: names.map((n) => (n === selfName ? SINGLE_SELF_COLOR : SINGLE_DEST_COLOR)) },
+          hovertemplate: "<b>%{x}</b><br>Transfers: %{y}<extra></extra>",
+        },
+      ];
 
-  if (sameStopTransfers > 0) {
-    entries.push({
-      name: selectedTransitStop.name,
-      count: sameStopTransfers,
-      color: "#3b82f6",
-    });
-  }
-
-  entries.sort((a, b) => b.count - a.count);
-
-  const names = entries.map((e) => e.name);
-  const counts = entries.map((e) => e.count);
-  const colors = entries.map((e) => e.color);
-
-  const trace = {
-    type: "bar",
-    x: names,
-    y: counts,
-    marker: {
-      color: colors,
-    },
-    hovertemplate: "<b>%{x}</b><br>Transfers: %{y}<extra></extra>",
-  };
+  const matchedNote = perDataset
+    .filter((d) => isComparison && d.matched === 0)
+    .map((d) => d.dataset.name);
 
   const layout = {
     autosize: true,
@@ -202,7 +200,11 @@ const TransferDestinations = ({ sidebarCollapsed, isExpanded = false }) => {
       domain: [0.25, 1],
     },
     hovermode: "closest",
-    showlegend: false,
+    showlegend: isComparison,
+    ...(isComparison && {
+      barmode: "group",
+      legend: { orientation: "h", y: 1.02, x: 0.5, xanchor: "center", yanchor: "bottom", font: { size: 9 } },
+    }),
     paper_bgcolor: "rgba(0,0,0,0)",
     plot_bgcolor: "rgba(0,0,0,0)",
   };
@@ -213,7 +215,7 @@ const TransferDestinations = ({ sidebarCollapsed, isExpanded = false }) => {
     displaylogo: false,
     toImageButtonOptions: {
       format: "png",
-      filename: `${selectedCanton}_transfer_destinations`,
+      filename: `${selectedCanton}_transfer_destinations${isComparison ? "_compare" : ""}`,
       height: 800,
       width: 1200,
       scale: 2,
@@ -223,8 +225,13 @@ const TransferDestinations = ({ sidebarCollapsed, isExpanded = false }) => {
   return (
     <div className="plot-wrapper">
       <h4 className="plot-title">Top Transfer Destinations (Outbound Trips) - {selectedTransitStop.name}</h4>
+      {matchedNote.length > 0 && (
+        <div style={{ fontSize: "10px", color: "#b45309", marginBottom: "2px" }}>
+          Stop not matched (by id or name) in: {matchedNote.join(", ")}
+        </div>
+      )}
       <Plot
-        data={[trace]}
+        data={traces}
         layout={layout}
         config={config}
         style={{ width: "100%", height: "100%" }}

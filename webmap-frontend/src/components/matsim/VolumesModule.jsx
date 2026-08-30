@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import SegmentAttributesTable from "./SegmentAttributesTable";
 import SegmentVolumeHistogram from "./SegmentVolumeHistogram";
 import FeatureTable from "../table/FeatureTable";
@@ -8,9 +8,11 @@ import "rc-slider/assets/index.css";
 import { useTableRowBuilder } from "../../hooks/useTableRowBuilder";
 import useLinePolygon from "../../hooks/useLinePolygon";
 import useDrawPolygons from "../../hooks/useDrawPolygons";
+import { useVolumeHighlightSync } from "../../hooks/useVolumeHighlightSync";
 import { computeBoundaryFlow } from "../../utils/boundaryFlow";
 import { buildSelectionPayload } from "../table/_lib/rowSearch";
 import { parsePipeList } from "../map/_lib/pipeProps";
+import { isMajorRoad } from "../map/_lib/mapboxFilters";
 import { useData } from "../../context/DataContext";
 import { useFilters } from "../../context/FilterContext";
 import { useSelection } from "../../context/SelectionContext";
@@ -25,7 +27,7 @@ import "./VolumeFlowModule.css";
 const VOLUMES_TABLE_MODES = ['car'];
 
 const VolumesModule = ({ featureTableRef }) => {
-  const { isFeatureTableOpen, featureGeoJSON, setTableFilterQuery } = useData();
+  const { isFeatureTableOpen, featureGeoJSON, setTableFilterQuery, setPolygonLinkIds, zoneLabel } = useData();
   const {
     showMajorRoadsOnly, setShowMajorRoadsOnly,
     timeRange, setTimeRange,
@@ -43,6 +45,7 @@ const VolumesModule = ({ featureTableRef }) => {
   const selectedGraph = isGraphExpanded;
 
   const [filteredVolume, setFilteredVolume] = useState(null);
+  const [isBoundaryCollapsed, setIsBoundaryCollapsed] = useState(false);
 
   // Per-link selection derived from the current selection (mirrors NetworkModule).
   //   isSplit        — per-direction (zoomed-in) selection; no dropdown.
@@ -66,6 +69,11 @@ const VolumesModule = ({ featureTableRef }) => {
     setSelectedNetworkFeature?.(null);
   }, [setSelectedNetworkFeature]);
 
+  // No fade layerIds: outside-polygon links are hidden outright instead of
+  // faded — the selected ids go to DataContext (polygonLinkIds), and
+  // useFeatureSelectionFocus ANDs them into the combined Volumes map filter,
+  // which covers the base layer AND the zoom>=15 split double-link layers
+  // (their features carry `id = parent index`, the same id space).
   const polygonFeatures = useLinePolygon({
     mapRef,
     drawRef,
@@ -73,10 +81,17 @@ const VolumesModule = ({ featureTableRef }) => {
     isGraphExpanded,
     activeModule: 'Volumes',
     sourceId: 'network-source',
-    layerIds: ['network-layer'],
-    labelLayerIds: ['network-label-left', 'network-label-right'],
+    layerIds: [],
+    labelLayerIds: [],
     showMajorRoadsOnly,
     onPolygonChange: handlePolygonChange,
+    onSelectionIds: setPolygonLinkIds,
+  });
+
+  useVolumeHighlightSync({
+    isFeatureTableOpen,
+    hasPolygon: polygonFeatures.length > 0,
+    setSelectedNetworkFeature,
   });
 
   const drawnPolygons = useDrawPolygons({
@@ -132,10 +147,10 @@ const VolumesModule = ({ featureTableRef }) => {
   const activeTableRows = useMemo(() => {
     let rows = tableRows;
     // Mirror the map: with "major roads only" on, the map shows (and only fetches
-    // volumes for) capacity > 1200 segments, so the table lists just those too —
+    // volumes for) major-road segments, so the table lists just those too —
     // otherwise minor roads would appear with 0 volume from the major-only fetch.
     if (showMajorRoadsOnly) {
-      rows = rows.filter(row => Number(row.feature?.properties?.capacity) > 1200);
+      rows = rows.filter(row => isMajorRoad(row.feature?.properties));
     }
     if (polygonFeatures.length && isFeatureTableOpen) {
       rows = rows.filter(row => polygonFeaturesSet.has(row.feature));
@@ -237,7 +252,7 @@ const VolumesModule = ({ featureTableRef }) => {
     {/* Polygon aggregate view */}
     {polygonAggregate && !selectedNetworkFeature && (
       <>
-      <div className="canton-mode-share">
+      <div className="canton-mode-share" style={{ marginTop: 15 }}>
         <h4>Polygon Selection</h4>
         <table>
           <tbody>
@@ -269,8 +284,28 @@ const VolumesModule = ({ featureTableRef }) => {
       </div>
 
       {boundaryAggregate && (
-        <div className="canton-mode-share" style={{ marginBottom: 24 }}>
+        <div className="canton-mode-share" style={{ position: "relative", marginTop: 15, marginBottom: 24 }}>
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={() => setIsBoundaryCollapsed(v => !v)}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setIsBoundaryCollapsed(v => !v); }}
+            aria-label={isBoundaryCollapsed ? "Expand" : "Collapse"}
+            style={{
+              position: "absolute",
+              top: 8,
+              right: 16,
+              cursor: "pointer",
+              fontSize: 18,
+              lineHeight: 1,
+              userSelect: "none",
+              color: "var(--color-text-secondary)",
+            }}
+          >
+            {isBoundaryCollapsed ? "+" : "−"}
+          </span>
           <h4>Polygon Inflow/Outflow</h4>
+          {!isBoundaryCollapsed && (
           <table>
             <tbody>
               <tr>
@@ -294,6 +329,7 @@ const VolumesModule = ({ featureTableRef }) => {
               </tr>
             </tbody>
           </table>
+          )}
         </div>
       )}
 
@@ -344,7 +380,7 @@ const VolumesModule = ({ featureTableRef }) => {
       />
     ) : !polygonAggregate ? (
       <p style={{ padding: "1rem", fontStyle: "italic", color: "#9ca3af" }}>
-      Click a canton and/or segment to see hourly volumes.
+      Click a {zoneLabel.toLowerCase()} and/or segment to see hourly volumes.
       </p>
     ) : null}
     </>

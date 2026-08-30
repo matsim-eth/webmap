@@ -3,6 +3,7 @@ import { useSelection } from './SelectionContext';
 import { useFilters } from './FilterContext';
 import { useData } from './DataContext';
 import { useModule } from './ModuleContext';
+import { DEFAULT_SOCIO_FILTERS } from '../components/filters/socioFilterConfig';
 
 const MapContext = createContext(null);
 
@@ -38,8 +39,13 @@ export const MapProvider = ({ children }) => {
     setTimeRange,
     setShowMajorRoadsOnly,
     setShowStopVolumeSymbology,
+    setShowLineSymbology,
     setSelectedDirection,
+    setVolumeFlowDirection,
     setZoneFlowDirection,
+    setLinkSpeedsMetric,
+    setLinkSpeedsRoadTypes,
+    setSocioFilters,
   } = useFilters();
   const { setIsFeatureTableOpen, setNodeFlowsData, setZoneFlowData } = useData();
   const { setIsGraphExpanded } = useModule();
@@ -54,20 +60,26 @@ export const MapProvider = ({ children }) => {
     setTimeRange([0, 96]);
     setShowMajorRoadsOnly(true);
     setShowStopVolumeSymbology(false);
+    setShowLineSymbology(false);
     setIsFeatureTableOpen(false);
     setSelectedDirection('total');
+    setVolumeFlowDirection('bothflow');
     setNodeFlowsData(null);
     setHoveredMatrixCell(null);
     setZoneFlowDestCanton(null);
     setZoneFlowDirection('both');
     setZoneFlowData(null);
+    setLinkSpeedsMetric('congestion_index');
+    setLinkSpeedsRoadTypes(['all']);
+    setSocioFilters(DEFAULT_SOCIO_FILTERS);
   }, [
     setClickedCanton, setSelectedNetworkFeature, setFeatureSelection,
     setSelectedTransitLink, setVisualizeLinkId, setIsGraphExpanded,
     setTimeRange, setShowMajorRoadsOnly, setShowStopVolumeSymbology,
-    setIsFeatureTableOpen, setSelectedDirection, setNodeFlowsData,
-    setHoveredMatrixCell, setZoneFlowDestCanton, setZoneFlowDirection,
-    setZoneFlowData,
+    setShowLineSymbology, setIsFeatureTableOpen, setSelectedDirection,
+    setVolumeFlowDirection, setNodeFlowsData, setHoveredMatrixCell,
+    setZoneFlowDestCanton, setZoneFlowDirection, setZoneFlowData,
+    setLinkSpeedsMetric, setLinkSpeedsRoadTypes, setSocioFilters,
   ]);
 
   const value = useMemo(() => ({

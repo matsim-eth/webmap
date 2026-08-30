@@ -36,10 +36,18 @@ const isPolygonalFeature = (f) =>
   f?.geometry?.type === 'Polygon' || f?.geometry?.type === 'MultiPolygon';
 
 const PolygonUploader = () => {
-  const { polygonSet, setPolygonSet, resetPolygonSet } = useDashboard();
+  const { polygonSet, setPolygonSet, resetPolygonSet, primaryZoneType, zoneLabelPlural } = useDashboard();
   const fileInputRef = useRef(null);
 
   const isCustom = polygonSet?.kind === 'custom';
+
+  // Double-offering guard (plan §F2.4): the default polygon set aggregates
+  // boardings by MUNICIPALITY. For a dataset whose PRIMARY zone type is already
+  // 'gemeinde' (a re-zoned single canton), that municipality overlay coincides
+  // with the primary zones the rest of the dashboard already shows — so the
+  // default is redundant rather than a distinct level. We don't remove it (it
+  // still works), but we relabel it so the user understands it's the same level.
+  const muniIsPrimary = primaryZoneType === 'gemeinde';
 
   const onPickFile = () => fileInputRef.current?.click();
 
@@ -89,10 +97,14 @@ const PolygonUploader = () => {
   };
 
   const summary = useMemo(() => {
-    if (!isCustom) return 'Default: Municipalities';
+    if (!isCustom) {
+      return muniIsPrimary
+        ? `Default: ${zoneLabelPlural} (primary zones)`
+        : 'Default: Municipalities';
+    }
     const featCount = polygonSet?.features?.length ?? 0;
     return `${polygonSet.name} (${featCount} polygons)`;
-  }, [isCustom, polygonSet]);
+  }, [isCustom, polygonSet, muniIsPrimary, zoneLabelPlural]);
 
   return (
     <div className="control-group polygon-uploader-group">

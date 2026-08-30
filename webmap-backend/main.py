@@ -15,6 +15,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from providers import ALL_PROVIDERS
 from providers.base import mount_provider
+from providers import warmup
 
 # ---------------------------------------------------------------------------
 # Environment / config
@@ -94,61 +95,12 @@ def _ttl_seconds_from_exp(exp: int | None) -> int | None:
 # App
 # ---------------------------------------------------------------------------
 
-def _prewarm_caches() -> None:
-    """Background: precompute the two slow, parameter-less builds for every
-    dataset so the first user never waits on a cold scan:
-      • speed_dashboard — a 50M-row link_speeds scan (~30s, minutes cold);
-      • transit stops    — a country-wide _build() over boarding_data + the
-        1.7M-row network (~seconds, much worse on a cold mmap), which otherwise
-        fires on the first stops_by_canton request.
-    Runs one dataset at a time in a daemon thread; disable with WEBMAP_PREWARM=0.
-    Errors are swallowed (incompatible datasets just skip)."""
-    import glob
-    import time
-    from providers.paths import set_root_override
-    from providers.link_speeds import SpeedDashboardProvider
-    from providers.transit_stops import inter_cantonal_stops
-
-    # Debounce for dev: uvicorn --reload restarts the process on every file
-    # save, and each restart would immediately kick off full table scans of
-    # every dataset — misery on a laptop. Waiting a bit first means rapid
-    # edit-reload cycles kill the (daemon) thread before it does heavy work;
-    # the cache still warms once the code settles. Prod (ENV != dev) starts
-    # immediately. Override with WEBMAP_PREWARM_DELAY (seconds).
-    delay = os.getenv("WEBMAP_PREWARM_DELAY", "").strip()
-    delay_s = float(delay) if delay else (15.0 if ENV == "dev" else 0.0)
-    if delay_s > 0:
-        time.sleep(delay_s)
-
-    base = os.getenv("WEBMAP_ROOT", "/data/datasets/public")
-    roots = sorted({os.path.dirname(p) for p in glob.glob(os.path.join(base, "*", "synthetic.duckdb"))})
-    for root in roots:
-        set_root_override(root)
-        try:
-            try:
-                SpeedDashboardProvider().deliver({})
-                logger.info("prewarmed speed_dashboard for %s", root)
-            except Exception as exc:
-                logger.warning("speed prewarm skipped for %s: %s", root, exc)
-            try:
-                inter_cantonal_stops()  # triggers the per-dataset transit _build()
-                logger.info("prewarmed transit stops for %s", root)
-            except Exception as exc:
-                logger.warning("transit prewarm skipped for %s: %s", root, exc)
-            # NB: the per-line transit_routes index (providers/transit_routes.py)
-            # is intentionally NOT prewarmed — it parses the ~76 MB routes asset
-            # and would hold it in RAM for every dataset at startup. It builds
-            # lazily on the first line selection instead (one ~6 s parse per
-            # dataset per worker, then cached).
-        finally:
-            set_root_override(None)
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if os.getenv("WEBMAP_PREWARM", "1").strip().lower() in {"1", "true"}:
-        import threading
-        threading.Thread(target=_prewarm_caches, name="prewarm", daemon=True).start()
+    # Startup prewarm of the default dataset. Every *other* dataset is warmed on
+    # demand instead, the first time a request for it reaches this worker — see
+    # providers/warmup.py.
+    warmup.start()
     yield
 
 
@@ -188,7 +140,29 @@ class AuthMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
+class TrafficMiddleware(BaseHTTPMiddleware):
+    """Count in-flight data requests so the warm thread can stay out of the
+    way (see `warmup.await_quiet`).
+
+    `_PUBLIC_PATHS` is excluded deliberately: the container healthcheck polls
+    `/health` every ~10 s, which — with a 3 s quiet threshold — would read as
+    permanent traffic and starve the prewarm completely."""
+
+    async def dispatch(self, request: Request, call_next):
+        if request.url.path in _PUBLIC_PATHS:
+            return await call_next(request)
+        warmup.traffic_begin()
+        try:
+            return await call_next(request)
+        finally:
+            warmup.traffic_end()
+
+
 # --- Middleware (order matters: added last = outermost) --------------------
+
+# Inner relative to AuthMiddleware, so rejected (401) requests aren't counted
+# as traffic — only real work the prewarm should yield to.
+app.add_middleware(TrafficMiddleware)
 
 app.add_middleware(AuthMiddleware)
 
@@ -235,9 +209,16 @@ _COUNTS_RE = _re.compile(r"transit/per_canton_counts/(.+)_counts\.json$")
 _PT_VOL_RE = _re.compile(r"transit/volumes_by_link_line/pt_link_volumes_by_link_line_(.+)\.json$")
 _STOPS_RE = _re.compile(r"transit/stops_by_canton/(.+)_stops\.geojson$")
 _ROUTES_BY_LINE_RE = _re.compile(r"transit/routes/by_line/(.+)\.geojson$")
+_PT_VOLUMES_RE = _re.compile(
+    r"transit/volumes_by_link_line/pt_link_volumes_by_link_line_(.+)\.json$"
+)
 
 
 def _canton_id_from(name: str) -> int | None:
+    """Resolve a zone name or id (as it appears in a matsim/* path) to its
+    integer zone id, resolved through the dataset's zone registry. Zone ids are
+    numeric, so the int-suffix parse of the returned polygon_id stays valid for
+    any study area (canton, or a generalized primary zone type)."""
     pid = resolve_canton_to_polygon_id(name)
     try:
         return int(pid.split(":", 1)[1]) if pid else None
@@ -256,6 +237,7 @@ async def matsim_asset(dataset_id: int, asset_path: str, request: Request):
         access_token = request.cookies.get(ACCESS_COOKIE_NAME, "")
         root = await _resolve_dataset_root(dataset_id, user_id, access_token)
         _set_root_override(root)
+        warmup.request_warm(root, warmup.profile_from_referer(request.headers.get("referer")))
     except Exception:
         return JSONResponse({"error": "dataset resolution failed"}, status_code=400)
     try:
@@ -263,17 +245,23 @@ async def matsim_asset(dataset_id: int, asset_path: str, request: Request):
             cid = _canton_id_from(asset_path[: -len(_MERGED_SUFFIX)])
             if cid is None:
                 return JSONResponse({"error": "not found"}, status_code=404)
-            # Build the network from network_links so it carries modes/capacity/
-            # length (the precomputed merged_segments blob is thin — link_id/
-            # road_type/freespeed only — which blanks the Volumes car filter and
-            # breaks capacity line-width). Fall back to the static blob for older
-            # datasets that lack the network_links table.
+            # merged_segments_geojson serves the dataset's precomputed
+            # merged_segments asset out of a per-(dataset, zone) LRU, so repeat
+            # visits are cache hits.
+            # ?major=1 returns only the links the frontend's MAJOR_ROADS_FILTER
+            # displays — the road Volumes module's default view — which is ~5×
+            # fewer features to transfer, parse and tile. Same flag and same
+            # predicate as the traffic-volumes asset below.
+            major = request.query_params.get("major") in ("1", "true", "True")
+            # First sighting of this zone → start building its per-zone volume
+            # payloads behind the traffic gate. Hooked here rather than on the
+            # volume assets themselves: this request is what a network module
+            # issues on entering a zone, and the user is typically seconds away
+            # from switching to Volumes or Transit Volumes, which otherwise pay
+            # a 3-10 s build inline.
+            warmup.request_zone_warm(root, cid)
             from providers.network_geometry import merged_segments_geojson
-            payload = await _asyncio.to_thread(merged_segments_geojson, cid)
-            if payload is None:
-                payload = await _asyncio.to_thread(
-                    load_static_asset_bytes, "synthetic", f"merged_segments:{cid}"
-                )
+            payload = await _asyncio.to_thread(merged_segments_geojson, cid, major)
             if payload is None:
                 return JSONResponse({"error": "not found"}, status_code=404)
             return _Response(content=payload, media_type="application/geo+json")
@@ -286,8 +274,11 @@ async def matsim_asset(dataset_id: int, asset_path: str, request: Request):
             if cid is None:
                 return JSONResponse({"error": "not found"}, status_code=404)
             from providers.link_speeds import link_traffic_volumes
-            # Optional ?min_capacity= restricts to major roads (matches the Volumes
-            # "major roads only" map filter) so the default view transfers ~10× less.
+            # Optional ?major=1 restricts to major roads by hierarchy (matches the
+            # Volumes "major roads only" MAJOR_ROADS_FILTER) so the default view
+            # transfers ~10× less. ?min_capacity= is the older pure-capacity
+            # variant, kept for backward compatibility.
+            major = request.query_params.get("major") in ("1", "true")
             mc_raw = request.query_params.get("min_capacity")
             min_capacity = None
             if mc_raw:
@@ -295,8 +286,31 @@ async def matsim_asset(dataset_id: int, asset_path: str, request: Request):
                     min_capacity = float(mc_raw)
                 except ValueError:
                     min_capacity = None
-            rows = await _asyncio.to_thread(link_traffic_volumes, cid, min_capacity)
+            rows = await _asyncio.to_thread(link_traffic_volumes, cid, min_capacity, major)
             return JSONResponse(rows)
+
+        # Per-canton PT link volumes (per link/line 15-min bins with a .H/.R
+        # direction split) from the pt_link_volumes table. Datasets without the
+        # table 404 → frontend falls back to the CDN's preprocessed file.
+        mv = _PT_VOLUMES_RE.match(asset_path)
+        if mv:
+            cid = _canton_id_from(mv.group(1))
+            if cid is None:
+                return JSONResponse({"error": "not found"}, status_code=404)
+            from providers.pt_link_volumes import volumes_by_link_line
+            rows = await _asyncio.to_thread(volumes_by_link_line, cid)
+            if rows is None:
+                return JSONResponse({"error": "not found"}, status_code=404)
+            return JSONResponse(rows)
+
+        # Per-line .H/.R direction metadata (most common terminus stop name per
+        # direction) — labels the direction filter in the transit modules.
+        if asset_path == "transit/route_directions.json":
+            from providers.transit_routes import route_directions
+            rd = await _asyncio.to_thread(route_directions)
+            if rd is None:
+                return JSONResponse({"error": "not found"}, status_code=404)
+            return JSONResponse(rd)
 
         # A single transit line's route geometry — a slice of `transit_routes`
         # by line_id (tens of KB vs the full ~76 MB asset). The map overlay
@@ -341,21 +355,34 @@ async def matsim_asset(dataset_id: int, asset_path: str, request: Request):
 
         ms = _STOPS_RE.match(asset_path)
         if ms:
-            # A canton's stops just loaded → start building the per-line route
-            # index in the background so the line draws instantly when the user
-            # clicks a stop+line moments later (instead of waiting on the parse).
             from providers.transit_routes import ensure_warm
-            ensure_warm()
             name = ms.group(1)
             if name == "inter_cantonal":
                 from providers.transit_stops import inter_cantonal_stops
                 fc = await _asyncio.to_thread(inter_cantonal_stops)
+                ensure_warm()
                 return JSONResponse(fc)
             cid = _canton_id_from(name)
             if cid is None:
                 return JSONResponse({"error": "not found"}, status_code=404)
+            # The transit modules' equivalent of the merged_segments hook above:
+            # this is the request a zone open issues here, and Transit Volumes is
+            # one click away.
+            warmup.request_zone_warm(root, cid)
             from providers.transit_stops import stops_by_canton
             fc = await _asyncio.to_thread(stops_by_canton, cid)
+            # Only *after* the stops are in hand: start building the per-line
+            # route index in the background, so the line draws instantly when
+            # the user clicks a stop+line moments later.
+            #
+            # Deliberately not before. `ensure_warm` parses a ~34 MB JSON asset
+            # on a background thread, and that parse holds the GIL against the
+            # stops build it was racing — measured on the Zurich gemeinde
+            # dataset, kicking it off first turned a 1.72 s first load into
+            # 6.42 s. The route index is wanted seconds later (on the first line
+            # click), the stops are wanted now, so the cheap fix is to order
+            # them that way rather than let them contend.
+            ensure_warm()
             return JSONResponse(fc)
 
         if asset_path == "transit/transit_modes_by_canton.json":

@@ -81,6 +81,13 @@
   background-color: var(--color-bg);
 }
 
+/* Right-aligned button cluster in the header (filters + collapse) */
+.right-sidebar-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
 /* Collapsed: center the toggle button */
 .right-sidebar.collapsed .right-sidebar-header {
   justify-content: center;
@@ -96,6 +103,29 @@
   gap: 4px;
   padding: 8px 16px;
   border-bottom: 1px solid var(--color-border);
+}
+
+/* Person-filters toggle in the header, next to the collapse button */
+.socio-header-btn {
+  gap: 5px;
+  font-size: 14px;
+  padding: 4px 6px;
+}
+
+.socio-header-btn.active {
+  background-color: var(--color-bg);
+  color: var(--color-primary);
+}
+
+/* Filter dropdown between the toolbar and the scroll area. No border-bottom —
+   the panel card carries its own border, a separator line reads as clutter. */
+.right-sidebar-socio {
+  flex-shrink: 0;
+  padding: 10px 16px 0;
+}
+
+.right-sidebar-socio .socio-panel {
+  margin-bottom: 0;
 }
 
 /* Scroll area for module content */
@@ -138,6 +168,7 @@
 .panel-toolbar-btn:hover {
   background-color: var(--color-bg);
 }
+
 
 
 /* ===== Shared styles used by module content ===== */
