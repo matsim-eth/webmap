@@ -138,6 +138,14 @@ services:
       WEBMAP_PREWARM_YIELD: "${WEBMAP_PREWARM_YIELD:-1}"
       WEBMAP_WARM_ON_SWITCH: "${WEBMAP_WARM_ON_SWITCH:-1}"
       WEBMAP_WARM_QUIET: "${WEBMAP_WARM_QUIET:-1}"
+      # Ask-AI agent (providers/agent.py)
+      AI_QUERY_ENABLED: "${AI_QUERY_ENABLED:-0}"
+      LLM_PROVIDER: "${LLM_PROVIDER:-gemini}"
+      GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
+      LLM_MODEL: "${LLM_MODEL:-gemini-2.5-flash}"
+      LLM_BASE_URL: "${LLM_BASE_URL:-}"
+      LLM_API_KEY: "${LLM_API_KEY:-}"
+      SIM_SERVICE_URL: http://sim_backend:5035
     volumes:
       - dataset_storage:/data/datasets:ro
       # AI-agent failure log (JSONL) — reviewed in batches to fix prompt/

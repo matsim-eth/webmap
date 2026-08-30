@@ -24,6 +24,8 @@ import { redirectToLogin, checkIsAdmin } from '../../utils/auth';
 import { useFullReset } from '../../hooks/useFullReset';
 import { useQuery } from '@tanstack/react-query';
 import DatasetSelector from '../DatasetSelector';
+import ApiTokensModal from '../ApiTokensModal';
+import SimJobsModal, { useSimJobsBadge } from '../SimJobsModal';
 import { LEFT_SIDEBAR_WIDTH, LEFT_SIDEBAR_COLLAPSED_WIDTH } from './sidebarLayout';
 
 const SectionTitle = ({ label, isOpen, onToggle }) => (
