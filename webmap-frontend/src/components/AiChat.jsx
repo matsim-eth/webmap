@@ -901,7 +901,7 @@ export default function AiChat() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
               }}
-              placeholder="Type a question…"
+              placeholder="Type a question… (/sim to request a simulation run)"
               rows={1}
               disabled={busy}
             />

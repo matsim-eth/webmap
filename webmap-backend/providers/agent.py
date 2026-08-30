@@ -439,7 +439,11 @@ _SIM_OP_SCHEMA = {
         "freespeed_kmh": {"type": "number"}, "capacity": {"type": "number"},
         "lanes": {"type": "number"},
         "modes": {"type": "array", "items": {"type": "string"}},
-        "length_m": {"type": "number"}, "bidirectional": {"type": "boolean"},
+        "length_m": {"type": "number"},
+        "bidirectional": {
+            "type": "boolean",
+            "description": "add_link: MUST reflect what the user said - "
+                           "ask them if unstated (false = one-way only)"},
     },
     "required": ["op"],
 }
@@ -511,7 +515,36 @@ modify the scenario and re-run MATSim. Rules:
   after an explicit yes in a LATER user message. Never auto-confirm.
 - Results appear as a new private dataset of the user (status via
   simulation_status); compare it with the base via the usual tools.
+- NEVER fill in scenario parameters the user did not state. If required
+  information is missing, say exactly WHAT is missing and ask — do not
+  propose. In particular for add_link: you need BOTH endpoints (existing
+  node ids, or new nodes with coordinates via add_node) AND whether the
+  road is one-way or bidirectional — the DSL default is one-way, so a
+  guessed direction silently builds the wrong road. If the user left
+  speed/capacity/lanes open, either ask or state the defaults you would
+  use (50 km/h, 1000 veh/h, 1 lane) in the proposal text and let them
+  object BEFORE confirming. The same applies everywhere: an ambiguous
+  selection ("the bridge" matching several links), an unclear factor, an
+  unstated scope — ask first, propose second.
 """
+
+_SIM_GATE_ON = """
+- The user opted in with /sim, so proposing is allowed — but only propose
+  once you are SURE what they want simulated. If the request is vague or
+  incomplete, ask instead of proposing.
+"""
+
+_SIM_GATE_OFF = """
+- Proposing NEW simulation runs is DISABLED for this message: runs are
+  expensive and must be requested deliberately. If the user asks for a
+  what-if run, do NOT try to propose — explain that they should resend
+  the request as a message starting with /sim (e.g. "/sim close the
+  Hardbruecke and rerun"). Checking status, confirming an EXISTING
+  proposal and cancelling remain available.
+"""
+
+_SIM_TOOL_SPECS_NO_PROPOSE = [s for s in _SIM_TOOL_SPECS
+                              if s["name"] != "propose_simulation"]
 
 
 def _sim_tool(name: str, args: dict, token: str,
@@ -691,7 +724,8 @@ def run_agent(question: str, history: list[dict],
               has_polygon: bool = False,
               ui_state: dict | None = None,
               emit=None, is_cancelled=None,
-              sim_token: str | None = None) -> dict:
+              sim_token: str | None = None,
+              sim_propose: bool = False) -> dict:
     """Blocking; call via asyncio.to_thread. Returns
     {reply, display, displays, steps} — 'display' stays for compatibility
     with the previous single-shot response shape.
@@ -754,8 +788,12 @@ def run_agent(question: str, history: list[dict],
     if sim_token:
         from . import sim_client
         if sim_client.available():
-            specs = specs + _SIM_TOOL_SPECS
+            # propose_simulation exists only for /sim-prefixed messages —
+            # runs are expensive, so proposing needs that explicit opt-in.
+            specs = specs + (_SIM_TOOL_SPECS if sim_propose
+                             else _SIM_TOOL_SPECS_NO_PROPOSE)
             sys_prompt += _SIM_PROMPT
+            sys_prompt += _SIM_GATE_ON if sim_propose else _SIM_GATE_OFF
     if resolve_dataset is not None:
         specs = _augment_specs_for_datasets(specs)
         sys_prompt += f"""
@@ -857,8 +895,14 @@ The vocabulary above describes the CURRENT dataset; other runs may differ.
             elif conversation_id and name == "ui_action":
                 fn = _ui_action_tool
             elif sim_token and name in _SIM_TOOL_NAMES:
-                fn = (lambda __n=name, **kw:          # noqa: E731
-                      _sim_tool(__n, kw, sim_token, current_dataset))
+                if name == "propose_simulation" and not sim_propose:
+                    # tool wasn't offered this turn; refuse even if called
+                    fn = (lambda **kw: (_ for _ in ()).throw(ValueError(
+                        "proposing runs requires a message starting "
+                        "with /sim")))
+                else:
+                    fn = (lambda __n=name, **kw:          # noqa: E731
+                          _sim_tool(__n, kw, sim_token, current_dataset))
             else:
                 fn = ai_tools.TOOL_FUNCS.get(name)
             step = {"tool": name, "detail": _args_brief(name, args), "ok": True}

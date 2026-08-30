@@ -464,6 +464,14 @@ async def ai_query(dataset_id: int, request: Request):
         body = await request.json()
         question = str(body.get("question") or "")
         history = body.get("history") or []
+        # Runs are expensive: proposing one is only unlocked when the user
+        # deliberately starts the message with /sim. Everything else about
+        # simulations (status, confirm of an existing proposal, cancel)
+        # stays available without it.
+        sim_propose = bool(_re.match(r"\s*/sim\b", question, _re.IGNORECASE))
+        if sim_propose:
+            question = _re.sub(r"\s*/sim\b[:,]?\s*", "", question, count=1,
+                               flags=_re.IGNORECASE)
         from providers.agent import run_agent
         from providers.base import DATASET_SERVICE_URL, _resolve_cache
 
@@ -520,6 +528,7 @@ async def ai_query(dataset_id: int, request: Request):
             # Enables the custom-simulation tools (propose/confirm/status);
             # the sim broker enforces access, quota and confirmation flow.
             sim_token=access_token or None,
+            sim_propose=sim_propose,
         )
 
         if not body.get("stream"):
