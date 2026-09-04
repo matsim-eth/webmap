@@ -8,6 +8,20 @@ import { useSelection } from '../context/SelectionContext';
 import { handle401 } from '../utils/auth';
 import './AiChat.css';
 
+// crypto.randomUUID() only exists in secure contexts (HTTPS / localhost) -
+// on a plain-HTTP dev host it is undefined and would crash the component.
+function newId() {
+  if (globalThis.crypto?.randomUUID) return crypto.randomUUID();
+  const b = new Uint8Array(16);
+  (globalThis.crypto?.getRandomValues
+    ? crypto.getRandomValues(b)
+    : b.forEach((_, i) => { b[i] = Math.floor(Math.random() * 256); }));
+  b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80;
+  const h = [...b].map((x) => x.toString(16).padStart(2, '0')).join('');
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+}
+
+
 const AI_SOURCE = 'ai-query-source';
 const AI_LAYER = 'ai-query-layer';
 const AI_LABEL_LAYER = 'ai-query-label';
@@ -36,7 +50,7 @@ export default function AiChat() {
   const [mapActive, setMapActive] = useState(false);
   const bodyRef = useRef(null);
   // Conversation id keys the server-side result registry ("edit chart r2").
-  const convoIdRef = useRef(crypto.randomUUID());
+  const convoIdRef = useRef(newId());
   const abortRef = useRef(null);          // in-flight stream (Stop button)
   const pendingGeocodeRef = useRef(null); // locate_failed -> geocoder fallback
 
@@ -64,7 +78,7 @@ export default function AiChat() {
     stopStream();
     setMessages([]);
     clearMapLayer();
-    convoIdRef.current = crypto.randomUUID();
+    convoIdRef.current = newId();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [datasetId]);
 

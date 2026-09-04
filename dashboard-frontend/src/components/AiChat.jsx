@@ -4,6 +4,20 @@ import { useDashboard } from '../context/DashboardContext';
 import { handle401 } from '../utils/auth';
 import './AiChat.css';
 
+// crypto.randomUUID() only exists in secure contexts (HTTPS / localhost) -
+// on a plain-HTTP dev host it is undefined and would crash the component.
+function newId() {
+  if (globalThis.crypto?.randomUUID) return crypto.randomUUID();
+  const b = new Uint8Array(16);
+  (globalThis.crypto?.getRandomValues
+    ? crypto.getRandomValues(b)
+    : b.forEach((_, i) => { b[i] = Math.floor(Math.random() * 256); }));
+  b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80;
+  const h = [...b].map((x) => x.toString(16).padStart(2, '0')).join('');
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+}
+
+
 /**
  * Dashboard variant of the Ask-AI chat. Same backend agent as the webmap
  * (charts, tables, cross-run comparisons); map displays are summarized as
@@ -104,7 +118,7 @@ export default function AiChat() {
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const bodyRef = useRef(null);
-  const convoIdRef = useRef(crypto.randomUUID());
+  const convoIdRef = useRef(newId());
   const lastChartRef = useRef(null);      // most recent chart display (for add_tile)
   const abortRef = useRef(null);          // in-flight stream (Stop button)
 
@@ -125,7 +139,7 @@ export default function AiChat() {
   useEffect(() => {
     stopStream();
     setMessages([]);
-    convoIdRef.current = crypto.randomUUID();
+    convoIdRef.current = newId();
   }, [datasetId]);
 
   function execUiAction(d) {
@@ -137,7 +151,7 @@ export default function AiChat() {
           console.warn('[AiChat] add_tile without a rendered chart');
           return;
         }
-        setTiles((cur) => [...cur, { id: crypto.randomUUID(),
+        setTiles((cur) => [...cur, { id: newId(),
           title: p.title, display: chart }]);
       } else if (d.action === 'remove_tile') {
         const idx = Math.round(p.index ?? 0) - 1;   // 1-based on the tiles
