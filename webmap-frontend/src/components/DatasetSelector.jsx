@@ -1,15 +1,21 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDatabase, faCheck, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faDatabase, faCheck, faSpinner, faFlask } from '@fortawesome/free-solid-svg-icons';
 import { useDatasets } from '../hooks/useDatasets';
 import { useData } from '../context/DataContext';
 import useClickOutside from '../hooks/useClickOutside';
 import { useFullReset } from '../hooks/useFullReset';
+import { ACTIVE, STATUS_LABEL, jobStage, useSimJobs } from './SimJobsModal';
 import './DatasetSelector.css';
 
-const DatasetSelector = ({ isCollapsed }) => {
+// Runs that are not (yet) a dataset but belong in this list: everything in
+// flight, plus interrupted runs the user can still resume.
+const LISTED = new Set([...ACTIVE, 'failed', 'cancelled']);
+
+const DatasetSelector = ({ isCollapsed, onOpenSimulations }) => {
   const { datasetId, setDatasetId } = useData();
   const { data: datasets = [], isLoading } = useDatasets();
+  const { available: simAvailable, jobs } = useSimJobs(20000);
   const fullReset = useFullReset();
   const [isOpen, setIsOpen] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -17,7 +23,13 @@ const DatasetSelector = ({ isCollapsed }) => {
   const buttonRef = useRef(null);
 
   const activeDatasets = datasets.filter((d) => d.status === 'active');
-  const currentDataset = activeDatasets.find((d) => d.id === datasetId);
+  // Finished runs ARE datasets — tag them so the origin is visible.
+  const simResultIds = new Set(jobs.filter((j) => j.status === 'done' && j.result_dataset_id)
+    .map((j) => j.result_dataset_id));
+  const resumedIds = new Set(jobs.map((j) => j.resume_of).filter(Boolean));
+  const simRows = simAvailable
+    ? jobs.filter((j) => LISTED.has(j.status) && !resumedIds.has(j.job_id)).slice(0, 5)
+    : [];
 
   useClickOutside(wrapperRef, () => setIsOpen(false));
 
@@ -40,7 +52,8 @@ const DatasetSelector = ({ isCollapsed }) => {
     const itemHeight = 43;
     const headerHeight = 40;
     const listPadding = 8;
-    const panelHeight = headerHeight + listPadding + Math.min(activeDatasets.length, 5) * itemHeight;
+    const rows = Math.min(activeDatasets.length, 5) + (simRows.length ? simRows.length + 1 : 0);
+    const panelHeight = headerHeight + listPadding + rows * itemHeight;
     const top = Math.min(rect.top, window.innerHeight - panelHeight - 4);
     return {
       left,
@@ -74,8 +87,14 @@ const DatasetSelector = ({ isCollapsed }) => {
                 key={ds.id}
                 className={`dataset-panel-item ${ds.id === datasetId ? 'selected' : ''}`}
                 onClick={() => handleSelect(ds.id)}
+                title={ds.description || ''}
               >
                 <span className="dataset-panel-item-name">{ds.name}</span>
+                {simResultIds.has(ds.id) && (
+                  <span className="dataset-panel-badge sim" title="result of a custom simulation run">
+                    <FontAwesomeIcon icon={faFlask} /> sim
+                  </span>
+                )}
                 {ds.is_public && <span className="dataset-panel-badge">public</span>}
                 {ds.id === datasetId && (
                   <span className="dataset-panel-check">
@@ -84,6 +103,39 @@ const DatasetSelector = ({ isCollapsed }) => {
                 )}
               </button>
             ))}
+
+            {simRows.length > 0 && (
+              <>
+                <div className="dataset-panel-section">Simulations</div>
+                {simRows.map((j) => {
+                  const pct = Math.round((j.progress || 0) * 100);
+                  const running = j.status === 'running' || j.status === 'uploading';
+                  return (
+                    <button
+                      key={`sim-${j.job_id}`}
+                      className={`dataset-panel-item dataset-panel-sim ${j.status}`}
+                      onClick={() => { setIsOpen(false); onOpenSimulations?.(); }}
+                      title={`${j.description || j.title}\n${jobStage(j)}`}
+                    >
+                      <span className="dataset-panel-sim-main">
+                        <span className="dataset-panel-item-name">
+                          <FontAwesomeIcon icon={faFlask} /> {j.title}
+                        </span>
+                        <span className="dataset-panel-sim-stage">{jobStage(j)}</span>
+                        {running && (
+                          <span className="dataset-panel-sim-bar">
+                            <span style={{ width: `${pct}%` }} />
+                          </span>
+                        )}
+                      </span>
+                      <span className={`dataset-panel-badge sim-status ${j.status}`}>
+                        {STATUS_LABEL[j.status] || j.status}
+                      </span>
+                    </button>
+                  );
+                })}
+              </>
+            )}
           </div>
         </div>
       )}

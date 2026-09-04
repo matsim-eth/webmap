@@ -199,7 +199,10 @@ const LeftSidebar = () => {
         <div className="left-sidebar-section">
           {!isCollapsed && <SectionTitle label="DATA" isOpen={dataOpen} onToggle={() => setDataOpen(v => !v)} />}
           {(dataOpen || isCollapsed) && (
-            <DatasetSelector isCollapsed={isCollapsed} />
+            <DatasetSelector
+              isCollapsed={isCollapsed}
+              onOpenSimulations={simBadge.available ? () => setSimJobsOpen(true) : undefined}
+            />
           )}
         </div>
 

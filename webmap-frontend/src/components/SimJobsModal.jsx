@@ -4,17 +4,17 @@ import { handle401 } from '../utils/auth';
 import './SimJobsModal.css';
 
 const SIM = '/backend/sim';
-const ACTIVE = new Set(['proposed', 'queued', 'running', 'uploading']);
+export const ACTIVE = new Set(['proposed', 'queued', 'running', 'uploading']);
 
 /**
  * Persistent view of the user's custom simulation runs — independent of
  * the chat conversation: log out, come back in the evening, open this and
  * see exactly where each run stands (status, phase, iteration progress).
- * Polls every 5 s while open; the sidebar badge polls slowly in the
- * background via useSimJobsBadge().
+ * Polls every 5 s while open; the sidebar + dataset selector poll slowly in
+ * the background via useSimJobs().
  */
 
-async function fetchJobs() {
+export async function fetchJobs() {
   let res = await fetch(`${SIM}/jobs`, { credentials: 'include' });
   if (res.status === 401) {
     const ok = await handle401();
@@ -25,23 +25,28 @@ async function fetchJobs() {
   return (await res.json()).jobs || [];
 }
 
-/** Slow background poll for the sidebar: {available, activeCount}. */
-export function useSimJobsBadge(intervalMs = 45000) {
-  const [state, setState] = useState({ available: false, activeCount: 0 });
+async function post(path) {
+  const res = await fetch(`${SIM}${path}`, { method: 'POST', credentials: 'include' });
+  if (!res.ok) {
+    let detail = `HTTP ${res.status}`;
+    try { detail = (await res.json()).detail || detail; } catch { /* keep */ }
+    throw new Error(detail);
+  }
+  return res.json();
+}
+
+/** Slow background poll: {available, jobs}. available=false hides every
+ *  simulation UI when the sim service isn't deployed/reachable. */
+export function useSimJobs(intervalMs = 45000) {
+  const [state, setState] = useState({ available: false, jobs: [] });
   useEffect(() => {
     let stop = false;
     async function tick() {
       try {
         const jobs = await fetchJobs();
-        if (!stop) {
-          setState({
-            available: true,
-            activeCount: jobs.filter((j) => ACTIVE.has(j.status)).length,
-          });
-        }
+        if (!stop) setState({ available: true, jobs });
       } catch {
-        // sim service not deployed/reachable → hide the entry entirely
-        if (!stop) setState({ available: false, activeCount: 0 });
+        if (!stop) setState({ available: false, jobs: [] });
       }
     }
     tick();
@@ -51,20 +56,50 @@ export function useSimJobsBadge(intervalMs = 45000) {
   return state;
 }
 
-const STATUS_LABEL = {
+/** Sidebar badge: {available, activeCount}. */
+export function useSimJobsBadge(intervalMs = 45000) {
+  const { available, jobs } = useSimJobs(intervalMs);
+  return { available, activeCount: jobs.filter((j) => ACTIVE.has(j.status)).length };
+}
+
+export const STATUS_LABEL = {
   proposed: 'awaiting confirmation',
   queued: 'queued',
   running: 'running',
-  uploading: 'uploading result',
+  uploading: 'publishing',
   done: 'done',
   failed: 'failed',
   cancelled: 'cancelled',
 };
 
+export const PHASE_LABEL = {
+  claimed: 'claimed by worker',
+  preparing: 'preparing inputs',
+  simulating: 'simulating',
+  analysing: 'analysing results',
+  uploading: 'uploading results',
+  ingesting: 'building dataset',
+  done: 'done',
+};
+
+/** One-line "where is it" text for a job (shared by every job UI). */
+export function jobStage(j) {
+  const pct = Math.round((j.progress || 0) * 100);
+  if (j.status === 'running' || j.status === 'uploading') {
+    const phase = PHASE_LABEL[j.phase] || j.phase || '…';
+    return `${phase} · ${pct}%${j.message ? ` · ${j.message}` : ''}`;
+  }
+  if (j.status === 'queued') return `waiting for a worker · ${j.estimate || ''}`.trim();
+  if (j.status === 'proposed') return 'not started — confirm it in the AI chat';
+  if (j.status === 'done') return `finished · dataset #${j.result_dataset_id}`;
+  return j.error ? `${STATUS_LABEL[j.status]} · ${j.error}` : STATUS_LABEL[j.status];
+}
+
 export default function SimJobsModal({ onClose }) {
   const { setDatasetId } = useData();
   const [jobs, setJobs] = useState(null);
   const [error, setError] = useState(null);
+  const [busyId, setBusyId] = useState(null);
   const timerRef = useRef(null);
 
   async function load() {
@@ -85,13 +120,17 @@ export default function SimJobsModal({ onClose }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function cancel(id) {
+  async function act(id, action) {
+    setBusyId(id);
     try {
-      await fetch(`${SIM}/jobs/${id}/cancel`, {
-        method: 'POST', credentials: 'include' });
-      load();
+      await post(`/jobs/${id}/${action}`);
+      setError(null);
+      await load();
     } catch (err) {
-      console.error('[SimJobs] cancel failed:', err);
+      console.error(`[SimJobs] ${action} failed:`, err);
+      setError(`${action} failed: ${err.message}`);
+    } finally {
+      setBusyId(null);
     }
   }
 
@@ -101,6 +140,8 @@ export default function SimJobsModal({ onClose }) {
   }
 
   const fmt = (iso) => (iso ? new Date(iso).toLocaleString() : '');
+  // Only the newest attempt of a run offers Resume — older ones already have one.
+  const resumedIds = new Set((jobs || []).map((j) => j.resume_of).filter(Boolean));
 
   return (
     <div className="simjobs-backdrop" onClick={onClose}>
@@ -115,14 +156,17 @@ export default function SimJobsModal({ onClose }) {
           {jobs === null && <div className="simjobs-empty">Loading…</div>}
           {jobs && jobs.length === 0 && !error && (
             <div className="simjobs-empty">
-              No simulation runs yet. Ask the AI, e.g.&nbsp;
-              <em>&quot;Close link X and run the simulation&quot;</em>.
+              No simulation runs yet. Ask the AI with a message starting with
+              <code> /sim</code>, e.g.&nbsp;
+              <em>&quot;/sim close link X and rerun the simulation&quot;</em>.
             </div>
           )}
 
           {(jobs || []).map((j) => {
             const pct = Math.round((j.progress || 0) * 100);
             const active = ACTIVE.has(j.status);
+            const canResume = (j.status === 'failed' || j.status === 'cancelled')
+              && j.started_at && !resumedIds.has(j.job_id);
             return (
               <div className={`simjobs-card ${j.status}`} key={j.job_id}>
                 <div className="simjobs-card-head">
@@ -132,38 +176,22 @@ export default function SimJobsModal({ onClose }) {
                   </span>
                 </div>
 
+                {j.description && <div className="simjobs-desc">{j.description}</div>}
+
                 <ul className="simjobs-ops">
                   {(j.summary || []).slice(0, 4).map((s, i) => <li key={i}>{s}</li>)}
                 </ul>
 
                 {(j.status === 'running' || j.status === 'uploading') && (
-                  <>
-                    <div className="simjobs-bar"><div style={{ width: `${pct}%` }} /></div>
-                    <div className="simjobs-meta">
-                      {j.phase || '…'} · {pct}%
-                      {j.message ? ` · ${j.message}` : ''}
-                    </div>
-                  </>
+                  <div className="simjobs-bar"><div style={{ width: `${pct}%` }} /></div>
                 )}
-                {j.status === 'queued' && (
-                  <div className="simjobs-meta">
-                    Waiting for a worker · {j.estimate}
-                  </div>
-                )}
-                {j.status === 'proposed' && (
-                  <div className="simjobs-meta">
-                    Not started — confirm it in the AI chat ({j.estimate})
-                  </div>
-                )}
-                {j.status === 'done' && (
-                  <div className="simjobs-meta">
-                    ✅ Finished {fmt(j.finished_at)} — result is your dataset
-                    #{j.result_dataset_id}
-                  </div>
-                )}
-                {(j.status === 'failed' || j.status === 'cancelled') && j.error && (
-                  <div className="simjobs-meta">⚠️ {j.error}</div>
-                )}
+                <div className="simjobs-meta">
+                  {j.status === 'done' ? '✅ ' : ''}
+                  {(j.status === 'failed' || j.status === 'cancelled') ? '⚠️ ' : ''}
+                  {jobStage(j)}
+                  {j.resume_of ? ` · resumed from #${j.resume_of}` : ''}
+                  {j.status === 'done' && j.finished_at ? ` · ${fmt(j.finished_at)}` : ''}
+                </div>
 
                 <div className="simjobs-actions">
                   {j.status === 'done' && j.result_dataset_id && (
@@ -172,10 +200,17 @@ export default function SimJobsModal({ onClose }) {
                       Open result
                     </button>
                   )}
+                  {canResume && (
+                    <button className="simjobs-open" disabled={busyId === j.job_id}
+                            title="Re-queue this run; it continues from its last checkpoint when possible"
+                            onClick={() => act(j.job_id, 'resume')}>
+                      ↻ Resume
+                    </button>
+                  )}
                   {active && (
-                    <button className="simjobs-cancel"
-                            onClick={() => cancel(j.job_id)}>
-                      Cancel
+                    <button className="simjobs-cancel" disabled={busyId === j.job_id}
+                            onClick={() => act(j.job_id, 'cancel')}>
+                      {j.status === 'proposed' ? 'Discard' : 'Stop'}
                     </button>
                   )}
                   <span className="simjobs-when">{fmt(j.created_at)}</span>

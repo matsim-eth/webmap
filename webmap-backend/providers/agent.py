@@ -465,12 +465,21 @@ _SIM_TOOL_SPECS = [
                 "title": {"type": "string",
                           "description": "short scenario name, e.g. "
                                          "'No Hardbruecke'"},
+                "description": {
+                    "type": "string",
+                    "description": "1-2 crisp sentences for a non-expert: "
+                                   "WHAT is changed and WHAT question the "
+                                   "run answers, e.g. 'Closes the "
+                                   "Hardbruecke for cars to see where its "
+                                   "daily crossings reroute.' Shown next to "
+                                   "the run and stored on the result "
+                                   "dataset."},
                 "operations": {"type": "array", "items": _SIM_OP_SCHEMA},
                 "iterations": {"type": "integer", "minimum": 1,
                                "maximum": 200},
                 "random_seed": {"type": "integer"},
             },
-            "required": ["title", "operations"],
+            "required": ["title", "description", "operations"],
         },
     },
     {
@@ -515,6 +524,10 @@ modify the scenario and re-run MATSim. Rules:
   after an explicit yes in a LATER user message. Never auto-confirm.
 - Results appear as a new private dataset of the user (status via
   simulation_status); compare it with the base via the usual tools.
+- Every proposal carries a short title AND a plain-language description
+  (1-2 sentences: what changes, what question it answers). Users see it in
+  their run list and on the result dataset - write it for a colleague who
+  did not read this chat.
 - NEVER fill in scenario parameters the user did not state. If required
   information is missing, say exactly WHAT is missing and ask — do not
   propose. In particular for add_link: you need BOTH endpoints (existing
@@ -553,6 +566,7 @@ def _sim_tool(name: str, args: dict, token: str,
     if name == "propose_simulation":
         diff = {"base_dataset_id": current_dataset,
                 "title": args.get("title") or "Custom run",
+                "description": (args.get("description") or "")[:2000],
                 "operations": args.get("operations") or [],
                 "params": {k: v for k, v in {
                     "iterations": args.get("iterations"),

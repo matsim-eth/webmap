@@ -110,3 +110,65 @@
 .left-sidebar-item.dataset-success .left-sidebar-label {
   color: var(--color-success);
 }
+
+/* Custom simulation runs listed below the datasets */
+.dataset-panel-section {
+  padding: 8px 12px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  border-top: 1px solid var(--color-border);
+  margin-top: 4px;
+}
+
+.dataset-panel-badge.sim {
+  background-color: rgba(124, 58, 237, 0.12);
+  color: #6d28d9;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.dataset-panel-sim {
+  align-items: flex-start;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.dataset-panel-sim-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.dataset-panel-sim-stage {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dataset-panel-sim-bar {
+  display: block;
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--color-bg);
+  overflow: hidden;
+}
+.dataset-panel-sim-bar > span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #7c3aed);
+  transition: width .6s ease;
+}
+
+.dataset-panel-badge.sim-status { background: #ede9fe; color: #6d28d9; }
+.dataset-panel-badge.sim-status.running,
+.dataset-panel-badge.sim-status.uploading { background: #dbeafe; color: #1d4ed8; }
+.dataset-panel-badge.sim-status.failed,
+.dataset-panel-badge.sim-status.cancelled { background: #fee2e2; color: #b91c1c; }

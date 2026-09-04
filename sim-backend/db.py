@@ -41,6 +41,10 @@ class SimScenario(Base):
     java_memory: Mapped[str] = mapped_column(String(16), default="64G")
     threads: Mapped[int] = mapped_column(Integer, default=16)
     minutes_per_iteration: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # Population share of the base run (0.01 = 1 %). Passed to the dataset
+    # ingest so the result is scaled like its base; derived from the person
+    # count when unset.
+    sample_rate: Mapped[float | None] = mapped_column(Float, nullable=True)
     notes: Mapped[str] = mapped_column(Text, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),
                                                  default=_now)
@@ -58,6 +62,10 @@ class SimJob(Base):
     user_id: Mapped[int] = mapped_column(Integer, index=True)
     username: Mapped[str] = mapped_column(String(255), default="")
     title: Mapped[str] = mapped_column(String(255))
+    # Plain-language summary written by the proposing agent/user: what the
+    # scenario changes and what question it answers. Shown in every job UI
+    # and becomes the result dataset's description.
+    description: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String(32), default="proposed", index=True)
 
     base_dataset_id: Mapped[int] = mapped_column(Integer)
@@ -74,6 +82,11 @@ class SimJob(Base):
     worker_id: Mapped[str] = mapped_column(String(128), default="")
     cancel_requested: Mapped[bool] = mapped_column(Boolean, default=False)
     result_dataset_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Resume: a job re-queued from a cancelled/failed one. The worker that ran
+    # the original still holds its workdir, so it is offered the job first
+    # and continues from the last written iteration instead of restarting.
+    resume_of: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    preferred_worker: Mapped[str] = mapped_column(String(128), default="")
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),
                                                  default=_now)
@@ -85,6 +98,25 @@ class SimJob(Base):
                                                          nullable=True)
 
 
+# Columns added after the first deployment. create_all never alters existing
+# tables, so each is applied as a plain ADD COLUMN; "already exists" errors
+# (any dialect) are the normal case on every later start.
+_ADDED_COLUMNS = (
+    ("sim_scenarios", "sample_rate", "FLOAT"),
+    ("sim_jobs", "description", "TEXT DEFAULT ''"),
+    ("sim_jobs", "resume_of", "INTEGER"),
+    ("sim_jobs", "preferred_worker", "VARCHAR(128) DEFAULT ''"),
+)
+
+
 async def create_tables() -> None:
+    from sqlalchemy import text
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    for table, column, ddl in _ADDED_COLUMNS:
+        try:
+            async with engine.begin() as conn:
+                await conn.execute(text(
+                    f"ALTER TABLE {table} ADD COLUMN {column} {ddl}"))
+        except Exception:
+            pass

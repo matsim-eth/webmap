@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 import httpx
 from fastapi import Depends, FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field, ValidationError
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 
 import auth
 from auth import User, mint_user_token, require_user, require_worker
@@ -70,13 +70,17 @@ async def _check_dataset_access(dataset_id: int, user: User) -> None:
 
 def _job_out(j: SimJob, full: bool = False) -> dict:
     out = {
-        "job_id": j.id, "title": j.title, "status": j.status,
+        "job_id": j.id, "title": j.title, "description": j.description or "",
+        "status": j.status,
         "base_dataset_id": j.base_dataset_id,
         "summary": j.summary, "estimate": j.estimate,
         "phase": j.phase, "progress": round(j.progress, 3),
         "message": j.message, "error": j.error or None,
         "result_dataset_id": j.result_dataset_id,
+        "resume_of": j.resume_of,
+        "worker": j.worker_id or None,
         "created_at": j.created_at.isoformat() if j.created_at else None,
+        "started_at": j.started_at.isoformat() if j.started_at else None,
         "finished_at": j.finished_at.isoformat() if j.finished_at else None,
     }
     if full:
@@ -128,7 +132,8 @@ async def create_proposal(request: Request, user: User = Depends(require_user)):
             estimate = f"{diff.params.iterations} iterations (runtime unknown)"
 
         job = SimJob(user_id=user.id, username=user.username,
-                     title=diff.title, base_dataset_id=diff.base_dataset_id,
+                     title=diff.title, description=diff.description,
+                     base_dataset_id=diff.base_dataset_id,
                      diff=diff.model_dump(mode="json"),
                      summary=summarize(diff), estimate=estimate)
         db.add(job)
@@ -202,6 +207,57 @@ async def cancel_job(job_id: int, user: User = Depends(require_user)):
         return _job_out(job)
 
 
+@app.post("/jobs/{job_id}/resume")
+async def resume_job(job_id: int, user: User = Depends(require_user)):
+    """Re-queue a cancelled or failed run as a NEW job. The worker that ran
+    the original is offered it first and continues from the last iteration
+    checkpoint it still has on disk; any other worker restarts the run."""
+    async with SessionLocal() as db:
+        job = await db.get(SimJob, job_id)
+        if job is None or (job.user_id != user.id and not user.admin):
+            raise HTTPException(status_code=404, detail="job not found")
+        if job.status not in ("cancelled", "failed"):
+            raise HTTPException(status_code=409,
+                                detail=f"job is {job.status}; only cancelled "
+                                       "or failed runs can be resumed")
+        if job.confirmed_at is None:
+            raise HTTPException(status_code=409,
+                                detail="this run was never started - propose "
+                                       "it again instead")
+        if (job.error or "").startswith("scenario error:"):
+            raise HTTPException(status_code=409,
+                                detail="the scenario itself was rejected "
+                                       f"({job.error}) - fix it and propose "
+                                       "a new run")
+        dup = await db.scalar(
+            select(func.count()).select_from(SimJob)
+            .where(SimJob.resume_of == job.id, SimJob.status.in_(ACTIVE)))
+        if dup:
+            raise HTTPException(status_code=409,
+                                detail="a resumed copy of this run is already "
+                                       "queued or running")
+        if not user.admin:
+            active = await db.scalar(
+                select(func.count()).select_from(SimJob)
+                .where(SimJob.user_id == user.id, SimJob.status.in_(ACTIVE)))
+            if active >= MAX_ACTIVE_PER_USER:
+                raise HTTPException(
+                    status_code=429,
+                    detail=f"quota: {active} simulation(s) already queued or "
+                           f"running (max {MAX_ACTIVE_PER_USER})")
+        new = SimJob(user_id=job.user_id, username=job.username,
+                     title=job.title, description=job.description,
+                     base_dataset_id=job.base_dataset_id, diff=job.diff,
+                     summary=job.summary, estimate=job.estimate,
+                     status="queued", confirmed_at=_now(),
+                     resume_of=job.id, preferred_worker=job.worker_id or "")
+        db.add(new)
+        await db.commit()
+        await db.refresh(new)
+        logger.info("job %s resumed as %s by user %s", job.id, new.id, user.id)
+        return _job_out(new)
+
+
 # ─── Scenario registry (admin) ───────────────────────────────────────────
 
 class ScenarioIn(BaseModel):
@@ -212,6 +268,7 @@ class ScenarioIn(BaseModel):
     java_memory: str = "64G"
     threads: int = Field(default=16, ge=1, le=256)
     minutes_per_iteration: float | None = Field(default=None, gt=0)
+    sample_rate: float | None = Field(default=None, gt=0, le=1)
     notes: str = ""
 
 
@@ -238,6 +295,7 @@ async def list_scenarios(user: User = Depends(require_user)):
             "dataset_id": s.dataset_id, "config_name": s.config_name,
             "threads": s.threads, "java_memory": s.java_memory,
             "minutes_per_iteration": s.minutes_per_iteration,
+            "sample_rate": s.sample_rate,
             "notes": s.notes,
             # bundle/jar paths are worker-internal - admins see them:
             **({"bundle_path": s.bundle_path, "jar_path": s.jar_path}
@@ -250,9 +308,12 @@ async def list_scenarios(user: User = Depends(require_user)):
 @app.post("/worker/claim")
 async def worker_claim(worker_id: str = Depends(require_worker)):
     async with SessionLocal() as db:
+        # Resumed jobs go to the worker holding their checkpoint first;
+        # otherwise strict FIFO by confirmation time.
+        affinity = case((SimJob.preferred_worker == worker_id, 0), else_=1)
         job = (await db.scalars(
             select(SimJob).where(SimJob.status == "queued")
-            .order_by(SimJob.confirmed_at).limit(1)
+            .order_by(affinity, SimJob.confirmed_at).limit(1)
             .with_for_update(skip_locked=True))).first()
         if job is None:
             return {"job": None}
@@ -272,14 +333,17 @@ async def worker_claim(worker_id: str = Depends(require_worker)):
         return {"job": {
             "job_id": job.id,
             "title": job.title,
+            "description": job.description or "",
             "base_dataset_id": job.base_dataset_id,
             "summary": job.summary,
             "diff": job.diff,
+            "resume_of": job.resume_of,
             "bundle_path": scenario.bundle_path,
             "jar_path": scenario.jar_path,
             "config_name": scenario.config_name,
             "java_memory": scenario.java_memory,
             "threads": scenario.threads,
+            "sample_rate": scenario.sample_rate,
             "user_token": mint_user_token(job.user_id, job.username),
         }}
 

@@ -42,6 +42,7 @@ from pathlib import Path
 # the front) or it would shadow the installed SDK package.
 import httpx
 from mcp.server.fastmcp import Context, FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BACKEND_DIR))
@@ -77,7 +78,12 @@ Typical workflow:
  5. For anything else: sql_schema() + run_sql() (read-only SELECTs).
 """
 
-mcp = FastMCP("webmap", instructions=INSTRUCTIONS)
+# The SDK's DNS-rebinding guard rejects any Host header it doesn't expect —
+# behind nginx/vite that is the site's own hostname, so it would 421 every
+# real client. Bearer-token auth is the access control here, not the Host.
+mcp = FastMCP("webmap", instructions=INSTRUCTIONS,
+              transport_security=TransportSecuritySettings(
+                  enable_dns_rebinding_protection=False))
 
 
 # ── Auth (remote mode) ────────────────────────────────────────────────────
@@ -392,17 +398,23 @@ def _sim_token(ctx: Context) -> str:
 
 
 @mcp.tool()
-def propose_simulation(dataset: str, title: str, operations: list,
-                       iterations: int = 40, ctx: Context = None) -> dict:
+def propose_simulation(dataset: str, title: str, description: str,
+                       operations: list, iterations: int = 40,
+                       ctx: Context = None) -> dict:
     """Propose a custom MATSim run on a base dataset: a list of scenario
     operations (close_links/remove_links/modify_links/add_link/add_node/
     remove_transit_lines/scale_transit_frequency/
     scale_transit_vehicle_capacity — see the webmap docs for shapes).
-    Nothing runs until confirm_simulation is called after the human user
-    explicitly approved the returned summary + cost estimate."""
+    *description*: 1-2 plain-language sentences (what changes, what
+    question the run answers) — shown in the user's run list and stored on
+    the result dataset. Nothing runs until confirm_simulation is called
+    after the human user explicitly approved the returned summary + cost
+    estimate. Ask for missing details (e.g. one-way vs bidirectional for a
+    new link) instead of guessing."""
     from providers import sim_client
     return sim_client.propose(_sim_token(ctx), {
         "base_dataset_id": int(dataset), "title": title,
+        "description": description[:2000],
         "operations": operations, "params": {"iterations": iterations}})
 
 

@@ -195,3 +195,72 @@ def test_gates(client):
     # wrong worker token
     r = client.post("/worker/claim", headers={"X-Worker-Token": "wrong"})
     assert r.status_code == 401
+
+
+# ─── Description + resume ────────────────────────────────────────────────
+
+def test_description_roundtrip(client):
+    u = {"access_token": token(7)}
+    body = {**DIFF, "description": "Closes the bridge to see where traffic goes."}
+    job = client.post("/proposals", cookies=u, json=body).json()
+    assert job["description"] == body["description"]
+    assert client.get(f"/jobs/{job['job_id']}", cookies=u).json()["description"] \
+        == body["description"]
+    client.post(f"/jobs/{job['job_id']}/confirm", cookies=u)
+    claimed = client.post("/worker/claim",
+                          headers={"X-Worker-Token": "worker-secret"}).json()["job"]
+    assert claimed["description"] == body["description"]
+    assert claimed["resume_of"] is None
+
+
+def test_resume_flow(client):
+    w1 = {"X-Worker-Token": "worker-secret", "X-Worker-Id": "worker-1"}
+    w2 = {"X-Worker-Token": "worker-secret", "X-Worker-Id": "worker-2"}
+    u = {"access_token": token(8)}
+
+    # a proposal that was never confirmed cannot be resumed
+    jid0 = client.post("/proposals", cookies=u, json=DIFF).json()["job_id"]
+    client.post(f"/jobs/{jid0}/cancel", cookies=u)
+    assert client.post(f"/jobs/{jid0}/resume", cookies=u).status_code == 409
+
+    # run on worker-1, cancel it mid-way
+    jid = client.post("/proposals", cookies=u, json=DIFF).json()["job_id"]
+    client.post(f"/jobs/{jid}/confirm", cookies=u)
+    assert client.post("/worker/claim", headers=w1).json()["job"]["job_id"] == jid
+    client.post(f"/jobs/{jid}/cancel", cookies=u)
+    client.post(f"/worker/jobs/{jid}/fail", headers=w1,
+                json={"error": "cancelled by user", "cancelled": True})
+    assert client.get(f"/jobs/{jid}", cookies=u).json()["status"] == "cancelled"
+
+    # somebody else's job queued EARLIER (admin: no quota) ...
+    a = {"access_token": token(9, admin=True)}
+    other = client.post("/proposals", cookies=a, json=DIFF).json()["job_id"]
+    client.post(f"/jobs/{other}/confirm", cookies=a)
+
+    # ... resume → new queued job, bound to worker-1
+    r = client.post(f"/jobs/{jid}/resume", cookies=u)
+    assert r.status_code == 200, r.text
+    new = r.json()
+    assert new["status"] == "queued" and new["resume_of"] == jid
+    assert new["title"] == "No Hardbrücke"
+    # a second resume of the same run is refused while the first is active
+    assert client.post(f"/jobs/{jid}/resume", cookies=u).status_code == 409
+
+    # worker-1 gets the resumed job first (affinity beats FIFO); worker-2
+    # gets the older plain job
+    c1 = client.post("/worker/claim", headers=w1).json()["job"]
+    assert c1["job_id"] == new["job_id"] and c1["resume_of"] == jid
+    c2 = client.post("/worker/claim", headers=w2).json()["job"]
+    assert c2["job_id"] == other
+
+
+def test_resume_refused_for_scenario_errors(client):
+    u = {"access_token": token(10)}
+    w = {"X-Worker-Token": "worker-secret", "X-Worker-Id": "worker-1"}
+    jid = client.post("/proposals", cookies=u, json=DIFF).json()["job_id"]
+    client.post(f"/jobs/{jid}/confirm", cookies=u)
+    client.post("/worker/claim", headers=w)
+    client.post(f"/worker/jobs/{jid}/fail", headers=w,
+                json={"error": "scenario error: unknown link id(s): ['x']"})
+    r = client.post(f"/jobs/{jid}/resume", cookies=u)
+    assert r.status_code == 409 and "propose a new run" in r.json()["detail"]

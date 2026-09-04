@@ -19,6 +19,18 @@ export default defineConfig({
         ws: true,
       },
 
+      // Sim broker (custom runs): user API + worker API (workers connect
+      // from outside, like in prod). Must precede the generic /backend.
+      '/backend/sim': {
+        target: 'http://sim_backend:5035',
+        rewrite: (path) => path.replace(/^\/backend\/sim/, ''),
+      },
+
+      // MCP server (streamable HTTP, bearer auth) — serves /mcp itself.
+      '/mcp': {
+        target: 'http://mcp_backend:8090',
+      },
+
       '/backend': {
         target: 'http://webmap_backend:5031',
         rewrite: (path) => path.replace(/^\/backend/, ''),

@@ -206,7 +206,6 @@ from providers.helpers import load_static_asset_bytes, resolve_canton_to_polygon
 _MERGED_SUFFIX = "_merged_segments.geojson"
 _TRAFFIC_SUFFIX = "_link_traffic_volumes.json"
 _COUNTS_RE = _re.compile(r"transit/per_canton_counts/(.+)_counts\.json$")
-_PT_VOL_RE = _re.compile(r"transit/volumes_by_link_line/pt_link_volumes_by_link_line_(.+)\.json$")
 _STOPS_RE = _re.compile(r"transit/stops_by_canton/(.+)_stops\.geojson$")
 _ROUTES_BY_LINE_RE = _re.compile(r"transit/routes/by_line/(.+)\.geojson$")
 _PT_VOLUMES_RE = _re.compile(
@@ -331,18 +330,6 @@ async def matsim_asset(dataset_id: int, asset_path: str, request: Request):
             if payload is None:
                 return JSONResponse({"error": "not found"}, status_code=404)
             return _Response(content=payload, media_type="application/geo+json")
-
-        # PT passenger volumes per link/line for the Transit Volumes module —
-        # from the pt_link_volumes table (scripts/build_transit_volumes).
-        # Datasets without the table raise → 404 → GitHub-CDN fallback.
-        mv = _PT_VOL_RE.match(asset_path)
-        if mv:
-            cid = _canton_id_from(mv.group(1))
-            if cid is None:
-                return JSONResponse({"error": "not found"}, status_code=404)
-            from providers.transit_volumes import pt_link_volumes_by_canton
-            rows = await _asyncio.to_thread(pt_link_volumes_by_canton, cid)
-            return JSONResponse(rows)
 
         m = _COUNTS_RE.match(asset_path)
         if m:

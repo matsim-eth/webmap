@@ -115,3 +115,11 @@
   0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, .5); }
   50% { box-shadow: 0 0 0 5px rgba(99, 102, 241, 0); }
 }
+
+.simjobs-desc {
+  margin: 6px 0 2px;
+  color: #334155;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+.simjobs-open:disabled, .simjobs-cancel:disabled { opacity: .5; cursor: default; }

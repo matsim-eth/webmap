@@ -526,16 +526,16 @@ async def ingest_matsim(
     households: UploadFile | None = File(None),
     sample_rate: float | None = Form(None),
     run_name: str | None = Form(None),
-    admin=Depends(RequireAdminUser()),
+    user=Depends(RequireUser()),
     db: AsyncSession = Depends(get_db),
 ):
     """Stage a MATSim run's raw outputs and start building synthetic.duckdb.
 
     Returns 202 immediately; poll GET /datasets/{id}/ingest/status.
     """
-    ds = await db.get(Dataset, dataset_id)
-    if not ds:
-        raise HTTPException(status_code=404, detail="dataset not found")
+    # Same rule as upload/{category}: owner, admin or an 'editor' grant. The
+    # sim worker publishes custom runs this way under the submitting user.
+    ds = await require_dataset_write(dataset_id, db, user)
 
     root = dataset_root(ds.owner_id, ds.id, ds.is_public)
     root.mkdir(parents=True, exist_ok=True)
@@ -636,7 +636,7 @@ async def ingest_matsim_zip(
     zipfile_upload: UploadFile = File(...),
     sample_rate: float | None = Form(None),
     run_name: str | None = Form(None),
-    admin=Depends(RequireAdminUser()),
+    user=Depends(RequireUser()),
     db: AsyncSession = Depends(get_db),
 ):
     """Stage a MATSim run from a webmap_inputs .zip and start building
@@ -646,9 +646,7 @@ async def ingest_matsim_zip(
     """
     import zipfile as _zipfile
 
-    ds = await db.get(Dataset, dataset_id)
-    if not ds:
-        raise HTTPException(status_code=404, detail="dataset not found")
+    ds = await require_dataset_write(dataset_id, db, user)
 
     root = dataset_root(ds.owner_id, ds.id, ds.is_public)
     root.mkdir(parents=True, exist_ok=True)
@@ -767,14 +765,12 @@ async def ingest_matsim_zip(
 @router.get("/datasets/{dataset_id}/ingest/status")
 async def ingest_status(
     dataset_id: int,
-    admin=Depends(RequireAdminUser()),
+    user=Depends(RequireUser()),
     db: AsyncSession = Depends(get_db),
 ):
     """Job status of a MATSim ingest. Refreshes the completeness flags once the
     build lands, so has_synthetic flips without a separate /validate call."""
-    ds = await db.get(Dataset, dataset_id)
-    if not ds:
-        raise HTTPException(status_code=404, detail="dataset not found")
+    ds = await require_dataset_access(dataset_id, db, user)
 
     job = _ingest.read_job(dataset_root(ds.owner_id, ds.id, ds.is_public))
     if job is None:

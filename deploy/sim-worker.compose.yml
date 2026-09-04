@@ -10,16 +10,15 @@
 #   SIM_WORKER_TOKEN=...            # same value as in the server stack
 #   WORKER_ID=worker-1
 #
-# Scenario bundles (base-run inputs + eqasim jar + microcensus.duckdb)
-# live under ./bundles — their in-container paths (/bundles/...) are what
-# an admin registers in the broker's /scenarios.
+# Scenario bundles (base-run inputs + eqasim jar + persons/households files
+# + microcensus.duckdb) live under ./bundles — their in-container paths
+# (/bundles/...) are what an admin registers in the broker's /scenarios.
 
 services:
   sim_worker:
     image: ghcr.io/matsim-eth/webmap/sim-worker:latest
     build:
-      context: ..
-      dockerfile: sim-worker/Dockerfile
+      context: ../sim-worker
     environment:
       BROKER_URL: "${BROKER_URL}"
       DATASET_API_URL: "${DATASET_API_URL}"

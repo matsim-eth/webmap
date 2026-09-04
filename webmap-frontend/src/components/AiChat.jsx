@@ -760,6 +760,7 @@ export default function AiChat() {
           <div className="ai-sim-head">🧪 {d.title}
             <span className="ai-sim-badge">proposal</span>
           </div>
+          {d.description && <div className="ai-sim-desc">{d.description}</div>}
           <ul className="ai-sim-ops">
             {(d.summary || []).map((s, i) => <li key={i}>{s}</li>)}
           </ul>
@@ -784,6 +785,7 @@ export default function AiChat() {
               {d.status}
             </span>
           </div>
+          {d.description && <div className="ai-sim-desc">{d.description}</div>}
           {(d.status === 'running' || d.status === 'uploading' || d.status === 'queued') && (
             <>
               <div className="ai-sim-bar"><div style={{ width: `${pct}%` }} /></div>
